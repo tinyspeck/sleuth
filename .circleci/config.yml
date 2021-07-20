@@ -172,8 +172,14 @@ workflows:
           requires:
             - build-macos-x64
           arch: x64
+          filters:
+            branches:
+              only: main
       - code-sign-macos:
           name: code-sign-macos-arm64
           requires:
             - build-macos-arm64
           arch: arm64
+          filters:
+            branches:
+              only: main
