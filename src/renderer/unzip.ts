@@ -88,13 +88,13 @@ export class Unzipper {
     await fs.mkdirp(dir);
 
     const readStream = await new Promise<NodeJS.ReadableStream>((resolve, reject) => {
-      this.zipfile.openReadStream(entry, async (error: Error, stream: NodeJS.ReadableStream) => {
+      this.zipfile.openReadStream(entry, async (error: Error, zipStream: NodeJS.ReadableStream) => {
         if (error) {
           debug(`Encountered error while trying to read stream for ${entry.fileName}`);
           return reject(error);
         }
 
-        resolve(stream);
+        resolve(zipStream);
       });
     });
 
