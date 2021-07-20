@@ -1,7 +1,8 @@
 /* tslint:disable */
 
-const path = require('path');
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 const iconDir = path.join(__dirname, 'static/img');
 const version = require('./package.json').version;
@@ -28,14 +29,6 @@ const options = {
     asar: {
       unpackDir: '**/cachetool'
     },
-    osxSign: {
-      identity: 'Developer ID Application: Felix Rieseberg (LT94ZKYDCJ)',
-      hardenedRuntime: true,
-      'gatekeeper-assess': true,
-      'entitlements': 'static/entitlements.plist',
-      'entitlements-inherit': 'static/entitlements.plist',
-      'signature-flags': 'library'
-    },
     ignore: [
       /^\/\.vscode/,
       /^\/catapult/,
@@ -53,7 +46,7 @@ const options = {
     extendInfo: './static/extend.plist',
     win32metadata: {
       ProductName: 'Sleuth',
-      CompanyName: 'Felix Rieseberg'
+      CompanyName: 'Slack Technologies, Inc.'
     }
   },
   makers: [
@@ -61,15 +54,22 @@ const options = {
       name: '@electron-forge/maker-squirrel',
       platforms: ['win32'],
       config: (arch) => {
+        let sleuthCert = undefined;
+        if (process.env.WINDOWS_CODESIGN_CERT_B64) {
+          const codeSignCert = Buffer.from(process.env.WINDOWS_CODESIGN_CERT_B64, 'base64');
+          sleuthCert = path.resolve(os.tmpdir(), 'sleuth-sign.pfx');
+          fs.writeFileSync(sleuthCert, codeSignCert);
+        }
+
         return {
           name: 'sleuth',
-          authors: 'Felix Rieseberg',
+          authors: 'Slack Technologies, Inc.',
           exe: 'sleuth.exe',
           noMsi: true,
           setupExe: `sleuth-${version}-${arch}-setup.exe`,
           setupIcon: path.resolve(iconDir, 'sleuth-icon.ico'),
-          certificateFile: process.env['WINDOWS_CODESIGN_FILE'],
-          certificatePassword: process.env['WINDOWS_CODESIGN_PASSWORD'],
+          certificateFile: sleuthCert,
+          certificatePassword: process.env.WINDOWS_CODESIGN_PASSWORD,
         }
       }
     },
@@ -91,7 +91,7 @@ const options = {
       name: '@electron-forge/publisher-github',
       config: {
         repository: {
-          owner: 'felixrieseberg',
+          owner: 'tinyspeck',
           name: 'sleuth'
         },
         prerelease: false
@@ -99,32 +99,5 @@ const options = {
     }
   ]
 };
-
-function notarizeMaybe() {
-  if (process.platform !== 'darwin') {
-    return;
-  }
-
-  if (!process.env.CI && !process.env.APPLE_ID || !process.env.APPLE_ID_PASSWORD) {
-    console.log(`Not in CI, skipping notarization`);
-    return;
-  }
-
-  if (!process.env.APPLE_ID || !process.env.APPLE_ID_PASSWORD) {
-    console.warn('Should be notarizing, but environment variables APPLE_ID or APPLE_ID_PASSWORD are missing!');
-    return;
-  }
-
-  options.packagerConfig.osxNotarize = {
-    appBundleId: 'com.felixrieseberg.sleuth',
-    appleId: process.env.APPLE_ID,
-    appleIdPassword: process.env.APPLE_ID_PASSWORD,
-    ascProvider: 'LT94ZKYDCJ'
-  }
-
-  console.log(`Notarization enabled`);
-}
-
-notarizeMaybe()
 
 module.exports = options;

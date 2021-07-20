@@ -144,7 +144,7 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
         }, {
           label: 'GitHub Repository',
           click() {
-            shell.openExternal('https://github.com/felixrieseberg/sleuth');
+            shell.openExternal('https://github.com/tinyspeck/sleuth');
           }
         }
       ]

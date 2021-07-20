@@ -1,0 +1,185 @@
+version: 2.1
+
+orbs:
+  slack: circleci/slack@4.1.1
+  win: circleci/windows@2.2.0
+
+parameters:
+  build_image_tag_ubuntu:
+    type: string
+    default: slack-desktop-docker.jfrog.io/desktop-base-ubuntu-bionic:923159b2-132
+  build_image_tag_fedora:
+    type: string
+    default: slack-desktop-docker.jfrog.io/desktop-base-fedora-21:923159b2-130
+
+executors:
+  ubuntu:
+    docker:
+      - image: << pipeline.parameters.build_image_tag_ubuntu >>
+        auth:
+          username: desktop-docker
+          password: $JFROG_DOCKER_PASSWD
+  fedora:
+    docker:
+      - image: << pipeline.parameters.build_image_tag_fedora >>
+        auth:
+          username: desktop-docker
+          password: $JFROG_DOCKER_PASSWD
+  macos:
+    macos:
+      xcode: 12.4.0
+
+commands:
+  checkout_sleuth:
+    steps:
+      - checkout
+      - run:
+          name: Initialize Submodules
+          command: git submodule update --init --recursive
+  install_deps:
+    steps:
+      - restore_cache:
+          name: Restore Cached Dependencies
+          keys:
+            - v1-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          command: npx yarn@1.21.1 install --frozen-lockfile
+      - save_cache:
+          name: Cache Installed Dependencies
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
+  build_sleuth:
+    parameters:
+      make_flags:
+        type: string
+        default: ''
+    steps:
+      - checkout_sleuth
+      - install_deps
+      - run:
+          name: Build Packages with flags; << parameters.make_flags >>
+          command: npx yarn@1.21.1 run publish --dry-run << parameters.make_flags >>
+      - store_artifacts:
+          path: out/make
+          destination: make
+      - persist_to_workspace:
+          root: out
+          paths:
+            - make
+            - publish-dry-run
+
+jobs:
+  lint:
+    executor: ubuntu
+    steps:
+      - checkout_sleuth
+      - install_deps
+      - run:
+          name: Lint
+          command: npx yarn@1.21.1 lint
+  build-macos:
+    parameters:
+      arch:
+        type: enum
+        enum: ['x64', 'arm64']
+    executor: macos
+    steps:
+      - build_sleuth:
+          make_flags: --arch << parameters.arch >>
+  build-windows:
+    executor:
+      name: win/default
+      shell: bash.exe
+    steps:
+      - build_sleuth
+  build-ubuntu:
+    executor: ubuntu
+    steps:
+      - build_sleuth:
+          make_flags: --targets @electron-forge/maker-deb
+  build-fedora:
+    executor: fedora
+    steps:
+      - build_sleuth:
+          make_flags: --targets @electron-forge/maker-rpm
+  code-sign-macos:
+    machine: true
+    resource_class: tinyspeck/SF500MacPro
+    working_directory: /tmp/circleci-workspace/mac-code-sign
+    parameters:
+      arch:
+        type: enum
+        enum: ['x64', 'arm64']
+      channel:
+        type: string
+        default: 'prod'
+      prod_name:
+        type: string
+        default: 'Sleuth'
+      artifact_dir:
+        type: string
+        default: '/tmp/circleci-workspace/artifacts'
+    steps:
+      - run:
+          command: |
+            # clean up the workspace
+            rm -rf << parameters.artifact_dir >>
+      - attach_workspace:
+          at: << parameters.artifact_dir >>
+      - run:
+          command: |
+            mv << parameters.artifact_dir >>/make/zip/darwin/<< parameters.arch >>/*.zip << parameters.artifact_dir >>
+            export JOB_PARAMS=$(
+                jq -n \
+                    --arg j MAC_CODE_SIGN \
+                    --arg ad << parameters.artifact_dir >> \
+                    --arg c << parameters.channel >> \
+                    --arg pn << parameters.prod_name >> \
+                    --arg ct "$CIRCLE_TAG" \
+                    --arg cs "$CIRCLE_SHA1" \
+                    '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, CHANNEL: $c, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs}'
+            )
+            if [ -n "${CIRCLE_TAG}" ]; then export GIT_REF=$CIRCLE_TAG; else export GIT_REF=$CIRCLE_BRANCH; fi
+            sudo /Library/circleci/runner-entrypoint.sh x-app-code-sign "$JOB_PARAMS"
+            mv << parameters.artifact_dir >>/*.zip << parameters.artifact_dir >>/make/zip/darwin/<< parameters.arch >>
+          no_output_timeout: 45m
+      - store_artifacts:
+          path: << parameters.artifact_dir >>
+      - persist_to_workspace:
+          root: << parameters.artifact_dir >>
+          paths:
+            - '*'
+
+workflows:
+  ci:
+    jobs:
+      - lint
+      - build-macos:
+          name: build-macos-x64
+          arch: x64
+      - build-macos:
+          name: build-macos-arm64
+          arch: arm64
+      - build-windows:
+          context:
+            - slack-code-signing
+      - build-ubuntu
+      - build-fedora
+      - code-sign-macos:
+          name: code-sign-macos-x64
+          requires:
+            - build-macos-x64
+          arch: x64
+          filters:
+            branches:
+              only: main
+      - code-sign-macos:
+          name: code-sign-macos-arm64
+          requires:
+            - build-macos-arm64
+          arch: arm64
+          filters:
+            branches:
+              only: main
