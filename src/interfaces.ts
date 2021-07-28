@@ -178,6 +178,16 @@ export interface Suggestion extends fs.Stats {
   birthtimeMs: number;
 }
 
+export enum LogLevel {
+  info = 'info',
+  error = 'error',
+  warn = 'warn',
+  debug = 'debug'
+}
+
+export type LogMetrics = Record<LogLevel, number>;
+export type TimeBucketedLogMetrics = Record<number, LogMetrics>;
+
 export interface LevelFilter {
   error: boolean;
   info: boolean;

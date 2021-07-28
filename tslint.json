@@ -24,6 +24,7 @@
     "no-unused-expression": false,
     "no-unused-expression-chai": true,
     "no-reference": true,
+    "no-submodule-imports": [true, "chart.js/auto"],
     "no-implicit-dependencies": false,
     "interface-name": [
       false
