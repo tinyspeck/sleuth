@@ -19,7 +19,7 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
     const [getChart, setChart] = useRefReRender<Chart | null>(null, (chart) => chart?.destroy());
 
     useEffect(() => {
-        const canvas = getCanvas()
+        const canvas = getCanvas();
         if (!canvas) return;
         const chart = new Chart(canvas, {
             type,
@@ -67,8 +67,6 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
     return (
         <canvas
             ref={setCanvas}
-            width={150}
-            height={300}
             role='img'
             onClick={onClick}
             />

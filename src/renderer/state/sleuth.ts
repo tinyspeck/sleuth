@@ -195,6 +195,10 @@ export class SleuthState {
     }
   }
 
+  @computed get isLogViewVisible() {
+    return !this.isDetailsVisible;
+  }
+
   /**
    * Return the file name of the currently selected file.
    *

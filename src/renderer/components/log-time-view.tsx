@@ -7,11 +7,10 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 import { isLogFile } from '../../utils/is-logfile';
 import { LogLevel, LogMetrics } from '../../interfaces';
 import autoBind from 'react-autobind';
+import classNames from 'classnames';
 
 export interface LogTimeViewProps {
   state: SleuthState;
-  isVisible: boolean;
-  height: number;
 }
 
 @observer
@@ -49,9 +48,11 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
   }
 
   public render(): JSX.Element | null {
-    const { selectedLogFile } = this.props.state;
-    if (!this.props.isVisible || !selectedLogFile || !isLogFile(selectedLogFile)) return null;
+    const { selectedLogFile, isLogViewVisible } = this.props.state;
+    if (!isLogViewVisible || !selectedLogFile || !isLogFile(selectedLogFile)) return null;
 
+
+    const className = classNames('Details', { IsVisible: isLogViewVisible });
 
     const backgroundColors = {
       [LogLevel.info]: '#7FD1E0',
@@ -59,7 +60,6 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
       [LogLevel.error]: '#E32072',
       [LogLevel.debug]: ''
     };
-
     let datasets: Array<any> = [];
     const { timeBucketedLogMetrics } = this.props.state;
     if (timeBucketedLogMetrics) {
@@ -77,56 +77,63 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
     }
 
     return (
-      <div style={{ position: 'relative', height: this.props.height }}>
-        <ChartJSChart
-          key={selectedLogFile.id}
-          type='bar'
-          data={{
-            datasets
-          } as any}
-          options={
-            {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: {
-                  stacked: true,
-                  type: 'time',
-                  time: {
-                    unit: 'hour',
-                  },
-                  ticks: {
-                    autoSkip: false,
-                    maxRotation: 0,
-                    major: {
-                      enabled: true
+      <div className={className}>
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+          <ChartJSChart
+            key={selectedLogFile.id}
+            type='bar'
+            data={{
+              datasets
+            } as any}
+            options={
+              {
+                maintainAspectRatio: false,
+                scales: {
+                  x: {
+                    stacked: true,
+                    type: 'time',
+                    time: {
+                      unit: 'hour',
                     },
-                  }
-                },
-                y: {
-                  stacked: true,
-                },
-              },
-              plugins: {
-                zoom: {
-                  pan: {
-                    enabled: true,
-                    mode: 'x',
+                    ticks: {
+                      autoSkip: true,
+                      maxRotation: 0,
+                      major: {
+                        enabled: true
+                      },
+                    }
                   },
+                  y: {
+                    stacked: true,
+                  },
+                },
+                plugins: {
                   zoom: {
-                    mode: 'x',
-                    wheel: {
-                      enabled: true,
+                    limits: {
+                      x: {
+                        min: 'original',
+                        max: 'original'
+                      }
                     },
-                    onZoomComplete: this.onZoomComplete,
+                    pan: {
+                      enabled: true,
+                      mode: 'x',
+                    },
+                    zoom: {
+                      mode: 'x',
+                      wheel: {
+                        enabled: true,
+                      },
+                      onZoomComplete: this.onZoomComplete,
+                    },
                   },
-                },
+                }
               }
             }
-          }
-          plugins={[zoomPlugin]}
-          getElementAtEvent={this.onChartClick}
-        />
+            plugins={[zoomPlugin]}
+            getElementAtEvent={this.onChartClick}
+          />
+        </div>
       </div>
     );
   }

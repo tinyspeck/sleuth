@@ -46,7 +46,6 @@ export class LogContent extends React.Component<LogContentProps, Partial<LogCont
       search,
       dateTimeFormat,
       font,
-      isDetailsVisible,
       showOnlySearchResults,
       searchIndex,
       dateRange,
@@ -56,8 +55,6 @@ export class LogContent extends React.Component<LogContentProps, Partial<LogCont
     if (!selectedLogFile) return null;
     const isLog = isLogFile(selectedLogFile);
     const scrubber = <Scrubber elementSelector='LogTableContainer' onResizeHandler={this.resizeHandler} />;
-
-    const logTimeViewHeight = this.state.tableHeight ? window.innerHeight - 60 - this.state.tableHeight : 0;
 
     // In most cases, we're dealing with a log file
     if (isLog) {
@@ -78,7 +75,7 @@ export class LogContent extends React.Component<LogContentProps, Partial<LogCont
           </div>
           {scrubber}
           <LogLineDetails state={this.props.state} />
-          <LogTimeView state={this.props.state} height={logTimeViewHeight} isVisible={!isDetailsVisible} />
+          <LogTimeView state={this.props.state} />
         </div>
       );
     }
