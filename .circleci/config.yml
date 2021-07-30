@@ -151,6 +151,19 @@ jobs:
           root: << parameters.artifact_dir >>
           paths:
             - '*'
+  publish:
+    executor: ubuntu
+    steps:
+      - checkout_sleuth
+      - install_deps
+      - run: mkdir -p out
+      - attach_workspace:
+          at: out
+      - run:
+          name: Publish
+          command: |
+            node tools/fix-publish-paths.js
+            npx yarn@1.21.1 run publish --from-dry-run
 
 workflows:
   ci:
@@ -174,7 +187,7 @@ workflows:
           arch: x64
           filters:
             branches:
-              only: main
+              only: test-main
       - code-sign-macos:
           name: code-sign-macos-arm64
           requires:
@@ -182,4 +195,16 @@ workflows:
           arch: arm64
           filters:
             branches:
-              only: main
+              only: test-main
+      - publish:
+          requires:
+            - build-windows
+            - build-ubuntu
+            - build-fedora
+            - code-sign-macos-x64
+            - code-sign-macos-arm64
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+(-\w+)*$/
+          context:
+            - slack-gh-release

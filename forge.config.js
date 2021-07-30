@@ -24,7 +24,7 @@ const options = {
     name: 'Sleuth',
     executableName: process.platform === 'linux' ? 'sleuth' : 'Sleuth',
     icon: './static/img/sleuth-icon',
-    appBundleId: 'com.tinyspeck.sleuth',
+    appBundleId: 'com.felixrieseberg.sleuth',
     appCategoryType: 'public.app-category.developer-tools',
     asar: {
       unpackDir: '**/cachetool'
@@ -94,7 +94,9 @@ const options = {
           owner: 'tinyspeck',
           name: 'sleuth'
         },
-        prerelease: false
+        prerelease: false,
+        draft: true,
+        authToken: process.env.SLACK_GH_RELEASE_TOKEN,
       }
     }
   ]
