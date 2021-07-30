@@ -142,7 +142,7 @@ jobs:
                     '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, CHANNEL: $c, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs}'
             )
             if [ -n "${CIRCLE_TAG}" ]; then export GIT_REF=$CIRCLE_TAG; else export GIT_REF=$CIRCLE_BRANCH; fi
-            sudo /Library/circleci/runner-entrypoint.sh x-app-code-sign "$JOB_PARAMS"
+            sudo /Library/circleci/runner-entrypoint.sh master "$JOB_PARAMS"
             mv << parameters.artifact_dir >>/*.zip << parameters.artifact_dir >>/make/zip/darwin/<< parameters.arch >>
           no_output_timeout: 45m
       - store_artifacts:
