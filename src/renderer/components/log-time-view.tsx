@@ -22,7 +22,7 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
   }
 
   private onChartClick(chartElements: Array<InteractionItem>) {
-    if (!chartElements || !chartElements.length) return;
+    if (!chartElements.length) return;
 
     const [first] = chartElements;
     const {element}: {element: any} = first;

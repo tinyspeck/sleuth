@@ -6,7 +6,6 @@ import { LogTable } from './log-table';
 import { observer } from 'mobx-react';
 import React from 'react';
 
-
 import { LogLineDetails } from './log-line-details/details';
 import { Scrubber } from './scrubber';
 import { getFontForCSS } from './preferences-font';

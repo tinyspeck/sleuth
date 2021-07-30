@@ -1,6 +1,7 @@
-import React, {useRef, useEffect} from 'react';
+import React, {useEffect, useCallback} from 'react';
 import { Chart, ChartConfiguration, InteractionItem } from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
+import { useRefReRender  } from '../hooks/use-ref-rerender';
 
 export { InteractionItem } from 'chart.js/auto';
 interface ChartJSProps {
@@ -10,15 +11,28 @@ interface ChartJSProps {
     plugins: ChartConfiguration['plugins'];
     getElementAtEvent?: (items: Array<InteractionItem>, e: React.MouseEvent<HTMLCanvasElement>) => any;
 }
+
 const ChartJSChart = React.memo(function (props: ChartJSProps) {
     const {data, type, options, plugins, getElementAtEvent} = props;
 
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const chartRef = useRef<Chart | null>(null);
+    const [getCanvas, setCanvas] = useRefReRender<HTMLCanvasElement>(null);
+    const [getChart, setChart] = useRefReRender<Chart | null>(null, (chart) => chart?.destroy());
 
     useEffect(() => {
-        if (!chartRef.current) return;
-        const chart = chartRef.current;
+        const canvas = getCanvas()
+        if (!canvas) return;
+        const chart = new Chart(canvas, {
+            type,
+            data,
+            options,
+            plugins
+        });
+        setChart(chart);
+    }, []);
+
+    useEffect(() => {
+        const chart = getChart();
+        if (!chart) return;
         const {datasets: currentDatasets} = chart.data;
         const {datasets} = data;
         for (const dataset of datasets) {
@@ -28,7 +42,7 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
             if (found) {
                 Object.assign(found, dataset, {
                     data: dataset.data
-                  });
+                });
             } else {
                 currentDatasets.push(dataset);
             }
@@ -36,35 +50,23 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
         chart.update('none');
     }, [data]);
 
-    useEffect(() => {
-        if (!canvasRef.current) return;
-
-        chartRef.current = new Chart(canvasRef.current, {
-            type,
-            data,
-            options,
-            plugins
-        });
-        return () => chartRef.current?.destroy();
-    }, []);
-
-    const onClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (chartRef.current && getElementAtEvent) {
+    const onClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+        const chart = getChart();
+        if (chart && getElementAtEvent) {
             getElementAtEvent(
-                chartRef.current.getElementsAtEventForMode(
-                  e as any,
-                  'nearest',
-                  { intersect: true },
-                  false
+                chart.getElementsAtEventForMode(
+                    e as any,
+                    'nearest',
+                    { intersect: true },
+                    false
                 ),
                 e
-              );
+            );
         }
-      };
+    }, [getElementAtEvent]);
     return (
-
         <canvas
-            ref={canvasRef}
+            ref={setCanvas}
             width={150}
             height={300}
             role='img'

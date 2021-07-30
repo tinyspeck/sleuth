@@ -48,7 +48,7 @@ function getBucket(range: number, momentValue: number): number {
    * @returns {number} initialRange
    */
   export function getInitialTimeViewRange(selectedLogFile: SelectableLogFile): number {
-    if (!isLogFile(selectedLogFile)) {
+    if (!isLogFile(selectedLogFile) || selectedLogFile.logEntries.length === 0) {
      return 0;
     }
 

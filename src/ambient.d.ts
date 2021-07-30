@@ -13,6 +13,7 @@ declare module 'markdown-it-highlightjs';
 declare module 'markdown-it-emoji';
 declare module 'cachetool';
 declare module 'chartjs-plugin-zoom';
+declare module 'chartjs-adapter-date-fns';
 
 // https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript#wildcard-character-in-module-name
 declare module '*/package.json';
