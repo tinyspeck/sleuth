@@ -21,8 +21,10 @@ import {
   UnzippedFile,
   SelectableLogFile,
   ProcessedLogFiles,
-  SerializedBookmark
+  SerializedBookmark,
+  TimeBucketedLogMetrics
 } from '../../interfaces';
+import { getInitialTimeViewRange, getTimeBuckedLogMetrics } from './time-view';
 import { rehydrateBookmarks, importBookmarks } from './bookmarks';
 import { copy } from './copy';
 import { changeIcon } from '../ipc';
@@ -54,6 +56,8 @@ export class SleuthState {
   // All the entries in the range. Let's hope this isn't horribly slow.
   // We should only over change the whole array.
   @observable.ref public selectedRangeEntries?: Array<LogEntry>;
+  // The custom range of the log time view
+  @observable public customTimeViewRange: number | undefined;
   // Path to the source directory (zip file, folder path, etc)
   @observable public source?: string;
   // A reference to the selected log file
@@ -191,6 +195,10 @@ export class SleuthState {
     }
   }
 
+  @computed get isLogViewVisible() {
+    return !this.isDetailsVisible;
+  }
+
   /**
    * Return the file name of the currently selected file.
    *
@@ -201,6 +209,19 @@ export class SleuthState {
     return this.selectedLogFile
       ? getFileName(this.selectedLogFile)
       : '';
+  }
+
+  @computed
+  public get initialTimeViewRange(): number {
+    return this.selectedLogFile ? getInitialTimeViewRange(this.selectedLogFile) : 0;
+  }
+
+  @computed
+  public get timeBucketedLogMetrics(): TimeBucketedLogMetrics {
+    const range = this.customTimeViewRange || this.initialTimeViewRange;
+    return this.selectedLogFile
+      ? getTimeBuckedLogMetrics(this.selectedLogFile, range)
+      : {};
   }
 
   @action
@@ -290,6 +311,7 @@ export class SleuthState {
     this.selectedRangeEntries = undefined;
     this.selectedRangeIndex = undefined;
     this.selectedIndex = undefined;
+    this.customTimeViewRange = undefined;
 
     if (!logFile && logType) {
       debug(`Selecting log type ${logType}`);
