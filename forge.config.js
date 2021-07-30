@@ -24,7 +24,7 @@ const options = {
     name: 'Sleuth',
     executableName: process.platform === 'linux' ? 'sleuth' : 'Sleuth',
     icon: './static/img/sleuth-icon',
-    appBundleId: 'com.felixrieseberg.sleuth',
+    appBundleId: 'com.tinyspeck.sleuth',
     appCategoryType: 'public.app-category.developer-tools',
     asar: {
       unpackDir: '**/cachetool'
