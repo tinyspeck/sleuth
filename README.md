@@ -8,8 +8,8 @@ A Slack Log Viewer.
 git clone https://github.com/tinyspeck/sleuth
 cd sleuth
 git submodule update --init --recursive
-npm i
-npm start
+yarn
+yarn start
 ```
 
 # Releases
@@ -20,7 +20,7 @@ To release a new version, follow the following steps:
 1) Create a new version (for instance with `yarn version`). This should
    update the version number in `package.json` and create a new `git` tag.
 2) Push the updated `package.json` and new `git` tag (`git push && git push --tags`).
-3) GitHub Actions will automatically build Sleuth for all platforms and "draft"
+3) CircleCI will automatically build Sleuth for all platforms and "draft"
    [a new release](https://github.com/tinyspeck/sleuth/releases).
 4) Check the draft and make sure that all expected assets are there. A quick and
    easy way to do that is to check if the drafted release has the same assets
