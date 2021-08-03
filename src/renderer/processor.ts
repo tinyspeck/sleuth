@@ -414,7 +414,7 @@ export function readFile(
           pushEntry(androidDebug);
           androidDebug = null;
           pushEntry(current);
-        } 
+        }
         else {
           // No Android log line to deal with, push the last entry
           pushEntry(current);
@@ -462,9 +462,9 @@ export function readFile(
       // If an unpushed Android debug line exists, add the current message to it (probably another orphan Android debug line) and push
       if (androidDebug) {
         androidDebug.message += '\n' + current?.message;
-        pushEntry(androidDebug)
+        pushEntry(androidDebug);
       } else {
-        pushEntry(current)
+        pushEntry(current);
       }
       resolve({ entries, lines, levelCounts, repeatedCounts });
     });
@@ -750,7 +750,7 @@ export function matchLineIOS(line: string): MatchResult | undefined {
     // If DD/MM/YY format, switch the first two parts around to make it MM/DD
     if (!momentValue) {
       const splits = results[1].split(/\//);
-      const rejoinedDate = [splits[1],splits[0],splits[2]].join('/');
+      const rejoinedDate = [splits[1], splits[0], splits[2]].join('/');
       momentValue = new Date(rejoinedDate).valueOf();
       timestamp = rejoinedDate;
     }
