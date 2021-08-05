@@ -142,7 +142,7 @@ jobs:
                     --arg ad << parameters.artifact_dir >> \
                     --arg c << parameters.channel >> \
                     --arg pn << parameters.prod_name >> \
-                    --arg ct "$CIRCLE_TAG" \
+                    --arg ct "" \
                     --arg cs "$CIRCLE_SHA1" \
                     '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, CHANNEL: $c, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs}'
             )
