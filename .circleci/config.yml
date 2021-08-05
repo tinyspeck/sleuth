@@ -1,5 +1,10 @@
 version: 2.1
 
+anchors:
+  job_filter_releases: &job_filter_releases
+    tags:
+      only: /^v[0-9]+\.[0-9]+\.[0-9]+(-\w+)*$/
+
 orbs:
   slack: circleci/slack@4.1.1
   win: circleci/windows@2.2.0
@@ -172,14 +177,24 @@ workflows:
       - build-macos:
           name: build-macos-x64
           arch: x64
+          filters:
+            <<: *job_filter_releases
       - build-macos:
           name: build-macos-arm64
           arch: arm64
+          filters:
+            <<: *job_filter_releases
       - build-windows:
           context:
             - slack-code-signing
-      - build-ubuntu
-      - build-fedora
+          filters:
+            <<: *job_filter_releases
+      - build-ubuntu:
+          filters:
+            <<: *job_filter_releases
+      - build-fedora:
+          filters:
+            <<: *job_filter_releases
       - code-sign-macos:
           name: code-sign-macos-x64
           requires:
@@ -187,7 +202,8 @@ workflows:
           arch: x64
           filters:
             branches:
-              only: test-main
+              only: main
+            <<: *job_filter_releases
       - code-sign-macos:
           name: code-sign-macos-arm64
           requires:
@@ -195,7 +211,8 @@ workflows:
           arch: arm64
           filters:
             branches:
-              only: test-main
+              only: main
+            <<: *job_filter_releases
       - publish:
           requires:
             - build-windows
@@ -204,9 +221,8 @@ workflows:
             - code-sign-macos-x64
             - code-sign-macos-arm64
           filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+(-\w+)*$/
             branches:
               ignore: /.*/
+            <<: *job_filter_releases
           context:
             - slack-gh-release
