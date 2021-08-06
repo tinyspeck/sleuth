@@ -88,7 +88,7 @@ export class IpcManager {
   }
 
   private setupGetPath() {
-    type name = 'home' | 'appData' | 'userData' | 'cache' | 'temp' | 'exe' | 'module' | 'desktop' | 'documents' | 'downloads' | 'music' | 'pictures' | 'videos' | 'logs' | 'pepperFlashSystemPlugin';
+    type name = 'home' | 'appData' | 'userData' | 'cache' | 'temp' | 'exe' | 'module' | 'desktop' | 'documents' | 'downloads' | 'music' | 'pictures' | 'videos' | 'logs';
 
     ipcMain.handle('get-path', (_event, pathName: name) => {
       return app.getPath(pathName);

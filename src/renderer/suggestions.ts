@@ -9,20 +9,29 @@ import { getPath, showMessageBox } from './ipc';
 const debug = require('debug')('sleuth:suggestions');
 
 export async function getItemsInSuggestionFolders(): Promise<Suggestions> {
- let suggestionsArr: Array<Suggestion>;
+ const suggestionsArr: Array<Suggestion> = [];
 
   // We'll get suggestions from the downloads folder and
   // the desktop
   try {
-    const downloadsDir = await getPath('downloads');
-    const downloads = (await fs.readdir(downloadsDir))
-      .map((file) => path.join(downloadsDir, file));
+    try {
+      const downloadsDir = await getPath('downloads');
+      const downloads = (await fs.readdir(downloadsDir))
+        .map((file) => path.join(downloadsDir, file));
+      suggestionsArr.push(...await getSuggestions(downloads));
+    } catch (e) {
+      debug(e);
+    }
 
-    const desktopDir = await getPath('desktop');
-    const desktop = (await fs.readdir(desktopDir))
-      .map((file) => path.join(desktopDir, file));
+    try {
+      const desktopDir = await getPath('desktop');
+      const desktop = (await fs.readdir(desktopDir))
+        .map((file) => path.join(desktopDir, file));
+      suggestionsArr.push(...await getSuggestions(desktop));
+    } catch (e) {
+      debug(e);
+    }
 
-    suggestionsArr = (await getSuggestions(downloads)).concat(await getSuggestions(desktop));
     const sortedSuggestions  = suggestionsArr.sort((a, b) => {
       return b.mtimeMs - a.mtimeMs;
     });
@@ -48,7 +57,7 @@ export async function deleteSuggestion(filePath: string) {
   });
 
   if (response) {
-    shell.moveItemToTrash(filePath);
+    await shell.trashItem(filePath);
   }
 
   return !!response;
@@ -68,7 +77,7 @@ export async function deleteSuggestions(filePaths: Array<string>) {
   });
 
   if (response) {
-    filePaths.forEach((filePath) => shell.moveItemToTrash(filePath));
+    await Promise.all(filePaths.map((filePath) => shell.trashItem(filePath)));
   }
 
   return !!response;
