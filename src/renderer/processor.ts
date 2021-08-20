@@ -745,8 +745,8 @@ export function matchLineIOS(line: string): MatchResult | undefined {
 
   if (results && results.length === 4) {
     // If it's dd.mm.yy, replace each with /
-    let fixedDate = results[1].replace('.','/');
-    fixedDate = fixedDate.replace('.','/');
+    let fixedDate = results[1].replace('.', '/');
+    fixedDate = fixedDate.replace('.', '/');
     let timestamp = fixedDate;
     // Expected format: MM/DD/YY, HH:mm:ss ?AM|PM'
     let momentValue = new Date(fixedDate).valueOf();
