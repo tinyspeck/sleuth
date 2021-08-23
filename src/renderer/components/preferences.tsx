@@ -95,7 +95,7 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
           <FormGroup
             inline={true}
             label='Sort Direction'
-            helperText='Skip home screen and always open most recent file automatically'
+            helperText='Sort logs by oldest (ascending) or newest (descending)'
           >
             <RadioGroup
               onChange={(event) => (this.props.state.defaultSort = event.currentTarget.value as SORT_DIRECTION)}
@@ -158,7 +158,7 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
           <FormGroup
             inline={true}
             label='Use the Mark Christian™️ icon'
-            helperText='Mark did some art and made a special Sleuth icon. Requires a restart.'
+            helperText='Mark did some art and made a special Sleuth icon. Requires a restart'
           >
             <Checkbox
               checked={this.props.state.isMarkIcon}
