@@ -28,7 +28,15 @@ export function copy(state: SleuthState): boolean {
 }
 
 function getCopyText(entry: LogEntry) {
-  const { message, meta, timestamp } = entry;
+  const { message, meta } = entry;
+  let { timestamp } = entry;
+
+  // Android log timestamps look like this: Thu Jul 15 2021 13:14:58 GMT-0700 (Pacific Daylight Time)
+  // So we pare them down to just Jul 15 2021 13:14:58
+  if (entry.logType === 'mobile' && timestamp.includes('(')) {
+    timestamp = timestamp.substr(4, 20);
+  }
+
   let text = `${timestamp} ${message}`;
 
   if (meta) {
