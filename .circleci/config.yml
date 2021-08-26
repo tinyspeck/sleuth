@@ -111,7 +111,7 @@ jobs:
           make_flags: --targets @electron-forge/maker-rpm
   code-sign-macos:
     machine: true
-    resource_class: tinyspeck/SF500MacPro
+    resource_class: tinyspeck/SF500MacProXcode13
     working_directory: /tmp/circleci-workspace/mac-code-sign
     parameters:
       arch:
