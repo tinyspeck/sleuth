@@ -107,7 +107,7 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
     if (noFiles && !cachePath) {
       showMessageBox({
         title: 'Huh, weird logs!',
-        message: 'Sorry, Sleuth does not understand the files. It seems like there are no Slack logs here.',
+        message: 'Sorry, Sleuth does not understand the file(s). It seems like there are no Slack logs here.\n\n[Tip] Filename must start with:\n\niOS - "Default_logs"\nAndroid - "attachment"\nBrowser - "app.slack" or "console-export-"\nDesktop - Try unzipping first',
         type: 'error'
       });
 
