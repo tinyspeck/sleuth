@@ -13,7 +13,7 @@ const DESKTOP_RGX = /^\s*\[([\d\/\,\s\:]{22,24})\] ([A-Za-z]{0,20})\:?(.*)$/g;
 const WEBAPP_A_RGX = /^(\w*): (.{3}-\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 const WEBAPP_B_RGX = /^(\w*): (\d{4}\/\d{1,2}\/\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 
-const IOS_RGX = /^\s*\[((?:[0-9]{1,4}(?:\/|\-)?){3}, [0-9]{1,2}:[0-9]{2}:[0-9]{2}\s?(?:AM|PM)?)\] (-|.{0,2}<\w+>)(.+)$/;
+const IOS_RGX = /^\s*\[((?:[0-9]{1,4}(?:\/|\-|\.)?){3}, [0-9]{1,2}:[0-9]{2}:[0-9]{2}\s?(?:AM|PM)?)\] (-|.{0,2}[</[]\w+[>\]])(.+)$/;
 
 const ANDROID_A_RGX = /^\s*([0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}:[0-9]{3}) (.+)$/;
 const ANDROID_B_RGX = /^(?:\u200B|[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})?\s*(.*)\s*([a-zA-Z]{3}-[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})\s(.*)/;
@@ -744,12 +744,15 @@ export function matchLineIOS(line: string): MatchResult | undefined {
   const results = IOS_RGX.exec(line);
 
   if (results && results.length === 4) {
-    let timestamp = results[1];
+    // If it's dd.mm.yy, replace each with /
+    let fixedDate = results[1].replace('.', '/');
+    fixedDate = fixedDate.replace('.', '/');
+    let timestamp = fixedDate;
     // Expected format: MM/DD/YY, HH:mm:ss ?AM|PM'
-    let momentValue = new Date(results[1]).valueOf();
+    let momentValue = new Date(fixedDate).valueOf();
     // If DD/MM/YY format, switch the first two parts around to make it MM/DD
     if (!momentValue) {
-      const splits = results[1].split(/\//);
+      const splits = fixedDate.split(/\//);
       const rejoinedDate = [splits[1], splits[0], splits[2]].join('/');
       momentValue = new Date(rejoinedDate).valueOf();
       timestamp = rejoinedDate;
