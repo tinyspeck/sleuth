@@ -25,6 +25,7 @@
     "/.tmp/",
     "/src/main/",
     "/catapult",
+    "/devtools-frontend",
     "/dist"
   ],
   "coverageReporters": [
@@ -39,6 +40,7 @@
   "coveragePathIgnorePatterns": [
     "/node_modules/",
     "/test/.*\\.(ts|js)$",
-    "/catapult"
+    "/catapult",
+    "/devtools-frontend"
   ]
 }

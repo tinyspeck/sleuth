@@ -8,6 +8,7 @@ export function getFirstLogFile(files: ProcessedLogFiles | undefined): Selectabl
     if (files.webapp && files.webapp.length > 0) return files.webapp[0];
     if (files.call && files.call.length > 0) return files.call[0];
     if (files.netlog && files.netlog.length > 0) return files.netlog[0];
+    if (files.trace && files.trace.length > 0) return files.netlog[0];
     if (files.installer && files.installer.length > 0) return files.installer[0];
     if (files.state && files.state.length > 0) return files.state[0];
     if (files.mobile && files.mobile.length > 0) return files.mobile[0];

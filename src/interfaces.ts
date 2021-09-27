@@ -9,6 +9,7 @@ export type LogFile = MergedLogFile | ProcessedLogFile;
 export type RepeatedCounts = Record<string, number>;
 
 export const enum LogType {
+  TRACE = 'trace',
   BROWSER = 'browser',
   RENDERER = 'renderer',
   CALL = 'call',
@@ -139,6 +140,7 @@ export interface ProcessedLogFiles {
   state: Array<UnzippedFile>;
   call: Array<ProcessedLogFile>;
   netlog: Array<UnzippedFile>;
+  trace: Array<UnzippedFile>;
   installer: Array<UnzippedFile>;
   mobile: Array<UnzippedFile>;
 }
@@ -158,6 +160,7 @@ export interface SortedUnzippedFiles {
   state: Array<UnzippedFile>;
   call: Array<UnzippedFile>;
   netlog: Array<UnzippedFile>;
+  trace: Array<UnzippedFile>;
   installer: Array<UnzippedFile>;
   mobile: Array<UnzippedFile>;
 }

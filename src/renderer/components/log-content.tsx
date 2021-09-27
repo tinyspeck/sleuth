@@ -13,6 +13,7 @@ import { getTypeForFile } from '../processor';
 import { NetLogView } from './net-log-view';
 import { ToolView } from './tool-view';
 import { LogTimeView } from './log-time-view';
+import { DevtoolsView } from './devtools-view';
 
 export interface LogContentProps {
   state: SleuthState;
@@ -86,6 +87,8 @@ export class LogContent extends React.Component<LogContentProps, Partial<LogCont
 
       if (logType === LogType.NETLOG) {
         return <NetLogView file={selectedLogFile} state={this.props.state} />;
+      } else if (logType === LogType.TRACE) {
+        return <DevtoolsView file={selectedLogFile} state={this.props.state} />;
       }
     }
 

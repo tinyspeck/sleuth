@@ -1,3 +1,6 @@
 [submodule "catapult"]
 	path = catapult
 	url = https://chromium.googlesource.com/catapult
+[submodule "devtools-frontend"]
+	path = devtools-frontend
+	url = https://chromium.googlesource.com/devtools/devtools-frontend/

@@ -30,6 +30,12 @@ import { copy } from './copy';
 import { changeIcon } from '../ipc';
 import { ICON_NAMES, STATE_IPC } from '../../shared-constants';
 import { setupTouchBarAutoruns } from './touchbar';
+import { TraceProcessor, RendererDescription } from '../processor/trace';
+
+interface SourcemapState {
+  progress: number,
+  result?: string
+}
 
 const debug = require('debug')('sleuth:state');
 export const defaults = {
@@ -45,6 +51,10 @@ export class SleuthState {
   // ** Cooper log line logging **
   @observable public slackUserId?: string;
   @observable public isCooperSignedIn = false;
+  
+  // ** Pantry source map fetching **
+  @observable public isUberProxySignedIn = false;
+  @observable public uberProxyCookie: string;
 
   // ** Log file selection **
   // The selected log entry (single log message plus meta data)
@@ -93,6 +103,9 @@ export class SleuthState {
   @observable.shallow public bookmarks: Array<Bookmark> = [];
   @observable public serializedBookmarks: Record<string, Array<SerializedBookmark>>
     = this.retrieve('serializedBookmarks', true) as Record<string, Array<SerializedBookmark>> || {};
+  // ** Profiler **
+  @observable public rendererThreads: RendererDescription[] | undefined;
+  @observable public sourcemapState: SourcemapState = {progress: 0};
 
   // ** Settings **
   @observable public isDarkMode: boolean = !!this.retrieve('isDarkMode', true);
@@ -111,6 +124,8 @@ export class SleuthState {
 
   // ** Internal settings **
   private didOpenMostRecent = false;
+
+  public traceProcessor = new TraceProcessor();
 
   constructor(
     public readonly openFile: (file: string) => void,
@@ -163,6 +178,20 @@ export class SleuthState {
         this.isLoadingCacheKeys = false;
       }
     });
+
+    this.traceProcessor.on('auth-changed', (cookie, isSignedIn) => {
+      this.uberProxyCookie = cookie;
+      this.isUberProxySignedIn = isSignedIn;
+    });
+    this.traceProcessor.on("progress",(progress) => (this.sourcemapState = { progress }));
+    this.traceProcessor.on("error", (error) => {
+      this.sourcemapState = {
+        progress: 1,
+        result: `Error ${error}`,
+      };
+    });
+
+    autorun(() => this.traceProcessor.setCookie(this.uberProxyCookie));
 
     this.reset = this.reset.bind(this);
     this.toggleDarkMode = this.toggleDarkMode.bind(this);
@@ -292,6 +321,8 @@ export class SleuthState {
     this.cachePath = undefined;
     this.selectedCacheKey = undefined;
     this.isLoadingCacheKeys = false;
+    this.sourcemapState = {progress: 0};
+    this.rendererThreads = undefined;
 
     if (goBackToHome) {
       this.resetApp();
