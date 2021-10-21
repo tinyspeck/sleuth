@@ -24,6 +24,7 @@ export interface DevtoolsViewState {
 }
 
 const debug = require("debug")("sleuth:devtoolsview");
+
 @observer
 export class DevtoolsView extends React.Component<
   DevtoolsViewProps,
@@ -39,11 +40,10 @@ export class DevtoolsView extends React.Component<
   }
 
   async prepare() {
-    const { state } = this.props;
-    if (!state.rendererThreads?.length) {
-      state.rendererThreads = await this.props.state.traceProcessor.getRendererProcesses(this.props.file);
-      await this.props.state.traceProcessor.sourcemap(this.props.state, this.props.file);
-      this.props.state.sourcemapState = { progress: 1, result: `Completed` };
+    const { state, file } = this.props;
+    if (!state.rendererThreads) {
+      state.getRendererProcesses(file);
+      state.sourcemap(file);
     }
   }
 
@@ -156,12 +156,13 @@ export class DevtoolsView extends React.Component<
     if (!processId) {
       return;
     }
-
+    
     debug(`iFrame loaded`);
     const iframe = document.querySelector("iframe");
 
     if (iframe) {
-      const events = await this.props.state.traceProcessor.processRenderer(this.props.state, this.props.file, processId);
+      const {state} = this.props;
+      const events = state.processRenderer(this.props.file, processId);
 
       // See catapult.html for the postMessage handler
       const devtoolsWindow = iframe.contentWindow;
@@ -170,7 +171,7 @@ export class DevtoolsView extends React.Component<
           instruction: "load",
           payload: { events },
         },
-        "*"
+        "oop://oop/static/devtools-frontend.html"
       );
     }
 
@@ -199,7 +200,7 @@ export class DevtoolsView extends React.Component<
             instruction: "dark-mode",
             payload: enabled,
           },
-          "*"
+          "oop://oop/static/devtools-frontend.html"
         );
       }
     } catch (error) {

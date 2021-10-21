@@ -56,7 +56,7 @@ export class TraceProcessor extends EventEmitter {
     return this.cachedParser;
   }
 
-  async getRendererProcesses(file: UnzippedFile): Promise<RendererDescription[]> {
+  async getRendererProcesses(file: UnzippedFile): Promise<RendererDescription[] | undefined> {
     const parser = await this.getTraceParser(file);
     if (parser) {
       const { renderers } = parser.getThreadInfo();
@@ -69,7 +69,7 @@ export class TraceProcessor extends EventEmitter {
         };
       });
     }
-    return [];
+    return undefined;
   }
 
   async makeInitialEntry(

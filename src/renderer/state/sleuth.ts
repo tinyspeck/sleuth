@@ -124,8 +124,7 @@ export class SleuthState {
 
   // ** Internal settings **
   private didOpenMostRecent = false;
-
-  public traceProcessor = new TraceProcessor();
+  private traceProcessor = new TraceProcessor();
 
   constructor(
     public readonly openFile: (file: string) => void,
@@ -183,13 +182,15 @@ export class SleuthState {
       this.uberProxyCookie = cookie;
       this.isUberProxySignedIn = isSignedIn;
     });
-    this.traceProcessor.on("progress",(progress) => (this.sourcemapState = { progress }));
-    this.traceProcessor.on("error", (error) => {
-      this.sourcemapState = {
-        progress: 1,
-        result: `Error ${error}`,
-      };
+    this.traceProcessor.on("progress", (progress) => {
+      this.sourcemapState = { progress }
     });
+    this.traceProcessor.on("error", (error) => {
+      this.sourcemapState = { progress: 1, result: `Error ${error}`};
+    });
+    this.traceProcessor.on("completed", () => {
+      this.sourcemapState = { progress: 1, result: `Completed` };
+    })
 
     autorun(() => this.traceProcessor.setCookie(this.uberProxyCookie));
 
@@ -375,6 +376,29 @@ export class SleuthState {
 
       this.levelFilter = filter;
     }
+  }
+
+  @action
+  public async getRendererProcesses(file: UnzippedFile) {
+    try {
+      this.rendererThreads = await this.traceProcessor.getRendererProcesses(file);
+    } catch (e) {
+      debug('Unable to get renderer processes', e);
+    }
+  }
+
+  @action
+  public async sourcemap(file: UnzippedFile) {
+    try {
+      await this.traceProcessor.sourcemap(this, file);
+    } catch (e) {
+      debug('Unable to get sorucemap file', e);
+    }
+  }
+
+  @action
+  public async processRenderer(file: UnzippedFile, pid: number) {
+    return this.traceProcessor.processRenderer(this, file, pid);
   }
 
   /**
