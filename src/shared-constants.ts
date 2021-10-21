@@ -1,5 +1,5 @@
 const { app, remote } = require('electron');
-const getVersion = app?.getVersion || remote.app.getVersion; 
+const getVersion = app?.getVersion || remote.app.getVersion;
 
 export interface StringMap<T> {
   [key: string]: T;
@@ -32,4 +32,4 @@ export const enum STATE_IPC {
   RESET = 'RESET',
 }
 
-export const USER_AGENT = `sleuth/${getVersion()}`
+export const USER_AGENT = `sleuth/${getVersion()}`;

@@ -1,5 +1,5 @@
-import React from "react";
-import { observer } from "mobx-react";
+import React from 'react';
+import { observer } from 'mobx-react';
 
 import {
   Spinner,
@@ -8,11 +8,11 @@ import {
   Card,
   Icon,
   ButtonGroup,
-} from "@blueprintjs/core";
-import { SleuthState } from "../state/sleuth";
-import { autorun, IReactionDisposer } from "mobx";
-import { UnzippedFile } from "../../interfaces";
-import { RendererDescription } from "../processor/trace";
+} from '@blueprintjs/core';
+import { SleuthState } from '../state/sleuth';
+import { autorun, IReactionDisposer } from 'mobx';
+import { UnzippedFile } from '../../interfaces';
+import { RendererDescription } from '../processor/trace';
 
 export interface DevtoolsViewProps {
   state: SleuthState;
@@ -23,7 +23,7 @@ export interface DevtoolsViewState {
   profilePid?: number;
 }
 
-const debug = require("debug")("sleuth:devtoolsview");
+const debug = require('debug')('sleuth:devtoolsview');
 
 @observer
 export class DevtoolsView extends React.Component<
@@ -49,7 +49,7 @@ export class DevtoolsView extends React.Component<
 
   private rowRenderer(
     { title, processId, isClient }: RendererDescription,
-    { progress, result }: SleuthState["sourcemapState"]
+    { progress, result }: SleuthState['sourcemapState']
   ) {
     const isCompleted = !!result;
     const pending = !isCompleted && progress !== 0;
@@ -57,14 +57,14 @@ export class DevtoolsView extends React.Component<
     return (
       <tr>
         <td>
-          {isClient && <Icon icon="chat" />} {title || "Unknown"}
+          {isClient && <Icon icon='chat' />} {title || 'Unknown'}
         </td>
         <td>{processId}</td>
         <td>
           <ButtonGroup fill={true}>
             <Button
               onClick={() => this.setState({ profilePid: processId })}
-              icon="document-open"
+              icon='document-open'
             >
               Open Raw
             </Button>
@@ -74,7 +74,7 @@ export class DevtoolsView extends React.Component<
                 pending ? (
                   <Spinner size={16} value={progress} />
                 ) : (
-                  "document-open"
+                  'document-open'
                 )
               }
               disabled={!isCompleted}
@@ -90,7 +90,7 @@ export class DevtoolsView extends React.Component<
   public render() {
     if (this.state.profilePid) {
       return (
-        <div className="Devtools">
+        <div className='Devtools'>
           <iframe
             src={`oop://oop/static/devtools-frontend.html?panel=timeline`}
             onLoad={() => this.loadFile(this.state.profilePid)}
@@ -102,11 +102,11 @@ export class DevtoolsView extends React.Component<
 
     const { rendererThreads, sourcemapState } = this.props.state;
     const hasThreads = !!rendererThreads?.length;
-    const missingThreads = rendererThreads?.length == 0;
+    const missingThreads = rendererThreads?.length === 0;
     const isLoading = !rendererThreads;
 
     return (
-      <div className="ProcessTable">
+      <div className='ProcessTable'>
         <Card>
           <h1>Renderer Threads</h1>
           <HTMLTable>
@@ -156,9 +156,9 @@ export class DevtoolsView extends React.Component<
     if (!processId) {
       return;
     }
-    
+
     debug(`iFrame loaded`);
-    const iframe = document.querySelector("iframe");
+    const iframe = document.querySelector('iframe');
 
     if (iframe) {
       const {state} = this.props;
@@ -168,10 +168,10 @@ export class DevtoolsView extends React.Component<
       const devtoolsWindow = iframe.contentWindow;
       devtoolsWindow?.postMessage(
         {
-          instruction: "load",
+          instruction: 'load',
           payload: { events },
         },
-        "oop://oop/static/devtools-frontend.html"
+        'oop://oop/static/devtools-frontend.html'
       );
     }
 
@@ -189,7 +189,7 @@ export class DevtoolsView extends React.Component<
    */
   public setDarkMode(enabled: boolean) {
     try {
-      const iframe = document.getElementsByTagName("iframe");
+      const iframe = document.getElementsByTagName('iframe');
 
       if (iframe && iframe.length > 0) {
         const devtoolsWindow = iframe[0].contentWindow;
@@ -197,10 +197,10 @@ export class DevtoolsView extends React.Component<
         //custom protocol :// *
         devtoolsWindow?.postMessage(
           {
-            instruction: "dark-mode",
+            instruction: 'dark-mode',
             payload: enabled,
           },
-          "oop://oop/static/devtools-frontend.html"
+          'oop://oop/static/devtools-frontend.html'
         );
       }
     } catch (error) {

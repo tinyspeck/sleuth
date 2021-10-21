@@ -1,17 +1,17 @@
-import { SourceMapConsumer } from "source-map";
-import path from "path";
-import memoize from "lodash.memoize";
-import { SourcemapResolver } from "./resolver";
-import LRUCache from "lru-cache";
-import { ChromiumTraceEvent, TraceParser } from "./parser";
-import { EventEmitter } from "events";
+import { SourceMapConsumer } from 'source-map';
+import path from 'path';
+import memoize from 'lodash.memoize';
+import { SourcemapResolver } from './resolver';
+import LRUCache from 'lru-cache';
+import { ChromiumTraceEvent, TraceParser } from './parser';
+import { EventEmitter } from 'events';
 
 export interface SourceReference {
   lineNumber: number;
   columnNumber: number;
   url: string;
   functionName?: string;
-  sourceType: "JS";
+  sourceType: 'JS';
   scriptId?: number;
 }
 
@@ -20,9 +20,9 @@ interface TraceCPUProfileNode {
 }
 
 type TraceDataNode = {
-  stackTrace?: SourceReference[];
+  stackTrace?: Array<SourceReference>;
   cpuProfile?: {
-    nodes?: TraceCPUProfileNode[];
+    nodes?: Array<TraceCPUProfileNode>;
   };
 } & SourceReference;
 
@@ -35,9 +35,9 @@ export interface TraceEntry {
 
 const maybeInitializeConsumer = memoize(() => {
   (SourceMapConsumer as any).initialize({
-    "lib/mappings.wasm": path.join(
+    'lib/mappings.wasm': path.join(
       __dirname,
-      "../../dist/node_modules/source-map/lib/mappings.wasm"
+      '../../dist/node_modules/source-map/lib/mappings.wasm'
     ),
   });
 });
@@ -64,7 +64,7 @@ export class TraceMapper extends EventEmitter{
     this.resolver = resolver;
     this.cache = new LRUCache({
       max: 50,
-      dispose: (key: string, n: SourceMapConsumer) => n.destroy(),
+      dispose: (_key: string, n: SourceMapConsumer) => n.destroy(),
     });
     maybeInitializeConsumer();
   }
@@ -82,7 +82,9 @@ export class TraceMapper extends EventEmitter{
         this.cache.set(fileName, consumer);
         return consumer;
       }
-    } catch (e) {}
+    } catch (e) {
+      //ignored
+    }
 
     return;
   }
@@ -92,9 +94,9 @@ export class TraceMapper extends EventEmitter{
   ): Promise<string | undefined> {
     try {
       const url = new URL(reference.url);
-      const fileName = url.pathname.split("/").pop() || "";
+      const fileName = url.pathname.split('/').pop() || '';
       const consumer = await this.getConsumer(fileName);
-  
+
       if (consumer) {
         const position = consumer.originalPositionFor({
           line: reference.lineNumber + 1,
@@ -102,22 +104,24 @@ export class TraceMapper extends EventEmitter{
         });
         if (position.line && position.column) {
           // hmm
-          reference.sourceType = "JS";
+          reference.sourceType = 'JS';
           reference.lineNumber = position.line - 1;
           reference.columnNumber = position.column;
           reference.url =
-            position.source?.replace("webpack:///", "webpack:///./") || "";
+            position.source?.replace('webpack:///', 'webpack:///./') || '';
           reference.functionName = position.name || reference.functionName;
-  
+
           // scriptIds are non consistent between the user's renderer and our
           // fake env for opening the profile, so we'll delete them. Doing so
           // enables click-through on source links
           delete reference.scriptId;
-  
+
           return fileName;
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      //ignored
+    }
 
     return;
   }
@@ -164,20 +168,20 @@ export class TraceMapper extends EventEmitter{
     const used: Set<string> = new Set();
     const events = this.parser.getTraceEvents();
     const mapped = [];
-    const progressChunk = Math.floor(events.length / 100); 
+    const progressChunk = Math.floor(events.length / 100);
     for (let i = 0; i < events.length; i++) {
       const entry = events[i];
       const fileNames = await this.mapReferences(entry);
       if (i % progressChunk === 0) {
-        this.emit("progress", 1/events.length * i);
+        this.emit('progress', 1 / events.length * i);
       }
       fileNames.forEach(used.add, used);
       mapped.push(entry);
     }
-    this.emit("progress", 1);
+    this.emit('progress', 1);
     return {
       used: Array.from(used),
       events
-    }
+    };
   }
 }

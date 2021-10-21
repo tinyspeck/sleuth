@@ -1,10 +1,10 @@
-import { normalize, join, relative } from 'path'
-import { protocol } from "electron"
+import { normalize, join, relative } from 'path';
+import { protocol } from 'electron';
 
 export function registerSchemePrivilege() {
   protocol.registerSchemesAsPrivileged([
     { scheme: 'oop', privileges: { standard: true } }
-  ])
+  ]);
 }
 
 /**
@@ -24,11 +24,11 @@ export function registerScheme() {
         const path = join(dist, url.pathname);
 
         const relation = relative(dist, path);
-        if (relation.includes("..")) {
+        if (relation.includes('..')) {
           // request appears to be try to be navigating outside of dist
           callback('Not found');
         } else {
-          callback({ path })
+          callback({ path });
         }
-      })
+      });
 }

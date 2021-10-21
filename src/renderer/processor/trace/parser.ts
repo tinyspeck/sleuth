@@ -1,4 +1,4 @@
-const debug = require("debug")("sleuth:trace-parser");
+const debug = require('debug')('sleuth:trace-parser');
 
 export type ChromiumTraceEvent =
   | UnknownTraceEvent
@@ -6,7 +6,7 @@ export type ChromiumTraceEvent =
   | ThreadNameEvent;
 
 interface TracingStartedInBrowserEvent {
-  name: "TracingStartedInBrowser";
+  name: 'TracingStartedInBrowser';
   [key: string]: any;
 }
 interface UnknownTraceEvent {
@@ -15,11 +15,11 @@ interface UnknownTraceEvent {
 }
 
 interface ChromiumTrace {
-  traceEvents: ChromiumTraceEvent[];
+  traceEvents: Array<ChromiumTraceEvent>;
 }
 
 interface ThreadNameEvent {
-  name: "thread_name";
+  name: 'thread_name';
   args?: {
     name?: string;
   };
@@ -39,21 +39,21 @@ export interface RendererThread {
 }
 
 export interface BrowserThread {
-  pid: number,
-  tid: number,
+  pid: number;
+  tid: number;
   ts: number;
 }
 
 interface ThreadInfo {
   browser?: BrowserThread;
-  renderers: RendererThread[]
+  renderers: Array<RendererThread>;
 }
 
 function getProcessLabel(processLabelEvents: any, pid: number) {
   const processLabel = processLabelEvents.find(
     (label: any) => label.pid === pid
   );
-  return processLabel ? processLabel.args?.labels : "";
+  return processLabel ? processLabel.args?.labels : '';
 }
 
 export class TraceParser {
@@ -62,9 +62,9 @@ export class TraceParser {
   constructor(trace: ChromiumTrace) {
     this.trace = trace;
   }
-  private getBrowserThread(threads: ThreadNameEvent[]): BrowserThread | undefined{
+  private getBrowserThread(threads: Array<ThreadNameEvent>): BrowserThread | undefined{
     for (const thread of threads) {
-      if (thread.args?.name === "CrBrowserMain") {
+      if (thread.args?.name === 'CrBrowserMain') {
         return {
           pid: thread.pid,
           tid: thread.tid,
@@ -76,21 +76,21 @@ export class TraceParser {
   }
 
   private getRendererThreads(
-    events: ChromiumTraceEvent[],
-    threads: ThreadNameEvent[]
+    events: Array<ChromiumTraceEvent>,
+    threads: Array<ThreadNameEvent>
   ) {
     const discovered: { [processId: number]: RendererThread } = {};
     // Search (sometimes missing) ParseHTML events
-    const parseEvents = events.filter((e) => e.name === "ParseHTML");
+    const parseEvents = events.filter((e) => e.name === 'ParseHTML');
     const clientParseEvent = parseEvents.find((event) =>
-      event?.args?.beginData?.url?.startsWith?.("https://app.slack.com/client")
+      event?.args?.beginData?.url?.startsWith?.('https://app.slack.com/client')
     );
     // Search any renderer event
     const rendererThreadsEvents = threads.filter(
-      (thread) => thread?.args?.name === "CrRendererMain"
+      (thread) => thread?.args?.name === 'CrRendererMain'
     );
     // Get process labels to help determine if a thread is a client
-    const labelEvents = events.filter((e) => e.name === "process_labels");
+    const labelEvents = events.filter((e) => e.name === 'process_labels');
 
     if (clientParseEvent) {
       const url = clientParseEvent.args.beginData.url;
@@ -113,12 +113,12 @@ export class TraceParser {
     rendererThreadsEvents.forEach((thread) => {
       const title = getProcessLabel(labelEvents, thread.pid);
       debug(`Discovered renderer thread via thread event: ${title}`);
-      const isClient = title.startsWith("Slack |");
+      const isClient = title.startsWith('Slack |');
       const processId = thread.pid;
       if (!discovered[processId]) {
         discovered[processId] = {
           data: {
-            frame: "",
+            frame: '',
             url: `https://slack.com/unknown?name=${encodeURI(title)}`,
             processId: thread.pid,
           },
@@ -138,7 +138,7 @@ export class TraceParser {
   getThreadInfo(): ThreadInfo {
     if (!this.threadInfo) {
       const { traceEvents: events } = this.trace;
-      const threads = events.filter(({name}) => name === "thread_name") as ThreadNameEvent[];
+      const threads = events.filter(({name}) => name === 'thread_name') as Array<ThreadNameEvent>;
       this.threadInfo = {
         browser: this.getBrowserThread(threads),
         renderers: this.getRendererThreads(events, threads),

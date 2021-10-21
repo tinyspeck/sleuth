@@ -1,10 +1,10 @@
-import path from "path";
-import fs from "fs-extra";
-import fetch from "node-fetch";
-import { RawSourceMap } from "source-map";
-import { USER_AGENT } from "../../../shared-constants";
+import path from 'path';
+import fs from 'fs-extra';
+import fetch from 'node-fetch';
+import { RawSourceMap } from 'source-map';
+import { USER_AGENT } from '../../../shared-constants';
 
-const debug = require("debug")("sleuth:sourcemap-resolver");
+const debug = require('debug')('sleuth:sourcemap-resolver');
 
 const getPantryURL = (sha: string, filename: string) =>
   `https://slack-pantry.tinyspeck.com/source-maps/${sha}/${filename}.map`;
@@ -30,11 +30,13 @@ export class SourcemapResolver {
   ): Promise<RawSourceMap | undefined> {
     try {
       const cachePath = getCachePath(this.cacheRoot, filename);
-      const file = await fs.readFile(cachePath, "utf8");
+      const file = await fs.readFile(cachePath, 'utf8');
       const map = JSON.parse(file);
       debug(`Found ${filename} in cache`);
       return map;
-    } catch (ignored) {}
+    } catch (e) {
+      //ignored
+    }
     return undefined;
   }
 
@@ -51,7 +53,7 @@ export class SourcemapResolver {
     const url = getPantryURL(this.sha, filename);
     const resp = await fetch(url, {
       headers: {
-        "User-Agent": USER_AGENT,
+        'User-Agent': USER_AGENT,
         Cookie: this.cookie,
       },
     });
@@ -71,7 +73,9 @@ export class SourcemapResolver {
     try {
       await fs.outputJSON(cachePath, sourcemap);
       debug(`Stored ${filename} in cache at ${cachePath}`);
-    } catch (e) {}
+    } catch (e) {
+      //ignored
+    }
 
     return sourcemap as RawSourceMap;
   }
@@ -81,6 +85,6 @@ export class SourcemapResolver {
     if (cacheResult) {
       return cacheResult;
     }
-    return await this.getFromNetwork(filename);
+    return this.getFromNetwork(filename);
   }
 }

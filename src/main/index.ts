@@ -57,7 +57,7 @@ if (require('electron-squirrel-startup')) {
     createWindow();
     createMenu();
     setupUpdates();
-    registerScheme()
+    registerScheme();
   });
 
   // Quit when all windows are closed.

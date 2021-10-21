@@ -1,15 +1,15 @@
-import { SleuthState } from "../state/sleuth";
-import fs from "fs-extra";
-import { ProcessedLogFiles, UnzippedFile } from "src/interfaces";
-import { PantryAuth } from "../pantry/auth";
-import { TraceMapper } from "./trace/mapper";
-import { SourcemapResolver } from "./trace/resolver";
-import { ChromiumTraceEvent, TraceParser } from "./trace/parser";
-import { remote } from "electron";
-import { normalize } from "path";
-import { EventEmitter } from "events";
+import { SleuthState } from '../state/sleuth';
+import fs from 'fs-extra';
+import { ProcessedLogFiles, UnzippedFile } from '../../interfaces';
+import { PantryAuth } from '../pantry/auth';
+import { TraceMapper } from './trace/mapper';
+import { SourcemapResolver } from './trace/resolver';
+import { ChromiumTraceEvent, TraceParser } from './trace/parser';
+import { remote } from 'electron';
+import { normalize } from 'path';
+import { EventEmitter } from 'events';
 
-const debug = require("debug")("sleuth:trace-processor");
+const debug = require('debug')('sleuth:trace-processor');
 export interface RendererDescription {
   title?: string;
   isClient: boolean;
@@ -24,7 +24,7 @@ function maybeParseJSON(raw: string) {
   }
 }
 
-const USER_DATA = remote.app.getPath("userData");
+const USER_DATA = remote.app.getPath('userData');
 
 export class TraceProcessor extends EventEmitter {
   state: SleuthState;
@@ -37,17 +37,17 @@ export class TraceProcessor extends EventEmitter {
     super();
     this.pantryAuth = new PantryAuth();
     this.pantryAuth.onAuthChange((cookie, isSignedIn) => {
-      this.emit('auth-changed', cookie, isSignedIn)
-    })
+      this.emit('auth-changed', cookie, isSignedIn);
+    });
   }
-  
+
   setCookie(uberProxyCookie: string) {
     this.pantryAuth.setCookie(uberProxyCookie);
   }
 
   private async getTraceParser(file: UnzippedFile) {
     if (!this.cachedParser) {
-      const raw = await fs.readFile(file.fullPath, "utf8");
+      const raw = await fs.readFile(file.fullPath, 'utf8');
       const json = maybeParseJSON(raw);
       if (json.traceEvents) {
         this.cachedParser = new TraceParser(json);
@@ -56,7 +56,7 @@ export class TraceProcessor extends EventEmitter {
     return this.cachedParser;
   }
 
-  async getRendererProcesses(file: UnzippedFile): Promise<RendererDescription[] | undefined> {
+  async getRendererProcesses(file: UnzippedFile): Promise<Array<RendererDescription> | undefined> {
     const parser = await this.getTraceParser(file);
     if (parser) {
       const { renderers } = parser.getThreadInfo();
@@ -79,9 +79,7 @@ export class TraceProcessor extends EventEmitter {
     const parser = await this.getTraceParser(file);
     if (parser) {
       const { browser, renderers } = parser.getThreadInfo();
-      const rendererThread = renderers.find(
-        (rendererThread) => rendererThread.data.processId === pid
-      );
+      const rendererThread = renderers.find((thread) => thread.data.processId === pid);
 
       return {
         args: {
@@ -90,9 +88,9 @@ export class TraceProcessor extends EventEmitter {
             frames: rendererThread ? [rendererThread.data] : [],
           },
         },
-        cat: "disabled-by-default-devtools.timeline",
-        name: "TracingStartedInBrowser",
-        ph: "I",
+        cat: 'disabled-by-default-devtools.timeline',
+        name: 'TracingStartedInBrowser',
+        ph: 'I',
         ...browser,
       };
     }
@@ -103,13 +101,13 @@ export class TraceProcessor extends EventEmitter {
     state: SleuthState,
     file: UnzippedFile,
     pid: number
-  ): Promise<ChromiumTraceEvent[]> {
+  ): Promise<Array<ChromiumTraceEvent>> {
     const entries = await this.sourcemap(state, file);
     const initialEntry = await this.makeInitialEntry(file, pid);
     return initialEntry ? [initialEntry, ...entries] : entries;
   }
 
-  public async sourcemap(state: SleuthState, file: UnzippedFile): Promise<ChromiumTraceEvent[]> {
+  public async sourcemap(state: SleuthState, file: UnzippedFile): Promise<Array<ChromiumTraceEvent>> {
     const cachedEntries = normalize(
       `${USER_DATA}/trace-cache/entries/${file.fileName}.json`
     );
@@ -121,31 +119,31 @@ export class TraceProcessor extends EventEmitter {
 
     const parser = await this.getTraceParser(file);
     if (!parser) {
-      this.emit("error", "Unable to parser trace");
+      this.emit('error', 'Unable to parser trace');
       return [];
     }
 
     const traceEvents = parser.getTraceEvents();
     const rootState = this.getRootState(state.processedLogFiles);
     if (!rootState) {
-      this.emit("error", "Missing root state");
+      this.emit('error', 'Missing root state');
       return traceEvents;
     }
     const shas = await this.getWebappSHAs(rootState);
     if (!shas.length) {
-      this.emit("error", "Unable to locate webapp SHA");
+      this.emit('error', 'Unable to locate webapp SHA');
       return traceEvents;
     }
 
     if (shas.length > 1) {
-      debug("Multiple webapp SHAs found, using first");
+      debug('Multiple webapp SHAs found, using first');
     }
 
     const isSignedIn = state.isUberProxySignedIn;
     if (!isSignedIn) {
       const success = await this.pantryAuth.signIn();
       if (!success) {
-        this.emit("error", "Unable to authenticate with pantry");
+        this.emit('error', 'Unable to authenticate with pantry');
         return traceEvents;
       }
     }
@@ -157,29 +155,29 @@ export class TraceProcessor extends EventEmitter {
       normalize(`${USER_DATA}/trace-cache/sourcemap`)
     );
     const mapper = new TraceMapper(parser, resolver);
-    mapper.on("progress", (progress) => {
-      this.emit("progress", progress);
+    mapper.on('progress', (progress) => {
+      this.emit('progress', progress);
     });
     const { used, events } = await mapper.map();
 
     await fs.outputJSON(cachedEntries, events);
 
-    this.emit("completed", used);
+    this.emit('completed', used);
     return events;
   }
 
   private getRootState(processedLogFiles?: ProcessedLogFiles) {
     return processedLogFiles?.state.find((file) =>
-      file.fileName.endsWith("root-state.json")
+      file.fileName.endsWith('root-state.json')
     );
   }
-  private async getWebappSHAs(rootState: UnzippedFile): Promise<string[]> {
-    const data = await fs.readFile(rootState.fullPath, "utf8");
+  private async getWebappSHAs(rootState: UnzippedFile): Promise<Array<string>> {
+    const data = await fs.readFile(rootState.fullPath, 'utf8');
     const { webapp } = maybeParseJSON(data);
     const { teams } = webapp;
-    return Object.keys(teams).reduce<string[]>((acc, teamKey) => {
+    return Object.keys(teams).reduce<Array<string>>((acc, teamKey) => {
       const version = teams[teamKey].version;
-      const sha: string = version?.slice(0, version.indexOf("@"));
+      const sha: string = version?.slice(0, version.indexOf('@'));
       if (sha && !acc.includes(sha)) {
         acc.push(sha);
       }

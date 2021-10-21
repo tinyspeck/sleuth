@@ -1,22 +1,22 @@
-import fetch from "node-fetch";
-import * as pty from "node-pty";
+import fetch from 'node-fetch';
+import * as pty from 'node-pty';
 
-import { config } from "../../config";
-import { showMessageBox } from "../ipc";
-import { USER_AGENT } from "../../shared-constants";
+import { config } from '../../config';
+import { showMessageBox } from '../ipc';
+import { USER_AGENT } from '../../shared-constants';
 
-const debug = require("debug")("sleuth:pantry-auth");
+const debug = require('debug')('sleuth:pantry-auth');
 
 export interface SigninOptions {
   silent: boolean;
 }
 
 export interface SigninInfo {
-  uberProxyCookie: string
+  uberProxyCookie: string;
 }
 export class PantryAuth {
   public signInUrl = config.pantryUrl;
-  private cookie: string = "";
+  private cookie: string = '';
   private handler: (cookie: string, isSignedIn: boolean) => void;
 
   constructor() {
@@ -39,9 +39,9 @@ export class PantryAuth {
 
   public showSignInWindowWarning(): Promise<Electron.MessageBoxReturnValue> {
     const options: Electron.MessageBoxOptions = {
-      type: "info",
-      buttons: ["Okay"],
-      title: "Sleuth tries to help",
+      type: 'info',
+      buttons: ['Okay'],
+      title: 'Sleuth tries to help',
       message: `In order to sourcemap traces, Sleuth will now authenticate with "Pantry" a service that stores sourcemaps. In a moment, you'll receive an authentication request on your device.`,
     };
 
@@ -51,21 +51,21 @@ export class PantryAuth {
   public getUberproxyAuth(): Promise<boolean> {
     return new Promise(async (resolve) => {
       const cmd = pty.spawn(
-        "slack",
-        ["uberproxy-auth", "--user-agent", USER_AGENT],
+        'slack',
+        ['uberproxy-auth', '--user-agent', USER_AGENT],
         {}
       );
       cmd.onData(async (data) => {
-        if (data.includes("Passcode or option")) {
+        if (data.includes('Passcode or option')) {
           await this.showSignInWindowWarning();
-          cmd.write("1\r");
+          cmd.write('1\r');
         } else {
           try {
             const authData = JSON.parse(data.trim());
             const cookies = Object.entries(authData).map(
               ([key, val]) => `${key}=${val};`
             );
-            this.updateAuth(cookies.join(" "), true);
+            this.updateAuth(cookies.join(' '), true);
             resolve(true);
           } catch (e) {
             debug('Unable to call uberproxy-auth', e);
@@ -81,16 +81,16 @@ export class PantryAuth {
       debug(`Trying to sign into Pantry`);
 
       const headers = {
-        Pragma: "no-cache",
-        "Cache-Control": "no-cache",
-        "User-Agent": USER_AGENT,
+        Pragma: 'no-cache',
+        'Cache-Control': 'no-cache',
+        'User-Agent': USER_AGENT,
         Cookie: this.cookie,
       };
 
       const response = await fetch(this.signInUrl, { headers });
       const { url } = response;
 
-      if (url.includes("slauth_login")) {
+      if (url.includes('slauth_login')) {
         if (options?.silent) {
           debug(`Pantry auth silently failing`);
           this.updateAuth('', false);

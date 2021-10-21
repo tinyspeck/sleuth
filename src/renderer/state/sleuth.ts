@@ -33,8 +33,8 @@ import { setupTouchBarAutoruns } from './touchbar';
 import { TraceProcessor, RendererDescription } from '../processor/trace';
 
 interface SourcemapState {
-  progress: number,
-  result?: string
+  progress: number;
+  result?: string;
 }
 
 const debug = require('debug')('sleuth:state');
@@ -51,7 +51,7 @@ export class SleuthState {
   // ** Cooper log line logging **
   @observable public slackUserId?: string;
   @observable public isCooperSignedIn = false;
-  
+
   // ** Pantry source map fetching **
   @observable public isUberProxySignedIn = false;
   @observable public uberProxyCookie: string;
@@ -104,7 +104,7 @@ export class SleuthState {
   @observable public serializedBookmarks: Record<string, Array<SerializedBookmark>>
     = this.retrieve('serializedBookmarks', true) as Record<string, Array<SerializedBookmark>> || {};
   // ** Profiler **
-  @observable public rendererThreads: RendererDescription[] | undefined;
+  @observable public rendererThreads: Array<RendererDescription> | undefined;
   @observable public sourcemapState: SourcemapState = {progress: 0};
 
   // ** Settings **
@@ -182,15 +182,15 @@ export class SleuthState {
       this.uberProxyCookie = cookie;
       this.isUberProxySignedIn = isSignedIn;
     });
-    this.traceProcessor.on("progress", (progress) => {
-      this.sourcemapState = { progress }
+    this.traceProcessor.on('progress', (progress) => {
+      this.sourcemapState = { progress };
     });
-    this.traceProcessor.on("error", (error) => {
+    this.traceProcessor.on('error', (error) => {
       this.sourcemapState = { progress: 1, result: `Error ${error}`};
     });
-    this.traceProcessor.on("completed", () => {
+    this.traceProcessor.on('completed', () => {
       this.sourcemapState = { progress: 1, result: `Completed` };
-    })
+    });
 
     autorun(() => this.traceProcessor.setCookie(this.uberProxyCookie));
 

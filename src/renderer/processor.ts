@@ -137,7 +137,7 @@ export function mergeLogFiles(
 export function getTypeForFile(logFile: UnzippedFile): LogType {
   const fileName = path.basename(logFile.fileName);
 
-  if (fileName.endsWith(".trace")) {
+  if (fileName.endsWith('.trace')) {
     return LogType.TRACE;
   } else if (fileName.startsWith('browser') || fileName === 'epics-browser.log') {
     return LogType.BROWSER;
