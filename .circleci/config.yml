@@ -51,7 +51,7 @@ commands:
           command: |
             cd $HOME
             curl.exe --output depot_tools.zip https://storage.googleapis.com/chrome-infra/depot_tools.zip
-            tar.exe -xf depot_tools.zip
+            tar.exe -xf depot_tools.zip -C depot_tools
 
   gclient_sync:
     steps:
