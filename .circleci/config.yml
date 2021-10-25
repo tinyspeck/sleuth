@@ -53,6 +53,8 @@ commands:
             curl.exe --output depot_tools.zip https://storage.googleapis.com/chrome-infra/depot_tools.zip
             mkdir depot_tools
             tar.exe -xf depot_tools.zip -C depot_tools
+            echo 'export PATH="$PATH:$HOME/depot_tools"' >> $BASH_ENV
+            source $BASH_ENV
 
   gclient_sync:
     steps:
@@ -155,6 +157,7 @@ jobs:
     executor: ubuntu
     environment:
       - TAR_OPTIONS: --no-same-owner
+      - SKIP_VSCODE_SETTINGS_SYNC: true
     steps:
       - install_depottools_git
       - build_sleuth:
@@ -163,6 +166,7 @@ jobs:
     executor: fedora
     environment:
       - TAR_OPTIONS: --no-same-owner
+      - SKIP_VSCODE_SETTINGS_SYNC: true
     steps:
       - install_depottools_git
       - build_sleuth:
