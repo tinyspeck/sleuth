@@ -44,7 +44,6 @@ commands:
             echo 'export PATH="$PATH:$HOME/depot_tools"' >> $BASH_ENV
             source $BASH_ENV
 
-
   install_depottools_zip:
     steps:
       - run:
@@ -54,7 +53,7 @@ commands:
             curl.exe --output depot_tools.zip https://storage.googleapis.com/chrome-infra/depot_tools.zip
             mkdir depot_tools
             tar.exe -xf depot_tools.zip -C depot_tools
-            echo 'export PATH="$PATH:$HOME/depot_tools"' >> $BASH_ENV
+            echo 'export PATH="$HOME/depot_tools:$PATH"' >> $BASH_ENV
             source $BASH_ENV
 
   gclient_sync:
@@ -88,9 +87,7 @@ commands:
     steps:
       - run:
           name: Initialize Submodules
-          command: |
-            git submodule update --init --recursive
-            find devtools-frontend/third_party/node -type f -name node -exec chmod +x {} \;
+          command: git submodule update --init --recursive
 
   install_deps:
     steps:
@@ -152,7 +149,7 @@ jobs:
   build-windows:
     executor:
       name: win/default
-      shell: bin/bash.exe
+      shell: bash.exe
     steps:
       - install_depottools_zip
       - build_sleuth
