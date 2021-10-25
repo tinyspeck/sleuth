@@ -35,12 +35,58 @@ executors:
       xcode: 12.5.1
 
 commands:
-  checkout_sleuth:
+  install_depottools_git:
     steps:
-      - checkout
+      - run:
+          name: Get depot tools
+          command: |
+            git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME/depot_tools
+            echo 'export PATH="$PATH:$HOME/depot_tools"' >> $BASH_ENV
+            source $BASH_ENV
+
+  install_depottools_zip:
+    steps:
+      - run:
+          name: Install depot_tools from zip
+          command: |
+            cd $HOME
+            curl.exe --output depot_tools.zip https://storage.googleapis.com/chrome-infra/depot_tools.zip
+            tar.exe -xf depot_tools.zip
+
+  gclient_sync:
+    steps:
+      - restore_cache:
+          name: Restore gclient git cache
+          keys:
+            - v1-gclient-cache-{{ checksum "devtools-frontend/DEPS" }}
+      - run:
+          name: Gclient sync
+          command: |
+            # CircleCI does not support interpolation when setting environment variables.
+            # https://circleci.com/docs/2.0/env-vars/#setting-an-environment-variable-in-a-shell-command
+            echo 'export GIT_CACHE_PATH="$HOME/.gclient-cache"' >> $BASH_ENV
+            source $BASH_ENV
+            cd devtools-frontend
+            gclient config --name "devtools_frontend" --unmanaged "https://chromium.googlesource.com/devtools/devtools-frontend.git"
+            gclient sync --with_branch_heads --with_tags
+      - save_cache:
+          name: Persisting git cache
+          paths:
+            - ~/.gclient-cache
+          key: v1-gclient-cache-{{ checksum "devtools-frontend/DEPS" }}
+    
+  build_devtools_frontend:
+    steps:
+      - run:
+          name: Build devtools-frontend
+          command: npx yarn@1.21.1 run devtools:build
+
+  initialize_submodules:
+    steps:
       - run:
           name: Initialize Submodules
           command: git submodule update --init --recursive
+
   install_deps:
     steps:
       - restore_cache:
@@ -55,14 +101,18 @@ commands:
           paths:
             - node_modules
           key: v1-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
+
   build_sleuth:
     parameters:
       make_flags:
         type: string
         default: ''
     steps:
-      - checkout_sleuth
+      - checkout
+      - initialize_submodules
       - install_deps
+      - gclient_sync
+      - build_devtools_frontend
       - run:
           name: Build Packages with flags; << parameters.make_flags >>
           command: npx yarn@1.21.1 run publish --dry-run << parameters.make_flags >>
@@ -79,7 +129,7 @@ jobs:
   lint:
     executor: ubuntu
     steps:
-      - checkout_sleuth
+      - checkout
       - install_deps
       - run:
           name: Lint
@@ -91,6 +141,7 @@ jobs:
         enum: ['x64', 'arm64']
     executor: macos
     steps:
+      - install_depottools_git
       - build_sleuth:
           make_flags: --arch << parameters.arch >>
   build-windows:
@@ -98,15 +149,18 @@ jobs:
       name: win/default
       shell: bash.exe
     steps:
+      - install_depottools_zip
       - build_sleuth
   build-ubuntu:
     executor: ubuntu
     steps:
+      - install_depottools_git
       - build_sleuth:
           make_flags: --targets @electron-forge/maker-deb
   build-fedora:
     executor: fedora
     steps:
+      - install_depottools_git
       - build_sleuth:
           make_flags: --targets @electron-forge/maker-rpm
   code-sign-macos:
@@ -159,7 +213,7 @@ jobs:
   publish:
     executor: ubuntu
     steps:
-      - checkout_sleuth
+      - checkout
       - install_deps
       - run: mkdir -p out
       - attach_workspace:
