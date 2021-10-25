@@ -44,6 +44,7 @@ commands:
             echo 'export PATH="$PATH:$HOME/depot_tools"' >> $BASH_ENV
             source $BASH_ENV
 
+
   install_depottools_zip:
     steps:
       - run:
@@ -87,7 +88,9 @@ commands:
     steps:
       - run:
           name: Initialize Submodules
-          command: git submodule update --init --recursive
+          command: |
+            git submodule update --init --recursive
+            find devtools-frontend/third_party/node -type f -name node -exec chmod +x {} \;
 
   install_deps:
     steps:
@@ -149,7 +152,7 @@ jobs:
   build-windows:
     executor:
       name: win/default
-      shell: bash.exe
+      shell: bin/bash.exe
     steps:
       - install_depottools_zip
       - build_sleuth
@@ -157,7 +160,6 @@ jobs:
     executor: ubuntu
     environment:
       - TAR_OPTIONS: --no-same-owner
-      - SKIP_VSCODE_SETTINGS_SYNC: true
     steps:
       - install_depottools_git
       - build_sleuth:
@@ -166,7 +168,6 @@ jobs:
     executor: fedora
     environment:
       - TAR_OPTIONS: --no-same-owner
-      - SKIP_VSCODE_SETTINGS_SYNC: true
     steps:
       - install_depottools_git
       - build_sleuth:
