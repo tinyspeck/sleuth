@@ -58,7 +58,7 @@ commands:
       - restore_cache:
           name: Restore gclient git cache
           keys:
-            - v1-gclient-cache-{{ checksum "devtools-frontend/DEPS" }}
+            - v1-gclient-cache-{{ checksum "DEPS" }}
       - run:
           name: Gclient sync
           command: |
@@ -66,14 +66,13 @@ commands:
             # https://circleci.com/docs/2.0/env-vars/#setting-an-environment-variable-in-a-shell-command
             echo 'export GIT_CACHE_PATH="$HOME/.gclient-cache"' >> $BASH_ENV
             source $BASH_ENV
-            cd devtools-frontend
-            gclient config --name "devtools_frontend" --unmanaged "https://chromium.googlesource.com/devtools/devtools-frontend.git"
+            gclient config --name "devtools-frontend" --unmanaged "$CIRCLE_REPOSITORY_URL"
             gclient sync --with_branch_heads --with_tags
       - save_cache:
           name: Persisting git cache
           paths:
             - ~/.gclient-cache
-          key: v1-gclient-cache-{{ checksum "devtools-frontend/DEPS" }}
+          key: v1-gclient-cache-{{ checksum "DEPS" }}
     
   build_devtools_frontend:
     steps:
