@@ -28,16 +28,3 @@ deps = {
     'condition': 'process_deps'
 } ,
 }
-
-hooks = [
-  {
-    'name': 'fix_perms',
-    'pattern': '.',
-    'condition': 'host_os == "linux"',
-    'action': [
-      'chmod',
-      '+x',
-      'third_party/node/linux/node-linux-x64/bin/node'
-    ],
-  },
-]

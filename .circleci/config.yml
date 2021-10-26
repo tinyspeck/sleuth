@@ -154,17 +154,15 @@ jobs:
       - install_depottools_zip
       - build_sleuth
   build-ubuntu:
-    executor: ubuntu
-    environment:
-      - TAR_OPTIONS: --no-same-owner
+    machine:
+      image: ubuntu-2004:202107-02
     steps:
       - install_depottools_git
       - build_sleuth:
           make_flags: --targets @electron-forge/maker-deb
   build-fedora:
-    executor: fedora
-    environment:
-      - TAR_OPTIONS: --no-same-owner
+    machine:
+      image: ubuntu-2004:202107-02
     steps:
       - install_depottools_git
       - build_sleuth:
