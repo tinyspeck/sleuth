@@ -67,7 +67,7 @@ commands:
       - restore_cache:
           name: Restore gclient git cache
           keys:
-            - v3-gclient-cache-{{ checksum "DEPS" }}
+            - v3-gclient-cache-{{ arch }}-{{ checksum "DEPS" }}
       - run:
           name: Gclient sync
           command: |
@@ -81,7 +81,7 @@ commands:
           name: Persisting git cache
           paths:
             - ~/.gclient-cache
-          key: v3-gclient-cache-{{ checksum "DEPS" }}
+          key: v3-gclient-cache-{{ arch }}-{{ checksum "DEPS" }}
     
   build_devtools_frontend:
     steps:
