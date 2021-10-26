@@ -35,50 +35,53 @@ executors:
       xcode: 12.5.1
 
 commands:
+  install_depottools_git:
+    steps:
+      - run:
+          name: Get depot tools
+          command: |
+            git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME/depot_tools
+            echo 'export PATH="$PATH:$HOME/depot_tools"' >> $BASH_ENV
+            source $BASH_ENV
+
+  install_depottools_zip:
+    steps:
+      - run:
+          name: Install depot_tools from zip
+          command: |
+            cd $HOME
+            curl.exe --output depot_tools.zip https://storage.googleapis.com/chrome-infra/depot_tools.zip
+            mkdir depot_tools
+            tar.exe -xf depot_tools.zip -C depot_tools
+            echo 'export PATH="$HOME/depot_tools:$PATH"' >> $BASH_ENV
+            source $BASH_ENV
+
+  install_rpm:
+    steps:
+      - run:
+          name: Install rpm
+          command: apt-get install rpm
+
   gclient_sync:
-    parameters:
-      is_win:
-        type: boolean
-        default: false
     steps:
       - restore_cache:
           name: Restore gclient git cache
           keys:
-            - v2-gclient-cache-{{ checksum "DEPS" }}
-      - when:
-          condition: << parameters.is_win >>
-          steps:
-            - run:
-                name: Gclient sync (Windows)
-                command: |
-                  cd $HOME
-                  curl.exe --output depot_tools.zip https://storage.googleapis.com/chrome-infra/depot_tools.zip
-                  mkdir depot_tools
-                  tar.exe -xf depot_tools.zip -C depot_tools
-                  echo 'export PATH="$HOME/depot_tools:$PATH"' >> $BASH_ENV
-                  echo 'export GIT_CACHE_PATH="$HOME/.gclient-cache"' >> $BASH_ENV
-                  source $BASH_ENV
-                  cd $CIRCLE_WORKING_DIRECTORY
-                  gclient config --name "devtools-frontend" --unmanaged "$CIRCLE_REPOSITORY_URL"
-                  gclient sync --with_branch_heads --with_tags
-      - when:
-          condition: 
-            not: << parameters.is_win >>
-          steps:
-            - run:
-                name: Gclient sync
-                command: |
-                  git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME/depot_tools
-                  echo 'export PATH="$PATH:$HOME/depot_tools"' >> $BASH_ENV
-                  echo 'export GIT_CACHE_PATH="$HOME/.gclient-cache"' >> $BASH_ENV
-                  source $BASH_ENV
-                  gclient config --name "devtools-frontend" --unmanaged "$CIRCLE_REPOSITORY_URL"
-                  gclient sync --with_branch_heads --with_tags
+            - v3-gclient-cache-{{ checksum "DEPS" }}
+      - run:
+          name: Gclient sync
+          command: |
+            # CircleCI does not support interpolation when setting environment variables.
+            # https://circleci.com/docs/2.0/env-vars/#setting-an-environment-variable-in-a-shell-command
+            echo 'export GIT_CACHE_PATH="$HOME/.gclient-cache"' >> $BASH_ENV
+            source $BASH_ENV
+            gclient config --name "devtools-frontend" --unmanaged "$CIRCLE_REPOSITORY_URL"
+            gclient sync --with_branch_heads --with_tags
       - save_cache:
           name: Persisting git cache
           paths:
             - ~/.gclient-cache
-          key: v2-gclient-cache-{{ checksum "DEPS" }}
+          key: v3-gclient-cache-{{ checksum "DEPS" }}
     
   build_devtools_frontend:
     steps:
@@ -112,15 +115,11 @@ commands:
       make_flags:
         type: string
         default: ''
-      is_win:
-        type: boolean
-        default: false
     steps:
       - checkout
       - initialize_submodules
       - install_deps
-      - gclient_sync:
-        is_win: << parameters.is_win >>
+      - gclient_sync
       - build_devtools_frontend
       - run:
           name: Build Packages with flags; << parameters.make_flags >>
@@ -150,6 +149,7 @@ jobs:
         enum: ['x64', 'arm64']
     executor: macos
     steps:
+      - install_depottools_git
       - build_sleuth:
           make_flags: --arch << parameters.arch >>
   build-windows:
@@ -157,16 +157,21 @@ jobs:
       name: win/default
       shell: bash.exe
     steps:
-      - build_sleuth:
-          is_win: true
+      - install_depottools_zip
+      - build_sleuth
   build-ubuntu:
-    executor: ubuntu
+    machine:
+      image: ubuntu-2004:202107-02
     steps:
+      - install_depottools_git
       - build_sleuth:
           make_flags: --targets @electron-forge/maker-deb
   build-fedora:
-    executor: fedora
+    machine:
+      image: ubuntu-2004:202107-02
     steps:
+      - install_depottools_git
+      - install_rpm
       - build_sleuth:
           make_flags: --targets @electron-forge/maker-rpm
   code-sign-macos:
