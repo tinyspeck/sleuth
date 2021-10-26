@@ -44,7 +44,7 @@ commands:
       - restore_cache:
           name: Restore gclient git cache
           keys:
-            - v1-gclient-cache-{{ checksum "DEPS" }}
+            - v2-gclient-cache-{{ checksum "DEPS" }}
       - when:
           condition: << parameters.is_win >>
           steps:
@@ -78,7 +78,7 @@ commands:
           name: Persisting git cache
           paths:
             - ~/.gclient-cache
-          key: v1-gclient-cache-{{ checksum "DEPS" }}
+          key: v2-gclient-cache-{{ checksum "DEPS" }}
     
   build_devtools_frontend:
     steps:
