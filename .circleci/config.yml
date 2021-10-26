@@ -60,7 +60,9 @@ commands:
     steps:
       - run:
           name: Install rpm
-          command: apt-get install rpm
+          command: |
+            sudo apt-get update
+            sudo apt-get install rpm
 
   gclient_sync:
     steps:
