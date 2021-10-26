@@ -1,13 +1,9 @@
 const fs = require('fs-extra');
 const path = require('path');
-const { promisify } = require('util');
-const { exec } = require('child_process');
-
-const execPromise = promisify(exec);
 
 module.exports = {
   async copyDevtoolsFrontend() {
-    const hasSubmodules = fs.existsSync(path.join(__dirname, '../devtools-frontend/front_end'));
+    const hasSubmodules = fs.existsSync(path.join(__dirname, '../devtools-frontend/out/Default/gen/front_end'));
     const isCI = process.env.CI;
 
     if (!hasSubmodules && isCI) {
@@ -18,7 +14,7 @@ module.exports = {
 
     const gitSubmodules = hasSubmodules ? [
       {
-        source: path.join(__dirname, '../devtools-frontend/front_end'),
+        source: path.join(__dirname, '../devtools-frontend/out/Default/gen/front_end'),
         target: path.join(__dirname, '../dist/devtools-frontend')
       }
     ] : []

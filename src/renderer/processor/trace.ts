@@ -114,6 +114,7 @@ export class TraceProcessor extends EventEmitter {
     const cached = await fs.pathExists(cachedEntries);
     if (cached) {
       const entries = await fs.readJSON(cachedEntries);
+      this.emit('completed', []);
       return entries;
     }
 

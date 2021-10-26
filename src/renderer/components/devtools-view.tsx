@@ -162,7 +162,7 @@ export class DevtoolsView extends React.Component<
 
     if (iframe) {
       const {state} = this.props;
-      const events = state.processRenderer(this.props.file, processId);
+      const events = await state.processRenderer(this.props.file, processId);
 
       // See catapult.html for the postMessage handler
       const devtoolsWindow = iframe.contentWindow;
