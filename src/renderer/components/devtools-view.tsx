@@ -21,6 +21,7 @@ export interface DevtoolsViewProps {
 
 export interface DevtoolsViewState {
   profilePid?: number;
+  raw?: boolean
 }
 
 const debug = require('debug')('sleuth:devtoolsview');
@@ -63,7 +64,7 @@ export class DevtoolsView extends React.Component<
         <td>
           <ButtonGroup fill={true}>
             <Button
-              onClick={() => this.setState({ profilePid: processId })}
+              onClick={() => this.setState({ profilePid: processId, raw: true })}
               icon='document-open'
             >
               Open Raw
@@ -93,7 +94,7 @@ export class DevtoolsView extends React.Component<
         <div className='Devtools'>
           <iframe
             src={`oop://oop/static/devtools-frontend.html?panel=timeline`}
-            onLoad={() => this.loadFile(this.state.profilePid)}
+            onLoad={() => this.loadFile(this.state.profilePid, this.state.raw)}
             frameBorder={0}
           />
         </div>
@@ -150,7 +151,7 @@ export class DevtoolsView extends React.Component<
    *
    * @memberof NetLogView
    */
-  public async loadFile(processId?: number) {
+  public async loadFile(processId?: number, raw?: boolean) {
     this.setDarkMode(this.props.state.isDarkMode);
 
     if (!processId) {
@@ -162,7 +163,11 @@ export class DevtoolsView extends React.Component<
 
     if (iframe) {
       const {state} = this.props;
-      const events = await state.processRenderer(this.props.file, processId);
+      let events;
+      if (raw) {
+        events = await state.rawRenderer(this.props.file, processId);
+      }
+      events = await state.processRenderer(this.props.file, processId);
 
       // See catapult.html for the postMessage handler
       const devtoolsWindow = iframe.contentWindow;

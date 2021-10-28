@@ -49,6 +49,7 @@ export class PantryAuth {
   }
 
   public getUberproxyAuth(): Promise<boolean> {
+    let resolved = false;
     return new Promise(async (resolve) => {
       const cmd = pty.spawn(
         'slack',
@@ -67,12 +68,18 @@ export class PantryAuth {
             );
             this.updateAuth(cookies.join(' '), true);
             resolve(true);
+            resolved = true;
           } catch (e) {
-            debug('Unable to call uberproxy-auth', e);
-            resolve(false);
+            // ignored
           }
         }
       });
+      cmd.onExit((code) => {
+        if (!resolved) {
+          debug('Unable to get uberproxy-auth', code);
+          resolve(false);
+        }
+      })
     });
   }
 

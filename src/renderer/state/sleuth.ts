@@ -397,6 +397,11 @@ export class SleuthState {
   }
 
   @action
+  public async rawRenderer(file: UnzippedFile, pid: number) {
+    return this.traceProcessor.rawRenderer(file, pid);
+  }
+
+  @action
   public async processRenderer(file: UnzippedFile, pid: number) {
     return this.traceProcessor.processRenderer(this, file, pid);
   }

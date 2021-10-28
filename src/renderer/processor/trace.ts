@@ -97,6 +97,21 @@ export class TraceProcessor extends EventEmitter {
     return;
   }
 
+  public async rawRenderer(
+    file: UnzippedFile,
+    pid: number
+  ): Promise<Array<ChromiumTraceEvent>> {
+    const initialEntry = await this.makeInitialEntry(file, pid);
+    const parser = await this.getTraceParser(file);
+    if (!parser) {
+      this.emit('error', 'Unable to parser trace');
+      return [];
+    }
+
+    const events = parser.getTraceEvents();
+    return initialEntry ? [initialEntry, ...events] : events;
+  }
+
   public async processRenderer(
     state: SleuthState,
     file: UnzippedFile,
