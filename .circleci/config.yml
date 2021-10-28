@@ -42,7 +42,6 @@ commands:
           command: |
             git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME/depot_tools
             echo 'export PATH="$PATH:$HOME/depot_tools"' >> $BASH_ENV
-            echo 'export GIT_CACHE_PATH="$HOME/.gclient-cache"' >> $BASH_ENV
             source $BASH_ENV
 
   install_depottools_zip:
@@ -50,12 +49,12 @@ commands:
       - run:
           name: Install depot_tools from zip
           command: |
-            cd %USERPROFILE%
+            cd $HOME
             curl.exe --output depot_tools.zip https://storage.googleapis.com/chrome-infra/depot_tools.zip
             mkdir depot_tools
             tar.exe -xf depot_tools.zip -C depot_tools
-            setx /M PATH=%USERPROFILE%/depot_tools;%PATH%
-            setx /M GIT_CACHE_PATH=%USERPROFILE%/.gclient-cache
+            echo 'export PATH="$HOME/depot_tools:$PATH"' >> $BASH_ENV
+            source $BASH_ENV
 
   install_rpm:
     steps:
@@ -74,6 +73,10 @@ commands:
       - run:
           name: Gclient sync
           command: |
+            # CircleCI does not support interpolation when setting environment variables.
+            # https://circleci.com/docs/2.0/env-vars/#setting-an-environment-variable-in-a-shell-command
+            echo 'export GIT_CACHE_PATH="$HOME/.gclient-cache"' >> $BASH_ENV
+            source $BASH_ENV
             gclient config --name "devtools-frontend" --unmanaged "$CIRCLE_REPOSITORY_URL"
             gclient sync --with_branch_heads --with_tags
       - save_cache:
@@ -154,7 +157,7 @@ jobs:
   build-windows:
     executor:
       name: win/default
-      shell: cmd.exe
+      shell: bash.exe
     steps:
       - install_depottools_zip
       - build_sleuth
