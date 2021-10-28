@@ -3,7 +3,8 @@ const path = require('path');
 
 module.exports = {
   async copyDevtoolsFrontend() {
-    const hasSubmodules = fs.existsSync(path.join(__dirname, '../devtools-frontend/out/Default/gen/front_end'));
+    const basePath = path.join(__dirname, '../node_modules/devtools-frontend-prebuilt/front_end');
+    const hasSubmodules = fs.existsSync(basePath);
     const isCI = process.env.CI;
 
     if (!hasSubmodules && isCI) {
@@ -14,7 +15,7 @@ module.exports = {
 
     const gitSubmodules = hasSubmodules ? [
       {
-        source: path.join(__dirname, '../devtools-frontend/out/Default/gen/front_end'),
+        source: basePath,
         target: path.join(__dirname, '../dist/devtools-frontend')
       }
     ] : []

@@ -31,7 +31,6 @@ const options = {
     },
     ignore: [
       /^\/\.vscode/,
-      /^\/devtools-frontend/,
       /^\/catapult/,
       /^\/coverage/,
       /^\/test/,
