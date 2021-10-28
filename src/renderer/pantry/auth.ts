@@ -79,7 +79,7 @@ export class PantryAuth {
           debug('Unable to get uberproxy-auth', code);
           resolve(false);
         }
-      })
+      });
     });
   }
 

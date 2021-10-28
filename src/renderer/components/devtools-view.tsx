@@ -8,6 +8,8 @@ import {
   Card,
   Icon,
   ButtonGroup,
+  MaybeElement,
+  IconName
 } from '@blueprintjs/core';
 import { SleuthState } from '../state/sleuth';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -21,7 +23,7 @@ export interface DevtoolsViewProps {
 
 export interface DevtoolsViewState {
   profilePid?: number;
-  raw?: boolean
+  raw?: boolean;
 }
 
 const debug = require('debug')('sleuth:devtoolsview');
@@ -55,6 +57,15 @@ export class DevtoolsView extends React.Component<
     const isCompleted = !!result;
     const pending = !isCompleted && progress !== 0;
 
+    let icon: IconName | MaybeElement;
+    if (pending) {
+      icon = <Spinner size={16} value={progress} />;
+    } else if (!isCompleted) {
+      icon = <Spinner size={16} />;
+    } else {
+      icon = 'document-open';
+    }
+
     return (
       <tr>
         <td>
@@ -71,13 +82,7 @@ export class DevtoolsView extends React.Component<
             </Button>
             <Button
               onClick={() => this.setState({ profilePid: processId })}
-              icon={
-                pending ? (
-                  <Spinner size={16} value={progress} />
-                ) : (
-                  'document-open'
-                )
-              }
+              icon={icon}
               disabled={!isCompleted}
             >
               Open Sourcemapped
