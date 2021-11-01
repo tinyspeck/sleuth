@@ -14,6 +14,12 @@ const getCachePath = (basePath: string, filename: string) => {
   return t;
 };
 
+interface FileInfo {
+  name: string;
+  modified: Date;
+  size: number;
+}
+
 export class SourcemapResolver {
   sha: string;
   cookie: string;
@@ -25,10 +31,41 @@ export class SourcemapResolver {
     this.cacheRoot = cacheRoot;
   }
 
+  private async ensureCacheSize(cacheDir: string, sizeLimit: number = 500 * 1000 * 1000) {
+    try {
+      await fs.access(cacheDir, fs.constants.F_OK);
+    } catch (e) {
+      // directory does not exist, return
+      return;
+    }
+    const readPromise = await fs.readdir(cacheDir);
+    const statPromises: Array<Promise<FileInfo>> = readPromise.map(async (fileName) => {
+      const stat = await fs.stat(`${cacheDir}/${fileName}`);
+      return {
+        name: fileName,
+        modified: stat.mtime,
+        size: stat.size,
+      };
+    });
+    const files = await Promise.all(statPromises);
+    const sorted = files.sort((a, b) => a.modified.getTime() - b.modified.getTime());
+    let size = 0;
+    const removePromises = [];
+    for (const file of sorted) {
+      size += file.size;
+      if (size > sizeLimit) {
+        debug(`Removing ${file.name} as cache size has exceeded limit`);
+        removePromises.push(fs.remove(`${cacheDir}/${file.name}`));
+      }
+    }
+    await Promise.all(removePromises);
+  }
+
   private async getFromCache(
     filename: string
   ): Promise<RawSourceMap | undefined> {
     try {
+      await this.ensureCacheSize(path.join(this.cacheRoot, 'maps'));
       const cachePath = getCachePath(this.cacheRoot, filename);
       const file = await fs.readFile(cachePath, 'utf8');
       const map = JSON.parse(file);

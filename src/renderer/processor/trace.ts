@@ -124,7 +124,7 @@ export class TraceProcessor extends EventEmitter {
 
   public async sourcemap(state: SleuthState, file: UnzippedFile): Promise<Array<ChromiumTraceEvent>> {
     const cachedEntries = normalize(
-      `${USER_DATA}/trace-cache/entries/${file.fileName}.json`
+      `${USER_DATA}/trace-cache/sourcemap/entries/${file.fileName}.json`
     );
     const cached = await fs.pathExists(cachedEntries);
     if (cached) {
