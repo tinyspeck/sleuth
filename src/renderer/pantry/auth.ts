@@ -63,12 +63,15 @@ export class PantryAuth {
         } else {
           try {
             const authData = JSON.parse(data.trim());
-            const cookies = Object.entries(authData).map(
-              ([key, val]) => `${key}=${val};`
-            );
-            this.updateAuth(cookies.join(' '), true);
-            resolve(true);
-            resolved = true;
+            if (authData['user-agent']) {
+              // looks like a valid response
+              const cookies = Object.entries(authData).map(
+                ([key, val]) => `${key}=${val};`
+              );
+              this.updateAuth(cookies.join(' '), true);
+              resolve(true);
+              resolved = true;
+            }
           } catch (e) {
             // ignored
           }
