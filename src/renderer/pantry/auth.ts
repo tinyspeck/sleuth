@@ -3,7 +3,7 @@ import * as pty from 'node-pty';
 
 import { config } from '../../config';
 import { showMessageBox } from '../ipc';
-import { USER_AGENT } from '../../shared-constants';
+import { getUserAgent } from '../ipc';
 
 const debug = require('debug')('sleuth:pantry-auth');
 
@@ -53,7 +53,7 @@ export class PantryAuth {
     return new Promise(async (resolve) => {
       const cmd = pty.spawn(
         'slack',
-        ['uberproxy-auth', '--user-agent', USER_AGENT],
+        ['uberproxy-auth', '--user-agent', await getUserAgent()],
         {}
       );
       cmd.onData(async (data) => {
@@ -89,11 +89,10 @@ export class PantryAuth {
   public async signIn(options?: SigninOptions): Promise<boolean> {
     try {
       debug(`Trying to sign into Pantry`);
-
       const headers = {
         Pragma: 'no-cache',
         'Cache-Control': 'no-cache',
-        'User-Agent': USER_AGENT,
+        'User-Agent': await getUserAgent(),
         Cookie: this.cookie,
       };
 

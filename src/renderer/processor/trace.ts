@@ -5,9 +5,9 @@ import { PantryAuth } from '../pantry/auth';
 import { TraceMapper } from './trace/mapper';
 import { SourcemapResolver } from './trace/resolver';
 import { ChromiumTraceEvent, TraceParser } from './trace/parser';
-import { remote } from 'electron';
 import { normalize } from 'path';
 import { EventEmitter } from 'events';
+import { getPath } from '../ipc';
 
 const debug = require('debug')('sleuth:trace-processor');
 export interface RendererDescription {
@@ -23,8 +23,6 @@ function maybeParseJSON(raw: string) {
     return {};
   }
 }
-
-const USER_DATA = remote.app.getPath('userData');
 
 export class TraceProcessor extends EventEmitter {
   state: SleuthState;
@@ -123,8 +121,9 @@ export class TraceProcessor extends EventEmitter {
   }
 
   public async sourcemap(state: SleuthState, file: UnzippedFile): Promise<Array<ChromiumTraceEvent>> {
+    const userData = await getPath('userData');
     const cachedEntries = normalize(
-      `${USER_DATA}/trace-cache/sourcemap/entries/${file.fileName}.json`
+      `${userData}/trace-cache/sourcemap/entries/${file.fileName}.json`
     );
     const cached = await fs.pathExists(cachedEntries);
     if (cached) {
@@ -168,7 +167,7 @@ export class TraceProcessor extends EventEmitter {
     const resolver = new SourcemapResolver(
       sha,
       state.uberProxyCookie,
-      normalize(`${USER_DATA}/trace-cache/sourcemap`)
+      normalize(`${userData}/trace-cache/sourcemap`)
     );
     const mapper = new TraceMapper(parser, resolver);
     mapper.on('progress', (progress) => {

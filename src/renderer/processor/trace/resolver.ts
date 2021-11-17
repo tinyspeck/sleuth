@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import fetch from 'node-fetch';
 import { RawSourceMap } from 'source-map';
-import { USER_AGENT } from '../../../shared-constants';
+import { getUserAgent } from '../../ipc';
 
 const debug = require('debug')('sleuth:sourcemap-resolver');
 
@@ -90,7 +90,7 @@ export class SourcemapResolver {
     const url = getPantryURL(this.sha, filename);
     const resp = await fetch(url, {
       headers: {
-        'User-Agent': USER_AGENT,
+        'User-Agent': await getUserAgent(),
         Cookie: this.cookie,
       },
     });
