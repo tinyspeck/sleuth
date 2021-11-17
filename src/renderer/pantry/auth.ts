@@ -2,8 +2,7 @@ import fetch from 'node-fetch';
 import * as pty from 'node-pty';
 
 import { config } from '../../config';
-import { showMessageBox } from '../ipc';
-import { getUserAgent } from '../ipc';
+import { showMessageBox, getUserAgent } from '../ipc';
 
 const debug = require('debug')('sleuth:pantry-auth');
 
