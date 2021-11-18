@@ -52,15 +52,15 @@ export class DevtoolsView extends React.Component<
 
   private rowRenderer(
     { title, processId, isClient }: RendererDescription,
-    { progress, result }: SleuthState['sourcemapState']
+    { progress, completed, error }: SleuthState['sourcemapState']
   ) {
-    const isCompleted = !!result;
-    const pending = !isCompleted && progress !== 0;
+    const pending = !completed && progress !== 0;
+    const hasError = !!error;
 
     let icon: IconName | MaybeElement;
     if (pending) {
       icon = <Spinner size={16} value={progress} />;
-    } else if (!isCompleted) {
+    } else if (!completed) {
       icon = <Spinner size={16} />;
     } else {
       icon = 'document-open';
@@ -83,7 +83,7 @@ export class DevtoolsView extends React.Component<
             <Button
               onClick={() => this.setState({ profilePid: processId })}
               icon={icon}
-              disabled={!isCompleted}
+              disabled={!completed || hasError}
             >
               Open Sourcemapped
             </Button>
@@ -168,11 +168,9 @@ export class DevtoolsView extends React.Component<
 
     if (iframe) {
       const {state} = this.props;
-      let events;
-      if (raw) {
-        events = await state.rawRenderer(this.props.file, processId);
-      }
-      events = await state.processRenderer(this.props.file, processId);
+      const events = raw ?
+        await state.rawRenderer(this.props.file, processId) :
+        await state.processRenderer(this.props.file, processId);
 
       // See catapult.html for the postMessage handler
       const devtoolsWindow = iframe.contentWindow;

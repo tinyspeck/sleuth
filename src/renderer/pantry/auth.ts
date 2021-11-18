@@ -50,38 +50,43 @@ export class PantryAuth {
   public getUberproxyAuth(): Promise<boolean> {
     let resolved = false;
     return new Promise(async (resolve) => {
-      const cmd = pty.spawn(
-        'slack',
-        ['uberproxy-auth', '--user-agent', await getUserAgent()],
-        {}
-      );
-      cmd.onData(async (data) => {
-        if (data.includes('Passcode or option')) {
-          await this.showSignInWindowWarning();
-          cmd.write('1\r');
-        } else {
-          try {
-            const authData = JSON.parse(data.trim());
-            if (authData['user-agent']) {
-              // looks like a valid response
-              const cookies = Object.entries(authData).map(
-                ([key, val]) => `${key}=${val};`
-              );
-              this.updateAuth(cookies.join(' '), true);
-              resolve(true);
-              resolved = true;
-            }
-          } catch (e) {
-            // ignored
-          }
-        }
-      });
-      cmd.onExit((code) => {
+      const handleFailure = (error: any) => {
         if (!resolved) {
-          debug('Unable to get uberproxy-auth', code);
+          debug('Unable to get uberproxy-auth', error);
           resolve(false);
         }
-      });
+      };
+      try {
+        const cmd = pty.spawn(
+          'slack',
+          ['uberproxy-auth', '--user-agent', await getUserAgent()],
+          {}
+        );
+        cmd.onData(async (data) => {
+          if (data.includes('Passcode or option')) {
+            await this.showSignInWindowWarning();
+            cmd.write('1\r');
+          } else {
+            try {
+              const authData = JSON.parse(data.trim());
+              if (authData['user-agent']) {
+                // looks like a valid response
+                const cookies = Object.entries(authData).map(
+                  ([key, val]) => `${key}=${val};`
+                );
+                this.updateAuth(cookies.join(' '), true);
+                resolve(true);
+                resolved = true;
+              }
+            } catch (e) {
+              // ignored
+            }
+          }
+        });
+        cmd.onExit(handleFailure);
+      } catch (e) {
+        handleFailure(e);
+      }
     });
   }
 

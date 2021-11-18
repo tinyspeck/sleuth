@@ -34,7 +34,8 @@ import { TraceProcessor, RendererDescription } from '../processor/trace';
 
 interface SourcemapState {
   progress: number;
-  result?: string;
+  completed: boolean;
+  error?: string;
 }
 
 const debug = require('debug')('sleuth:state');
@@ -105,7 +106,7 @@ export class SleuthState {
     = this.retrieve('serializedBookmarks', true) as Record<string, Array<SerializedBookmark>> || {};
   // ** Profiler **
   @observable public rendererThreads: Array<RendererDescription> | undefined;
-  @observable public sourcemapState: SourcemapState = {progress: 0};
+  @observable public sourcemapState: SourcemapState = {progress: 0, completed: false};
 
   // ** Settings **
   @observable public isDarkMode: boolean = !!this.retrieve('isDarkMode', true);
@@ -183,13 +184,13 @@ export class SleuthState {
       this.isUberProxySignedIn = isSignedIn;
     });
     this.traceProcessor.on('progress', (progress) => {
-      this.sourcemapState = { progress };
+      this.sourcemapState = { progress, completed: false };
     });
     this.traceProcessor.on('error', (error) => {
-      this.sourcemapState = { progress: 1, result: `Error ${error}`};
+      this.sourcemapState = { progress: 1, completed: true, error};
     });
     this.traceProcessor.on('completed', () => {
-      this.sourcemapState = { progress: 1, result: `Completed` };
+      this.sourcemapState = { progress: 1, completed: true};
     });
 
     autorun(() => this.traceProcessor.setCookie(this.uberProxyCookie));
@@ -322,7 +323,7 @@ export class SleuthState {
     this.cachePath = undefined;
     this.selectedCacheKey = undefined;
     this.isLoadingCacheKeys = false;
-    this.sourcemapState = {progress: 0};
+    this.sourcemapState = {progress: 0, completed: false};
     this.rendererThreads = undefined;
 
     if (goBackToHome) {
