@@ -12,6 +12,10 @@ export function getPath(
   return ipcRenderer.invoke('get-path', path);
 }
 
+export function getUserAgent(): Promise<string> {
+  return ipcRenderer.invoke('get-user-agent');
+}
+
 export function sendWindowReady() {
   ipcRenderer.send('window-ready');
 }

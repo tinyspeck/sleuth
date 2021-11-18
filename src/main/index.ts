@@ -9,6 +9,7 @@ import { createWindow, windows } from './windows';
 import { createMenu } from './menu';
 import { setupUpdates } from './update';
 import { installProtocol } from './protocol';
+import { registerScheme, registerSchemePrivilege } from './scheme';
 
 if (!config.isDevMode) {
   process.env.NODE_ENV = 'production';
@@ -44,6 +45,8 @@ if (require('electron-squirrel-startup')) {
     });
   });
 
+  registerSchemePrivilege();
+
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
@@ -54,6 +57,7 @@ if (require('electron-squirrel-startup')) {
     createWindow();
     createMenu();
     setupUpdates();
+    registerScheme();
   });
 
   // Quit when all windows are closed.

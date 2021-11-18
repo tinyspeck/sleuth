@@ -27,6 +27,7 @@ const enum NODE_ID {
   BROWSER = 'browser',
   RENDERER = 'renderer',
   PRELOAD = 'preload',
+  TRACE = 'trace',
   WEBAPP = 'webapp',
   CALLS = 'calls',
   INSTALLER = 'installer',
@@ -58,7 +59,15 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     childNodes: [],
     nodeData: { type: 'browser' }
   }, {
-    id: 'renderer',
+    id: NODE_ID.TRACE,
+    hasCaret: true,
+    icon: 'applications',
+    label: 'Trace',
+    isExpanded: true,
+    childNodes: [],
+    nodeData: { type: 'trace' }
+  }, {
+    id: NODE_ID.RENDERER,
     hasCaret: true,
     icon: 'applications',
     label: 'Renderer Process',
@@ -132,6 +141,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     Sidebar.setChildNodes(NODE_ID.INSTALLER, state, processedLogFiles.installer.map((file) => Sidebar.getInstallerFileNode(file, props)));
     Sidebar.setChildNodes(NODE_ID.NETWORK, state, processedLogFiles.netlog.map((file, i) => Sidebar.getNetlogFileNode(file, props, i)));
     Sidebar.setChildNodes(NODE_ID.MOBILE, state, processedLogFiles.mobile.map((file) => Sidebar.getFileNode(file, props)));
+    Sidebar.setChildNodes(NODE_ID.TRACE, state, processedLogFiles.trace.map((file) => Sidebar.getStateFileNode(file, props)));
 
 
     return { nodes: state.nodes };

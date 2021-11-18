@@ -53,6 +53,7 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
         call: [],
         installer: [],
         netlog: [],
+        trace: [],
         mobile: [],
       },
       loadingMessage: '',
@@ -116,6 +117,7 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
     }
 
     this.addFilesToState(sortedUnzippedFiles, 'state', 'netlog');
+    this.addFilesToState(sortedUnzippedFiles, 'state', 'trace');
 
     console.log(this.state!.processedLogFiles!.state);
 

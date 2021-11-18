@@ -13,6 +13,7 @@ export class IpcManager {
     this.setupMessageBoxHandler();
     this.setupWindowReady();
     this.setupGetPath();
+    this.setupGetUserAgent();
     this.setupSettings();
     this.setupOpenDialog();
     this.setupSaveDialog();
@@ -92,6 +93,12 @@ export class IpcManager {
 
     ipcMain.handle('get-path', (_event, pathName: name) => {
       return app.getPath(pathName);
+    });
+  }
+
+  private setupGetUserAgent() {
+    ipcMain.handle('get-user-agent', (_event) => {
+      return `sleuth/${app.getVersion()}`;
     });
   }
 
