@@ -40,3 +40,11 @@
 .bp3-dark .styled-table th {
   background-color: #202b33;
 }
+
+.bp3-dark .modules-view-extension-list tr.enabled {
+  background-color: #294230
+}
+
+.bp3-dark .modules-view-extension-list tr:not(.enabled) {
+  background-color: #422929
+}
