@@ -116,8 +116,7 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
       window.location.reload();
     }
 
-    this.addFilesToState(sortedUnzippedFiles, 'state', 'netlog');
-    this.addFilesToState(sortedUnzippedFiles, 'state', 'trace');
+    this.addFilesToState(sortedUnzippedFiles, 'state', 'netlog', 'trace');
 
     console.log(this.state!.processedLogFiles!.state);
 
