@@ -19,6 +19,7 @@ export class IpcManager {
     this.setupSaveDialog();
     this.setupCopy();
     this.setupQuit();
+    this.setupOpenRecent();
   }
 
   public openFile(pathName: string) {
@@ -147,6 +148,12 @@ export class IpcManager {
 
   private setupQuit() {
     ipcMain.handle('quit', () => app.quit());
+  }
+
+  private setupOpenRecent() {
+    ipcMain.on('add-recent-file', (_event, filename) => {
+      app.addRecentDocument(filename);
+    });
   }
 }
 
