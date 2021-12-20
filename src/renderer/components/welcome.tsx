@@ -40,7 +40,7 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
 
   public renderSuggestions(): JSX.Element | null {
     const { openFile } = this.props.state;
-    const suggestions = this.props.state.suggestions || {};
+    const suggestions = this.props.state.suggestions || [];
     const elements = suggestions
       .map((file) => {
         const stats = file;
@@ -88,16 +88,15 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
   }
 
   public renderDeleteAll(): JSX.Element | null {
-    const suggestions = this.props.state.suggestions || {};
+    const suggestions = this.props.state.suggestions || [];
 
     // Do we have any files older than 48 hours?
     const twoDaysAgo = Date.now() - 172800000;
     const toDeleteAll: Array<string> = [];
 
-    Object.keys(suggestions).forEach((key) => {
-      const item = suggestions[key];
+    suggestions.forEach((item) => {
       if (isBefore(item.atimeMs, twoDaysAgo)) {
-        toDeleteAll.push(key);
+        toDeleteAll.push(item.filePath);
       }
     });
 
