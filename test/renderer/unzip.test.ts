@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import { Unzipper } from '../../src/renderer/unzip';
 import path from 'path';
 
@@ -10,7 +9,7 @@ describe('Unzipper', () => {
     return unzipper.open()
       .then(() => unzipper.unzip())
       .then((files) => {
-        expect(files.length).to.be.equal(2);
+        expect(files).toHaveLength(2);
         return unzipper.clean();
       });
   });
@@ -22,7 +21,7 @@ describe('Unzipper', () => {
     return unzipper.open()
       .then(() => unzipper.unzip())
       .then((files) => {
-        expect(files.length).to.be.equal(3);
+        expect(files).toHaveLength(3);
         return unzipper.clean();
       });
   });

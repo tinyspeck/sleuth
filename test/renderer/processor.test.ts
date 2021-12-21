@@ -1,5 +1,4 @@
-import { UnzippedFile, UnzippedFiles } from '../../src/renderer/unzip';
-import { expect } from 'chai';
+import { LogType, UnzippedFile, UnzippedFiles } from '../../src/interfaces';
 import {
   getTypeForFile,
   getTypesForFiles,
@@ -14,17 +13,17 @@ import { mockBrowserFile1, mockBrowserFile2 } from '../__mocks__/processed-log-f
 
 import dirtyJSON from 'jsonic';
 import path from 'path';
-import { LogType } from '../../src/renderer/interfaces';
 
 describe('matchLineWebApp', () => {
   it('should match a classic webapp line', () => {
     const line = 'info: 2017/2/22 16:02:37.178 didStartLoading TSSSB.timeout_tim set for ms:60000';
     const result = matchLineWebApp(line);
 
-    expect(result).to.exist;
-    expect(result!.timestamp).to.be.equal('2017/2/22 16:02:37.178');
-    expect(result!.level).to.be.equal('info');
-    expect(result!.message).to.be.equal('didStartLoading TSSSB.timeout_tim set for ms:60000');
+    expect(result).toMatchObject({
+      timestamp: '2017/2/22 16:02:37.178',
+      level: 'info',
+      message: 'didStartLoading TSSSB.timeout_tim set for ms:60000',
+    });
   });
 });
 
@@ -33,50 +32,52 @@ describe('matchLineElectron', () => {
     const line = '[02/22/17, 16:02:33:371] info: Store: UPDATE_SETTINGS';
     const result = matchLineElectron(line);
 
-    expect(result).to.exist;
-    expect(result!.timestamp).to.be.equal('02/22/17, 16:02:33:371');
-    expect(result!.level).to.be.equal('info');
-    expect(result!.message).to.be.equal('Store: UPDATE_SETTINGS');
+    expect(result).toMatchObject({
+      timestamp: '02/22/17, 16:02:33:371',
+      level: 'info',
+      message: ' Store: UPDATE_SETTINGS',
+    });
   });
 });
 
 describe('readFile', () => {
   it('should read a browser.log file and create log entries', () => {
     const file: UnzippedFile = {
+      type: 'UnzippedFile',
+      id: '123',
       fullPath: path.join(__dirname, '../static/browser.log'),
       fileName: 'browser.log',
       size: 1713
     };
 
     return readFile(file, LogType.BROWSER).then(({ entries }) => {
-      expect(entries).to.exist;
-      expect(entries.length).to.be.equal(13);
-      expect(entries[0]).to.exist;
-      expect(entries[0].timestamp).to.be.equal('02/22/17, 16:02:32:675');
-      expect(entries[0].level).to.be.equal('info');
-      expect(entries[0].momentValue).to.be.equal(1487808152675);
-      expect(entries[0].logType).to.be.equal(LogType.BROWSER);
-      expect(entries[0].index).to.be.equal(0);
+      expect(entries).toHaveLength(13);
+      expect(entries[0]).toMatchObject({
+        timestamp: '02/22/17, 16:02:32:675',
+        level: 'info',
+        momentValue: expect.any(Number),
+        logType: LogType.BROWSER,
+        index: 0,
+      });
 
-      expect(entries[4].meta).to.exist;
+      expect(entries[4]).toHaveProperty('meta');
 
       const parsedMeta = dirtyJSON(entries[4].meta);
-
-      expect(parsedMeta).to.exist;
-      expect(parsedMeta.isDevMode).to.be.true;
+      expect(parsedMeta.isDevMode).toBe(true);
     });
   });
 
   it('should read a webapp.log file and create log entries', () => {
     const file: UnzippedFile = {
+      type: 'UnzippedFile',
+      id: '123',
       fullPath: path.join(__dirname, '../static/webapp.log'),
       fileName: 'webapp.log',
       size: 1713
     };
 
     return readFile(file, LogType.WEBAPP).then(({ entries }) => {
-      expect(entries).to.exist;
-      expect(entries.length).to.be.equal(3);
+      expect(entries).toHaveLength(3);
     });
   });
 });
@@ -92,32 +93,33 @@ describe('makeLogEntry', () => {
     };
 
     const result = makeLogEntry(options, 'browser', 1, 'test-file');
-    expect(result).to.exist;
-    expect(result.message).to.be.equal('');
-    expect(result.timestamp).to.be.equal('1');
+    expect(result).toMatchObject({
+      message: '',
+      timestamp: '1'
+    });
   });
 });
 
 describe('processLogFile', () => {
   it('should process a browser.log log file correctly', () => {
     const file: UnzippedFile = {
+      type: 'UnzippedFile',
+      id: '123',
       fullPath: path.join(__dirname, '../static/browser.log'),
       fileName: 'browser.log',
       size: 1713
     };
 
     return processLogFile(file).then((result) => {
-      expect(result).to.exist;
-      expect(result.logFile).to.exist;
-      expect(result.logEntries).to.exist;
-      expect(result.logEntries.length).to.be.equal(13);
-      expect(result.logEntries[0].timestamp).to.be.equal('02/22/17, 16:02:32:675');
-      expect(result.logEntries[0].level).to.be.equal('info');
-      expect(result.logEntries[0].momentValue).to.be.equal(1487808152675);
-      expect(result.logEntries[0].logType).to.be.equal('browser');
-      expect(result.logEntries[0].index).to.be.equal(0);
-      expect(result.logType).to.exist;
-      expect(result.type).to.exist;
+      expect(result).toMatchObject({
+        logEntries: expect.arrayContaining([expect.objectContaining({
+          timestamp: '02/22/17, 16:02:32:675',
+          level: 'info',
+          momentValue: expect.any(Number),
+          logType: LogType.BROWSER,
+          index: 0,
+        })])
+      });
     });
   });
 });
@@ -159,30 +161,33 @@ describe('getTypesForFiles', () => {
     }];
 
     const result = getTypesForFiles(files as UnzippedFiles);
-    expect(result).to.exist;
-    expect(result.browser.length).to.be.equal(1);
-    expect(result.renderer.length).to.be.equal(2);
-    expect(result.webapp.length).to.be.equal(1);
-    expect(result.preload.length).to.be.equal(1);
-    expect(result.state.length).to.be.equal(3);
+    expect(result.browser).toHaveLength(1);
+    expect(result.renderer).toHaveLength(2);
+    expect(result.webapp).toHaveLength(1);
+    expect(result.preload).toHaveLength(1);
+    expect(result.state).toHaveLength(3);
   });
 });
 
 describe('getTypeForFile', () => {
+  const base = {
+    type: 'UnzippedFile' as 'UnzippedFile',
+    id: '123',
+  };
   it('should get the type for browser log files', () => {
-    expect(getTypeForFile({ fileName: 'browser.log', fullPath: '_', size: 0 })).to.be.equal('browser');
+    expect(getTypeForFile({ ...base, fileName: 'browser.log', fullPath: '_', size: 0 })).toEqual('browser');
   });
 
   it('should get the type for renderer log files', () => {
-    expect(getTypeForFile({ fileName: 'renderer-12.log', fullPath: '_', size: 0 })).to.be.equal('renderer');
+    expect(getTypeForFile({ ...base, fileName: 'renderer-12.log', fullPath: '_', size: 0 })).toEqual('renderer');
   });
 
   it('should get the type for webapp log files', () => {
-    expect(getTypeForFile({ fileName: 'webapp-4.log', fullPath: '_', size: 0 })).to.be.equal('webapp');
+    expect(getTypeForFile({ ...base, fileName: 'webapp-4.log', fullPath: '_', size: 0 })).toEqual('webapp');
   });
 
   it('should get the type for preload log files', () => {
-    expect(getTypeForFile({ fileName: 'renderer-webapp-44-preload.log', fullPath: '_', size: 0 })).to.be.equal('preload');
+    expect(getTypeForFile({ ...base, fileName: 'renderer-webapp-44-preload.log', fullPath: '_', size: 0 })).toEqual('preload');
   });
 });
 
@@ -191,12 +196,11 @@ describe('mergeLogFiles', () => {
     const files = [ mockBrowserFile1, mockBrowserFile2 ];
 
     return mergeLogFiles(files, LogType.BROWSER).then((result) => {
-      expect(result).to.exist;
-      expect(result.type).to.be.equal('MergedLogFile');
-      expect(result.logEntries.length).to.be.equal(6);
+      expect(result.type).toBe('MergedLogFile');
+      expect(result.logEntries).toHaveLength(6);
 
-      const indeces = result.logEntries.map((entry) => entry.index);
-      expect(indeces).to.be.deep.equal([0, 1, 0, 2, 1, 2]);
+      const indices = result.logEntries.map((entry) => entry.index);
+      expect(indices).toEqual([0, 1, 0, 2, 1, 2]);
     });
   });
 });
