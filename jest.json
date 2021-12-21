@@ -1,12 +1,16 @@
 {
   "transform": {
-    ".(js|jsx|ts|tsx)": "ts-jest"
+    "\\.(js|jsx|ts|tsx)$": "ts-jest"
   },
   "testEnvironment": "jsdom",
   "testURL": "http://localhost",
+  "testMatch": ["**/test/**/*.test.ts?(x)"],
   "bail": true,
   "resetMocks": true,
   "resetModules": true,
+  "modulePathIgnorePatterns": [
+    "/catapult"
+  ],
   "moduleFileExtensions": [
     "js",
     "jsx",
