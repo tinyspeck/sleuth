@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import { didFilterChange } from '../../src/utils/did-filter-change';
 
 describe('didFilterChange', () => {
@@ -17,7 +16,7 @@ describe('didFilterChange', () => {
       info: false
     };
 
-    expect(didFilterChange(a, b)).to.be.true;
+    expect(didFilterChange(a, b)).toBe(true);
   });
 
   it('should consider an unchanged filter unchanged', () => {
@@ -35,6 +34,6 @@ describe('didFilterChange', () => {
       info: true
     };
 
-    expect(didFilterChange(a, b)).to.be.false;
+    expect(didFilterChange(a, b)).toBe(false);
   });
 });

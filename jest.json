@@ -4,7 +4,6 @@
   },
   "testEnvironment": "jsdom",
   "testURL": "http://localhost",
-  "testRegex": "(-test)\\.(ts|tsx)$",
   "bail": true,
   "resetMocks": true,
   "resetModules": true,
