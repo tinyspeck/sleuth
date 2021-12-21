@@ -4,9 +4,6 @@
   },
   "testEnvironment": "jsdom",
   "testURL": "http://localhost",
-  "setupFilesAfterEnv": [
-    "<rootDir>/test/setup.ts"
-  ],
   "testRegex": "(-test)\\.(ts|tsx)$",
   "bail": true,
   "resetMocks": true,
@@ -17,9 +14,6 @@
     "json",
     "ts",
     "tsx"
-  ],
-  "setupFiles": [
-    "raf/polyfill"
   ],
   "testPathIgnorePatterns": [
     "/.tmp/",
