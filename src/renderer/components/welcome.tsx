@@ -54,29 +54,31 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
         );
 
         return (
-          <ControlGroup className='Suggestion' fill={true} key={basename}>
-            <Button
-              className='OpenButton'
-              alignText='left'
-              onClick={() => openFile(file.filePath)}
-              icon='document'
-            >
-              {basename}
-            </Button>
-            <InputGroup
-              leftIcon='time'
-              defaultValue={`${stats.age} old`}
-              readOnly={true}
-              rightElement={deleteElement}
-            />
-          </ControlGroup>
+          <li key={basename}>
+            <ControlGroup className='Suggestion' fill={true}>
+              <Button
+                className='OpenButton'
+                alignText='left'
+                onClick={() => openFile(file.filePath)}
+                icon='document'
+              >
+                {basename}
+              </Button>
+              <InputGroup
+                leftIcon='time'
+                defaultValue={`${stats.age} old`}
+                readOnly={true}
+                rightElement={deleteElement}
+              />
+            </ControlGroup>
+          </li>
         );
       });
 
     if (elements.length > 0) {
       return (
         <div className='Suggestions'>
-          <ul>{elements}</ul>
+          <ul className='bp3-list-unstyled'>{elements}</ul>
           {this.renderDeleteAll()}
         </div>
       );
