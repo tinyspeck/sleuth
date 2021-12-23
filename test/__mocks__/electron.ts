@@ -1,7 +1,8 @@
 import path from 'path';
 
 const ipcRenderer = {
-  send: jest.fn()
+  send: jest.fn(),
+  invoke: jest.fn(),
 };
 
 const app = {
@@ -14,8 +15,12 @@ const app = {
   }
 };
 
+const shell = {
+  trashItem: jest.fn()
+};
+
 const remote = {
   app
 };
 
-module.exports = { ipcRenderer, remote };
+module.exports = { ipcRenderer, remote, shell };
