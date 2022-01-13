@@ -59,7 +59,7 @@ commands:
     parameters:
       make_flags:
         type: string
-        default: ''
+        default: ""
     steps:
       - checkout_sleuth
       - install_deps
@@ -76,7 +76,7 @@ commands:
             - publish-dry-run
 
 jobs:
-  lint:
+  lint-and-test:
     executor: ubuntu
     steps:
       - checkout_sleuth
@@ -84,11 +84,14 @@ jobs:
       - run:
           name: Lint
           command: npx yarn@1.21.1 lint
+      - run:
+          name: Run tests
+          command: npx yarn@1.21.1 test
   build-macos:
     parameters:
       arch:
         type: enum
-        enum: ['x64', 'arm64']
+        enum: ["x64", "arm64"]
     executor: macos
     steps:
       - build_sleuth:
@@ -116,16 +119,16 @@ jobs:
     parameters:
       arch:
         type: enum
-        enum: ['x64', 'arm64']
+        enum: ["x64", "arm64"]
       channel:
         type: string
-        default: 'prod'
+        default: "prod"
       prod_name:
         type: string
-        default: 'Sleuth'
+        default: "Sleuth"
       artifact_dir:
         type: string
-        default: '/tmp/circleci-workspace/artifacts'
+        default: "/tmp/circleci-workspace/artifacts"
     steps:
       - run:
           command: |
@@ -155,7 +158,7 @@ jobs:
       - persist_to_workspace:
           root: << parameters.artifact_dir >>
           paths:
-            - '*'
+            - "*"
   publish:
     executor: ubuntu
     steps:
@@ -173,7 +176,7 @@ jobs:
 workflows:
   ci:
     jobs:
-      - lint
+      - lint-and-test
       - build-macos:
           name: build-macos-x64
           arch: x64

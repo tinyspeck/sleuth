@@ -1,12 +1,11 @@
-import { expect } from 'chai';
 import { shouldIgnoreFile } from '../../src/utils/should-ignore-file';
 
 describe('shouldIgnoreFile', () => {
   it('should ignore .DS_Store', () => {
-    expect(shouldIgnoreFile('.DS_Store')).to.be.ok;
+    expect(shouldIgnoreFile('.DS_Store')).toBe(true);
   });
 
   it('should not ignore rando file', () => {
-    expect(shouldIgnoreFile('hiitme')).to.be.false;
+    expect(shouldIgnoreFile('hiitme')).toBe(false);
   });
 });
