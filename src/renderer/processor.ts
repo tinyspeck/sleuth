@@ -750,8 +750,8 @@ export function matchLineIOS(line: string): MatchResult | undefined {
     // If it's dd.mm.yy, replace each with /
     let fixedDate = results[1].replace('.', '/');
     fixedDate = fixedDate.replace('.', '/');
-    fixedDate = fixedDate.replace(/上午([\d:]+)/,'$1 AM');
-    fixedDate = fixedDate.replace(/下午([\d:]+)/,'$1 PM');
+    fixedDate = fixedDate.replace(/上午([\d:]+)/, '$1 AM');
+    fixedDate = fixedDate.replace(/下午([\d:]+)/, '$1 PM');
     let timestamp = fixedDate;
     // Expected format: MM/DD/YY, HH:mm:ss ?AM|PM'
     let momentValue = new Date(fixedDate).valueOf();
