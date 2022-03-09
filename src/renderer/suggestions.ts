@@ -106,7 +106,7 @@ async function getSuggestions(input: Array<string>): Promise<Array<Suggestion>> 
     const iosLogsFormat = /Default_logs?.{0,5}.txt/;
     const androidLogsFormat = /attachment?.{0,5}.txt/;
     const chromeLogsFormat = /app\.slack\.com\-\d{13,}\.log/;
-    const firefoxLogsFormat = /console-export-[\d\-\_]{12,}\.txt/;
+    const firefoxLogsFormat = /console(-export)?[\d\-\_]{0,22}\.(txt|log)/;
     const shouldAdd = logsFormat.test(file)
     || serverFormat.test(file)
     || iosLogsFormat.test(file)
