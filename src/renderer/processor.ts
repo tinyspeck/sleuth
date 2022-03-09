@@ -400,7 +400,7 @@ export function readFile(
         }
 
         // Deal with leading Android debug log lines with no timestamp that were given the Jan 1970 default
-        if (logType === 'mobile' && current?.timestamp === new Date('Jan-01-70 00:00:00').toString()) {
+        if ((logType === 'mobile' || logType === 'webapp') && current?.timestamp === new Date('Jan-01-70 00:00:00').toString()) {
           // If a debug line isn't currently being stored
           if (!androidDebug) {
             // Copy the current log entry to the debug store
@@ -410,7 +410,7 @@ export function readFile(
             androidDebug.message += '\n' + current?.message;
           }
         // If a debug line is stored and current exists
-        } else if (logType === 'mobile' && androidDebug && current) {
+        } else if ((logType === 'mobile' || logType === 'webapp') && androidDebug && current) {
           // Give the debug line current's timestamp and momentvalue and push it separately
           androidDebug.timestamp = current.timestamp;
           androidDebug.momentValue = current.momentValue;
