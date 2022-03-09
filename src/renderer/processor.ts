@@ -13,7 +13,7 @@ const DESKTOP_RGX = /^\s*\[([\d\/\,\s\:]{22,24})\] ([A-Za-z]{0,20})\:?(.*)$/g;
 const WEBAPP_A_RGX = /^(\w*): (.{3}-\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 const WEBAPP_B_RGX = /^(\w*): (\d{4}\/\d{1,2}\/\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 
-const IOS_RGX = /^\s*\[((?:[0-9]{1,4}(?:\/|\-|\.)?){3}, [0-9]{1,2}:[0-9]{2}:[0-9]{2}\s?(?:AM|PM)?)\] (-|.{0,2}[</[]\w+[>\]])(.+)$/;
+const IOS_RGX = /^\s*\[((?:[0-9]{1,4}(?:\/|\-|\.)?){3}(?: |\,|上午|下午){0,2}[0-9]{1,2}:[0-9]{2}:[0-9]{2}\s?(?:AM|PM)?)\] (-|.{0,2}[</[]\w+[>\]])(.+)$/;
 
 const ANDROID_A_RGX = /^\s*([0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}:[0-9]{3}) (.+)$/;
 const ANDROID_B_RGX = /^(?:\u200B|[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})?\s*(.*)\s*([a-zA-Z]{3}-[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})\s(.*)/;
@@ -160,7 +160,7 @@ export function getTypeForFile(logFile: UnzippedFile): LogType {
     return LogType.NETLOG;
   } else if (fileName.startsWith('ShipIt') || fileName.includes('SquirrelSetup')) {
     return LogType.INSTALLER;
-  } else if (fileName.includes('Default_logs') || fileName.startsWith('attachment') || /\w{9,}_\w{9,}_\d{16,}\.txt/.test(fileName)) {
+  } else if (fileName.startsWith('Default_') || fileName.startsWith('attachment') || /\w{9,}_\w{9,}_\d{16,}\.txt/.test(fileName)) {
     return LogType.MOBILE;
   }
 
@@ -750,6 +750,8 @@ export function matchLineIOS(line: string): MatchResult | undefined {
     // If it's dd.mm.yy, replace each with /
     let fixedDate = results[1].replace('.', '/');
     fixedDate = fixedDate.replace('.', '/');
+    fixedDate = fixedDate.replace(/上午([\d:]+)/,'$1 AM');
+    fixedDate = fixedDate.replace(/下午([\d:]+)/,'$1 PM');
     let timestamp = fixedDate;
     // Expected format: MM/DD/YY, HH:mm:ss ?AM|PM'
     let momentValue = new Date(fixedDate).valueOf();
@@ -923,7 +925,7 @@ export function getMatchFunction(
   } else if (logType === LogType.MOBILE) {
     if (logFile.fileName.startsWith('attachment')) {
       return matchLineAndroid;
-    } else if (logFile.fileName.startsWith('Default_logs')){
+    } else if (logFile.fileName.startsWith('Default_')){
       return matchLineIOS;
     } else {
       return matchLineMobile;
