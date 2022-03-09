@@ -95,7 +95,7 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
     const toDeleteAll: Array<string> = [];
 
     suggestions.forEach((item) => {
-      if (isBefore(item.atimeMs, twoDaysAgo)) {
+      if (isBefore(item.mtimeMs, twoDaysAgo)) {
         toDeleteAll.push(item.filePath);
       }
     });
