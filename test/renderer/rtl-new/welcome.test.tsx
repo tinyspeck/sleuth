@@ -67,7 +67,7 @@ describe('Welcome', () => {
           {
             filePath: '/path/to/file/',
             age: 'dummy age string',
-            atimeMs: Date.now() - 1000 * 60 * 60 * 24 * 3 // 3 days old
+            mtimeMs: Date.now() - 1000 * 60 * 60 * 24 * 3 // 3 days old
           }
         ]
       };
@@ -82,7 +82,7 @@ describe('Welcome', () => {
           {
             filePath: '/path/to/file/',
             age: 'dummy age string',
-            atimeMs: Date.now() - 1000 * 60 * 60 * 24 * 1 // 1 day old
+            mtimeMs: Date.now() - 1000 * 60 * 60 * 24 * 1 // 1 day old
           }
         ]
       };
