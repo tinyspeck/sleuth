@@ -103,7 +103,7 @@ async function getSuggestions(input: Array<string>): Promise<Array<Suggestion>> 
     // have named it T8KJ1FXTL_U8KCVGGLR_1580765146766674.txt
     const serverFormat = /\w{9,}_\w{9,}_\d{13,}(?:_\d)?\.(zip|txt)/;
     const logsFormat = /.*logs.*\.zip/;
-    const iosLogsFormat = /Default_logs?.{0,5}.txt/;
+    const iosLogsFormat = /(utf-8'')?Default_(.){0,14}(\.txt$)/;
     const androidLogsFormat = /attachment?.{0,5}.txt/;
     const chromeLogsFormat = /app\.slack\.com\-\d{13,}\.log/;
     const firefoxLogsFormat = /console(-export)?[\d\-\_]{0,22}\.(txt|log)/;
