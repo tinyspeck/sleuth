@@ -150,9 +150,10 @@ export function getTypeForFile(logFile: UnzippedFile): LogType {
     || fileName.startsWith('box')
     || fileName.startsWith('dropbox')
     || fileName.startsWith('unknown')
-    || fileName.endsWith('window-console.log')) {
+    || fileName.endsWith('window-console.log')
+    || fileName.endsWith('chrome-console.log')) {
     return LogType.RENDERER;
-  } else if (fileName.startsWith('webapp') || fileName.startsWith('app.slack') || fileName.startsWith('console-export')) {
+  } else if (fileName.startsWith('webapp') || fileName.startsWith('app.slack') || fileName.startsWith('console')) {
     return LogType.WEBAPP;
   } else if (fileName.startsWith('call')) {
     return LogType.CALL;
@@ -907,7 +908,7 @@ export function getMatchFunction(
   logFile: UnzippedFile
 ): (line: string) => MatchResult | undefined {
   if (logType === LogType.WEBAPP) {
-    if (logFile.fileName.startsWith('app.slack') || logFile.fileName.startsWith('console-export-')) {
+    if (logFile.fileName.startsWith('app.slack') || logFile.fileName.startsWith('console')) {
       return matchLineConsole;
     } else {
       return matchLineWebApp;
