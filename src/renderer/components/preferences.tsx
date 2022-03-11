@@ -6,6 +6,7 @@ import { SleuthState } from '../state/sleuth';
 import classNames from 'classnames';
 import React from 'react';
 import autoBind from 'react-autobind';
+import {format as dateFormatter} from 'date-fns';
 
 import { getSleuth } from '../sleuth';
 import { renderFontItem, filterFont, FONTS } from './preferences-font';
@@ -76,7 +77,7 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
           <Divider />
           <FormGroup
             inline={true}
-            label='Date Time Format'
+            label='Date time format'
             helperText='Choose a custom format for dates to override how timestamps will be displayed'
           >
             <DateTimeSelect
@@ -87,13 +88,13 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
               onItemSelect={this.onDateTimeSelect}
               popoverProps={{ minimal: true }}
             >
-              <Button text={dateTimeFormat} rightIcon='calendar' />
+              <Button text={dateFormatter(1647029957123, dateTimeFormat)} rightIcon='calendar' />
             </DateTimeSelect>
           </FormGroup>
           <Divider />
           <FormGroup
             inline={true}
-            label='Sort Direction'
+            label='Sort direction'
             helperText='Sort logs by oldest (ascending) or newest (descending)'
           >
             <RadioGroup
@@ -165,7 +166,6 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
               onChange={(event) => (this.props.state.isMarkIcon = event.currentTarget.checked)}
             />
           </FormGroup>
-          <Divider />
         </div>
       </Overlay>
     );
