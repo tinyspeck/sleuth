@@ -6,7 +6,6 @@ import { Card, Button, ButtonGroup, Tag, Elevation } from '@blueprintjs/core';
 
 import { LogEntry } from '../../../interfaces';
 import { LogLineData } from './data';
-import { LogLineComments } from './comments';
 import { Timestamp } from './timestamp';
 import { shell } from 'electron';
 import { getIsBookmark, toggleBookmark } from '../../state/bookmarks';
@@ -79,7 +78,6 @@ export class LogLineDetails extends React.Component<LogLineDetailsProps, LogLine
       <div className={className}>
         {this.renderLogEntry()}
         {this.renderLogLineData()}
-        <LogLineComments state={this.props.state} />
       </div>
     );
   }
