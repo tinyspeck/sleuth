@@ -1,7 +1,7 @@
 import React from 'react';
 import path from 'path';
 
-import { ControlGroup, Button, InputGroup } from '@blueprintjs/core';
+import { ControlGroup, Button, InputGroup, Tooltip} from '@blueprintjs/core';
 import { observer } from 'mobx-react';
 
 import { getSleuth } from '../sleuth';
@@ -56,14 +56,16 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
         return (
           <li key={basename}>
             <ControlGroup className='Suggestion' fill={true}>
-              <Button
-                className='OpenButton'
-                alignText='left'
-                onClick={() => openFile(file.filePath)}
-                icon='document'
-              >
-                {basename}
-              </Button>
+              <Tooltip content={basename.length > 38 ? basename : ''} hoverOpenDelay={800}>
+                <Button
+                  className='OpenButton'
+                  alignText='left'
+                  onClick={() => openFile(file.filePath)}
+                  icon='document'
+                >
+                  {basename}
+                </Button>
+              </Tooltip>
               <InputGroup
                 leftIcon='time'
                 defaultValue={`${stats.age} old`}
