@@ -13,7 +13,7 @@
     "parcel:watch": "node ./tools/parcel-watch.js",
     "publish": "electron-forge publish",
     "start": "rimraf ./dist && electron-forge start",
-    "test": "jest --config=jest.json --coverage",
+    "test": "jest --config=jest.json --coverage --runInBand",
     "update-snapshots": "jest --config=jest.json --updateSnapshot",
     "catapult:update": "git submodule foreach git pull origin master"
   },

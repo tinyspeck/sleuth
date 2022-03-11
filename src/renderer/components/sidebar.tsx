@@ -205,6 +205,8 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
       label = 'Environment';
     } else if (file.fileName.endsWith('local-settings.json')) {
       label = 'Local Settings';
+    } else if (file.fileName.endsWith('.trace')) {
+      label = 'Performance Profile';
     } else {
       const nameMatch = file.fileName.match(/slack-(\w*)/);
       label = nameMatch && nameMatch.length > 1 ? nameMatch[1] : file.fileName;
