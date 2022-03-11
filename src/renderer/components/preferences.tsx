@@ -8,7 +8,6 @@ import React from 'react';
 import autoBind from 'react-autobind';
 
 import { getSleuth } from '../sleuth';
-import { CooperSignInOutButton } from './cooper/sign-in-out-button';
 import { renderFontItem, filterFont, FONTS } from './preferences-font';
 import { filterDateTime, renderDateTimeItem, DATE_TIME_FORMATS } from './preferences-datetime';
 import { renderEditorItem, Editor, EDITORS, nameForCmd } from './preferences-editor';
@@ -167,21 +166,8 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
             />
           </FormGroup>
           <Divider />
-          {this.renderCooperOptions()}
         </div>
       </Overlay>
-    );
-  }
-
-  private renderCooperOptions() {
-    return (
-      <FormGroup
-        inline={true}
-        helperText='The log service allows Slack employees to leave comments and hints for log entries'
-        label='Sign into the Cooper Log Service'
-      >
-        <CooperSignInOutButton state={this.props.state} />
-      </FormGroup>
     );
   }
 

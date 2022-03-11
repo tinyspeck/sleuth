@@ -49,10 +49,6 @@ export const defaults = {
 };
 
 export class SleuthState {
-  // ** Cooper log line logging **
-  @observable public slackUserId?: string;
-  @observable public isCooperSignedIn = false;
-
   // ** Pantry source map fetching **
   @observable public isUberProxySignedIn = false;
   @observable public uberProxyCookie: string;
