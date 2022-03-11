@@ -3,7 +3,7 @@ import { ItemRenderer, ItemPredicate } from '@blueprintjs/select';
 import React from 'react';
 import { format } from 'date-fns';
 
-export const EXAMPLE_TIME = 1647029957123;
+export const EXAMPLE_TIME = 1493475035123;
 
 export const DATE_TIME_FORMATS = [
   'HH:mm:ss (dd/MM)',
