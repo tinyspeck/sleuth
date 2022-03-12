@@ -110,11 +110,18 @@ export class DevtoolsView extends React.Component<
     const hasThreads = !!rendererThreads?.length;
     const missingThreads = rendererThreads?.length === 0;
     const isLoading = !rendererThreads;
+    const startTime = parseInt(this.props.file.fileName.split('.')[0]?.split('_')[4] || '0', 10);
+    const endTime = parseInt(this.props.file.fileName.split('.')[0]?.split('_')[0] || '0', 10);
+    const duration = endTime - startTime;
 
     return (
       <div className='ProcessTable'>
         <Card>
           <h1>Renderer Threads</h1>
+          <h4>Duration: {duration ? Math.floor(duration/1000).toString() : 'unknown'} seconds 
+          {' '}| Trace started: {startTime ? new Date(startTime).toLocaleString() : 'unknown'}
+          {' '}| Trace ended: {endTime ? new Date(endTime).toLocaleString() : 'unknown'}</h4>
+          <h5>* Start & end times displayed in your local time</h5>
           <HTMLTable>
             <thead>
               <tr>
