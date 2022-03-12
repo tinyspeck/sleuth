@@ -118,7 +118,7 @@ export class DevtoolsView extends React.Component<
       <div className='ProcessTable'>
         <Card>
           <h1>Renderer Threads</h1>
-          <h4>Duration: {duration ? Math.floor(duration/1000).toString() : 'unknown'} seconds 
+          <h4>Duration: {duration ? Math.floor(duration / 1000).toString() : 'unknown'} seconds
           {' '}| Trace started: {startTime ? new Date(startTime).toLocaleString() : 'unknown'}
           {' '}| Trace ended: {endTime ? new Date(endTime).toLocaleString() : 'unknown'}</h4>
           <h5>* Start & end times displayed in your local time</h5>
