@@ -9,6 +9,8 @@ for (const publishKey of fs.readdirSync(publishFolder)) {
   const publishRunDir = path.resolve(publishFolder, publishKey);
 
   for (const publishMetaKey of fs.readdirSync(publishRunDir)) {
+    if (!publishMetaKey.endsWith('.forge.publish')) continue;
+
     const publishMetaPath = path.resolve(publishRunDir, publishMetaKey);
 
     const publishMeta = JSON.parse(fs.readFileSync(publishMetaPath, 'utf8'));
