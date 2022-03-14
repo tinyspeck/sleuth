@@ -321,6 +321,7 @@ export class SleuthState {
     this.isLoadingCacheKeys = false;
     this.sourcemapState = {progress: 0, completed: false};
     this.rendererThreads = undefined;
+    this.traceProcessor.reset();
 
     if (goBackToHome) {
       this.resetApp();
