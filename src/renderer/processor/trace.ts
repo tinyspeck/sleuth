@@ -39,6 +39,10 @@ export class TraceProcessor extends EventEmitter {
     });
   }
 
+  reset() {
+    this.cachedParser = undefined;
+  }
+
   setCookie(uberProxyCookie: string) {
     this.pantryAuth.setCookie(uberProxyCookie);
   }
