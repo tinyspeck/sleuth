@@ -403,7 +403,9 @@ export function readFile(
         }
 
         // Deal with leading Android debug log lines with no timestamp that were given the Jan 1970 default
-        if ((logType === 'mobile' || logType === 'webapp') && current?.timestamp === new Date('Jan-01-70 00:00:00').toString()) {
+        // and console log lines given 'No Date'
+        if ((logType === 'mobile' || logType === 'webapp') && 
+        (current?.timestamp === new Date('Jan-01-70 00:00:00').toString() || current?.timestamp.startsWith('No Date'))) {
           // If a debug line isn't currently being stored
           if (!androidDebug) {
             // Copy the current log entry to the debug store
@@ -414,9 +416,16 @@ export function readFile(
           }
         // If a debug line is stored and current exists
         } else if ((logType === 'mobile' || logType === 'webapp') && androidDebug && current) {
-          // Give the debug line current's timestamp and momentvalue and push it separately
-          androidDebug.timestamp = current.timestamp;
-          androidDebug.momentValue = current.momentValue;
+          if (androidDebug.timestamp.startsWith('No Date')) {
+            // If it's a console log with only the timestamp, give it the date of the next possible log line
+            androidDebug.timestamp = current.timestamp.substring(0, 16) + androidDebug.timestamp.substring(7)
+            androidDebug.momentValue = new Date(androidDebug.timestamp).valueOf();
+          } else {
+            // Give the debug line current's timestamp and momentvalue and push it separately
+            androidDebug.timestamp = current.timestamp;
+            androidDebug.momentValue = current.momentValue;
+          }
+
           pushEntry(androidDebug);
           androidDebug = null;
           pushEntry(current);
@@ -696,7 +705,6 @@ export function matchLineConsole(line: string): MatchResult | undefined {
     }
 
     const momentValue = newTimestamp.valueOf();
-
     return {
       timestamp: newTimestamp.toString(),
       level: 'info',
