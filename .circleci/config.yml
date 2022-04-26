@@ -126,6 +126,10 @@ jobs:
       artifact_dir:
         type: string
         default: "/tmp/circleci-workspace/artifacts"
+      darwin_platform:
+        type: enum
+        enum: ['macos', 'mas']
+        default: macos
     steps:
       - run:
           command: |
@@ -140,10 +144,11 @@ jobs:
                 jq -n \
                     --arg j MAC_CODE_SIGN \
                     --arg ad << parameters.artifact_dir >> \
+                    --arg mas << parameters.darwin_platform >> \
                     --arg pn << parameters.prod_name >> \
                     --arg ct "" \
                     --arg cs "$CIRCLE_SHA1" \
-                    '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs}'
+                    '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, DARWIN_PLATFORM: $mas, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs}'
             )
             if [ -n "${CIRCLE_TAG}" ]; then export GIT_REF=$CIRCLE_TAG; else export GIT_REF=$CIRCLE_BRANCH; fi
             sudo /Library/circleci/runner-entrypoint.sh master "$JOB_PARAMS"
