@@ -120,9 +120,6 @@ jobs:
       arch:
         type: enum
         enum: ["x64", "arm64"]
-      channel:
-        type: string
-        default: "prod"
       prod_name:
         type: string
         default: "Sleuth"
@@ -143,11 +140,10 @@ jobs:
                 jq -n \
                     --arg j MAC_CODE_SIGN \
                     --arg ad << parameters.artifact_dir >> \
-                    --arg c << parameters.channel >> \
                     --arg pn << parameters.prod_name >> \
                     --arg ct "" \
                     --arg cs "$CIRCLE_SHA1" \
-                    '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, CHANNEL: $c, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs}'
+                    '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs}'
             )
             if [ -n "${CIRCLE_TAG}" ]; then export GIT_REF=$CIRCLE_TAG; else export GIT_REF=$CIRCLE_BRANCH; fi
             sudo /Library/circleci/runner-entrypoint.sh master "$JOB_PARAMS"
