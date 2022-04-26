@@ -30,13 +30,7 @@ import { copy } from './copy';
 import { changeIcon } from '../ipc';
 import { ICON_NAMES, STATE_IPC } from '../../shared-constants';
 import { setupTouchBarAutoruns } from './touchbar';
-import { TraceProcessor, RendererDescription } from '../processor/trace';
-
-interface SourcemapState {
-  progress: number;
-  completed: boolean;
-  error?: string;
-}
+import { RendererDescription } from '../processor/trace';
 
 const debug = require('debug')('sleuth:state');
 export const defaults = {
@@ -49,10 +43,6 @@ export const defaults = {
 };
 
 export class SleuthState {
-  // ** Pantry source map fetching **
-  @observable public isUberProxySignedIn = false;
-  @observable public uberProxyCookie: string;
-
   // ** Log file selection **
   // The selected log entry (single log message plus meta data)
   @observable public selectedEntry?: LogEntry;
@@ -102,7 +92,6 @@ export class SleuthState {
     = this.retrieve('serializedBookmarks', true) as Record<string, Array<SerializedBookmark>> || {};
   // ** Profiler **
   @observable public rendererThreads: Array<RendererDescription> | undefined;
-  @observable public sourcemapState: SourcemapState = {progress: 0, completed: false};
 
   // ** Settings **
   @observable public isDarkMode: boolean = !!this.retrieve('isDarkMode', true);
@@ -121,7 +110,6 @@ export class SleuthState {
 
   // ** Internal settings **
   private didOpenMostRecent = false;
-  private traceProcessor = new TraceProcessor();
 
   constructor(
     public readonly openFile: (file: string) => void,
@@ -174,22 +162,6 @@ export class SleuthState {
         this.isLoadingCacheKeys = false;
       }
     });
-
-    this.traceProcessor.on('auth-changed', (cookie, isSignedIn) => {
-      this.uberProxyCookie = cookie;
-      this.isUberProxySignedIn = isSignedIn;
-    });
-    this.traceProcessor.on('progress', (progress) => {
-      this.sourcemapState = { progress, completed: false };
-    });
-    this.traceProcessor.on('error', (error) => {
-      this.sourcemapState = { progress: 1, completed: true, error};
-    });
-    this.traceProcessor.on('completed', () => {
-      this.sourcemapState = { progress: 1, completed: true};
-    });
-
-    autorun(() => this.traceProcessor.setCookie(this.uberProxyCookie));
 
     this.reset = this.reset.bind(this);
     this.toggleDarkMode = this.toggleDarkMode.bind(this);
@@ -319,9 +291,7 @@ export class SleuthState {
     this.cachePath = undefined;
     this.selectedCacheKey = undefined;
     this.isLoadingCacheKeys = false;
-    this.sourcemapState = {progress: 0, completed: false};
     this.rendererThreads = undefined;
-    this.traceProcessor.reset();
 
     if (goBackToHome) {
       this.resetApp();
@@ -374,34 +344,6 @@ export class SleuthState {
 
       this.levelFilter = filter;
     }
-  }
-
-  @action
-  public async getRendererProcesses(file: UnzippedFile) {
-    try {
-      this.rendererThreads = await this.traceProcessor.getRendererProcesses(file);
-    } catch (e) {
-      debug('Unable to get renderer processes', e);
-    }
-  }
-
-  @action
-  public async sourcemap(file: UnzippedFile) {
-    try {
-      await this.traceProcessor.sourcemap(this, file);
-    } catch (e) {
-      debug('Unable to get sorucemap file', e);
-    }
-  }
-
-  @action
-  public async rawRenderer(file: UnzippedFile, pid: number) {
-    return this.traceProcessor.rawRenderer(file, pid);
-  }
-
-  @action
-  public async processRenderer(file: UnzippedFile, pid: number) {
-    return this.traceProcessor.processRenderer(this, file, pid);
   }
 
   /**

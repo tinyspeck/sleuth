@@ -2,19 +2,17 @@ import React from 'react';
 import { observer } from 'mobx-react';
 
 import {
-  Spinner,
   HTMLTable,
   Button,
   Card,
   Icon,
   ButtonGroup,
-  MaybeElement,
-  IconName
 } from '@blueprintjs/core';
 import { SleuthState } from '../state/sleuth';
 import { autorun, IReactionDisposer } from 'mobx';
 import { UnzippedFile } from '../../interfaces';
-import { RendererDescription } from '../processor/trace';
+import { RendererDescription, TraceProcessor } from '../processor/trace';
+import autoBind from 'react-autobind';
 
 export interface DevtoolsViewProps {
   state: SleuthState;
@@ -23,7 +21,6 @@ export interface DevtoolsViewProps {
 
 export interface DevtoolsViewState {
   profilePid?: number;
-  raw?: boolean;
 }
 
 const debug = require('debug')('sleuth:devtoolsview');
@@ -34,38 +31,24 @@ export class DevtoolsView extends React.Component<
   DevtoolsViewState
 > {
   private disposeDarkModeAutorun: IReactionDisposer | undefined;
+  private processor: TraceProcessor;
 
   constructor(props: DevtoolsViewProps) {
     super(props);
-    this.loadFile = this.loadFile.bind(this);
+    this.processor = new TraceProcessor(this.props.file);
+    autoBind(this);
     this.state = {};
     this.prepare();
   }
 
   async prepare() {
-    const { state, file } = this.props;
+    const { state } = this.props;
     if (!state.rendererThreads) {
-      state.getRendererProcesses(file);
-      state.sourcemap(file);
+      state.rendererThreads = await this.processor.getRendererProcesses();
     }
   }
 
-  private rowRenderer(
-    { title, processId, isClient }: RendererDescription,
-    { progress, completed, error }: SleuthState['sourcemapState']
-  ) {
-    const pending = !completed && progress !== 0;
-    const hasError = !!error;
-
-    let icon: IconName | MaybeElement;
-    if (pending) {
-      icon = <Spinner size={16} value={progress} />;
-    } else if (!completed) {
-      icon = <Spinner size={16} />;
-    } else {
-      icon = 'document-open';
-    }
-
+  private rowRenderer({ title, processId, isClient }: RendererDescription) {
     return (
       <tr>
         <td>
@@ -75,17 +58,10 @@ export class DevtoolsView extends React.Component<
         <td>
           <ButtonGroup fill={true}>
             <Button
-              onClick={() => this.setState({ profilePid: processId, raw: true })}
-              icon='document-open'
-            >
-              Open Raw
-            </Button>
-            <Button
               onClick={() => this.setState({ profilePid: processId })}
-              icon={icon}
-              disabled={!completed || hasError}
+              icon={'document-open'}
             >
-              Open Sourcemapped
+              Open
             </Button>
           </ButtonGroup>
         </td>
@@ -99,14 +75,14 @@ export class DevtoolsView extends React.Component<
         <div className='Devtools'>
           <iframe
             src={`oop://oop/static/devtools-frontend.html?panel=timeline`}
-            onLoad={() => this.loadFile(this.state.profilePid, this.state.raw)}
+            onLoad={() => this.loadFile(this.state.profilePid)}
             frameBorder={0}
           />
         </div>
       );
     }
 
-    const { rendererThreads, sourcemapState } = this.props.state;
+    const { rendererThreads } = this.props.state;
     const hasThreads = !!rendererThreads?.length;
     const missingThreads = rendererThreads?.length === 0;
     const isLoading = !rendererThreads;
@@ -127,13 +103,12 @@ export class DevtoolsView extends React.Component<
               <tr>
                 <th>Name</th>
                 <th>PID</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {hasThreads &&
                 rendererThreads?.map((thread) =>
-                  this.rowRenderer(thread, sourcemapState)
+                  this.rowRenderer(thread)
                 )}
               {missingThreads && (
                 <tr>
@@ -163,7 +138,7 @@ export class DevtoolsView extends React.Component<
    *
    * @memberof NetLogView
    */
-  public async loadFile(processId?: number, raw?: boolean) {
+  public async loadFile(processId?: number) {
     this.setDarkMode(this.props.state.isDarkMode);
 
     if (!processId) {
@@ -174,10 +149,7 @@ export class DevtoolsView extends React.Component<
     const iframe = document.querySelector('iframe');
 
     if (iframe) {
-      const {state} = this.props;
-      const events = raw ?
-        await state.rawRenderer(this.props.file, processId) :
-        await state.processRenderer(this.props.file, processId);
+      const events = await this.processor.getRendererProfile(processId);
 
       // See catapult.html for the postMessage handler
       const devtoolsWindow = iframe.contentWindow;
