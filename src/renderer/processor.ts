@@ -13,7 +13,7 @@ const DESKTOP_RGX = /^\s*\[([\d\/\,\s\:]{22,24})\] ([A-Za-z]{0,20})\:?(.*)$/g;
 const WEBAPP_A_RGX = /^(\w*): (.{3}-\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 const WEBAPP_B_RGX = /^(\w*): (\d{4}\/\d{1,2}\/\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 
-const IOS_RGX = /^\s*\[((?:[0-9]{1,4}(?:\/|\-|\.|\. )?){3}(?: |\,|上午|下午){0,2}[0-9]{1,2}:[0-9]{2}:[0-9]{2}\s?(?:AM|PM)?)\] (-|.{0,2}[</[]\w+[>\]])(.+)$/;
+const IOS_RGX = /^\s*\[((?:[0-9]{1,4}(?:\/|\-|\.|\. )?){3}(?:\, | |\){0,2}))((?:上午|下午){0,1}(?:[0-9]{1,2}[:.][0-9]{2}[:.][0-9]{2}\s?(?:AM|PM)?))\] (-|.{0,2}[</[]\w+[>\]])(.+)$/;
 
 const ANDROID_A_RGX = /^\s*([0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}:[0-9]{3}) (.+)$/;
 const ANDROID_B_RGX = /^(?:\u200B|[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})?\s*(.*)\s*([a-zA-Z]{3}-[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})\s(.*)/;
@@ -759,24 +759,28 @@ export function matchLineIOS(line: string): MatchResult | undefined {
   IOS_RGX.lastIndex = 0;
   const results = IOS_RGX.exec(line);
 
-  if (results && results.length === 4) {
+  if (results && results.length === 5) {
+    // Results should be: full match, date, time, level, message
     // If it's dd.mm.yy, replace each with /
     let fixedDate = results[1].replace('.', '/');
     fixedDate = fixedDate.replace('.', '/');
-    fixedDate = fixedDate.replace(/上午([\d:]+)/, '$1 AM');
-    fixedDate = fixedDate.replace(/下午([\d:]+)/, '$1 PM');
-    let timestamp = fixedDate;
+    // Translate AM/PM and fix hh.mm.ss to hh:mm:ss
+    let fixedTime = results[2].replace(/上午([\d:]+)/, '$1 AM');
+    fixedTime = fixedTime.replace(/下午([\d:]+)/, '$1 PM');
+    fixedTime = fixedTime.replace('.', ':');
+    fixedTime = fixedTime.replace('.', ':');
+    let timestamp = fixedDate + fixedTime;
     // Expected format: MM/DD/YY, HH:mm:ss ?AM|PM'
-    let momentValue = new Date(fixedDate).valueOf();
+    let momentValue = new Date(timestamp).valueOf();
     // If DD/MM/YY format, switch the first two parts around to make it MM/DD
     if (!momentValue) {
-      const splits = fixedDate.split(/\//);
+      const splits = timestamp.split(/\//);
       const rejoinedDate = [splits[1], splits[0], splits[2]].join('/');
       momentValue = new Date(rejoinedDate).valueOf();
       timestamp = rejoinedDate;
     }
 
-    const oldLevel = results[2];
+    const oldLevel = results[3];
     let newLevel: string;
 
     if (oldLevel.includes('ERR')) {
@@ -790,7 +794,7 @@ export function matchLineIOS(line: string): MatchResult | undefined {
     return {
       timestamp,
       level: newLevel,
-      message: results[3],
+      message: results[4],
       momentValue
     };
   }
