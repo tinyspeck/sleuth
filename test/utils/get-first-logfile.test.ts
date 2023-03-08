@@ -22,7 +22,8 @@ const files: ProcessedLogFiles = {
   netlog: [],
   installer: [],
   trace: [],
-  mobile: []
+  mobile: [],
+  chromium: [],
 };
 
 describe('getFirstLogFile', () => {
