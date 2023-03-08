@@ -927,7 +927,7 @@ export function matchLineChromium(line: string): MatchResult | undefined {
     return undefined;
   }
 
-  const [_log, metadata, message] = results;
+  const [, metadata, message] = results;
   const [pid, timestamp, level, sourceFile] = metadata.split(':');
   const currentDate = new Date();
 
@@ -956,7 +956,7 @@ export function matchLineChromium(line: string): MatchResult | undefined {
     WARNING: 'warn',
     INFO: 'info',
     ERROR: 'error',
-  }
+  };
 
   return {
     level: LEVEL_MAP[level],

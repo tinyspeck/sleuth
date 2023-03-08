@@ -74,7 +74,7 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, LogLineDa
     const str = `https://source.chromium.org/search?q=LOG%20filepath:${selectedEntry.meta.sourceFile}&ss=chromium`;
 
     return <div className='LogLineData'>
-      <AnchorButton href={str} icon="search">Search the log in the Chromium source</AnchorButton>
+      <AnchorButton href={str} icon='search'>Search the log in the Chromium source</AnchorButton>
     </div>;
   }
 
