@@ -55,6 +55,7 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
         netlog: [],
         trace: [],
         mobile: [],
+        chromium: [],
       },
       loadingMessage: '',
       loadedLogFiles: false,

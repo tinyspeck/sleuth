@@ -34,7 +34,8 @@ const enum NODE_ID {
   INSTALLER = 'installer',
   NETWORK = 'network',
   CACHE = 'cache',
-  MOBILE = 'mobile'
+  MOBILE = 'mobile',
+  CHROMIUM = 'chromium',
 }
 
 const DEFAULT_NODES: Array<ITreeNode> = [
@@ -67,6 +68,12 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     isExpanded: true,
     childNodes: [],
     nodeData: { type: 'trace' }
+  }, {
+    id: NODE_ID.CHROMIUM,
+    hasCaret: true,
+    icon: 'modal',
+    label: 'Chromium',
+    isExpanded: true
   }, {
     id: NODE_ID.RENDERER,
     hasCaret: true,
@@ -143,7 +150,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     Sidebar.setChildNodes(NODE_ID.NETWORK, state, processedLogFiles.netlog.map((file, i) => Sidebar.getNetlogFileNode(file, props, i)));
     Sidebar.setChildNodes(NODE_ID.MOBILE, state, processedLogFiles.mobile.map((file) => Sidebar.getFileNode(file, props)));
     Sidebar.setChildNodes(NODE_ID.TRACE, state, processedLogFiles.trace.map((file) => Sidebar.getStateFileNode(file, props)));
-
+    Sidebar.setChildNodes(NODE_ID.CHROMIUM, state, processedLogFiles.chromium.map((file) => Sidebar.getFileNode(file, props)));
 
     return { nodes: state.nodes };
   }

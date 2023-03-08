@@ -30,6 +30,9 @@ const SHIPIT_MAC_RGX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (.*)$/;
 // 2019-01-30 21:08:25> Program: Starting install, writing to C:\Users\felix\AppData\Local\SquirrelTemp
 const SQUIRREL_RGX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})> (.*)$/;
 
+// [70491:0302/160742.806582:WARNING:gpu_process_host.cc(1303)] The GPU process has crashed 1 time(s)
+const CHROMIUM_RGX = /^\[(\d+:\d{4}\/\d{6}\.\d{6}:[a-zA-Z]+:.*\(\d+\))\] (.*)$/;
+
 /**
  * Sort an array, but do it on a different thread
  *
@@ -165,6 +168,8 @@ export function getTypeForFile(logFile: UnzippedFile): LogType {
   || fileName.startsWith('attachment')
   || /\w{9,}_\w{9,}_\d{16,}\.txt/.test(fileName)) {
     return LogType.MOBILE;
+  } else if (fileName.startsWith('electron_debug')) {
+    return LogType.CHROMIUM;
   }
 
   return LogType.UNKNOWN;
@@ -191,7 +196,8 @@ export function getTypesForFiles(logFiles: UnzippedFiles): SortedUnzippedFiles {
     installer: [],
     netlog: [],
     trace: [],
-    mobile: []
+    mobile: [],
+    chromium: [],
   };
 
   logFiles.forEach((logFile) => {
@@ -913,6 +919,56 @@ export function matchLineCall(line: string): MatchResult | undefined {
   return;
 }
 
+export function matchLineChromium(line: string): MatchResult | undefined {
+  // See format: https://support.google.com/chrome/a/answer/6271282
+  const results = CHROMIUM_RGX.exec(line);
+
+  if (!Array.isArray(results)) {
+    return undefined;
+  }
+
+  const [_log, metadata, message] = results;
+  const [pid, timestamp, level, sourceFile] = metadata.split(':');
+  const currentDate = new Date();
+
+  // ts format is MMDD/HHmmss.SSS
+  // this log format has no year information. Assume that the logs
+  // happened in the past year because why would we read stale logs?
+  const [date, time] = timestamp.split('/');
+  const logDate = new Date(
+    currentDate.getFullYear(),
+    parseInt(date.slice(0, 2), 10) - 1, // month (0-indexed)
+    parseInt(date.slice(2, 4), 10), // day
+    parseInt(time.slice(0, 2), 10), // hour
+    parseInt(time.slice(2, 4), 10), // minute
+    parseInt(time.slice(4, 6), 10), // second
+    parseInt(time.slice(7, 10), 10) // millisecond
+  );
+
+  // make sure we aren't time traveling. Maybe this
+  // log happened in the last calendar year?
+  if (logDate > currentDate) {
+    logDate.setFullYear(logDate.getFullYear() - 1);
+  }
+
+  // FIXME: make this more robust for all chromium log levels
+  const LEVEL_MAP = {
+    WARNING: 'warn',
+    INFO: 'info',
+    ERROR: 'error',
+  }
+
+  return {
+    level: LEVEL_MAP[level],
+    message,
+    momentValue: logDate.valueOf(),
+    meta: {
+      sourceFile: sourceFile.split('(')[0],
+      pid
+    },
+  };
+}
+
 /**
  * Returns the correct match line function for a given log type.
  *
@@ -947,6 +1003,8 @@ export function getMatchFunction(
     } else {
       return matchLineMobile;
     }
+  } else if (logType === LogType.CHROMIUM) {
+    return matchLineChromium;
   } else {
     return matchLineElectron;
   }
