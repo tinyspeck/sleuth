@@ -31,7 +31,7 @@ const SHIPIT_MAC_RGX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (.*)$/;
 const SQUIRREL_RGX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})> (.*)$/;
 
 // [70491:0302/160742.806582:WARNING:gpu_process_host.cc(1303)] The GPU process has crashed 1 time(s)
-const CHROMIUM_RGX = /^\[(\d+:\d{4}\/\d{6}\.\d{6}:[a-zA-Z]+:.*\(\d+\))\] (.*)$/;
+const CHROMIUM_RGX = /^\[(\d+:\d{4}\/\d{6}\.\d{3,6}:[a-zA-Z]+:.*\(\d+\))\] (.*)$/;
 
 /**
  * Sort an array, but do it on a different thread
