@@ -1,12 +1,13 @@
 import React from 'react';
 import { JSONView } from '../json-view';
-import { Card, Elevation } from '@blueprintjs/core';
+import { AnchorButton, Card, Elevation } from '@blueprintjs/core';
 import { SleuthState } from '../../state/sleuth';
+import { LogEntry } from '../../../interfaces';
 
 const debug = require('debug')('sleuth:data');
 
 export interface LogLineDataProps {
-  raw: string;
+  meta: any;
   state: SleuthState;
 }
 
@@ -19,9 +20,6 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, LogLineDa
 
   /**
    * Renders pretty JSON
-   *
-   * @param {string} raw
-   * @returns {JSX.Element}
    */
   public renderJSON(raw: string): JSX.Element {
     return (
@@ -35,9 +33,6 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, LogLineDa
 
   /**
    * Renders a ASCII table as a pretty table
-   *
-   * @param {string} raw
-   * @returns {JSX.Element}
    */
   public renderTable(raw: string): JSX.Element {
     const headerRgx = /^(\+|\|)-[+-]*-\+\s*$/;
@@ -75,20 +70,39 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, LogLineDa
     return (<div className='LogLineData'>{data}</div>);
   }
 
+  public renderChromiumFile(selectedEntry: LogEntry) {
+    const str = `https://source.chromium.org/search?q=LOG%20filepath:${selectedEntry.meta.sourceFile}&ss=chromium`;
+
+    return <div className='LogLineData'>
+      <AnchorButton href={str} icon='search'>Search the log in the Chromium source</AnchorButton>
+    </div>;
+  }
+
   /**
-   * Takes a meta string (probably dirty JSON) and attempts to pretty-print it.
-   *
-   * @returns {(JSX.Element | null)}
+   * Takes metadata (probably dirty JSON) and attempts to pretty-print it.
    */
   public render(): JSX.Element | null {
-    const { raw } = this.props;
+    const { meta } = this.props;
 
-    if (!raw) {
+    if (!meta) {
       return null;
-    } else if (raw && raw.startsWith(`+----`) && raw.endsWith('----+\n')) {
-      return this.renderTable(raw);
-    } else {
-      return this.renderJSON(raw);
     }
+
+    // string
+    if (typeof meta === 'string') {
+      if (meta && meta.startsWith(`+----`) && meta.endsWith('----+\n')) {
+        return this.renderTable(meta);
+      } else {
+        return this.renderJSON(meta);
+      }
+    }
+
+    // object
+    if (meta.sourceFile) {
+      const { selectedEntry } = this.props.state;
+      return this.renderChromiumFile(selectedEntry!);
+    }
+
+    return null;
   }
 }

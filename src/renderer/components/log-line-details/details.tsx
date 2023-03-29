@@ -125,7 +125,7 @@ export class LogLineDetails extends React.Component<LogLineDetailsProps, LogLine
     }
 
     return (
-      <LogLineData state={this.props.state} raw={selectedEntry?.meta || ''} />
+      <LogLineData state={this.props.state} meta={selectedEntry?.meta} />
     );
   }
 

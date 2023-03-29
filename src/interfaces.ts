@@ -19,6 +19,7 @@ export const enum LogType {
   INSTALLER = 'installer',
   ALL = 'all',
   MOBILE = 'mobile',
+  CHROMIUM = 'chromium',
   UNKNOWN = ''
 }
 
@@ -41,7 +42,8 @@ export const LOG_TYPES_TO_PROCESS = [
   LogType.PRELOAD,
   LogType.CALL,
   LogType.INSTALLER,
-  LogType.MOBILE
+  LogType.MOBILE,
+  LogType.CHROMIUM
 ];
 
 export interface Bookmark {
@@ -143,6 +145,7 @@ export interface ProcessedLogFiles {
   trace: Array<UnzippedFile>;
   installer: Array<UnzippedFile>;
   mobile: Array<UnzippedFile>;
+  chromium: Array<UnzippedFile>;
 }
 
 export interface MergedLogFile extends BaseFile {
@@ -163,6 +166,7 @@ export interface SortedUnzippedFiles {
   trace: Array<UnzippedFile>;
   installer: Array<UnzippedFile>;
   mobile: Array<UnzippedFile>;
+  chromium: Array<UnzippedFile>;
 }
 
 export interface MergedFilesLoadStatus {
