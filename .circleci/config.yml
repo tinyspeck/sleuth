@@ -114,7 +114,7 @@ jobs:
           make_flags: --targets @electron-forge/maker-rpm
   code-sign-macos:
     machine: true
-    resource_class: tinyspeck/SF500MacProXcode13
+    resource_class: tinyspeck/aws-ansible-code-signer-prod
     working_directory: /tmp/circleci-workspace/mac-code-sign
     parameters:
       arch:
@@ -128,7 +128,7 @@ jobs:
         default: "/tmp/circleci-workspace/artifacts"
       darwin_platform:
         type: enum
-        enum: ['macos', 'mas']
+        enum: ["macos", "mas"]
         default: macos
     steps:
       - run:
