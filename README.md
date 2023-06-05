@@ -1,5 +1,7 @@
 # Sleuth
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/tinyspeck/sleuth/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/tinyspeck/sleuth/tree/main)
+
 A Slack Log Viewer.
 
 # Development
@@ -14,7 +16,7 @@ yarn start
 
 # Releases
 
-Releases are now fully automated and happen entirely within GitHub Actions.
+Releases are now fully automated and happen entirely within CircleCI.
 To release a new version, follow the following steps:
 
 1) Create a new version (for instance with `yarn version`). This should
