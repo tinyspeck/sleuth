@@ -6,8 +6,7 @@ anchors:
       only: /^v[0-9]+\.[0-9]+\.[0-9]+(-\w+)*$/
 
 orbs:
-  slack: circleci/slack@4.1.1
-  win: circleci/windows@2.2.0
+  win: circleci/windows@5.0.0
 
 parameters:
   build_image_tag_ubuntu:
@@ -101,6 +100,9 @@ jobs:
       name: win/default
       shell: bash.exe
     steps:
+      - run:
+          command: |
+            nvm install 18.16.0 && nvm use 18.16.0
       - build_sleuth
   build-ubuntu:
     executor: ubuntu
