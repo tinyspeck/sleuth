@@ -1,20 +1,8 @@
 /* eslint-disable */
-
-const fs = require("fs");
-const os = require("os");
 const path = require("path");
 
 const iconDir = path.join(__dirname, "static/img");
 const version = require("./package.json").version;
-
-if (process.env["WINDOWS_CODESIGN_FILE"]) {
-  const certPath = path.join(__dirname, "win-certificate.pfx");
-  const certExists = fs.existsSync(certPath);
-
-  if (certExists) {
-    process.env["WINDOWS_CODESIGN_FILE"] = certPath;
-  }
-}
 
 const options = {
   hooks: {
@@ -54,16 +42,6 @@ const options = {
       name: "@electron-forge/maker-squirrel",
       platforms: ["win32"],
       config: (arch) => {
-        let sleuthCert = undefined;
-        if (process.env.WINDOWS_CODESIGN_CERT_B64) {
-          const codeSignCert = Buffer.from(
-            process.env.WINDOWS_CODESIGN_CERT_B64,
-            "base64"
-          );
-          sleuthCert = path.resolve(os.tmpdir(), "sleuth-sign.pfx");
-          fs.writeFileSync(sleuthCert, codeSignCert);
-        }
-
         return {
           name: "sleuth",
           authors: "Slack Technologies, Inc.",
@@ -71,8 +49,6 @@ const options = {
           noMsi: true,
           setupExe: `sleuth-${version}-${arch}-setup.exe`,
           setupIcon: path.resolve(iconDir, "sleuth-icon.ico"),
-          certificateFile: sleuthCert,
-          certificatePassword: process.env.WINDOWS_CODESIGN_PASSWORD,
         };
       },
     },
