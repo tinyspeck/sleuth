@@ -102,7 +102,7 @@ jobs:
     steps:
       - run:
           command: |
-            nvm install 18 && nvm use 18
+            nvm install 18.16.0 && nvm use 18.16.0
       - build_sleuth
   build-ubuntu:
     executor: ubuntu
