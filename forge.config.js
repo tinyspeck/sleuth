@@ -1,5 +1,8 @@
 /* eslint-disable */
 const path = require("path");
+const {
+  withWindowsSigningContext,
+} = require("./tools/windows-signing-context");
 
 const iconDir = path.join(__dirname, "static/img");
 const version = require("./package.json").version;
@@ -41,22 +44,19 @@ const options = {
     {
       name: "@electron-forge/maker-squirrel",
       platforms: ["win32"],
-      config: (arch) => {
-        if (process.env.CERT_THUMBPRINT) {
-          console.log("@@@ CERT_THUMBPRINT present in environment");
-        }
-
-        if (process.env.n3fips_password) {
-          console.log("@@@ n3fips_password present in environment");
-        }
-        return {
-          name: "sleuth",
-          authors: "Slack Technologies, Inc.",
-          exe: "sleuth.exe",
-          noMsi: true,
-          setupExe: `sleuth-${version}-${arch}-setup.exe`,
-          setupIcon: path.resolve(iconDir, "sleuth-icon.ico"),
-        };
+      config: async (arch) => {
+        return await withWindowsSigningContext(async (proxiedTimestampUrl) => {
+          const certThumbPrint = process.env.CERT_THUMBPRINT;
+          return {
+            name: "sleuth",
+            authors: "Slack Technologies, Inc.",
+            exe: "sleuth.exe",
+            noMsi: true,
+            setupExe: `sleuth-${version}-${arch}-setup.exe`,
+            setupIcon: path.resolve(iconDir, "sleuth-icon.ico"),
+            signWithParams: `/a /sm /fd sha256 /sha1 ${certThumbPrint} /tr ${proxiedTimestampUrl} /td sha256`,
+          };
+        });
       },
     },
     {
