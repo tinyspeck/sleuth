@@ -42,6 +42,13 @@ const options = {
       name: "@electron-forge/maker-squirrel",
       platforms: ["win32"],
       config: (arch) => {
+        if (process.env.CERT_THUMBPRINT) {
+          console.log("@@@ CERT_THUMBPRINT present in environment");
+        }
+
+        if (process.env.n3fips_password) {
+          console.log("@@@ n3fips_password present in environment");
+        }
         return {
           name: "sleuth",
           authors: "Slack Technologies, Inc.",

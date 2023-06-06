@@ -88,6 +88,10 @@ jobs:
     resource_class: tinyspeck/aws-windows-runner
     shell: powershell.exe -ExecutionPolicy Bypass
     steps:
+      - run:
+          command: |
+            $env:CERT_THUMBPRINT = Get-Childitem -path cert:\LocalMachine\my | select-object -expandproperty thumbprint
+            $env:n3fips_password = [System.Environment]::GetEnvironmentVariable("n3fips_password","Machine")
       - build_sleuth
   build-ubuntu:
     executor: ubuntu
