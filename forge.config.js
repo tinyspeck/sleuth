@@ -46,7 +46,14 @@ const options = {
       platforms: ["win32"],
       config: async (arch) => {
         return await withWindowsSigningContext(async (proxiedTimestampUrl) => {
+          console.log("@@@@@@@@@@@@@@@");
           const certThumbPrint = process.env.CERT_THUMBPRINT;
+          if (!certThumbPrint) {
+            console.log("!certThumbPrint");
+          }
+          if (!proxiedTimestampUrl) {
+            console.log("!proxiedTimestampUrl");
+          }
           return {
             name: "sleuth",
             authors: "Slack Technologies, Inc.",
