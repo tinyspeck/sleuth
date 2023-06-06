@@ -51,6 +51,15 @@ commands:
       - checkout_sleuth
       - install_deps
       - run:
+          name: Set code signing environment variables (Windows)
+          command: |
+            $env:CERT_THUMBPRINT = Get-Childitem -path cert:\LocalMachine\my | select-object -expandproperty thumbprint
+            $env:n3fips_password = [System.Environment]::GetEnvironmentVariable("n3fips_password","Machine")
+            $env:test_var = "testing"
+      - run:
+          command: |
+            $env:test_var
+      - run:
           name: Build Packages with flags; << parameters.make_flags >>
           command: npx yarn@1.21.1 run publish --dry-run << parameters.make_flags >>
       - store_artifacts:
@@ -88,10 +97,6 @@ jobs:
     resource_class: tinyspeck/aws-windows-runner
     shell: powershell.exe -ExecutionPolicy Bypass
     steps:
-      - run:
-          command: |
-            $env:CERT_THUMBPRINT = Get-Childitem -path cert:\LocalMachine\my | select-object -expandproperty thumbprint
-            $env:n3fips_password = [System.Environment]::GetEnvironmentVariable("n3fips_password","Machine")
       - build_sleuth
   build-ubuntu:
     executor: ubuntu
@@ -164,51 +169,51 @@ workflows:
   ci:
     jobs:
       - lint-and-test
-      - build-macos:
-          name: build-macos-x64
-          arch: x64
-          filters:
-            <<: *job_filter_releases
-      - build-macos:
-          name: build-macos-arm64
-          arch: arm64
-          filters:
-            <<: *job_filter_releases
+      # - build-macos:
+      #     name: build-macos-x64
+      #     arch: x64
+      #     filters:
+      #       <<: *job_filter_releases
+      # - build-macos:
+      #     name: build-macos-arm64
+      #     arch: arm64
+      #     filters:
+      #       <<: *job_filter_releases
       - build-windows:
           context:
             - slack-code-signing
           filters:
             <<: *job_filter_releases
-      - build-ubuntu:
-          filters:
-            <<: *job_filter_releases
-      - code-sign-macos:
-          name: code-sign-macos-x64
-          requires:
-            - build-macos-x64
-          arch: x64
-          filters:
-            branches:
-              only: main
-            <<: *job_filter_releases
-      - code-sign-macos:
-          name: code-sign-macos-arm64
-          requires:
-            - build-macos-arm64
-          arch: arm64
-          filters:
-            branches:
-              only: main
-            <<: *job_filter_releases
-      - publish:
-          requires:
-            - build-windows
-            - build-ubuntu
-            - code-sign-macos-x64
-            - code-sign-macos-arm64
-          filters:
-            branches:
-              ignore: /.*/
-            <<: *job_filter_releases
-          context:
-            - slack-gh-release
+      # - build-ubuntu:
+      #     filters:
+      #       <<: *job_filter_releases
+      # - code-sign-macos:
+      #     name: code-sign-macos-x64
+      #     requires:
+      #       - build-macos-x64
+      #     arch: x64
+      #     filters:
+      #       branches:
+      #         only: main
+      #       <<: *job_filter_releases
+      # - code-sign-macos:
+      #     name: code-sign-macos-arm64
+      #     requires:
+      #       - build-macos-arm64
+      #     arch: arm64
+      #     filters:
+      #       branches:
+      #         only: main
+      #       <<: *job_filter_releases
+      # - publish:
+      #     requires:
+      #       - build-windows
+      #       - build-ubuntu
+      #       - code-sign-macos-x64
+      #       - code-sign-macos-arm64
+      #     filters:
+      #       branches:
+      #         ignore: /.*/
+      #       <<: *job_filter_releases
+      #     context:
+      #       - slack-gh-release
