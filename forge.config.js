@@ -1,4 +1,6 @@
 /* eslint-disable */
+//@ts-check
+const fs = require("fs-extra");
 const path = require("path");
 const {
   withWindowsSigningContext,
@@ -54,6 +56,23 @@ const options = {
           if (!proxiedTimestampUrl) {
             console.log("!proxiedTimestampUrl");
           }
+
+          // The default location for the Windows Kit. If later versions are installed, they
+          // might be in a different folder (like Windows Kits\10\10.5.1234\bin), but we'll
+          // go with the "initial release" SDK for now.
+          const windowSdkLocation = `C:\\Program Files (x86)\\Windows Kits\\10\\bin\\${
+            process.arch === "ia32" ? "x86" : "x64"
+          }`;
+          const signTool = path.join(windowSdkLocation, "signtool.exe");
+
+          await fs.copy(
+            `${signTool}`,
+            path.resolve(
+              __dirname,
+              "../node_modules/electron-winstaller/vendor/signtool.exe"
+            )
+          );
+
           return {
             name: "sleuth",
             authors: "Slack Technologies, Inc.",
