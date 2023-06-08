@@ -11,7 +11,6 @@
     "make": "electron-forge make",
     "parcel:build": "node ./tools/parcel-build.js",
     "parcel:watch": "node ./tools/parcel-watch.js",
-    "postinstall": "patch-package",
     "publish": "electron-forge publish",
     "start": "rimraf ./dist && electron-forge start",
     "test": "jest --config=jest.json --coverage --runInBand",
