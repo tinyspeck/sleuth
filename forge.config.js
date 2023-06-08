@@ -27,8 +27,13 @@ const options = {
             target: "http://timestamp.digicert.com",
           });
         });
-        server.listen(PORT);
-        console.log(`server listening on port ${PORT}`);
+
+        await new Promise((resolve) => {
+          server.listen(PORT, () => {
+            resolve(null);
+          });
+          console.log(`server listening on port ${PORT}`);
+        });
 
         dir = await fs.mkdtemp(
           path.resolve(os.tmpdir(), "slack-builder-folder-")
@@ -39,7 +44,7 @@ const options = {
     },
     postMake: async () => {
       server.close();
-        console.log(`server closing`);
+      console.log(`server closing`);
     },
   },
   packagerConfig: {
