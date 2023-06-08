@@ -48,14 +48,7 @@ const options = {
       platforms: ["win32"],
       config: async (arch) => {
         return await withWindowsSigningContext(async (proxiedTimestampUrl) => {
-          console.log("@@@@@@@@@@@@@@@");
           const certThumbPrint = process.env.CERT_THUMBPRINT;
-          if (!certThumbPrint) {
-            console.log("!certThumbPrint");
-          }
-          if (!proxiedTimestampUrl) {
-            console.log("!proxiedTimestampUrl");
-          }
 
           // The default location for the Windows Kit. If later versions are installed, they
           // might be in a different folder (like Windows Kits\10\10.5.1234\bin), but we'll

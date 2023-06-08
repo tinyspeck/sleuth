@@ -53,9 +53,9 @@ commands:
       - run:
           name: Build Packages with flags; << parameters.make_flags >>
           command: |
+            $env:DEBUG = "electron-windows-installer:*"
             $env:CERT_THUMBPRINT = Get-Childitem -path cert:\LocalMachine\my | select-object -expandproperty thumbprint
             $env:n3fips_password = [System.Environment]::GetEnvironmentVariable("n3fips_password","Machine")
-            $env:test_var = "testing"
             npx yarn@1.21.1 run publish --dry-run << parameters.make_flags >>
       - store_artifacts:
           path: out/make
