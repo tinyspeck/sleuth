@@ -11,6 +11,7 @@ const http = require("http");
 const httpProxy = require("http-proxy");
 
 let server;
+const PORT = 37492;
 
 const options = {
   hooks: {
@@ -19,15 +20,15 @@ const options = {
       let server = null;
       let dir = null;
       try {
-        const timestampUrl = "http://timestamp.digicert.com";
         const timestampProxiedProxy = httpProxy.createProxyServer({});
 
         server = http.createServer((req, res) => {
           return timestampProxiedProxy.web(req, res, {
-            target: timestampUrl,
+            target: "http://timestamp.digicert.com",
           });
         });
-        server.listen(37492);
+        server.listen(PORT);
+        console.log(`server listening on port ${PORT}`);
 
         dir = await fs.mkdtemp(
           path.resolve(os.tmpdir(), "slack-builder-folder-")
@@ -38,6 +39,7 @@ const options = {
     },
     postMake: async () => {
       server.close();
+        console.log(`server closing`);
     },
   },
   packagerConfig: {
@@ -83,7 +85,7 @@ const options = {
           noMsi: true,
           setupExe: `sleuth-${version}-${arch}-setup.exe`,
           setupIcon: path.resolve(iconDir, "sleuth-icon.ico"),
-          signWithParams: `/a /sm /fd sha256 /sha1 ${certThumbPrint} /tr http://localhost:37492 /td sha256`,
+          signWithParams: `/a /sm /fd sha256 /sha1 ${certThumbPrint} /tr http://localhost:${PORT} /td sha256`,
         };
       },
     },
