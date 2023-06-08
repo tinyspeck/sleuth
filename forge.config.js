@@ -1,17 +1,44 @@
 /* eslint-disable */
 //@ts-check
 const fs = require("fs-extra");
+const os = require("os");
 const path = require("path");
-const {
-  withWindowsSigningContext,
-} = require("./tools/windows-signing-context");
 
 const iconDir = path.join(__dirname, "static/img");
 const version = require("./package.json").version;
 
+const http = require("http");
+const httpProxy = require("http-proxy");
+
+let server;
+
 const options = {
   hooks: {
     generateAssets: require("./tools/generateAssets"),
+    preMake: async () => {
+      let server = null;
+      let dir = null;
+      try {
+        const timestampUrl = "http://timestamp.digicert.com";
+        const timestampProxiedProxy = httpProxy.createProxyServer({});
+
+        server = http.createServer((req, res) => {
+          return timestampProxiedProxy.web(req, res, {
+            target: timestampUrl,
+          });
+        });
+        server.listen(37492);
+
+        dir = await fs.mkdtemp(
+          path.resolve(os.tmpdir(), "slack-builder-folder-")
+        );
+      } finally {
+        if (dir) await fs.remove(dir);
+      }
+    },
+    postMake: async () => {
+      server.close();
+    },
   },
   packagerConfig: {
     name: "Sleuth",
@@ -46,36 +73,18 @@ const options = {
     {
       name: "@electron-forge/maker-squirrel",
       platforms: ["win32"],
-      config: async (arch) => {
-        return await withWindowsSigningContext(async (proxiedTimestampUrl) => {
-          const certThumbPrint = process.env.CERT_THUMBPRINT;
+      config: (arch) => {
+        const certThumbPrint = process.env.CERT_THUMBPRINT;
 
-          // The default location for the Windows Kit. If later versions are installed, they
-          // might be in a different folder (like Windows Kits\10\10.5.1234\bin), but we'll
-          // go with the "initial release" SDK for now.
-          const windowSdkLocation = `C:\\Program Files (x86)\\Windows Kits\\10\\bin\\${
-            process.arch === "ia32" ? "x86" : "x64"
-          }`;
-          const signTool = path.join(windowSdkLocation, "signtool.exe");
-
-          await fs.copy(
-            `${signTool}`,
-            path.resolve(
-              __dirname,
-              "../node_modules/electron-winstaller/vendor/signtool.exe"
-            )
-          );
-
-          return {
-            name: "sleuth",
-            authors: "Slack Technologies, Inc.",
-            exe: "sleuth.exe",
-            noMsi: true,
-            setupExe: `sleuth-${version}-${arch}-setup.exe`,
-            setupIcon: path.resolve(iconDir, "sleuth-icon.ico"),
-            signWithParams: `/a /sm /fd sha256 /sha1 ${certThumbPrint} /tr ${proxiedTimestampUrl} /td sha256`,
-          };
-        });
+        return {
+          name: "sleuth",
+          authors: "Slack Technologies, Inc.",
+          exe: "sleuth.exe",
+          noMsi: true,
+          setupExe: `sleuth-${version}-${arch}-setup.exe`,
+          setupIcon: path.resolve(iconDir, "sleuth-icon.ico"),
+          signWithParams: `/a /sm /fd sha256 /sha1 ${certThumbPrint} /tr http://localhost:37492 /td sha256`,
+        };
       },
     },
     {
