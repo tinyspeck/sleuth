@@ -90,7 +90,7 @@ const options = {
           noMsi: true,
           setupExe: `sleuth-${version}-${arch}-setup.exe`,
           setupIcon: path.resolve(iconDir, "sleuth-icon.ico"),
-          signWithParams: `/a /sm /fd sha256 /sha1 ${certThumbPrint} /tr http://localhost:${PORT} /td sha256`,
+          signWithParams: `/v /debug /a /sm /fd sha256 /sha1 ${certThumbPrint} /tr http://localhost:${PORT} /td sha256`,
         };
       },
     },
