@@ -80,11 +80,11 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
     const menu = (
       <Menu>
         <Menu.Item
-          active={warn}
-          onClick={() => this.props.state.onFilterToggle('warn')}
-          icon='warning-sign'
+          active={debug}
+          onClick={() => this.props.state.onFilterToggle('debug')}
+          icon='code'
           shouldDismissPopover={false}
-          text='Warning'
+          text='Debug'
         />
         <Menu.Item
           active={info}
@@ -94,18 +94,18 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
           text='Info'
         />
         <Menu.Item
+          active={warn}
+          onClick={() => this.props.state.onFilterToggle('warn')}
+          icon='warning-sign'
+          shouldDismissPopover={false}
+          text='Warning'
+        />
+        <Menu.Item
           active={error}
           onClick={() => this.props.state.onFilterToggle('error')}
           icon='error'
           shouldDismissPopover={false}
           text='Error'
-        />
-        <Menu.Item
-          active={debug}
-          onClick={() => this.props.state.onFilterToggle('debug')}
-          icon='code'
-          shouldDismissPopover={false}
-          text='Debug'
         />
       </Menu>
     );
