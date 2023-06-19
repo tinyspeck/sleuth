@@ -186,10 +186,10 @@ export interface Suggestion extends fs.Stats {
 }
 
 export enum LogLevel {
+  debug = 'debug',
   info = 'info',
-  error = 'error',
   warn = 'warn',
-  debug = 'debug'
+  error = 'error'
 }
 
 export type LogMetrics = Record<LogLevel, number>;
