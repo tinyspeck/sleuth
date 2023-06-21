@@ -8,22 +8,29 @@ export type LogFile = MergedLogFile | ProcessedLogFile;
 
 export type RepeatedCounts = Record<string, number>;
 
-export const enum LogType {
-  TRACE = 'trace',
+export enum LogType {
+  ALL = 'all',
   BROWSER = 'browser',
   RENDERER = 'renderer',
-  CALL = 'call',
-  WEBAPP = 'webapp',
   PRELOAD = 'preload',
+  WEBAPP = 'webapp',
+  STATE = 'state',
+  CALL = 'call',
   NETLOG = 'netlog',
+  TRACE = 'trace',
   INSTALLER = 'installer',
-  ALL = 'all',
   MOBILE = 'mobile',
   CHROMIUM = 'chromium',
-  UNKNOWN = ''
+  UNKNOWN = 'unknown',
 }
 
-export const ALL_LOG_TYPES = [
+export type KnownLogType = Exclude<LogType, LogType.UNKNOWN | LogType.ALL>;
+export type SelectableLogType = Exclude<LogType, LogType.UNKNOWN>;
+
+export type ProcessedLogFiles = Record<KnownLogType, Array<ProcessedLogFile>>;
+export type SortedUnzippedFiles = Record<KnownLogType, Array<UnzippedFile>>;
+
+export const ALL_LOG_TYPES: Array<KnownLogType> = [
   LogType.BROWSER,
   LogType.RENDERER,
   LogType.CALL,
@@ -31,11 +38,11 @@ export const ALL_LOG_TYPES = [
   LogType.PRELOAD,
   LogType.NETLOG,
   LogType.INSTALLER,
-  LogType.ALL,
-  LogType.MOBILE
+  LogType.MOBILE,
+  LogType.CHROMIUM
 ];
 
-export const LOG_TYPES_TO_PROCESS = [
+export const LOG_TYPES_TO_PROCESS: Array<KnownLogType> = [
   LogType.BROWSER,
   LogType.RENDERER,
   LogType.WEBAPP,
@@ -67,7 +74,7 @@ export type CompressedBookmark = [ number, number, string, number ];
 
 export interface ProcessorPerformanceInfo {
   name: string;
-  type: LogType;
+  type: SelectableLogType;
   lines: number;
   entries: number;
   processingTime: number;
@@ -82,7 +89,7 @@ export interface LogEntry {
   index: number;
   timestamp: string;
   message: string;
-  level: string;
+  level: LogLevel;
   logType: LogType;
   line: number;
   sourceFile: string;
@@ -114,59 +121,22 @@ export interface UnzippedFile extends BaseFile {
 
 export interface UnzippedFiles extends Array<UnzippedFile> { }
 
-export interface MergedLogFiles {
-  all: MergedLogFile;
-  browser: MergedLogFile;
-  renderer: MergedLogFile;
-  webapp: MergedLogFile;
-  preload: MergedLogFile;
-  call: MergedLogFile;
-  mobile: MergedLogFile;
-  type: 'MergedLogFiles';
-}
+export type MergedLogFiles = Record<SelectableLogType, MergedLogFile>;
 
 export interface ProcessedLogFile extends BaseFile {
   levelCounts: Record<string, number>;
   repeatedCounts: RepeatedCounts;
   logEntries: Array<LogEntry>;
   logFile: UnzippedFile;
-  logType: LogType;
+  logType: KnownLogType;
   type: 'ProcessedLogFile';
-}
-
-export interface ProcessedLogFiles {
-  browser: Array<ProcessedLogFile>;
-  renderer: Array<ProcessedLogFile>;
-  preload: Array<ProcessedLogFile>;
-  webapp: Array<ProcessedLogFile>;
-  state: Array<UnzippedFile>;
-  call: Array<ProcessedLogFile>;
-  netlog: Array<UnzippedFile>;
-  trace: Array<UnzippedFile>;
-  installer: Array<UnzippedFile>;
-  mobile: Array<UnzippedFile>;
-  chromium: Array<UnzippedFile>;
 }
 
 export interface MergedLogFile extends BaseFile {
   logFiles: Array<ProcessedLogFile>;
   logEntries: Array<LogEntry>;
-  logType: LogType;
+  logType: SelectableLogType;
   type: 'MergedLogFile';
-}
-
-export interface SortedUnzippedFiles {
-  browser: Array<UnzippedFile>;
-  renderer: Array<UnzippedFile>;
-  preload: Array<UnzippedFile>;
-  webapp: Array<UnzippedFile>;
-  state: Array<UnzippedFile>;
-  call: Array<UnzippedFile>;
-  netlog: Array<UnzippedFile>;
-  trace: Array<UnzippedFile>;
-  installer: Array<UnzippedFile>;
-  mobile: Array<UnzippedFile>;
-  chromium: Array<UnzippedFile>;
 }
 
 export interface MergedFilesLoadStatus {
@@ -192,22 +162,14 @@ export enum LogLevel {
   error = 'error'
 }
 
+export type LevelFilter = Record<LogLevel, boolean>;
 export type LogMetrics = Record<LogLevel, number>;
 export type TimeBucketedLogMetrics = Record<number, LogMetrics>;
-
-export interface LevelFilter {
-  error: boolean;
-  info: boolean;
-  debug: boolean;
-  warn: boolean;
-}
 
 export interface TouchBarLogFileUpdate {
   levelCounts: Record<string, number>;
   isLogFile: boolean;
 }
-
-export type Suggestions = Array<Suggestion>;
 
 export enum Tool {
   cache = 'cache'

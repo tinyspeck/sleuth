@@ -1,4 +1,4 @@
-import { Bookmark, SerializedBookmark, ProcessedLogFile, LogFile, LogEntry, CompressedBookmark } from '../../interfaces';
+import { Bookmark, SerializedBookmark, ProcessedLogFile, LogFile, LogEntry, CompressedBookmark, ProcessedLogFiles, MergedLogFiles } from '../../interfaces';
 import { isTool, isUnzippedFile } from '../../utils/is-logfile';
 import { SleuthState } from './sleuth';
 
@@ -192,7 +192,7 @@ export function deserializeBookmark(state: SleuthState, serialized: SerializedBo
   if (serialized.logFile.type === 'ProcessedLogFile') {
     if (!state.processedLogFiles) return;
 
-    Object.keys(state.processedLogFiles).some((key) => {
+    Object.keys(state.processedLogFiles).some((key: keyof ProcessedLogFiles) => {
       const files = state.processedLogFiles![key];
       const foundFile = files.find((file: ProcessedLogFile) => file.id === serialized.logFile.id);
 
@@ -206,7 +206,7 @@ export function deserializeBookmark(state: SleuthState, serialized: SerializedBo
   } else if (serialized.logFile.type === 'MergedLogFile') {
       if (!state.mergedLogFiles) return;
 
-    Object.keys(state.mergedLogFiles).some((key) => {
+    Object.keys(state.mergedLogFiles).some((key: keyof MergedLogFiles) => {
       const file = state.mergedLogFiles![key];
 
       if (file.id === serialized.logFile.id) {
@@ -262,7 +262,7 @@ export function compressBookmark(input: SerializedBookmark): CompressedBookmark 
  * @returns {SerializedBookmark}
  */
 export function decompressBookmark(input: CompressedBookmark): SerializedBookmark {
-  const logFileType = Object.keys(CompressedLogTypes).find((key) => {
+  const logFileType = Object.keys(CompressedLogTypes).find((key: keyof typeof CompressedLogTypes) => {
     return input[3] === CompressedLogTypes[key];
   }) as 'MergedLogFile' | 'ProcessedLogFile';
 

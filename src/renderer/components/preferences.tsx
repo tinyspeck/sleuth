@@ -1,17 +1,39 @@
 import { Select } from '@blueprintjs/select';
 import { ipcRenderer } from 'electron';
 import { observer } from 'mobx-react';
-import { Overlay, Classes, FormGroup, Button, MenuItem, Callout, ControlGroup, InputGroup, RadioGroup, Radio, Checkbox, Divider } from '@blueprintjs/core';
+import {
+  Overlay,
+  Classes,
+  FormGroup,
+  Button,
+  MenuItem,
+  Callout,
+  ControlGroup,
+  InputGroup,
+  RadioGroup,
+  Radio,
+  Checkbox,
+  Divider,
+} from '@blueprintjs/core';
 import { SleuthState } from '../state/sleuth';
 import classNames from 'classnames';
 import React from 'react';
 import autoBind from 'react-autobind';
-import {format as dateFormatter} from 'date-fns';
+import { format as dateFormatter } from 'date-fns';
 
 import { getSleuth } from '../sleuth';
 import { renderFontItem, filterFont, FONTS } from './preferences-font';
-import { filterDateTime, renderDateTimeItem, DATE_TIME_FORMATS } from './preferences-datetime';
-import { renderEditorItem, Editor, EDITORS, nameForCmd } from './preferences-editor';
+import {
+  filterDateTime,
+  renderDateTimeItem,
+  DATE_TIME_FORMATS,
+} from './preferences-datetime';
+import {
+  renderEditorItem,
+  Editor,
+  EDITORS,
+  nameForCmd,
+} from './preferences-editor';
 import { SORT_DIRECTION } from './log-table-constants';
 
 const packageInfo = require('../../../package.json');
@@ -29,7 +51,10 @@ export interface PreferencesProps {
 }
 
 @observer
-export class Preferences extends React.Component<PreferencesProps, Partial<PreferencesState>> {
+export class Preferences extends React.Component<
+  PreferencesProps,
+  Partial<PreferencesState>
+> {
   constructor(props: PreferencesProps) {
     super(props);
 
@@ -40,9 +65,17 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
   }
 
   public render(): JSX.Element {
-    const { dateTimeFormat, defaultEditor, font } = this.props.state;
+    const {
+      dateTimeFormat_v3: dateTimeFormat,
+      defaultEditor,
+      font,
+    } = this.props.state;
 
-    const classes = classNames(Classes.CARD, Classes.ELEVATION_4, 'Preferences');
+    const classes = classNames(
+      Classes.CARD,
+      Classes.ELEVATION_4,
+      'Preferences'
+    );
 
     return (
       <Overlay
@@ -54,8 +87,8 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
           <h2>Preferences</h2>
           <Callout>
             You're running Sleuth {packageInfo.version} {getSleuth()} with
-            Electron {process.versions.electron} and
-            Chrome {process.versions.chrome}.
+            Electron {process.versions.electron} and Chrome{' '}
+            {process.versions.chrome}.
           </Callout>
           <Divider style={{ marginTop: '15px' }} />
           <FormGroup
@@ -88,7 +121,10 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
               onItemSelect={this.onDateTimeSelect}
               popoverProps={{ minimal: true }}
             >
-              <Button text={dateFormatter(1647029957123, dateTimeFormat)} rightIcon='calendar' />
+              <Button
+                text={dateFormatter(1647029957123, dateTimeFormat)}
+                rightIcon='calendar'
+              />
             </DateTimeSelect>
           </FormGroup>
           <Divider />
@@ -98,8 +134,13 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
             helperText='Sort logs by oldest (ascending) or newest (descending)'
           >
             <RadioGroup
-              onChange={(event) => (this.props.state.defaultSort = event.currentTarget.value as SORT_DIRECTION)}
-              selectedValue={this.props.state.defaultSort || SORT_DIRECTION.DESC}
+              onChange={(event) =>
+                (this.props.state.defaultSort = event.currentTarget
+                  .value as SORT_DIRECTION)
+              }
+              selectedValue={
+                this.props.state.defaultSort || SORT_DIRECTION.DESC
+              }
               inline={true}
             >
               <Radio label='Ascending' value={SORT_DIRECTION.ASC} />
@@ -115,7 +156,10 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
             <Checkbox
               checked={this.props.state.isOpenMostRecent}
               label='Enabled'
-              onChange={(event) => (this.props.state.isOpenMostRecent = event.currentTarget.checked)}
+              onChange={(event) =>
+                (this.props.state.isOpenMostRecent =
+                  event.currentTarget.checked)
+              }
             />
           </FormGroup>
           <Divider />
@@ -127,7 +171,9 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
             <Checkbox
               checked={this.props.state.isSmartCopy}
               label='Enabled'
-              onChange={(event) => (this.props.state.isSmartCopy = event.currentTarget.checked)}
+              onChange={(event) =>
+                (this.props.state.isSmartCopy = event.currentTarget.checked)
+              }
             />
           </FormGroup>
           <Divider />
@@ -163,7 +209,9 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
             <Checkbox
               checked={this.props.state.isMarkIcon}
               label='Enabled'
-              onChange={(event) => (this.props.state.isMarkIcon = event.currentTarget.checked)}
+              onChange={(event) =>
+                (this.props.state.isMarkIcon = event.currentTarget.checked)
+              }
             />
           </FormGroup>
         </div>
@@ -190,6 +238,6 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
   }
 
   private onDateTimeSelect(format: string) {
-    this.props.state.dateTimeFormat = format;
+    this.props.state.dateTimeFormat_v3 = format;
   }
 }
