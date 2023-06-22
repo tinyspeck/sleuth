@@ -138,7 +138,7 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
           <NavbarDivider />
           <DateRangeInput
             allowSingleDayRange={true}
-            timePickerProps={{precision: TimePrecision.MINUTE, showArrowButtons: false}}
+            timePickerProps={{precision: TimePrecision.MINUTE, showArrowButtons: true}}
             formatDate={(date) => date.toLocaleString()}
             onChange={this.onDateRangeChange}
             parseDate={(str) => new Date(str)}
