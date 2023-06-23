@@ -12,7 +12,7 @@ import {
   Menu,
   Position
 } from '@blueprintjs/core';
-import { DateRangeInput } from '@blueprintjs/datetime';
+import { DateRangeInput, TimePrecision } from '@blueprintjs/datetime';
 
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
@@ -137,6 +137,8 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
         <NavbarGroup className='SearchGroup'>
           <NavbarDivider />
           <DateRangeInput
+            allowSingleDayRange={true}
+            timePickerProps={{precision: TimePrecision.MINUTE, showArrowButtons: true}}
             formatDate={(date) => date.toLocaleString()}
             onChange={this.onDateRangeChange}
             parseDate={(str) => new Date(str)}
