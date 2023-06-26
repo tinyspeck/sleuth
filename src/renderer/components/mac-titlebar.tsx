@@ -13,7 +13,7 @@ export class MacTitlebar extends React.Component<TitlebarProps> {
   }
 
   private handleDoubleClick = () => {
-      sendDoubleClick()
+      sendDoubleClick();
   }
 
   render () {

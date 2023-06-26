@@ -87,7 +87,7 @@ export class IpcManager {
 
   private setupTitleBarClickMac() {
     // if it is not a Mac then it will do nothing
-    if (process.platform != 'darwin'){
+    if (process.platform !== 'darwin'){
       return;
     }
 
@@ -110,9 +110,9 @@ export class IpcManager {
         }
       }
       } catch (error){
-        console.error("Couldnt minimize or maximize", error)
+        console.error('Couldnt minimize or maximize', error);
       }
-    })
+    });
   }
 
   private setupMessageBoxHandler() {

@@ -22,7 +22,7 @@ export function sendWindowReady() {
 }
 
 export function sendDoubleClick(){
-  ipcRenderer.send(IpcEvents.CLICK_TITLEBAR_MAC)
+  ipcRenderer.send(IpcEvents.CLICK_TITLEBAR_MAC);
 }
 
 export function showOpenDialog(): Promise<Electron.OpenDialogReturnValue> {
