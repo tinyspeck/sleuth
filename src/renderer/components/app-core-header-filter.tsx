@@ -12,8 +12,9 @@ import {
   Menu,
   Position
 } from '@blueprintjs/core';
-import { DateRangeInput } from '@blueprintjs/datetime';
-
+import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
+import { DatePicker } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
 
@@ -34,7 +35,7 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
     this.props.state.onFilterToggle = this.props.state.onFilterToggle.bind(this);
     this.toggleSearchResultVisibility = this.toggleSearchResultVisibility.bind(this);
     this.onSearchChange = debounce(this.onSearchChange.bind(this), 700);
-    this.onDateRangeChange = this.onDateRangeChange.bind(this);
+    this.onChange = this.onChange.bind(this);
     this.renderFilter = this.renderFilter.bind(this);
     this.focus = this.focus.bind(this);
   }
@@ -63,11 +64,11 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
     this.props.state.searchIndex = this.props.state.searchIndex + change;
   }
 
-  public onDateRangeChange(range: [ Date | null, Date | null ]) {
+  public onChange(values: [Dayjs, Dayjs], dateStrings: [string, string]) {
     this.props.state.dateRange = {
-      from: range[0] || null,
-      to: range[1] || null
-    };
+      from: values && values[0] ? new Date(dateStrings[0]) : null,
+      to: values && values[1] ? new Date(dateStrings[1]) : null
+    }
   }
 
   public toggleSearchResultVisibility() {
@@ -118,7 +119,7 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
   }
 
   public render() {
-    const { showOnlySearchResults, dateRange } = this.props.state;
+    const { showOnlySearchResults } = this.props.state;
 
     const showOnlySearchResultsButton = (
       <Button
@@ -129,6 +130,8 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
       />
     );
 
+    const { RangePicker} = DatePicker;
+
     return (
       <>
         <NavbarGroup className='FilterGroup'>
@@ -136,16 +139,10 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
         </NavbarGroup>
         <NavbarGroup className='SearchGroup'>
           <NavbarDivider />
-          <DateRangeInput
-            formatDate={(date) => date.toLocaleString()}
-            onChange={this.onDateRangeChange}
-            parseDate={(str) => new Date(str)}
-            value={[ dateRange.from, dateRange.to ]}
-          />
-          <Button
-            icon='cross'
-            style={{ marginLeft: '5px' }}
-            onClick={() => this.onDateRangeChange([ null, null ])}
+          <RangePicker 
+            showTime={{defaultValue: [dayjs('00:00:00', 'HH:mm:ss'), dayjs('23:59:59', 'HH:mm:ss')]}}
+            onChange={this.onChange}
+            allowEmpty={[true,true]}
           />
           <NavbarDivider />
           <InputGroup

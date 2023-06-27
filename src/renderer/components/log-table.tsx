@@ -412,14 +412,16 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
   }
 
   private doRangeFilter({ from, to }: DateRange, list: Array<LogEntry>): Array<LogEntry> {
-    if (!from || !to) return list;
+    if (!from && !to) return list;
 
-    const fromTs = from.getTime();
-    const toTs = to.getTime();
+    const fromTs = from ? from.getTime() : null;
+    const toTs = to ? to.getTime() : null;
 
     return list.filter((e) => {
       const ts = e.momentValue || 0;
-      return ts >= fromTs && ts <= toTs;
+      if (fromTs && ts < fromTs) return false;
+      if (toTs && ts > toTs) return false;
+      return true;
     });
   }
 
