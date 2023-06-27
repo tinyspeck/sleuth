@@ -24,22 +24,19 @@ export interface LogContentState {
 }
 
 @observer
-export class LogContent extends React.Component<
-  LogContentProps,
-  Partial<LogContentState>
-> {
+export class LogContent extends React.Component<LogContentProps, Partial<LogContentState>> {
   constructor(props: LogContentProps) {
     super(props);
 
     this.state = {
-      tableHeight: 600,
+      tableHeight: 600
     };
 
     this.resizeHandler = this.resizeHandler.bind(this);
   }
 
   public resizeHandler(height: number) {
-    if (height < 100 || height > window.innerHeight - 100) return;
+    if (height < 100 || height > (window.innerHeight - 100)) return;
     this.setState({ tableHeight: height });
   }
 
@@ -53,26 +50,18 @@ export class LogContent extends React.Component<
       showOnlySearchResults,
       searchIndex,
       dateRange,
-      selectedEntry,
+      selectedEntry
     } = this.props.state;
 
     if (!selectedLogFile) return null;
     const isLog = isLogFile(selectedLogFile);
-    const scrubber = (
-      <Scrubber
-        elementSelector='LogTableContainer'
-        onResizeHandler={this.resizeHandler}
-      />
-    );
+    const scrubber = <Scrubber elementSelector='LogTableContainer' onResizeHandler={this.resizeHandler} />;
 
     // In most cases, we're dealing with a log file
     if (isLog) {
       return (
         <div className='LogContent' style={{ fontFamily: getFontForCSS(font) }}>
-          <div
-            id='LogTableContainer'
-            style={{ height: this.state.tableHeight }}
-          >
+          <div id='LogTableContainer' style={{ height: this.state.tableHeight }}>
             <LogTable
               state={this.props.state}
               dateTimeFormat={dateTimeFormat}
