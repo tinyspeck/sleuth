@@ -1,10 +1,11 @@
-import { shell, BrowserWindow, app, ipcMain, dialog } from 'electron';
+import { shell, BrowserWindow, app, ipcMain, dialog, systemPreferences, IpcMainEvent } from 'electron';
 import * as path from 'path';
 
 import { createWindow } from './windows';
 import { settingsFileManager } from './settings';
 import { changeIcon } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
+import { IpcEvents } from '../ipc-events';
 
 export class IpcManager {
   constructor() {
@@ -20,6 +21,7 @@ export class IpcManager {
     this.setupCopy();
     this.setupQuit();
     this.setupOpenRecent();
+    this.setupTitleBarClickMac();
   }
 
   public openFile(pathName: string) {
@@ -79,6 +81,36 @@ export class IpcManager {
         }
       } catch (error) {
         console.warn(`Could not show window`, error);
+      }
+    });
+  }
+
+  private setupTitleBarClickMac() {
+    // if it is not a Mac then it will do nothing
+    if (process.platform !== 'darwin'){
+      return;
+    }
+
+    ipcMain.on(IpcEvents.CLICK_TITLEBAR_MAC, (event: IpcMainEvent) => {
+      try{
+      const doubleClickAction = systemPreferences.getUserDefault(
+        'AppleActionOnDoubleClick',
+        'string'
+      );
+      const win = BrowserWindow.fromWebContents(event.sender);
+      if (win) {
+        if (doubleClickAction === 'Minimize') {
+          win.minimize();
+        } else if (doubleClickAction === 'Maximize') {
+          if (!win.isMaximized()){
+            win.maximize();
+          } else {
+            win.unmaximize();
+          }
+        }
+      }
+      } catch (error){
+        console.error('Couldnt minimize or maximize', error);
       }
     });
   }

@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { ICON_NAMES } from '../shared-constants';
+import { IpcEvents } from '../ipc-events';
 
 // This file handles sending IPC events. Other classes might
 // listen to IPC events.
@@ -18,6 +19,10 @@ export function getUserAgent(): Promise<string> {
 
 export function sendWindowReady() {
   ipcRenderer.send('window-ready');
+}
+
+export function sendDoubleClick(){
+  ipcRenderer.send(IpcEvents.CLICK_TITLEBAR_MAC);
 }
 
 export function showOpenDialog(): Promise<Electron.OpenDialogReturnValue> {
