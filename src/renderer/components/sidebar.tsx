@@ -140,16 +140,16 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
 
     if (!processedLogFiles) return {};
 
-    Sidebar.setChildNodes(NODE_ID.STATE, state, processedLogFiles.state.map((file) => Sidebar.getStateFileNode(file as any, props)));
+    Sidebar.setChildNodes(NODE_ID.STATE, state, processedLogFiles.state.map((file) => Sidebar.getStateFileNode(file, props)));
     Sidebar.setChildNodes(NODE_ID.BROWSER, state, processedLogFiles.browser.map((file) => Sidebar.getFileNode(file, props)));
     Sidebar.setChildNodes(NODE_ID.RENDERER, state, processedLogFiles.renderer.map((file) => Sidebar.getFileNode(file, props)));
     Sidebar.setChildNodes(NODE_ID.PRELOAD, state, processedLogFiles.preload.map((file) => Sidebar.getFileNode(file, props)));
     Sidebar.setChildNodes(NODE_ID.WEBAPP, state, processedLogFiles.webapp.map((file) => Sidebar.getFileNode(file, props)));
     Sidebar.setChildNodes(NODE_ID.CALLS, state, processedLogFiles.call.map((file) => Sidebar.getFileNode(file, props)));
     Sidebar.setChildNodes(NODE_ID.INSTALLER, state, processedLogFiles.installer.map((file) => Sidebar.getInstallerFileNode(file, props)));
-    Sidebar.setChildNodes(NODE_ID.NETWORK, state, processedLogFiles.netlog.map((file, i) => Sidebar.getNetlogFileNode(file as any, props, i)));
+    Sidebar.setChildNodes(NODE_ID.NETWORK, state, processedLogFiles.netlog.map((file, i) => Sidebar.getNetlogFileNode(file, props, i)));
     Sidebar.setChildNodes(NODE_ID.MOBILE, state, processedLogFiles.mobile.map((file) => Sidebar.getFileNode(file, props)));
-    Sidebar.setChildNodes(NODE_ID.TRACE, state, processedLogFiles.trace.map((file) => Sidebar.getStateFileNode(file as any, props)));
+    Sidebar.setChildNodes(NODE_ID.TRACE, state, processedLogFiles.trace.map((file) => Sidebar.getStateFileNode(file, props)));
     Sidebar.setChildNodes(NODE_ID.CHROMIUM, state, processedLogFiles.chromium.map((file) => Sidebar.getFileNode(file, props)));
 
     return { nodes: state.nodes };

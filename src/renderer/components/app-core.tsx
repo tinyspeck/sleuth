@@ -15,7 +15,6 @@ import {
   SortedUnzippedFiles,
   UnzippedFiles,
   ProcessedLogFile,
-  KnownLogType,
 } from '../../interfaces';
 import { AppCoreHeader } from './app-core-header';
 import { Sidebar } from './sidebar';
@@ -82,16 +81,19 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
    * Take an array of processed files (for logs) or unzipped files (for state files)
    * and add them to the state of this component.
    */
-  private addFilesToState(files: Partial<ProcessedLogFiles | SortedUnzippedFiles>, ...types: Array<KnownLogType>) {
+  private addFilesToState(filesToAdd: Partial<ProcessedLogFiles>) {
     const { processedLogFiles } = this.state;
-    const newProcessedLogFiles: ProcessedLogFiles = { ...processedLogFiles as ProcessedLogFiles };
 
-    types.forEach((t: KnownLogType) => {
-      const filesForType = files[t];
-      if (filesForType) {
-        newProcessedLogFiles[t] = newProcessedLogFiles[t].concat(filesForType as Array<ProcessedLogFile>);
-      }
-    });
+    if (!processedLogFiles) {
+      return;
+    }
+
+    const newProcessedLogFiles: ProcessedLogFiles = { ... processedLogFiles };
+
+    for (const [type, filesOfType] of Object.entries(filesToAdd)) {
+      const currentState = processedLogFiles[type as keyof ProcessedLogFiles] as Array<any>;
+      newProcessedLogFiles[type as keyof ProcessedLogFiles] = currentState.concat(filesOfType);
+    }
 
     this.setState({
       processedLogFiles: newProcessedLogFiles
@@ -119,7 +121,16 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
       window.location.reload();
     }
 
-    this.addFilesToState(sortedUnzippedFiles, LogType.STATE, LogType.NETLOG, LogType.TRACE);
+    // Collect
+    const { STATE, NETLOG, TRACE } = LogType;
+    const { state, netlog, trace } = sortedUnzippedFiles;
+    const rawLogFiles: Partial<ProcessedLogFiles> = {
+      [STATE]: state,
+      [NETLOG]: netlog,
+      [TRACE]: trace,
+    };
+
+    this.addFilesToState(rawLogFiles);
 
     console.log(this.state.processedLogFiles!.state);
 
@@ -128,11 +139,11 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
       const preFiles = sortedUnzippedFiles[type];
       const files = await processLogFiles(preFiles, (loadingMessage) => {
         this.setState({ loadingMessage });
-      }) as Array<ProcessedLogFile>;
+      });
       const delta: Partial<ProcessedLogFiles> = {};
 
-      delta[type] = files;
-      this.addFilesToState(delta, type);
+      delta[type] = files as Array<ProcessedLogFile>;
+      this.addFilesToState(delta);
     }
     console.timeEnd('process-files');
 

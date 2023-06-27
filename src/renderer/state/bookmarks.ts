@@ -194,7 +194,7 @@ export function deserializeBookmark(state: SleuthState, serialized: SerializedBo
 
     Object.keys(state.processedLogFiles).some((key: keyof ProcessedLogFiles) => {
       const files = state.processedLogFiles![key];
-      const foundFile = files.find((file: ProcessedLogFile) => file.id === serialized.logFile.id);
+      const foundFile = (files as Array<ProcessedLogFile>).find((file: ProcessedLogFile) => file.id === serialized.logFile.id);
 
       if (foundFile) {
         logFile = foundFile;

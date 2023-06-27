@@ -1,4 +1,4 @@
-import { ProcessorPerformanceInfo, ALL_LOG_TYPES, SelectableLogType, LogType } from '../../interfaces';
+import { ProcessorPerformanceInfo, SelectableLogType, LogType, LOG_TYPES_TO_PROCESS } from '../../interfaces';
 
 let logBuffer: Array<ProcessorPerformanceInfo> = [];
 
@@ -31,7 +31,7 @@ export function combineResultsForType(type: SelectableLogType): ProcessorPerform
 export function flushLogPerformance() {
   const summary: Array<ProcessorPerformanceInfo> = [];
 
-  for (const logType of ALL_LOG_TYPES) {
+  for (const logType of LOG_TYPES_TO_PROCESS) {
     summary.push(combineResultsForType(logType));
   }
 

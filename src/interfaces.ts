@@ -27,31 +27,23 @@ export enum LogType {
 export type KnownLogType = Exclude<LogType, LogType.UNKNOWN | LogType.ALL>;
 export type SelectableLogType = Exclude<LogType, LogType.UNKNOWN>;
 
-export type ProcessedLogFiles = Record<KnownLogType, Array<ProcessedLogFile>>;
+export const LOG_TYPES_TO_PROCESS = [
+  LogType.BROWSER,
+  LogType.RENDERER,
+  LogType.WEBAPP,
+  LogType.PRELOAD,
+  LogType.CALL,
+  LogType.INSTALLER,
+  LogType.MOBILE,
+  LogType.CHROMIUM
+] as const;
+
+export type ProcessableLogType = (typeof LOG_TYPES_TO_PROCESS)[number];
+
+export type RawLogType = Exclude<KnownLogType, ProcessableLogType>;
+
+export type ProcessedLogFiles = Record<ProcessableLogType, Array<ProcessedLogFile>> & Record<RawLogType, Array<UnzippedFile>>;
 export type SortedUnzippedFiles = Record<KnownLogType, Array<UnzippedFile>>;
-
-export const ALL_LOG_TYPES: Array<KnownLogType> = [
-  LogType.BROWSER,
-  LogType.RENDERER,
-  LogType.CALL,
-  LogType.WEBAPP,
-  LogType.PRELOAD,
-  LogType.NETLOG,
-  LogType.INSTALLER,
-  LogType.MOBILE,
-  LogType.CHROMIUM
-];
-
-export const LOG_TYPES_TO_PROCESS: Array<KnownLogType> = [
-  LogType.BROWSER,
-  LogType.RENDERER,
-  LogType.WEBAPP,
-  LogType.PRELOAD,
-  LogType.CALL,
-  LogType.INSTALLER,
-  LogType.MOBILE,
-  LogType.CHROMIUM
-];
 
 export interface Bookmark {
   logEntry: LogEntry;
