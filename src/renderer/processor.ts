@@ -3,7 +3,18 @@ import readline from 'readline';
 import path from 'path';
 
 import { logPerformance } from './processor/performance';
-import { LogEntry, LogType, MatchResult, MergedLogFile, ProcessedLogFile, SortedUnzippedFiles, UnzippedFile, UnzippedFiles } from '../interfaces';
+import {
+  LogEntry,
+  LogLevel,
+  LogType,
+  MatchResult,
+  MergedLogFile,
+  ProcessedLogFile,
+  SelectableLogType,
+  SortedUnzippedFiles,
+  UnzippedFile,
+  UnzippedFiles
+} from '../interfaces';
 import { getIdForLogFiles } from '../utils/id-for-logfiles';
 
 const debug = require('debug')('sleuth:processor');
@@ -65,7 +76,7 @@ export function sortWithWebWorker(data: Array<any>, sortFn: string): Promise<Arr
  * @param {ProcessedLogFiles} logFiles
  */
 export function mergeLogFiles(
-  logFiles: Array<ProcessedLogFile>|Array<MergedLogFile>, logType: LogType | LogType.ALL
+  logFiles: Array<ProcessedLogFile>|Array<MergedLogFile>, logType: SelectableLogType
 ): Promise<MergedLogFile> {
   return new Promise((resolve) => {
     let logEntries: Array<LogEntry> = [];
@@ -137,7 +148,7 @@ export function mergeLogFiles(
  * @param {UnzippedFile} logFile
  * @returns {LogType}
  */
-export function getTypeForFile(logFile: UnzippedFile): LogType {
+export function getTypeForFile(logFile: UnzippedFile): Exclude<LogType, LogType.ALL> {
   const fileName = path.basename(logFile.fileName);
 
   if (fileName.endsWith('.trace')) {
@@ -170,6 +181,8 @@ export function getTypeForFile(logFile: UnzippedFile): LogType {
     return LogType.MOBILE;
   } else if (fileName.startsWith('electron_debug')) {
     return LogType.CHROMIUM;
+  } else if (/^slack-[\s\S]*$/.test(fileName) || fileName.endsWith('.html') || fileName.endsWith('.json') || fileName === 'installation') {
+    return LogType.STATE;
   }
 
   return LogType.UNKNOWN;
@@ -182,9 +195,6 @@ export function getTypeForFile(logFile: UnzippedFile): LogType {
  * @returns {SortedUnzippedFiles}
  */
 export function getTypesForFiles(logFiles: UnzippedFiles): SortedUnzippedFiles {
-  const isStateFile = (name: string) => {
-    return /^slack-[\s\S]*$/.test(name) || name.endsWith('.html') || name.endsWith('.json') || name === 'installation';
-  };
 
   const result: SortedUnzippedFiles = {
     browser: [],
@@ -203,12 +213,10 @@ export function getTypesForFiles(logFiles: UnzippedFiles): SortedUnzippedFiles {
   logFiles.forEach((logFile) => {
     const logType = getTypeForFile(logFile);
 
-    if (result[logType]) {
-      result[logType].push(logFile);
-    } else if (isStateFile(logFile.fileName)) {
-      result.state.push(logFile);
-    } else {
+    if (logType === LogType.UNKNOWN) {
       debug(`File ${logFile.fileName} seems weird - we don't recognize it. Throwing it away.`);
+    } else if (result[logType]) {
+      result[logType].push(logFile);
     }
   });
 
@@ -270,6 +278,10 @@ export async function processLogFile(
   progressCb?: (status: string) => void
 ): Promise<ProcessedLogFile> {
   const logType = getTypeForFile(logFile);
+
+  if (logType === LogType.UNKNOWN) {
+    throw new Error(`Error, attempting to process unknown log file ${logFile.fullPath}`);
+  }
 
   if (progressCb) progressCb(`Processing file ${logFile.fileName}...`);
 
@@ -350,8 +362,13 @@ export function readFile(
     let toParse = '';
     let androidDebug: LogEntry | null = null;
 
-    const levelCounts = {};
-    const repeatedCounts = {};
+    const levelCounts: Record<LogLevel, number> = {
+      debug: 0,
+      info: 0,
+      warn: 0,
+      error: 0,
+    };
+    const repeatedCounts: Record<string, number> = {};
 
     function pushEntry(entry: LogEntry | null) {
       if (entry) {
@@ -952,7 +969,7 @@ export function matchLineChromium(line: string): MatchResult | undefined {
   }
 
   // FIXME: make this more robust for all chromium log levels
-  const LEVEL_MAP = {
+  const LEVEL_MAP: Record<string, string> = {
     WARNING: 'warn',
     INFO: 'info',
     ERROR: 'error',

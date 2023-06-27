@@ -341,8 +341,8 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
     filter = filter || this.props.levelFilter;
 
     if (!filter) return false;
-    const allEnabled = Object.keys(filter).every((k) => filter![k]);
-    const allDisabled = Object.keys(filter).every((k) => !filter![k]);
+    const allEnabled = Object.keys(filter).every((k: keyof LevelFilter) => filter![k]);
+    const allDisabled = Object.keys(filter).every((k: keyof LevelFilter) => !filter![k]);
 
     return !(allEnabled || allDisabled);
   }

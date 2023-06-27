@@ -16,6 +16,7 @@ import { DateRangeInput, TimePrecision } from '@blueprintjs/datetime';
 
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
+import { LogLevel } from '../../interfaces';
 
 export interface FilterProps {
   state: SleuthState;
@@ -81,28 +82,28 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
       <Menu>
         <Menu.Item
           active={debug}
-          onClick={() => this.props.state.onFilterToggle('debug')}
+          onClick={() => this.props.state.onFilterToggle(LogLevel.debug)}
           icon='code'
           shouldDismissPopover={false}
           text='Debug'
         />
         <Menu.Item
           active={info}
-          onClick={() => this.props.state.onFilterToggle('info')}
+          onClick={() => this.props.state.onFilterToggle(LogLevel.info)}
           icon='info-sign'
           shouldDismissPopover={false}
           text='Info'
         />
         <Menu.Item
           active={warn}
-          onClick={() => this.props.state.onFilterToggle('warn')}
+          onClick={() => this.props.state.onFilterToggle(LogLevel.warn)}
           icon='warning-sign'
           shouldDismissPopover={false}
           text='Warning'
         />
         <Menu.Item
           active={error}
-          onClick={() => this.props.state.onFilterToggle('error')}
+          onClick={() => this.props.state.onFilterToggle(LogLevel.error)}
           icon='error'
           shouldDismissPopover={false}
           text='Error'

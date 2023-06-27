@@ -40,7 +40,7 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
   }
 
   public render(): JSX.Element {
-    const { dateTimeFormat, defaultEditor, font } = this.props.state;
+    const { dateTimeFormat_v3, defaultEditor, font } = this.props.state;
 
     const classes = classNames(Classes.CARD, Classes.ELEVATION_4, 'Preferences');
 
@@ -88,7 +88,7 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
               onItemSelect={this.onDateTimeSelect}
               popoverProps={{ minimal: true }}
             >
-              <Button text={dateFormatter(1647029957123, dateTimeFormat)} rightIcon='calendar' />
+              <Button text={dateFormatter(1647029957123, dateTimeFormat_v3)} rightIcon='calendar' />
             </DateTimeSelect>
           </FormGroup>
           <Divider />
@@ -190,6 +190,6 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
   }
 
   private onDateTimeSelect(format: string) {
-    this.props.state.dateTimeFormat = format;
+    this.props.state.dateTimeFormat_v3 = format;
   }
 }

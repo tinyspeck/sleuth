@@ -1,4 +1,4 @@
-import { ProcessedLogFile, LogType } from '../../src/interfaces';
+import { ProcessedLogFile, LogType, LogLevel } from '../../src/interfaces';
 
 export const mockBrowserFile1: ProcessedLogFile = {
   id: '123',
@@ -6,7 +6,7 @@ export const mockBrowserFile1: ProcessedLogFile = {
   logEntries: [
     {
       index: 0,
-      level: 'info',
+      level: LogLevel.info,
       logType: LogType.BROWSER,
       message: 'Hi!',
       momentValue: 1488837185497,
@@ -15,7 +15,7 @@ export const mockBrowserFile1: ProcessedLogFile = {
       sourceFile: 'test-file'
     }, {
       index: 1,
-      level: 'info',
+      level: LogLevel.info,
       logType: LogType.BROWSER,
       message: 'Yo!',
       momentValue: 1488837201751,
@@ -24,7 +24,7 @@ export const mockBrowserFile1: ProcessedLogFile = {
       sourceFile: 'test-file'
     }, {
       index: 2,
-      level: 'info',
+      level: LogLevel.info,
       logType: LogType.BROWSER,
       message: 'Hey!',
       momentValue: 1488837270030,
@@ -52,7 +52,7 @@ export const mockBrowserFile2: ProcessedLogFile = {
   logEntries: [
     {
       index: 0,
-      level: 'info',
+      level: LogLevel.info,
       logType: LogType.BROWSER,
       message: 'Hi!',
       momentValue: 1488837228089,
@@ -61,7 +61,7 @@ export const mockBrowserFile2: ProcessedLogFile = {
       sourceFile: 'test-file',
     }, {
       index: 1,
-      level: 'info',
+      level: LogLevel.info,
       logType: LogType.BROWSER,
       message: 'Yo!',
       momentValue: 1488837285150,
@@ -70,7 +70,7 @@ export const mockBrowserFile2: ProcessedLogFile = {
       sourceFile: 'test-file',
     }, {
       index: 2,
-      level: 'info',
+      level: LogLevel.info,
       logType: LogType.BROWSER,
       message: 'Hey!',
       momentValue: 1488837294254,

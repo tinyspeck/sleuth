@@ -62,14 +62,16 @@ export const categoryDescriptionDict = {
 };
 
 export function getNotifWarningsInfo(data: Array<string>): Array<JSX.Element> {
+  type Category = keyof typeof categoryDescriptionDict;
   const result: Array<JSX.Element> = [];
   result.push(<p>⚠️ The following notification warnings were detected. ⚠️</p>);
 
-  Object.keys(categoryDescriptionDict).forEach((category: string) => {
-    const categoryWarnings = intersect(category, data);
+  Object.keys(categoryDescriptionDict).forEach((category: Category) => {
+    const categoryDict: Record<string, string> = warningDescriptionDict[category];
+    const categoryWarnings = Object.keys(categoryDict).filter((value) => -1 !== data.indexOf(value.toString()));
     if (categoryWarnings && categoryWarnings.length > 0) {
-      const warningList: Array<JSX.Element> = categoryWarnings.map((w: string) => {
-        return (<li key={w}>{w}: {warningDescriptionDict[category][w]}</li>);
+      const warningList: Array<JSX.Element> = categoryWarnings.map((w) => {
+        return (<li key={w}>{w}: {categoryDict[w]}</li>);
       });
 
       result.push(<p><b>{category}</b></p>);
@@ -79,8 +81,4 @@ export function getNotifWarningsInfo(data: Array<string>): Array<JSX.Element> {
   });
 
   return result;
-}
-
-export function intersect(category: string, data: Array<string>): Array<string> {
-  return Object.keys(warningDescriptionDict[category]).filter((value) => -1 !== data.indexOf(value.toString()));
 }
