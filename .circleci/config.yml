@@ -11,7 +11,7 @@ orbs:
 parameters:
   build_image_tag_ubuntu:
     type: string
-    default: slack-desktop-docker.jfrog.io/desktop-base-ubuntu-bionic:923159b2-132
+    default: slack-desktop-docker.jfrog.io/desktop-base-ubuntu-bionic:99d1b3fe-344
   build_image_tag_fedora:
     type: string
     default: slack-desktop-docker.jfrog.io/desktop-base-fedora-21:923159b2-130
