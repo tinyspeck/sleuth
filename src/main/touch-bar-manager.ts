@@ -9,8 +9,9 @@ import {
 import { getNiceGreeting } from '../utils/get-nice-greeting';
 import { levelsHave } from '../utils/level-counts';
 import { plural } from '../utils/pluralize';
+
 import { TOUCHBAR_IPC, STATE_IPC } from '../ipc-events';
-import { LevelFilter, TouchBarLogFileUpdate } from '../interfaces';
+import { LevelFilter, LogLevel, TouchBarLogFileUpdate } from '../interfaces';
 
 const {
   TouchBarButton,
@@ -220,7 +221,7 @@ export class TouchBarManager {
     if (!this.isRightSender(event)) return;
 
     Object.keys(levelFilter)
-      .forEach((key) => {
+      .forEach((key: LogLevel) => {
         this.toggleFilterBtns[key].backgroundColor = levelFilter[key]
           ? '#ffffff'
           : '#4d5a68';
@@ -286,7 +287,7 @@ export class TouchBarManager {
     return event.sender.id === this.browserWindow.webContents?.id;
   }
 
-  private send(channel: string, ...args: Array<any>) {
+  private send(channel: string, ...args: Array<unknown>) {
     this.browserWindow.webContents?.send(channel, ...args);
   }
 }

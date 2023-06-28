@@ -45,7 +45,7 @@ export class LogContent extends React.Component<LogContentProps, Partial<LogCont
       selectedLogFile,
       levelFilter,
       search,
-      dateTimeFormat,
+      dateTimeFormat_v3: dateTimeFormat,
       font,
       showOnlySearchResults,
       searchIndex,
