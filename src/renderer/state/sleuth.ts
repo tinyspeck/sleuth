@@ -28,7 +28,8 @@ import { getInitialTimeViewRange, getTimeBuckedLogMetrics } from './time-view';
 import { rehydrateBookmarks, importBookmarks } from './bookmarks';
 import { copy } from './copy';
 import { changeIcon } from '../ipc';
-import { ICON_NAMES, STATE_IPC } from '../../shared-constants';
+import { ICON_NAMES } from '../../shared-constants';
+import { STATE_IPC } from '../../ipc-events';
 import { setupTouchBarAutoruns } from './touchbar';
 import { RendererDescription } from '../processor/trace';
 

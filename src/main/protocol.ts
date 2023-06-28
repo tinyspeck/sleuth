@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import { URL } from 'url';
 import { getCurrentWindow } from './windows';
-import { STATE_IPC } from '../shared-constants';
+import { STATE_IPC } from '../ipc-events';
 
 export function installProtocol() {
   if (!app.setAsDefaultProtocolClient('sleuth')) {

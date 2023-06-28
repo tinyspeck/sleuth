@@ -16,6 +16,7 @@ import { DateRangeInput, TimePrecision } from '@blueprintjs/datetime';
 
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
+import { IpcEvents } from '../../ipc-events';
 
 export interface FilterProps {
   state: SleuthState;
@@ -44,11 +45,11 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
   }
 
   public componentDidMount() {
-    ipcRenderer.on('find', this.focus);
+    ipcRenderer.on(IpcEvents.FIND, this.focus);
   }
 
   public componentWillUnmount() {
-    ipcRenderer.off('find', this.focus);
+    ipcRenderer.off(IpcEvents.FIND, this.focus);
   }
 
   public onSearchChange(value: string) {

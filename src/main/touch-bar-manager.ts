@@ -9,7 +9,7 @@ import {
 import { getNiceGreeting } from '../utils/get-nice-greeting';
 import { levelsHave } from '../utils/level-counts';
 import { plural } from '../utils/pluralize';
-import { TOUCHBAR_IPC, STATE_IPC } from '../shared-constants';
+import { TOUCHBAR_IPC, STATE_IPC } from '../ipc-events';
 import { LevelFilter, TouchBarLogFileUpdate } from '../interfaces';
 
 const {

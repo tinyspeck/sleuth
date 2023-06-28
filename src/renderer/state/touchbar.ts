@@ -2,7 +2,7 @@ import { autorun, toJS } from 'mobx';
 import { ipcRenderer } from 'electron';
 
 import { SleuthState } from './sleuth';
-import { TOUCHBAR_IPC } from '../../shared-constants';
+import { TOUCHBAR_IPC } from '../../ipc-events';
 import { TouchBarLogFileUpdate } from '../../interfaces';
 import { isProcessedLogFile, isLogFile } from '../../utils/is-logfile';
 

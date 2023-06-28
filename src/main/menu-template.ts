@@ -1,6 +1,6 @@
 import { app, BrowserWindow, MenuItem, shell } from 'electron';
-import { STATE_IPC } from '../shared-constants';
 import { createWindow, getCurrentWindow } from './windows';
+import { IpcEvents, STATE_IPC } from '../ipc-events';
 
 export interface MenuTemplateOptions {
   pruneItems: Array<Electron.MenuItemConstructorOptions>;
@@ -26,7 +26,7 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
           label: 'Find',
           accelerator: 'CmdOrCtrl+F',
           click(_item: Electron.MenuItem, browserWindow: BrowserWindow) {
-            browserWindow.webContents.send('find');
+            browserWindow.webContents.send(IpcEvents.FIND);
           }
         }
       ]
@@ -59,7 +59,7 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
           label: 'Toggle Developer Tools',
           accelerator: (function () {
             if (process.platform === 'darwin')
-              return 'Alt+Command+I';
+              return 'Option+Command+I';
             else
               return 'Ctrl+Shift+I';
           })(),
@@ -123,7 +123,7 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
         {
           label: 'Open Sentry',
           click(_item: Electron.MenuItem, browserWindow: BrowserWindow) {
-            browserWindow.webContents.send('open-sentry');
+            browserWindow.webContents.send(IpcEvents.OPEN_SENTRY);
           }
         },
         { type: 'separator' },
@@ -162,7 +162,7 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
     accelerator: 'CmdOrCtrl+,',
     click: async () => {
       const { webContents } = await getCurrentWindow();
-      webContents.send('preferences-show');
+      webContents.send(IpcEvents.PREFERENCES_SHOW);
     }
   };
 
