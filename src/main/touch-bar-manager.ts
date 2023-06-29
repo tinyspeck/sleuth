@@ -10,7 +10,7 @@ import { getNiceGreeting } from '../utils/get-nice-greeting';
 import { levelsHave } from '../utils/level-counts';
 import { plural } from '../utils/pluralize';
 
-import { TOUCHBAR_IPC, STATE_IPC } from '../ipc-events';
+import { IpcEvents } from '../ipc-events';
 import { LevelFilter, LogLevel, TouchBarLogFileUpdate } from '../interfaces';
 
 const {
@@ -44,19 +44,19 @@ export class TouchBarManager {
   public toggleFilterBtns = {
     error: new TouchBarButton({
       label: '🚨 Error',
-      click: () => this.send(STATE_IPC.TOGGLE_FILTER, 'error'),
+      click: () => this.send(IpcEvents.TOGGLE_FILTER, 'error'),
     }),
     warn: new TouchBarButton({
       label: '⚠️ Warning',
-      click: () => this.send(STATE_IPC.TOGGLE_FILTER, 'warn')
+      click: () => this.send(IpcEvents.TOGGLE_FILTER, 'warn')
     }),
     info: new TouchBarButton({
       label: 'ℹ️ Info',
-      click: () => this.send(STATE_IPC.TOGGLE_FILTER, 'info')
+      click: () => this.send(IpcEvents.TOGGLE_FILTER, 'info')
     }),
     debug: new TouchBarButton({
       label: '🐛 Debug',
-      click: () => this.send(STATE_IPC.TOGGLE_FILTER, 'debug')
+      click: () => this.send(IpcEvents.TOGGLE_FILTER, 'debug')
     })
   };
 
@@ -98,15 +98,15 @@ export class TouchBarManager {
 
     // All these things are state-relevant and require that
     // we communicate with the window
-    ipcMain.on(TOUCHBAR_IPC.LEVEL_FILTER_UPDATE, this.handleFilterUpdate);
-    ipcMain.on(TOUCHBAR_IPC.DARK_MODE_UPDATE, this.handleDarkModeUpdate);
-    ipcMain.on(TOUCHBAR_IPC.LOG_FILE_UPDATE, this.handleLogFileUpdate);
+    ipcMain.on(IpcEvents.LEVEL_FILTER_UPDATE, this.handleFilterUpdate);
+    ipcMain.on(IpcEvents.DARK_MODE_UPDATE, this.handleDarkModeUpdate);
+    ipcMain.on(IpcEvents.LOG_FILE_UPDATE, this.handleLogFileUpdate);
   }
 
   public teardown() {
-    ipcMain.off(TOUCHBAR_IPC.LEVEL_FILTER_UPDATE, this.handleFilterUpdate);
-    ipcMain.off(TOUCHBAR_IPC.DARK_MODE_UPDATE, this.handleDarkModeUpdate);
-    ipcMain.off(TOUCHBAR_IPC.LOG_FILE_UPDATE, this.handleLogFileUpdate);
+    ipcMain.off(IpcEvents.LEVEL_FILTER_UPDATE, this.handleFilterUpdate);
+    ipcMain.off(IpcEvents.DARK_MODE_UPDATE, this.handleDarkModeUpdate);
+    ipcMain.off(IpcEvents.LOG_FILE_UPDATE, this.handleLogFileUpdate);
   }
 
   /**
@@ -177,7 +177,7 @@ export class TouchBarManager {
   public getHomeBtnOptions(): TouchBarButtonConstructorOptions {
     return {
       label: '🏠',
-      click: () => this.send(STATE_IPC.RESET)
+      click: () => this.send(IpcEvents.RESET)
     };
   }
 
@@ -189,7 +189,7 @@ export class TouchBarManager {
   public getDarkModeBtnOptions(): TouchBarButtonConstructorOptions {
     return {
       label: '🌙',
-      click: () => this.send(STATE_IPC.TOGGLE_DARKMODE)
+      click: () => this.send(IpcEvents.TOGGLE_DARKMODE)
     };
   }
 
@@ -201,7 +201,7 @@ export class TouchBarManager {
   public getSpotlightBtnOptions(): TouchBarButtonConstructorOptions {
     return {
       label: '🔍',
-      click: () => this.send(STATE_IPC.TOGGLE_SPOTLIGHT)
+      click: () => this.send(IpcEvents.TOGGLE_SPOTLIGHT)
     };
   }
 
@@ -213,7 +213,7 @@ export class TouchBarManager {
   public getSidebarBtnOptions(): TouchBarButtonConstructorOptions {
     return {
       label: '🗂',
-      click: () => this.send(STATE_IPC.TOGGLE_SIDEBAR)
+      click: () => this.send(IpcEvents.TOGGLE_SIDEBAR)
     };
   }
 

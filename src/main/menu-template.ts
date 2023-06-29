@@ -1,6 +1,6 @@
 import { app, BrowserWindow, MenuItem, shell } from 'electron';
 import { createWindow, getCurrentWindow } from './windows';
-import { IpcEvents, STATE_IPC } from '../ipc-events';
+import { IpcEvents } from '../ipc-events';
 
 export interface MenuTemplateOptions {
   pruneItems: Array<Electron.MenuItemConstructorOptions>;
@@ -96,7 +96,7 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
           label: 'Show Omnibar',
           accelerator: 'CmdOrCtrl+K',
           click(_item: Electron.MenuItem, browserWindow: BrowserWindow) {
-            browserWindow.webContents.send(STATE_IPC.TOGGLE_SPOTLIGHT);
+            browserWindow.webContents.send(IpcEvents.TOGGLE_SPOTLIGHT);
           }
         }
       ]

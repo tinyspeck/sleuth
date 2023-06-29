@@ -1,7 +1,6 @@
 import { shell, BrowserWindow, app, ipcMain, dialog, systemPreferences, IpcMainEvent } from 'electron';
 import * as path from 'path';
 
-// import { createWindow } from './windows';
 import { settingsFileManager } from './settings';
 import { changeIcon } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
