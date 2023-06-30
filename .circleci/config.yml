@@ -11,21 +11,12 @@ orbs:
 parameters:
   build_image_tag_ubuntu:
     type: string
-    default: slack-desktop-docker.jfrog.io/desktop-base-ubuntu-bionic:923159b2-132
-  build_image_tag_fedora:
-    type: string
-    default: slack-desktop-docker.jfrog.io/desktop-base-fedora-21:923159b2-130
+    default: slack-desktop-docker.jfrog.io/desktop-base-ubuntu-bionic:99d1b3fe-344
 
 executors:
   ubuntu:
     docker:
       - image: << pipeline.parameters.build_image_tag_ubuntu >>
-        auth:
-          username: desktop-docker
-          password: $JFROG_DOCKER_PASSWD
-  fedora:
-    docker:
-      - image: << pipeline.parameters.build_image_tag_fedora >>
         auth:
           username: desktop-docker
           password: $JFROG_DOCKER_PASSWD
@@ -109,11 +100,6 @@ jobs:
     steps:
       - build_sleuth:
           make_flags: --targets @electron-forge/maker-deb
-  build-fedora:
-    executor: fedora
-    steps:
-      - build_sleuth:
-          make_flags: --targets @electron-forge/maker-rpm
   code-sign-macos:
     machine: true
     resource_class: tinyspeck/aws-ansible-code-signer-prod
@@ -198,9 +184,6 @@ workflows:
       - build-ubuntu:
           filters:
             <<: *job_filter_releases
-      - build-fedora:
-          filters:
-            <<: *job_filter_releases
       - code-sign-macos:
           name: code-sign-macos-x64
           requires:
@@ -223,7 +206,6 @@ workflows:
           requires:
             - build-windows
             - build-ubuntu
-            - build-fedora
             - code-sign-macos-x64
             - code-sign-macos-arm64
           filters:
