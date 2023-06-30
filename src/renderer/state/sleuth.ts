@@ -31,7 +31,8 @@ import { getInitialTimeViewRange, getTimeBuckedLogMetrics } from './time-view';
 import { rehydrateBookmarks, importBookmarks } from './bookmarks';
 import { copy } from './copy';
 import { changeIcon } from '../ipc';
-import { ICON_NAMES, STATE_IPC } from '../../shared-constants';
+import { ICON_NAMES } from '../../shared-constants';
+import { IpcEvents } from '../../ipc-events';
 import { setupTouchBarAutoruns } from './touchbar';
 import { RendererDescription } from '../processor/trace';
 
@@ -176,13 +177,13 @@ export class SleuthState {
     this.onFilterToggle = this.onFilterToggle.bind(this);
 
     setupTouchBarAutoruns(this);
-    ipcRenderer.on(STATE_IPC.TOGGLE_SIDEBAR, this.toggleSidebar);
-    ipcRenderer.on(STATE_IPC.TOGGLE_SPOTLIGHT, this.toggleSpotlight);
-    ipcRenderer.on(STATE_IPC.OPEN_BOOKMARKS, (_event, data) => importBookmarks(this, data));
-    ipcRenderer.on(STATE_IPC.COPY, () => copy(this));
-    ipcRenderer.on(STATE_IPC.RESET, () => this.reset(true));
-    ipcRenderer.on(STATE_IPC.TOGGLE_DARKMODE, () => this.toggleDarkMode());
-    ipcRenderer.on(STATE_IPC.TOGGLE_FILTER, (_event, level: LogLevel) => {
+    ipcRenderer.on(IpcEvents.TOGGLE_SIDEBAR, this.toggleSidebar);
+    ipcRenderer.on(IpcEvents.TOGGLE_SPOTLIGHT, this.toggleSpotlight);
+    ipcRenderer.on(IpcEvents.OPEN_BOOKMARKS, (_event, data) => importBookmarks(this, data));
+    ipcRenderer.on(IpcEvents.COPY, () => copy(this));
+    ipcRenderer.on(IpcEvents.RESET, () => this.reset(true));
+    ipcRenderer.on(IpcEvents.TOGGLE_DARKMODE, () => this.toggleDarkMode());
+    ipcRenderer.on(IpcEvents.TOGGLE_FILTER, (_event, level: LogLevel) => {
       this.onFilterToggle(level);
     });
 
