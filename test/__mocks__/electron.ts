@@ -19,8 +19,5 @@ const shell = {
   trashItem: jest.fn()
 };
 
-const remote = {
-  app
-};
 
-module.exports = { ipcRenderer, remote, shell };
+module.exports = { ipcRenderer, shell };

@@ -80,7 +80,6 @@ export async function createWindow(): Promise<BrowserWindow> {
       webviewTag: false,
       nodeIntegration: true,
       contextIsolation: false,
-      enableRemoteModule: true
     }
   };
   console.log(`Windows: Creating window with options`, options);
