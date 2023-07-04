@@ -13,6 +13,7 @@ import { renderFontItem, filterFont, FONTS } from './preferences-font';
 import { filterDateTime, renderDateTimeItem, DATE_TIME_FORMATS } from './preferences-datetime';
 import { renderEditorItem, Editor, EDITORS, nameForCmd } from './preferences-editor';
 import { SORT_DIRECTION } from './log-table-constants';
+import { IpcEvents } from '../../ipc-events';
 
 const packageInfo = require('../../../package.json');
 
@@ -36,11 +37,11 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
     this.state = {};
     autoBind(this);
 
-    ipcRenderer.on('preferences-show', () => this.setState({ isOpen: true }));
+    ipcRenderer.on(IpcEvents.PREFERENCES_SHOW, () => this.setState({ isOpen: true }));
   }
 
   public render(): JSX.Element {
-    const { dateTimeFormat, defaultEditor, font } = this.props.state;
+    const { dateTimeFormat_v3, defaultEditor, font } = this.props.state;
 
     const classes = classNames(Classes.CARD, Classes.ELEVATION_4, 'Preferences');
 
@@ -88,7 +89,7 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
               onItemSelect={this.onDateTimeSelect}
               popoverProps={{ minimal: true }}
             >
-              <Button text={dateFormatter(1647029957123, dateTimeFormat)} rightIcon='calendar' />
+              <Button text={dateFormatter(1647029957123, dateTimeFormat_v3)} rightIcon='calendar' />
             </DateTimeSelect>
           </FormGroup>
           <Divider />
@@ -190,6 +191,6 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
   }
 
   private onDateTimeSelect(format: string) {
-    this.props.state.dateTimeFormat = format;
+    this.props.state.dateTimeFormat_v3 = format;
   }
 }

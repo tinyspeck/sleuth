@@ -7,9 +7,10 @@ import { MenuItem } from '@blueprintjs/core';
 import { ipcRenderer } from 'electron';
 
 import { SleuthState } from '../state/sleuth';
-import { ProcessedLogFile, UnzippedFile } from '../../interfaces';
+import { ProcessedLogFile, ProcessedLogFiles, UnzippedFile } from '../../interfaces';
 import { isProcessedLogFile } from '../../utils/is-logfile';
 import { highlightText } from '../../utils/highlight-text';
+import { IpcEvents } from '../../ipc-events';
 
 interface SpotlightItem {
   text: string;
@@ -86,10 +87,10 @@ export class Spotlight extends React.Component<SpotlightProps, Partial<Spotlight
     const { suggestions } = this.props.state;
     const { processedLogFiles } = this.props.state;
 
-    const spotSuggestions: Array<SpotlightItem> = Object.keys(suggestions)
-      .map((filePath) => ({
+    const spotSuggestions: Array<SpotlightItem> = suggestions
+      .map(({filePath, age}) => ({
         text: path.basename(filePath),
-        label: `${suggestions[filePath].age} old`,
+        label: `${age} old`,
         icon: filePath.endsWith('zip') ? 'compressed' : 'folder-open',
         click: () => {
           this.props.state.openFile(filePath);
@@ -98,36 +99,38 @@ export class Spotlight extends React.Component<SpotlightProps, Partial<Spotlight
 
     const logFileSuggestions: Array<SpotlightItem> = [];
 
-    Object.keys(processedLogFiles || {}).forEach((key) => {
-      const keyFiles: Array<ProcessedLogFile | UnzippedFile> = processedLogFiles![key];
-      keyFiles.forEach((logFile) => {
-        if (isProcessedLogFile(logFile)) {
-          logFileSuggestions.push({
-            text: logFile.logFile.fileName,
-            label: `${logFile.logEntries.length} entries`,
-            icon: 'document',
-            click: () => {
-              this.props.state.selectLogFile(logFile);
-            }
-          });
-        } else {
-          logFileSuggestions.push({
-            text: logFile.fileName,
-            label: `State`,
-            icon: 'cog',
-            click: () => {
-              this.props.state.selectLogFile(logFile);
-            }
-          });
-        }
+    if (processedLogFiles) {
+      Object.keys(processedLogFiles).forEach((key: keyof ProcessedLogFiles) => {
+        const keyFiles: Array<ProcessedLogFile | UnzippedFile> = processedLogFiles[key];
+        keyFiles.forEach((logFile) => {
+          if (isProcessedLogFile(logFile)) {
+            logFileSuggestions.push({
+              text: logFile.logFile.fileName,
+              label: `${logFile.logEntries.length} entries`,
+              icon: 'document',
+              click: () => {
+                this.props.state.selectLogFile(logFile);
+              }
+            });
+          } else {
+            logFileSuggestions.push({
+              text: logFile.fileName,
+              label: `State`,
+              icon: 'cog',
+              click: () => {
+                this.props.state.selectLogFile(logFile);
+              }
+            });
+          }
+        });
       });
-    });
+    }
 
     const appSuggestions = [
       {
         text: 'Quit Sleuth',
         icon: 'power',
-        click: () => ipcRenderer.invoke('quit')
+        click: () => ipcRenderer.invoke(IpcEvents.QUIT)
       },
       {
         text: 'Go Home',

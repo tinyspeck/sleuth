@@ -1,15 +1,14 @@
-import { shell, BrowserWindow, app, ipcMain, dialog } from 'electron';
+import { shell, BrowserWindow, app, ipcMain, dialog, systemPreferences, IpcMainEvent } from 'electron';
 import * as path from 'path';
 
-import { createWindow } from './windows';
 import { settingsFileManager } from './settings';
 import { changeIcon } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
+import { IpcEvents } from '../ipc-events';
 
 export class IpcManager {
   constructor() {
     this.setupFileDrop();
-    this.setupOpenWindow();
     this.setupMessageBoxHandler();
     this.setupWindowReady();
     this.setupGetPath();
@@ -17,13 +16,13 @@ export class IpcManager {
     this.setupSettings();
     this.setupOpenDialog();
     this.setupSaveDialog();
-    this.setupCopy();
     this.setupQuit();
     this.setupOpenRecent();
+    this.setupTitleBarClickMac();
   }
 
   public openFile(pathName: string) {
-    this.getCurrentWindow().webContents.send('file-dropped', pathName);
+    this.getCurrentWindow().webContents.send(IpcEvents.FILE_DROPPED, pathName);
   }
 
   private getCurrentWindow(): Electron.BrowserWindow {
@@ -63,14 +62,8 @@ export class IpcManager {
     });
   }
 
-  private setupOpenWindow() {
-    ipcMain.on('new-sleuth-window', () => {
-      createWindow();
-    });
-  }
-
   private setupWindowReady() {
-    ipcMain.on('window-ready', (event) => {
+    ipcMain.on(IpcEvents.WINDOW_READY, (event) => {
       try {
         const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
@@ -83,8 +76,38 @@ export class IpcManager {
     });
   }
 
+  // On macOS, set up titlebar click handler
+  private setupTitleBarClickMac() {
+    if (process.platform !== 'darwin'){
+      return;
+    }
+
+    ipcMain.on(IpcEvents.CLICK_TITLEBAR_MAC, (event: IpcMainEvent) => {
+      try{
+      const doubleClickAction = systemPreferences.getUserDefault(
+        'AppleActionOnDoubleClick',
+        'string'
+      );
+      const win = BrowserWindow.fromWebContents(event.sender);
+      if (win) {
+        if (doubleClickAction === 'Minimize') {
+          win.minimize();
+        } else if (doubleClickAction === 'Maximize') {
+          if (!win.isMaximized()){
+            win.maximize();
+          } else {
+            win.unmaximize();
+          }
+        }
+      }
+      } catch (error){
+        console.error('Couldnt minimize or maximize', error);
+      }
+    });
+  }
+
   private setupMessageBoxHandler() {
-    ipcMain.handle('message-box', async (_event, options: Electron.MessageBoxOptions) => {
+    ipcMain.handle(IpcEvents.MESSAGE_BOX, async (_event, options: Electron.MessageBoxOptions) => {
       return dialog.showMessageBox(options);
     });
   }
@@ -92,25 +115,24 @@ export class IpcManager {
   private setupGetPath() {
     type name = 'home' | 'appData' | 'userData' | 'cache' | 'temp' | 'exe' | 'module' | 'desktop' | 'documents' | 'downloads' | 'music' | 'pictures' | 'videos' | 'logs';
 
-    ipcMain.handle('get-path', (_event, pathName: name) => {
+    ipcMain.handle(IpcEvents.GET_PATH, (_event, pathName: name) => {
       return app.getPath(pathName);
     });
   }
 
   private setupGetUserAgent() {
-    ipcMain.handle('get-user-agent', (_event) => {
+    ipcMain.handle(IpcEvents.GET_USER_AGENT, (_event) => {
       return `sleuth/${app.getVersion()}`;
     });
   }
 
   private setupSettings() {
-    ipcMain.handle('get-settings', (_event, key: string) => settingsFileManager.getItem(key));
-    ipcMain.handle('set-settings', (_event, key: string, value: any) => settingsFileManager.setItem(key, value));
-    ipcMain.handle('change-icon', (_event, iconName: ICON_NAMES) => changeIcon(iconName));
+    ipcMain.handle(IpcEvents.SET_SETTINGS, (_event, key: string, value: any) => settingsFileManager.setItem(key, value));
+    ipcMain.handle(IpcEvents.CHANGE_ICON, (_event, iconName: ICON_NAMES) => changeIcon(iconName));
   }
 
   private setupOpenDialog() {
-    ipcMain.handle('show-open-dialog', async (event) => {
+    ipcMain.handle(IpcEvents.SHOW_OPEN_DIALOG, async (event) => {
       const window = BrowserWindow.fromWebContents(event.sender);
 
       if (!window) return {
@@ -125,7 +147,7 @@ export class IpcManager {
   }
 
   private setupSaveDialog() {
-    ipcMain.handle('show-save-dialog', async (event, filename: string) => {
+    ipcMain.handle(IpcEvents.SHOW_SAVE_DIALOG, async (event, filename: string) => {
       const window = BrowserWindow.fromWebContents(event.sender);
 
       if (!window) return {
@@ -139,19 +161,12 @@ export class IpcManager {
     });
   }
 
-  private setupCopy() {
-    ipcMain.handle('webcontents-copy', (event) => {
-      const window = BrowserWindow.fromWebContents(event.sender);
-      window?.webContents?.copy();
-    });
-  }
-
   private setupQuit() {
-    ipcMain.handle('quit', () => app.quit());
+    ipcMain.handle(IpcEvents.QUIT, () => app.quit());
   }
 
   private setupOpenRecent() {
-    ipcMain.on('add-recent-file', (_event, filename) => {
+    ipcMain.on(IpcEvents.ADD_RECENT_FILE, (_event, filename) => {
       app.addRecentDocument(filename);
     });
   }

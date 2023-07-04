@@ -9,7 +9,7 @@ import {
   ButtonGroup,
   InputGroup,
   Popover,
-  Menu,
+  //Menu,
   Position
 } from '@blueprintjs/core';
 import type { Dayjs } from 'dayjs';
@@ -79,7 +79,10 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
     const { error, warn, info, debug } = this.props.state.levelFilter!;
 
     const menu = (
-      <Menu>
+
+
+
+/*       <Menu>
         <Menu.Item
           active={debug}
           onClick={() => this.props.state.onFilterToggle('debug')}
@@ -108,13 +111,15 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
           shouldDismissPopover={false}
           text='Error'
         />
-      </Menu>
+      </Menu> */
     );
 
     return (
-      <Popover content={menu} position={Position.BOTTOM}>
+
+      
+/*       <Popover content={menu} position={Position.BOTTOM}>
         <Button icon='filter-list' text='Filter'/>
-      </Popover>
+      </Popover> */
     );
   }
 
