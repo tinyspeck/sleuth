@@ -12,12 +12,11 @@ import {
   Menu,
   Position
 } from '@blueprintjs/core';
-import type { Dayjs } from 'dayjs';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { DatePicker } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
-import { LogLevel } from '../../interfaces'
+import { LogLevel } from '../../interfaces';
 
 export interface FilterProps {
   state: SleuthState;
@@ -69,7 +68,7 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
     this.props.state.dateRange = {
       from: values && values[0] ? new Date(dateStrings[0]) : null,
       to: values && values[1] ? new Date(dateStrings[1]) : null
-    }
+    };
   }
 
   public toggleSearchResultVisibility() {
@@ -140,10 +139,10 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
         </NavbarGroup>
         <NavbarGroup className='SearchGroup'>
           <NavbarDivider />
-          <RangePicker 
+          <RangePicker
             showTime={{defaultValue: [dayjs('00:00:00', 'HH:mm:ss'), dayjs('23:59:59', 'HH:mm:ss')]}}
             onChange={this.onChange}
-            allowEmpty={[true,true]}
+            allowEmpty={[true, true]}
           />
           <NavbarDivider />
           <InputGroup
