@@ -7,6 +7,7 @@ import { config } from '../config';
 import { getIconPath } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { TouchBarManager } from './touch-bar-manager';
+import { IpcEvents } from '../ipc-events';
 
 export let windows: Array<Electron.BrowserWindow> = [];
 
@@ -79,7 +80,6 @@ export async function createWindow(): Promise<BrowserWindow> {
       webviewTag: false,
       nodeIntegration: true,
       contextIsolation: false,
-      enableRemoteModule: true
     }
   };
   console.log(`Windows: Creating window with options`, options);
@@ -137,7 +137,7 @@ export async function getCurrentWindow(): Promise<BrowserWindow> {
 
   // No window focused? Find a ready one
   for (const window of windows) {
-    const isBusy = window.webContents.send('are-you-busy') as unknown as boolean;
+    const isBusy = window.webContents.send(IpcEvents.ARE_YOU_BUSY) as unknown as boolean;
 
     console.log(`Asked window ${window.id} if it's busy. Answer: ${isBusy}`);
 

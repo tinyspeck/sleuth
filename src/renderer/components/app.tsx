@@ -18,6 +18,7 @@ import { isCacheDir } from '../../utils/is-cache';
 import { UnzippedFiles, UnzippedFile } from '../../interfaces';
 import { autorun } from 'mobx';
 import { getWindowTitle } from '../../utils/get-window-title';
+import { IpcEvents } from '../../ipc-events';
 
 const d = debug('sleuth:app');
 
@@ -85,7 +86,7 @@ export class App extends React.Component<object, Partial<AppState>> {
 
     if (!isInvalid) {
       d(`Adding ${url} to recent documents`);
-      ipcRenderer.send('add-recent-file', url);
+      ipcRenderer.send(IpcEvents.ADD_RECENT_FILE, url);
     }
   }
 
@@ -229,11 +230,11 @@ export class App extends React.Component<object, Partial<AppState>> {
       event.preventDefault();
     };
 
-    ipcRenderer.on('file-dropped', (_event, url: string) => this.openFile(url));
+    ipcRenderer.on(IpcEvents.FILE_DROPPED, (_event: any, url: string) => this.openFile(url));
   }
 
   private setupOpenSentry() {
-    ipcRenderer.on('open-sentry', () => {
+    ipcRenderer.on(IpcEvents.OPEN_SENTRY, () => {
       // Get the file path to the installation file. Only app-* classes know.
       const installationFile = this.state.unzippedFiles?.find((file) => {
         return (file.fileName === 'installation');
@@ -249,7 +250,7 @@ export class App extends React.Component<object, Partial<AppState>> {
    * handling a set of logfiles.
    */
   private setupBusyResponse() {
-    ipcRenderer.on('are-you-busy', (event) => {
+    ipcRenderer.on(IpcEvents.ARE_YOU_BUSY, (event) => {
       const { unzippedFiles } = this.state;
 
       event.returnValue = !(!unzippedFiles || unzippedFiles.length === 0);

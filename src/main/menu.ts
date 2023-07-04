@@ -8,6 +8,7 @@ import debug from 'debug';
 
 import { getCurrentWindow } from './windows';
 import { getMenuTemplate } from './menu-template';
+import { IpcEvents } from '../ipc-events';
 
 const d = debug('sleuth:menu');
 
@@ -74,7 +75,7 @@ export class AppMenu {
           await fs.copy(logsPath, tmpdir);
           await fs.copy(storagePath, tmpdir);
 
-          webContents.send('file-dropped', tmpdir);
+          webContents.send(IpcEvents.FILE_DROPPED, tmpdir);
         } else {
           dialog.showMessageBox({
             type: 'error',
@@ -97,7 +98,7 @@ export class AppMenu {
       label: `Open local Slack${type} Cache...`,
       click: async () => {
         const { webContents } = await getCurrentWindow();
-        webContents.send('file-dropped', cachePath);
+        webContents.send(IpcEvents.FILE_DROPPED, cachePath);
       }
     };
   }
@@ -239,7 +240,7 @@ export class AppMenu {
     if (filePaths && filePaths.length > 0) {
       const { webContents } = await getCurrentWindow();
       app.addRecentDocument(filePaths[0]);
-      webContents.send('file-dropped', filePaths[0]);
+      webContents.send(IpcEvents.FILE_DROPPED, filePaths[0]);
     }
   }
 }

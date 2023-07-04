@@ -13,6 +13,7 @@ import { renderFontItem, filterFont, FONTS } from './preferences-font';
 import { filterDateTime, renderDateTimeItem, DATE_TIME_FORMATS } from './preferences-datetime';
 import { renderEditorItem, Editor, EDITORS, nameForCmd } from './preferences-editor';
 import { SORT_DIRECTION } from './log-table-constants';
+import { IpcEvents } from '../../ipc-events';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageInfo = require('../../../package.json');
@@ -37,7 +38,7 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
     this.state = {};
     autoBind(this);
 
-    ipcRenderer.on('preferences-show', () => this.setState({ isOpen: true }));
+    ipcRenderer.on(IpcEvents.PREFERENCES_SHOW, () => this.setState({ isOpen: true }));
   }
 
   public render(): JSX.Element {

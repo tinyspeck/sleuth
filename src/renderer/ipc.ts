@@ -10,15 +10,15 @@ type name = 'home' | 'appData' | 'userData' | 'cache' | 'temp' | 'exe' | 'module
 export function getPath(
   path: name
 ): Promise<string> {
-  return ipcRenderer.invoke('get-path', path);
+  return ipcRenderer.invoke(IpcEvents.GET_PATH, path);
 }
 
 export function getUserAgent(): Promise<string> {
-  return ipcRenderer.invoke('get-user-agent');
+  return ipcRenderer.invoke(IpcEvents.GET_USER_AGENT);
 }
 
 export function sendWindowReady() {
-  ipcRenderer.send('window-ready');
+  ipcRenderer.send(IpcEvents.WINDOW_READY);
 }
 
 export function sendDoubleClick(){
@@ -26,19 +26,19 @@ export function sendDoubleClick(){
 }
 
 export function showOpenDialog(): Promise<Electron.OpenDialogReturnValue> {
-  return ipcRenderer.invoke('show-open-dialog');
+  return ipcRenderer.invoke(IpcEvents.SHOW_OPEN_DIALOG);
 }
 
 export function showSaveDialog(filename: string): Promise<Electron.SaveDialogReturnValue> {
-  return ipcRenderer.invoke('show-save-dialog', filename);
+  return ipcRenderer.invoke(IpcEvents.SHOW_SAVE_DIALOG, filename);
 }
 
 export function showMessageBox(
   options: Electron.MessageBoxOptions
 ): Promise<Electron.MessageBoxReturnValue> {
-  return ipcRenderer.invoke('message-box', options);
+  return ipcRenderer.invoke(IpcEvents.MESSAGE_BOX, options);
 }
 
 export function changeIcon(iconName: ICON_NAMES) {
-  return ipcRenderer.invoke('change-icon', iconName);
+  return ipcRenderer.invoke(IpcEvents.CHANGE_ICON, iconName);
 }

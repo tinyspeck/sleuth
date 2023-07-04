@@ -10,6 +10,7 @@ import { SleuthState } from '../state/sleuth';
 import { ProcessedLogFile, ProcessedLogFiles, UnzippedFile } from '../../interfaces';
 import { isProcessedLogFile } from '../../utils/is-logfile';
 import { highlightText } from '../../utils/highlight-text';
+import { IpcEvents } from '../../ipc-events';
 
 interface SpotlightItem {
   text: string;
@@ -129,7 +130,7 @@ export class Spotlight extends React.Component<SpotlightProps, Partial<Spotlight
       {
         text: 'Quit Sleuth',
         icon: 'power' as const,
-        click: () => ipcRenderer.invoke('quit')
+        click: () => ipcRenderer.invoke(IpcEvents.QUIT)
       },
       {
         text: 'Go Home',
