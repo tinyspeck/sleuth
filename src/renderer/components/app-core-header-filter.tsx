@@ -9,7 +9,7 @@ import {
   ButtonGroup,
   InputGroup,
   Popover,
-  //Menu,
+  Menu,
   Position
 } from '@blueprintjs/core';
 import type { Dayjs } from 'dayjs';
@@ -17,6 +17,7 @@ import dayjs from 'dayjs';
 import { DatePicker } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
+import { LogLevel } from '../../interfaces'
 
 export interface FilterProps {
   state: SleuthState;
@@ -79,47 +80,42 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
     const { error, warn, info, debug } = this.props.state.levelFilter!;
 
     const menu = (
-
-
-
-/*       <Menu>
+      <Menu>
         <Menu.Item
           active={debug}
-          onClick={() => this.props.state.onFilterToggle('debug')}
+          onClick={() => this.props.state.onFilterToggle(LogLevel.debug)}
           icon='code'
           shouldDismissPopover={false}
           text='Debug'
         />
         <Menu.Item
           active={info}
-          onClick={() => this.props.state.onFilterToggle('info')}
+          onClick={() => this.props.state.onFilterToggle(LogLevel.info)}
           icon='info-sign'
           shouldDismissPopover={false}
           text='Info'
         />
         <Menu.Item
           active={warn}
-          onClick={() => this.props.state.onFilterToggle('warn')}
+          onClick={() => this.props.state.onFilterToggle(LogLevel.warn)}
           icon='warning-sign'
           shouldDismissPopover={false}
           text='Warning'
         />
         <Menu.Item
           active={error}
-          onClick={() => this.props.state.onFilterToggle('error')}
+          onClick={() => this.props.state.onFilterToggle(LogLevel.error)}
           icon='error'
           shouldDismissPopover={false}
           text='Error'
         />
-      </Menu> */
+      </Menu>
     );
 
     return (
-
-      
-/*       <Popover content={menu} position={Position.BOTTOM}>
+      <Popover content={menu} position={Position.BOTTOM}>
         <Button icon='filter-list' text='Filter'/>
-      </Popover> */
+      </Popover>
     );
   }
 
