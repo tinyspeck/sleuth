@@ -71,6 +71,7 @@ export function saveBookmark(state: SleuthState, bookmark: Bookmark | undefined 
     state.bookmarks.push(bookmark);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).requestIdleCallback(() => {
     saveBookmarks(state);
   }, { timeout: 2000 });
@@ -190,10 +191,11 @@ export function deserializeBookmark(state: SleuthState, serialized: SerializedBo
 
   // Let's find the file
   if (serialized.logFile.type === 'ProcessedLogFile') {
-    if (!state.processedLogFiles) return;
+    const { processedLogFiles } = state;
+    if (!processedLogFiles) return;
 
-    Object.keys(state.processedLogFiles).some((key: keyof ProcessedLogFiles) => {
-      const files = state.processedLogFiles![key];
+    Object.keys(processedLogFiles).some((key: keyof ProcessedLogFiles) => {
+      const files = processedLogFiles[key];
       const foundFile = (files as Array<ProcessedLogFile>).find((file: ProcessedLogFile) => file.id === serialized.logFile.id);
 
       if (foundFile) {
@@ -204,10 +206,11 @@ export function deserializeBookmark(state: SleuthState, serialized: SerializedBo
       return false;
     });
   } else if (serialized.logFile.type === 'MergedLogFile') {
-      if (!state.mergedLogFiles) return;
+    const { mergedLogFiles } = state;
+    if (!mergedLogFiles) return;
 
-    Object.keys(state.mergedLogFiles).some((key: keyof MergedLogFiles) => {
-      const file = state.mergedLogFiles![key];
+    Object.keys(mergedLogFiles).some((key: keyof MergedLogFiles) => {
+      const file = mergedLogFiles[key];
 
       if (file.id === serialized.logFile.id) {
         logFile = file;

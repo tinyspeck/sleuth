@@ -11,7 +11,7 @@ describe('Welcome', () => {
     const state: Partial<SleuthState> = {
       suggestions: []
     };
-    render(<Welcome state={state as any} />);
+    render(<Welcome state={state as SleuthState} />);
     const title = screen.getByRole('heading', { level: 1 });
     expect(title).toHaveTextContent('Sleuth');
   });
@@ -26,7 +26,7 @@ describe('Welcome', () => {
           }
         ]
       };
-      render(<Welcome state={state as any} />);
+      render(<Welcome state={state as SleuthState} />);
       const list = screen.getByRole('list');
       const suggestions = within(list).getAllByRole('listitem');
       expect(suggestions).toHaveLength(1);
@@ -44,12 +44,11 @@ describe('Welcome', () => {
           suggestions: [
             {
               filePath: '/Users/ezhao/Downloads/logs-21-11-02_12-36-26.zip',
-              age: '7 days'
+              age: '7 days',
             }
           ],
-          getSuggestions: jest.fn()
         };
-        render(<Welcome state={state as any} />);
+        render(<Welcome state={state as SleuthState} />);
         const list = screen.getByRole('list');
         const suggestions = within(list).getAllByRole('listitem');
         const btn = within(suggestions[0]).getByRole('button', {
@@ -71,7 +70,7 @@ describe('Welcome', () => {
           }
         ]
       };
-      render(<Welcome state={state as any} />);
+      render(<Welcome state={state as SleuthState} />);
       const btn = screen.getByText('Delete files older than 2 days');
       expect(btn).toBeInTheDocument();
     });
@@ -86,7 +85,7 @@ describe('Welcome', () => {
           }
         ]
       };
-      render(<Welcome state={state as any} />);
+      render(<Welcome state={state as SleuthState} />);
       const btn = screen.queryByText('Delete files older than 2 days');
       expect(btn).not.toBeInTheDocument();
     });

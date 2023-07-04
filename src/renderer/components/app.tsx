@@ -3,6 +3,7 @@ import { ipcRenderer } from 'electron';
 import classNames from 'classnames';
 import fs from 'fs-extra';
 import path from 'path';
+import debug from 'debug';
 
 import { Unzipper } from '../unzip';
 import { Welcome } from './welcome';
@@ -18,17 +19,17 @@ import { UnzippedFiles, UnzippedFile } from '../../interfaces';
 import { autorun } from 'mobx';
 import { getWindowTitle } from '../../utils/get-window-title';
 
-const debug = require('debug')('sleuth:app');
+const d = debug('sleuth:app');
 
 export interface AppState {
   unzippedFiles: UnzippedFiles;
   openEmpty?: boolean;
 }
 
-export class App extends React.Component<{}, Partial<AppState>> {
+export class App extends React.Component<object, Partial<AppState>> {
   public readonly sleuthState: SleuthState;
 
-  constructor(props: {}) {
+  constructor(props: object) {
     super(props);
 
     this.state = {
@@ -65,7 +66,7 @@ export class App extends React.Component<{}, Partial<AppState>> {
    * @returns {Promise<void>}
    */
   public async openFile(url: string): Promise<void> {
-    debug(`Received open-url for ${url}`);
+    d(`Received open-url for ${url}`);
     this.resetApp();
 
     let isInvalid = false;
@@ -83,7 +84,7 @@ export class App extends React.Component<{}, Partial<AppState>> {
     }
 
     if (!isInvalid) {
-      debug(`Adding ${url} to recent documents`);
+      d(`Adding ${url} to recent documents`);
       ipcRenderer.send('add-recent-file', url);
     }
   }
@@ -97,7 +98,7 @@ export class App extends React.Component<{}, Partial<AppState>> {
    * @returns {Promise<void>}
    */
   public async openSingleFile(url: string): Promise<void> {
-    debug(`Now opening single file ${url}`);
+    d(`Now opening single file ${url}`);
     this.resetApp();
 
     console.groupCollapsed(`Open single file`);
@@ -124,7 +125,7 @@ export class App extends React.Component<{}, Partial<AppState>> {
    * @returns {Promise<void>}
    */
   public async openDirectory(url: string): Promise<void> {
-    debug(`Now opening directory ${url}`);
+    d(`Now opening directory ${url}`);
     this.resetApp();
 
     const dir = await fs.readdir(url);
@@ -144,7 +145,7 @@ export class App extends React.Component<{}, Partial<AppState>> {
           const stats = fs.statSync(fullPath);
           const file: UnzippedFile = { fileName, fullPath, size: stats.size, id: fullPath, type: 'UnzippedFile' };
 
-          debug('Found file, adding to result.', file);
+          d('Found file, adding to result.', file);
           unzippedFiles.push(file);
         }
       }
@@ -228,7 +229,7 @@ export class App extends React.Component<{}, Partial<AppState>> {
       event.preventDefault();
     };
 
-    ipcRenderer.on('file-dropped', (_event: any, url: string) => this.openFile(url));
+    ipcRenderer.on('file-dropped', (_event, url: string) => this.openFile(url));
   }
 
   private setupOpenSentry() {

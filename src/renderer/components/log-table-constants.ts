@@ -6,12 +6,6 @@ export enum SORT_DIRECTION {
   DESC = 'DESC',
 }
 
-export interface RowClickEvent {
-  event: Event;
-  index: number;
-  rowData: any;
-}
-
 export interface LogTableColumnWidths {
   index: number;
   line: number;
@@ -41,10 +35,10 @@ export interface LogTableState {
   selectedRangeIndex?: number;
   sortBy?: string;
   sortDirection?: SORT_DIRECTION;
-  ignoreSearchIndex: boolean;
-  scrollToSelection: boolean;
-  columnWidths: LogTableColumnWidths;
-  columnOrder: Array<string>;
+  ignoreSearchIndex?: boolean;
+  scrollToSelection?: boolean;
+  columnWidths?: LogTableColumnWidths;
+  columnOrder?: Array<string>;
 }
 
 export interface SortFilterListOptions {

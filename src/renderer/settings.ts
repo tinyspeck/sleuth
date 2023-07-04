@@ -6,7 +6,7 @@ const SETTING_DENY_LIST = [
 ];
 
 // To keep things simple, settings can only be set from the renderer
-export async function setSetting(key: string, value: any): Promise<any> {
+export async function setSetting(key: string, value: unknown) {
   if (SETTING_DENY_LIST.includes(key)) return;
 
   try {

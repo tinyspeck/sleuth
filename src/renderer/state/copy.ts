@@ -14,11 +14,10 @@ import { format } from 'date-fns';
 export function copy(state: SleuthState): boolean {
   const { selectedRangeEntries, selectedEntry, isSmartCopy } = state;
   const hasSelection = !!window.getSelection()?.toString();
-  const hasEntries = selectedRangeEntries && selectedRangeEntries?.length > 1;
   const shouldCopy = !hasSelection && isSmartCopy;
 
-  if (shouldCopy && hasEntries) {
-    clipboard.writeText(selectedRangeEntries!.map(getCopyText).join('\n'));
+  if (shouldCopy && Array.isArray(selectedRangeEntries) && selectedRangeEntries.length > 1) {
+    clipboard.writeText(selectedRangeEntries.map(getCopyText).join('\n'));
     return true;
   } else if (shouldCopy && selectedEntry) {
     clipboard.writeText(getCopyText(selectedEntry));

@@ -22,11 +22,8 @@ export interface FilterProps {
   state: SleuthState;
 }
 
-export interface FilterState {
-}
-
 @observer
-export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
+export class Filter extends React.Component<FilterProps, object> {
   private searchRef = React.createRef<HTMLInputElement>();
 
   constructor(props: FilterProps) {
@@ -76,7 +73,7 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
   }
 
   public renderFilter() {
-    const { error, warn, info, debug } = this.props.state.levelFilter!;
+    const { error, warn, info, debug } = this.props.state.levelFilter;
 
     const menu = (
       <Menu>
@@ -153,10 +150,10 @@ export class Filter extends React.Component<FilterProps, Partial<FilterState>> {
           <NavbarDivider />
           <InputGroup
             leftIcon='search'
-            inputRef={this.searchRef as any}
+            inputRef={this.searchRef}
             placeholder='Search'
             rightElement={showOnlySearchResultsButton}
-            onChange={(e: React.FormEvent) => this.onSearchChange((e.target as any).value)}
+            onChange={(e: React.FormEvent) => this.onSearchChange((e.target as HTMLInputElement).value)}
           />
           <NavbarDivider />
           <ButtonGroup>

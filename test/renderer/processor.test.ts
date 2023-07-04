@@ -171,7 +171,7 @@ describe('getTypesForFiles', () => {
 
 describe('getTypeForFile', () => {
   const base = {
-    type: 'UnzippedFile' as 'UnzippedFile',
+    type: 'UnzippedFile' as const,
     id: '123',
   };
   it('should get the type for browser log files', () => {

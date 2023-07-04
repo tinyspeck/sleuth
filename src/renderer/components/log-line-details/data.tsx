@@ -1,19 +1,18 @@
 import React from 'react';
 import { JSONView } from '../json-view';
 import { AnchorButton, Card, Elevation } from '@blueprintjs/core';
+import debug from 'debug';
 import { SleuthState } from '../../state/sleuth';
 import { LogEntry } from '../../../interfaces';
 
-const debug = require('debug')('sleuth:data');
+const d = debug('sleuth:data');
 
 export interface LogLineDataProps {
-  meta: any;
+  meta: string | LogEntry;
   state: SleuthState;
 }
 
-export interface LogLineDataState { }
-
-export class LogLineData extends React.PureComponent<LogLineDataProps, LogLineDataState> {
+export class LogLineData extends React.PureComponent<LogLineDataProps, object> {
   constructor(props: LogLineDataProps) {
     super(props);
   }
@@ -57,13 +56,13 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, LogLineDa
       // Let's make a table
       const tableRows = splitRaw.map((line, i) => {
         const columns = line.split('|').map((v) => (v || '').trim());
-        const elements = columns.map((c) => i === 0 ? <th>{c}</th> : <td>{c}</td>);
+        const elements = columns.map((c) => i === 0 ? <th key={c}>{c}</th> : <td key={c}>{c}</td>);
         return (<tr key={`${i}-${line}`}>{elements}</tr>);
       });
 
       return (<table className='ConvertedTable'>{tableRows}</table>);
     } catch (e) {
-      debug(`Tried to render table, but failed`, e);
+      d(`Tried to render table, but failed`, e);
       data = <code>{raw}</code>;
     }
 
@@ -71,6 +70,7 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, LogLineDa
   }
 
   public renderChromiumFile(selectedEntry: LogEntry) {
+    if (!selectedEntry?.meta || typeof selectedEntry.meta === 'string') return;
     const str = `https://source.chromium.org/search?q=LOG%20filepath:${selectedEntry.meta.sourceFile}&ss=chromium`;
 
     return <div className='LogLineData'>
@@ -83,6 +83,7 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, LogLineDa
    */
   public render(): JSX.Element | null {
     const { meta } = this.props;
+    const { selectedEntry } = this.props.state;
 
     if (!meta) {
       return null;
@@ -98,9 +99,8 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, LogLineDa
     }
 
     // object
-    if (meta.sourceFile) {
-      const { selectedEntry } = this.props.state;
-      return this.renderChromiumFile(selectedEntry!);
+    if (meta.sourceFile && selectedEntry) {
+      return this.renderChromiumFile(selectedEntry) ?? null;
     }
 
     return null;

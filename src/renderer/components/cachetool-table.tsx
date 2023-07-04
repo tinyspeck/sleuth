@@ -3,13 +3,14 @@ import React from 'react';
 import classNames from 'classnames';
 import { default as keydown, Keys } from 'react-keydown';
 import autoBind from 'react-autobind';
-import { Table, AutoSizer, Column } from 'react-virtualized';
+import { Table, TableProps, AutoSizer, Column, Size, RowMouseEventHandlerParams } from 'react-virtualized';
+import debug from 'debug';
 
 import { SleuthState } from '../state/sleuth';
-import { SORT_DIRECTION, LogTableColumnWidths, SortFilterListOptions, RowClickEvent } from './log-table-constants';
+import { SORT_DIRECTION, LogTableColumnWidths, SortFilterListOptions } from './log-table-constants';
 import { getRegExpMaybeSafe } from '../../utils/regexp';
 
-const debug = require('debug')('sleuth:Cachetooltable');
+const d = debug('sleuth:Cachetooltable');
 const { DOWN } = Keys;
 
 export interface CachetoolTableProps {
@@ -23,14 +24,14 @@ export interface CachetoolTableProps {
 export interface CachetoolTableState {
   sortedList: Array<string>;
   searchList: Array<number>;
+  sortBy: string;
+  sortDirection: SORT_DIRECTION;
   selectedEntry?: string;
   selectedIndex?: number;
-  sortBy?: string;
-  sortDirection?: SORT_DIRECTION;
   ignoreSearchIndex: boolean;
-  scrollToSelection: boolean;
-  columnWidths: LogTableColumnWidths;
-  columnOrder: Array<string>;
+  scrollToSelection?: boolean;
+  columnWidths?: LogTableColumnWidths;
+  columnOrder?: Array<string>;
 }
 
 export interface CachetoolKey {
@@ -38,8 +39,12 @@ export interface CachetoolKey {
   key: string;
 }
 
-export class CachetoolTable extends React.Component<CachetoolTableProps, Partial<CachetoolTableState>> {
-  private changeSelectedEntry: any = null;
+export class CachetoolTable extends React.Component<CachetoolTableProps, CachetoolTableState> {
+  private changeSelectedEntry: (() => void) & {
+    clear(): void;
+} & {
+    flush(): void;
+} | null = null;
 
   constructor(props: CachetoolTableProps) {
     super(props);
@@ -84,7 +89,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
    *
    * @param {CachetoolTableProps} nextProps
    */
-  public componentWillReceiveProps(nextProps: CachetoolTableProps): void {
+  public UNSAFE_componentWillReceiveProps(nextProps: CachetoolTableProps): void {
     const {
       search,
       showOnlySearchResults,
@@ -109,7 +114,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
 
       // Should we create a search list?
       if (!nextshowOnlySearchResults && nextSearch) {
-        debug(`showOnlySearchResults is false, making search list`);
+        d(`showOnlySearchResults is false, making search list`);
         searchList = this.doSearchIndex(nextSearch, sortedList);
       }
 
@@ -138,11 +143,9 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
 
   /**
    * Enables keyboard navigation of the table
-   *
-   * @param {React.KeyboardEvent<any>} { which }
    */
   @keydown('down', 'up')
-  public onKeyboardNavigate(e: React.KeyboardEvent<any>) {
+  public onKeyboardNavigate(e: React.KeyboardEvent) {
     e.preventDefault();
     this.changeSelection(e.which === DOWN ? 1 : -1);
   }
@@ -159,7 +162,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
     return (
       <div className={className}>
         <div className='Sizer'>
-          <AutoSizer>{(options: any) => this.renderTable(options)}</AutoSizer>
+          <AutoSizer>{(options) => this.renderTable(options)}</AutoSizer>
         </div>
       </div>
     );
@@ -180,11 +183,9 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
 
   /**
    * Handles a single click onto a row
-   *
-   * @param {RowClickEvent} { index }
    */
-  private onRowClick({ index }: RowClickEvent) {
-    const selectedCacheKey = this.state.sortedList![index] || undefined;
+  private onRowClick({ index }: RowMouseEventHandlerParams) {
+    const selectedCacheKey = this.state.sortedList ? this.state.sortedList[index] : undefined;
 
     console.debug(selectedCacheKey);
 
@@ -221,11 +222,11 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
    * @param {number} change
    */
   private changeSelection(change: number) {
-    const { selectedIndex } = this.state;
+    const { selectedIndex, sortedList } = this.state;
 
     if (selectedIndex || selectedIndex === 0) {
       const nextIndex = selectedIndex + change;
-      const nextEntry = this.state.sortedList![nextIndex] || null;
+      const nextEntry = sortedList[nextIndex] || null;
 
       if (nextEntry) {
         // Schedule an app-state update. This ensures
@@ -264,11 +265,11 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
 
     searchParams.forEach((param) => {
       if (param.startsWith('!') && param.length > 1) {
-        debug(`Filter-Excluding ${param.slice(1)}`);
+        d(`Filter-Excluding ${param.slice(1)}`);
         searchRegex = new RegExp(param.slice(1) || '', 'i');
         list = list.filter(doExclude);
       } else {
-        debug(`Filter-Searching for ${param}`);
+        d(`Filter-Searching for ${param}`);
         list = list.filter(doSearch);
       }
     });
@@ -300,11 +301,11 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
 
     searchParams.forEach((param) => {
       if (param.startsWith('!') && param.length > 1) {
-        debug(`Index-Excluding ${param.slice(1)}`);
+        d(`Index-Excluding ${param.slice(1)}`);
         searchRegex = getRegExpMaybeSafe(param.slice(1));
         list.forEach(doExclude);
       } else {
-        debug(`Index-Searching for ${param}`);
+        d(`Index-Searching for ${param}`);
         list.forEach(doSearch);
       }
     });
@@ -321,7 +322,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
     const showOnlySearchResults = options.showOnlySearchResults !== undefined ? options.showOnlySearchResults : this.props.showOnlySearchResults;
     const sortDirection = options.sortDirection || this.state.sortDirection;
 
-    debug(`Starting filter`);
+    d(`Starting filter`);
     if (!this.props.keys || this.props.keys.length === 0) return [];
 
     const noSort = (!sortBy || sortBy === 'index') && (!sortDirection || sortDirection === SORT_DIRECTION.ASC);
@@ -340,17 +341,17 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
     }
 
     // Sort
-    debug(`Sorting by ${sortBy}`);
+    d(`Sorting by ${sortBy}`);
     if (sortBy === 'message') {
       sortedList = sortedList.sort(doSortByMessage);
     }
 
     if (sortDirection === SORT_DIRECTION.DESC) {
-      debug('Reversing');
+      d('Reversing');
       sortedList.reverse();
     }
 
-    debug(`sortList: Returning ${sortedList.length} entries`);
+    d(`sortList: Returning ${sortedList.length} entries`);
 
     return sortedList;
   }
@@ -362,7 +363,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
    * @returns
    */
   private rowGetter({ index }: { index: number }): CachetoolKey {
-    const key = this.state.sortedList![index];
+    const key = this.state.sortedList[index];
 
     return {
       index: this.props.state.cacheKeys.indexOf(key),
@@ -376,15 +377,15 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
    * @param {*} options
    * @returns {JSX.Element}
    */
-  private renderTable(options: any): JSX.Element {
+  private renderTable(options: Size): JSX.Element {
     const { sortedList, selectedIndex, searchList, ignoreSearchIndex, scrollToSelection } = this.state;
     const { searchIndex } = this.props;
 
-    const tableOptions = {
+    const tableOptions: TableProps = {
       ...options,
       rowHeight: 30,
       rowGetter: this.rowGetter,
-      rowCount: sortedList!.length,
+      rowCount: sortedList.length,
       onRowClick: this.onRowClick,
       rowClassName: this.rowClassNameGetter,
       headerHeight: 30,
@@ -393,7 +394,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Partial
       sortDirection: this.state.sortDirection,
     };
 
-    if (!ignoreSearchIndex) tableOptions.scrollToIndex = searchList![searchIndex] || 0;
+    if (!ignoreSearchIndex) tableOptions.scrollToIndex = searchList[searchIndex] || 0;
     if (scrollToSelection) tableOptions.scrollToIndex = selectedIndex || 0;
 
     return (

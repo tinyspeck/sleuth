@@ -101,6 +101,7 @@ export async function createWindow(): Promise<BrowserWindow> {
   // We don't _really_ get to add things to the window, but
   // I'm doing it anyway.
   if (process.platform === 'darwin') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (mainWindow as any).touchBarManager = new TouchBarManager(mainWindow);
   }
 
