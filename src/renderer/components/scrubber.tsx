@@ -19,29 +19,29 @@ export class Scrubber extends React.Component<ScrubberProps, ScrubberState> {
     this.mouseUpHandler = this.mouseUpHandler.bind(this);
   }
 
-  public mouseMoveHandler(e: any) {
+  public mouseMoveHandler(e: MouseEvent) {
     const { startHeight, startY } = this.state;
     const newHeight = startHeight + e.clientY - startY;
     this.props.onResizeHandler(newHeight);
   }
 
-  public mouseDownHandler(e: any) {
+  public mouseDownHandler(e: React.MouseEvent) {
     const resizeTarget = document.getElementById(this.props.elementSelector);
 
     if (!resizeTarget) return;
 
     this.setState({
       startY: e.clientY,
-      startHeight: parseInt(document.defaultView!.getComputedStyle(resizeTarget).height!, 10)
+      startHeight: parseInt(window.getComputedStyle(resizeTarget).height, 10)
     });
 
-    document.documentElement!.addEventListener('mousemove', this.mouseMoveHandler, false);
-    document.documentElement!.addEventListener('mouseup', this.mouseUpHandler, false);
+    document.addEventListener('mousemove', this.mouseMoveHandler, false);
+    document.addEventListener('mouseup', this.mouseUpHandler, false);
   }
 
   public mouseUpHandler() {
-    document.documentElement!.removeEventListener('mousemove', this.mouseMoveHandler, false);
-    document.documentElement!.removeEventListener('mouseup', this.mouseUpHandler, false);
+    document.removeEventListener('mousemove', this.mouseMoveHandler, false);
+    document.removeEventListener('mouseup', this.mouseUpHandler, false);
   }
 
   public render() {

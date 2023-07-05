@@ -824,7 +824,7 @@
   * @param {string} sub
   * @returns {string}
   */
- function getLabel(lang: Iso639Language, includeEnglishNames: boolean = true, sub?: string): string {
+ function getLabel(lang: Iso639Language, includeEnglishNames = true, sub?: string): string {
    if (lang.name === lang.nativeName) {
      if (sub) {
        return `${lang.name} (${sub})`;

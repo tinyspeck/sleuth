@@ -5,10 +5,12 @@ export type ChromiumTraceEvent =
 
 interface TracingStartedInBrowserEvent {
   name: 'TracingStartedInBrowser';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 interface UnknownTraceEvent {
   ts: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 

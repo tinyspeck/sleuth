@@ -1,4 +1,4 @@
-import { UnzippedFile } from '../../interfaces';
+import { RootState, UnzippedFile } from '../../interfaces';
 import { readJsonFile } from './read-json-file';
 
 export function getRootStateWarnings(file: UnzippedFile): Array<string> {
@@ -10,9 +10,9 @@ export function getRootStateWarnings(file: UnzippedFile): Array<string> {
   }
 
   if (data.settings) {
-    const { releaseChannelOverride } = data.settings;
-    if (releaseChannelOverride !== 'prod' && releaseChannelOverride !== null) {
-      result.push(`Release channel is set to ${releaseChannelOverride}`);
+    const { settings } = (data as RootState);
+    if (settings?.releaseChannelOverride && settings.releaseChannelOverride !== 'prod') {
+      result.push(`Release channel is set to ${settings.releaseChannelOverride}`);
     }
   }
 

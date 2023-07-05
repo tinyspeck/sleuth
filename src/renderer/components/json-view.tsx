@@ -9,11 +9,11 @@ import { parseJSON } from '../../utils/parse-json';
 export interface JSONViewProps {
   state: SleuthState;
   raw?: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface JSONViewState {
-  data?: any;
+  data?: unknown;
 }
 
 @observer

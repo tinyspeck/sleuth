@@ -1,8 +1,8 @@
-export function getRegExpSafe(exp: string = ''): RegExp {
+export function getRegExpSafe(exp = ''): RegExp {
   return new RegExp(exp.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 }
 
-export function getRegExpMaybeSafe(exp: string = ''): RegExp {
+export function getRegExpMaybeSafe(exp = ''): RegExp {
   if (/\/.*\//.test(exp) && exp.length > 2) {
     const withoutSlashes = exp.slice(1, exp.length - 2);
 

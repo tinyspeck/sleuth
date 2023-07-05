@@ -10,10 +10,8 @@ export interface AppCoreHeaderProps {
   state: SleuthState;
 }
 
-export interface AppCoreHeaderState {}
-
 @observer
-export class AppCoreHeader extends React.Component<AppCoreHeaderProps, AppCoreHeaderState> {
+export class AppCoreHeader extends React.Component<AppCoreHeaderProps, object> {
   public render() {
     const {
       isSidebarOpen,

@@ -5,8 +5,8 @@ import fs from 'fs-extra';
 import throttle from 'lodash.throttle';
 
 export class SettingsFileManager {
-  private _settings: Record<string, any> = this.getSettings();
-  private _lastSaveSettings: Record<string, any>;
+  private _settings: Record<string, unknown> = this.getSettings();
+  private _lastSaveSettings: Record<string, unknown>;
   private saveSettings: () => void;
   public settingsFilePath: string;
 
@@ -23,18 +23,15 @@ export class SettingsFileManager {
   /**
    * To keep things simple, this method will only be called in response
    * to an IPC event. Only the renderer should change settings.
-   *
-   * @param {string} key
-   * @param {*} value
    */
-  public async setItem(key: string, value: any) {
+  public async setItem(key: string, value: unknown) {
     console.log(`Settings: Setting preference`, { key, value });
 
     this._settings[key] = value;
     this.saveSettings();
   }
 
-  private getSettings(): Record<string, any> {
+  private getSettings(): Record<string, unknown> {
     if (this._settings) {
       return this._settings;
     }

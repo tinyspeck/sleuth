@@ -1,4 +1,4 @@
-export function getTheme(isDark: boolean = false) {
+export function getTheme(isDark = false) {
   if (isDark) {
     return {
       base00: '#30404d',

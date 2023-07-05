@@ -1,8 +1,10 @@
 import { observer } from 'mobx-react';
+import { exec } from 'child_process';
 import { SleuthState } from '../../state/sleuth';
 import React from 'react';
 import classNames from 'classnames';
 import { Card, Button, ButtonGroup, Tag, Elevation } from '@blueprintjs/core';
+import debug from 'debug';
 
 import { LogEntry } from '../../../interfaces';
 import { LogLineData } from './data';
@@ -11,16 +13,14 @@ import { shell } from 'electron';
 import { getIsBookmark, toggleBookmark } from '../../state/bookmarks';
 import { capitalize } from '../../../utils/capitalize';
 
-const debug = require('debug')('sleuth:details');
+const d = debug('sleuth:details');
 
 export interface LogLineDetailsProps {
   state: SleuthState;
 }
 
-export interface LogLineDetailsState {}
-
 @observer
-export class LogLineDetails extends React.Component<LogLineDetailsProps, LogLineDetailsState> {
+export class LogLineDetails extends React.Component<LogLineDetailsProps, object> {
   constructor(props: LogLineDetailsProps) {
     super(props);
 
@@ -50,15 +50,14 @@ export class LogLineDetails extends React.Component<LogLineDetailsProps, LogLine
       const { sourceFile, line } = selectedEntry;
 
       if (defaultEditor) {
-        const { exec } = require('child_process');
         const cmd = defaultEditor
           .replace('{filepath}', `"${sourceFile}"`)
           .replace('{line}', line.toString(10));
 
-        debug(`Executing ${cmd}`);
+        d(`Executing ${cmd}`);
         exec(cmd, (error: Error) => {
           if (!error) return;
-          debug(`Tried to open source file, but failed`, error);
+          d(`Tried to open source file, but failed`, error);
           shell.showItemInFolder(sourceFile);
         });
       } else {
@@ -117,7 +116,7 @@ export class LogLineDetails extends React.Component<LogLineDetailsProps, LogLine
 
   private renderLogLineData(): JSX.Element | null {
     const { selectedEntry, selectedRangeEntries } = this.props.state;
-    if (!selectedEntry) return null;
+    if (!selectedEntry?.meta) return null;
 
     // Don't show data for multiple entries
     if (selectedRangeEntries && selectedRangeEntries.length > 1) {
@@ -125,7 +124,7 @@ export class LogLineDetails extends React.Component<LogLineDetailsProps, LogLine
     }
 
     return (
-      <LogLineData state={this.props.state} meta={selectedEntry?.meta} />
+      <LogLineData state={this.props.state} meta={selectedEntry.meta} />
     );
   }
 
@@ -164,9 +163,9 @@ export class LogLineDetails extends React.Component<LogLineDetailsProps, LogLine
     const { selectedEntry, selectedRangeEntries } = this.props.state;
 
     if (selectedRangeEntries && selectedRangeEntries.length > 0) {
-      return selectedRangeEntries.map((v) => v[key]);
+      return selectedRangeEntries.map((v) => v[key] as unknown as T);
     } else  if (selectedEntry) {
-      return [ selectedEntry[key] ];
+      return [ selectedEntry[key] as unknown as T ];
     }
 
     return [];

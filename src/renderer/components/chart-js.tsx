@@ -9,7 +9,7 @@ interface ChartJSProps {
     data: ChartConfiguration['data'];
     options: ChartConfiguration['options'];
     plugins: ChartConfiguration['plugins'];
-    getElementAtEvent?: (items: Array<InteractionItem>, e: React.MouseEvent<HTMLCanvasElement>) => any;
+    getElementAtEvent?: (items: Array<InteractionItem>, e: Event) => void;
 }
 
 const ChartJSChart = React.memo(function (props: ChartJSProps) {
@@ -50,12 +50,12 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
         chart.update('none');
     }, [data]);
 
-    const onClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const onClick = useCallback((e) => {
         const chart = getChart();
         if (chart && getElementAtEvent) {
             getElementAtEvent(
                 chart.getElementsAtEventForMode(
-                    e as any,
+                    e,
                     'nearest',
                     { intersect: true },
                     false
@@ -72,5 +72,7 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
             />
     );
 });
+
+ChartJSChart.displayName = 'ChartJSChart';
 
 export { ChartJSChart };

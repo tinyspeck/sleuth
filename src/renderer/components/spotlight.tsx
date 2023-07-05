@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import path from 'path';
 import { observer } from 'mobx-react';
 import { Omnibar, ItemRenderer, ItemPredicate } from '@blueprintjs/select';
-import { MenuItem } from '@blueprintjs/core';
+import { IconName, MenuItem } from '@blueprintjs/core';
 import { ipcRenderer } from 'electron';
 
 import { SleuthState } from '../state/sleuth';
@@ -14,7 +14,7 @@ import { IpcEvents } from '../../ipc-events';
 
 interface SpotlightItem {
   text: string;
-  icon?: string;
+  icon?: IconName;
   label?: string;
   click: () => void;
 }
@@ -34,7 +34,7 @@ export const renderItem: ItemRenderer<SpotlightItem>
         key={text}
         onClick={handleClick}
         label={label || ''}
-        icon={icon as any}
+        icon={icon}
       />
     );
   };
@@ -91,7 +91,7 @@ export class Spotlight extends React.Component<SpotlightProps, Partial<Spotlight
       .map(({filePath, age}) => ({
         text: path.basename(filePath),
         label: `${age} old`,
-        icon: filePath.endsWith('zip') ? 'compressed' : 'folder-open',
+        icon: filePath.endsWith('zip') ? 'compressed' as const : 'folder-open' as const,
         click: () => {
           this.props.state.openFile(filePath);
         }
@@ -107,7 +107,7 @@ export class Spotlight extends React.Component<SpotlightProps, Partial<Spotlight
             logFileSuggestions.push({
               text: logFile.logFile.fileName,
               label: `${logFile.logEntries.length} entries`,
-              icon: 'document',
+              icon: 'document' as const,
               click: () => {
                 this.props.state.selectLogFile(logFile);
               }
@@ -116,7 +116,7 @@ export class Spotlight extends React.Component<SpotlightProps, Partial<Spotlight
             logFileSuggestions.push({
               text: logFile.fileName,
               label: `State`,
-              icon: 'cog',
+              icon: 'cog' as const,
               click: () => {
                 this.props.state.selectLogFile(logFile);
               }
@@ -129,26 +129,26 @@ export class Spotlight extends React.Component<SpotlightProps, Partial<Spotlight
     const appSuggestions = [
       {
         text: 'Quit Sleuth',
-        icon: 'power',
+        icon: 'power' as const,
         click: () => ipcRenderer.invoke(IpcEvents.QUIT)
       },
       {
         text: 'Go Home',
-        icon: 'home',
+        icon: 'home' as const,
         click: () => {
           this.props.state.reset(true);
         }
       },
       {
         text: 'Toggle Dark Mode',
-        icon: 'moon',
+        icon: 'moon' as const,
         click: () => {
           this.props.state.toggleDarkMode();
         }
       },
       {
         text: 'Toggle Sidebar',
-        icon: 'menu',
+        icon: 'menu' as const,
         click: () => {
           this.props.state.toggleSidebar();
         }

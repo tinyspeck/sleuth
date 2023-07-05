@@ -1,4 +1,4 @@
-/* tslint:disable */
+/* eslint-disable */
 
 const Bundler = require('parcel-bundler');
 const path = require('path');

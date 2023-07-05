@@ -1,15 +1,16 @@
-import { app, dialog, Menu } from 'electron';
+import { app, dialog, Menu, MenuItem, MenuItemConstructorOptions } from 'electron';
 import fs from 'fs-extra';
 import path from 'path';
 import tmp from 'tmp';
 import { promisify } from 'util';
 import { format } from 'date-fns';
+import debug from 'debug';
 
 import { getCurrentWindow } from './windows';
 import { getMenuTemplate } from './menu-template';
 import { IpcEvents } from '../ipc-events';
 
-const debug = require('debug')('sleuth:menu');
+const d = debug('sleuth:menu');
 
 export class AppMenu {
   private productionLogs: string;
@@ -21,7 +22,7 @@ export class AppMenu {
   private productionCacheExist: boolean;
   private devEnvCacheExist: boolean;
   private devModeCacheExist: boolean;
-  private menu: Array<any> | null = null;
+  private menu: (MenuItem | MenuItemConstructorOptions)[] | null = null;
 
   constructor() {
     const appData = app.getPath('appData');
@@ -48,7 +49,7 @@ export class AppMenu {
    * @param {('' | 'DevEnv' | 'DevMode')} [type='']
    * @returns {Electron.MenuItemOptions}
    */
-  public getOpenItem(type: '' | 'DevEnv' | 'DevMode' = ''): Electron.MenuItemConstructorOptions {
+  public getOpenItem(type: '' | 'DevEnv' | 'DevMode' = ''): MenuItemConstructorOptions {
     const appData = app.getPath('appData');
     const logsPath = path.join(appData, `Slack${type}`, 'logs');
     const storagePath = path.join(appData, `Slack${type}`, 'storage');
@@ -61,14 +62,15 @@ export class AppMenu {
         try {
           files = await fs.readdir(logsPath);
         } catch (error) {
-          debug(`Tried to read logs directory, but failed`, { error });
+          d(`Tried to read logs directory, but failed`, { error });
         }
 
         if (files && files.length > 0) {
           const { webContents } = await getCurrentWindow();
           const name = `Local Slack${type} Logs - ${format(Date.now(), `MMM d, y HH.mm.SSSS`)}`;
           const tmpOptions: tmp.DirOptions = { unsafeCleanup: true, name };
-          const tmpdir = await (promisify(tmp.dir) as any)(tmpOptions);
+          //@ts-expect-error promisify type doesn't expect the correct number of arguments
+          const tmpdir = await (promisify(tmp.dir))(tmpOptions);
 
           await fs.copy(logsPath, tmpdir);
           await fs.copy(storagePath, tmpdir);
@@ -121,18 +123,18 @@ export class AppMenu {
 
           await this.handleFilePaths(filePaths);
         } catch (error) {
-          debug(`Failed to open item. ${error}`);
+          d(`Failed to open item. ${error}`);
         }
       }
     };
 
     const openRecentItem = {
       label: 'Open Recent',
-      role: 'recentDocuments' as 'recentDocuments',
+      role: 'recentDocuments' as const,
       submenu: [
         {
           label: 'Clear Recent',
-          role: 'clearRecentDocuments' as 'clearRecentDocuments'
+          role: 'clearRecentDocuments' as const
         }
       ]
     };
@@ -223,6 +225,7 @@ export class AppMenu {
    * Actually creates the menu.
    */
   public setupMenu() {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('electron-context-menu')();
 
     this.menu = getMenuTemplate({

@@ -18,11 +18,8 @@ export interface BookmarksProps {
   state: SleuthState;
 }
 
-export interface BookmarksState {
-}
-
 @observer
-export class Bookmarks extends React.Component<BookmarksProps, Partial<BookmarksState>> {
+export class Bookmarks extends React.Component<BookmarksProps, object> {
   constructor(props: BookmarksProps) {
     super(props);
     autoBind(this);

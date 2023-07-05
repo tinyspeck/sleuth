@@ -85,7 +85,7 @@ export interface LogEntry {
   logType: LogType;
   line: number;
   sourceFile: string;
-  meta?: any;
+  meta?: string | LogEntry;
   momentValue?: number;
   repeated?: Array<string>;
 }
@@ -94,7 +94,7 @@ export interface MatchResult {
   timestamp?: string;
   message?: string;
   level?: string;
-  meta?: any;
+  meta?: unknown;
   toParseHead?: string;
   momentValue?: number;
 }
@@ -111,7 +111,7 @@ export interface UnzippedFile extends BaseFile {
   type: 'UnzippedFile';
 }
 
-export interface UnzippedFiles extends Array<UnzippedFile> { }
+export type UnzippedFiles = Array<UnzippedFile>
 
 export type MergedLogFiles = Record<SelectableLogType, MergedLogFile>;
 
@@ -165,4 +165,10 @@ export interface TouchBarLogFileUpdate {
 
 export enum Tool {
   cache = 'cache'
+}
+
+export interface RootState {
+  settings?: {
+    releaseChannelOverride: string;
+  }
 }

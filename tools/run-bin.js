@@ -1,4 +1,4 @@
-/* tslint:disable */
+/* eslint-disable */
 
 const childProcess = require('child_process');
 const path = require('path');

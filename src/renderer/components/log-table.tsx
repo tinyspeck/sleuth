@@ -4,8 +4,9 @@ import classNames from 'classnames';
 import { format } from 'date-fns';
 import { default as keydown, Keys } from 'react-keydown';
 import autoBind from 'react-autobind';
-import { Table, AutoSizer, Column, TableCellProps } from 'react-virtualized';
+import { Table, AutoSizer, Column, TableCellProps, RowMouseEventHandlerParams, Size, TableProps } from 'react-virtualized';
 import { Icon } from '@blueprintjs/core';
+import debug from 'debug';
 
 import { LevelFilter, LogEntry, DateRange } from '../../interfaces';
 import { didFilterChange } from '../../utils/did-filter-change';
@@ -15,7 +16,6 @@ import {
   LogTableState,
   SORT_DIRECTION,
   SortFilterListOptions,
-  RowClickEvent
 } from './log-table-constants';
 import { isMergedLogFile } from '../../utils/is-logfile';
 import { getRegExpMaybeSafe } from '../../utils/regexp';
@@ -23,7 +23,7 @@ import { between } from '../../utils/is-between';
 import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
 
-const debug = require('debug')('sleuth:logtable');
+const d = debug('sleuth:logtable');
 const { DOWN } = Keys;
 
 /**
@@ -31,8 +31,8 @@ const { DOWN } = Keys;
  * information. This is also the class that could most easily destroy performance, so be careful
  * here!
  */
-export class LogTable extends React.Component<LogTableProps, Partial<LogTableState>> {
-  private changeSelectedEntry: any = null;
+export class LogTable extends React.Component<LogTableProps, LogTableState> {
+  private changeSelectedEntry: ((() => void) & { clear(): void; } & { flush(): void; }) | null = null;
 
   constructor(props: LogTableProps) {
     super(props);
@@ -97,7 +97,7 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
    *
    * @param {LogTableProps} nextProps
    */
-  public componentWillReceiveProps(nextProps: LogTableProps): void {
+  public UNSAFE_componentWillReceiveProps(nextProps: LogTableProps): void {
     const {
       levelFilter,
       search,
@@ -147,7 +147,7 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
 
       // Should we create a search list?
       if (!nextShowOnlySearchResults && nextSearch) {
-        debug(`showOnlySearchResults is false, making search list`);
+        d(`showOnlySearchResults is false, making search list`);
         searchList = this.doSearchIndex(nextSearch, sortedList);
       }
 
@@ -181,7 +181,7 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
   public componentDidMount() {
     const sortedList = this.sortFilterList();
     const { selectedEntry, selectedIndex } = this.props.state;
-    const update: Partial<LogTableState> = {
+    const update: Pick<LogTableState, 'sortedList' | 'selectedIndex' | 'selectedEntry' | 'scrollToSelection'> = {
       sortedList
     };
 
@@ -196,11 +196,9 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
 
   /**
    * Enables keyboard navigation of the table
-   *
-   * @param {React.KeyboardEvent<any>} { which }
    */
   @keydown('down', 'up')
-  public onKeyboardNavigate(e: React.KeyboardEvent<any>) {
+  public onKeyboardNavigate(e: React.KeyboardEvent) {
     e.preventDefault();
     this.changeSelection(e.which === DOWN ? 1 : -1);
   }
@@ -220,7 +218,7 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
     return (
       <div className={className}>
         <div className='Sizer'>
-          <AutoSizer>{(options: any) => this.renderTable(options)}</AutoSizer>
+          <AutoSizer>{(options) => this.renderTable(options)}</AutoSizer>
         </div>
       </div>
     );
@@ -245,26 +243,21 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
 
   /**
    * Handles a single click onto a row
-   *
-   * @param {RowClickEvent} { index }
    */
-  private onRowClick({ index, event }: RowClickEvent) {
+  private onRowClick({ index, event }: RowMouseEventHandlerParams) {
     const { sortedList } = this.state;
 
-    // If the user held shift, we want to do a "from-to" selection
-    const isFromToSelection = !!(event as any).shiftKey;
+    let selectedRange, selectedIndex, selectedRangeIndex;
+    // If the user held shift and we have a previous index selected, we want to do a "from-to" selection
+    if (event.shiftKey && this.props.state.selectedIndex) {
+      selectedIndex = this.props.state.selectedIndex;
+      selectedRangeIndex = index;
+      selectedRange = getRangeEntries(selectedRangeIndex, selectedIndex, sortedList);
+    } else {
+      selectedIndex = index;
+    }
 
-    const selectedIndex = isFromToSelection
-      ? this.props.state.selectedIndex
-      : index;
-    const selectedRangeIndex = isFromToSelection
-      ? index
-      : undefined;
-    const selectedRange = isFromToSelection
-      && selectedIndex !== undefined && selectedRangeIndex !== undefined
-        ? getRangeEntries(selectedRangeIndex, selectedIndex, sortedList!)
-        : undefined;
-    const selectedEntry = sortedList![selectedIndex!] || null;
+    const selectedEntry = sortedList[selectedIndex] || null;
 
     this.props.state.selectedRangeEntries = selectedRange;
     this.props.state.selectedEntry = selectedEntry;
@@ -308,7 +301,7 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
 
     if (selectedIndex || selectedIndex === 0) {
       const nextIndex = selectedIndex + change;
-      const nextEntry = this.state.sortedList![nextIndex] || null;
+      const nextEntry = this.state.sortedList[nextIndex] || null;
 
       if (nextEntry) {
         // Schedule an app-state update. This ensures
@@ -338,11 +331,11 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
    * @returns {boolean}
    */
   private shouldFilter(filter?: LevelFilter): boolean {
-    filter = filter || this.props.levelFilter;
+    const filterOrDefault = filter || this.props.levelFilter;
 
-    if (!filter) return false;
-    const allEnabled = Object.keys(filter).every((k: keyof LevelFilter) => filter![k]);
-    const allDisabled = Object.keys(filter).every((k: keyof LevelFilter) => !filter![k]);
+    if (!filterOrDefault) return false;
+    const allEnabled = Object.keys(filterOrDefault).every((k: keyof LevelFilter) => filterOrDefault[k]);
+    const allDisabled = Object.keys(filterOrDefault).every((k: keyof LevelFilter) => !filterOrDefault[k]);
 
     return !(allEnabled || allDisabled);
   }
@@ -363,11 +356,11 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
 
     searchParams.forEach((param) => {
       if (param.startsWith('!') && param.length > 1) {
-        debug(`Filter-Excluding ${param.slice(1)}`);
+        d(`Filter-Excluding ${param.slice(1)}`);
         searchRegex = getRegExpMaybeSafe(param.slice(1) || '');
         list = list.filter(doExclude);
       } else {
-        debug(`Filter-Searching for ${param}`);
+        d(`Filter-Searching for ${param}`);
         list = list.filter(doSearch);
       }
     });
@@ -399,11 +392,11 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
 
     searchParams.forEach((param) => {
       if (param.startsWith('!') && param.length > 1) {
-        debug(`Index-Excluding ${param.slice(1)}`);
+        d(`Index-Excluding ${param.slice(1)}`);
         searchRegex = getRegExpMaybeSafe(param.slice(1));
         list.forEach(doExclude);
       } else {
-        debug(`Index-Searching for ${param}`);
+        d(`Index-Searching for ${param}`);
         list.forEach(doSearch);
       }
     });
@@ -437,7 +430,7 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
     const showOnlySearchResults = options.showOnlySearchResults !== undefined ? options.showOnlySearchResults : this.props.showOnlySearchResults;
     const sortDirection = options.sortDirection || this.state.sortDirection;
 
-    debug(`Starting filter`);
+    d(`Starting filter`);
     if (!logFile) return [];
 
     const shouldFilter = this.shouldFilter(filter);
@@ -446,7 +439,7 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
     // Check if we can bail early and just use the naked logEntries array
     if (noSort && !shouldFilter && !search) return logFile.logEntries;
 
-    let sortedList = logFile.logEntries!.concat();
+    let sortedList = logFile.logEntries.concat();
 
     // Named definition here allows V8 to go craaaaaazy, speed-wise.
     function doSortByMessage(a: LogEntry, b: LogEntry) { return a.message.localeCompare(b.message); }
@@ -456,7 +449,7 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
       if (a.momentValue === b.momentValue) return 0;
       return (a.momentValue || 0) > (b.momentValue || 0) ? 1 : -1;
     }
-    function doFilter(a: LogEntry) { return (a.level && filter![a.level]); }
+    function doFilter(a: LogEntry) { return (a.level && filter[a.level]); }
 
     // Filter
     if (shouldFilter) {
@@ -470,12 +463,12 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
 
     // DateRange
     if (dateRange) {
-      debug(`Performing date range filter (from: ${dateRange.from}, to: ${dateRange.to})`);
+      d(`Performing date range filter (from: ${dateRange.from}, to: ${dateRange.to})`);
       sortedList = this.doRangeFilter(dateRange, sortedList);
     }
 
     // Sort
-    debug(`Sorting by ${sortBy}`);
+    d(`Sorting by ${sortBy}`);
     if (sortBy === 'message') {
       sortedList = sortedList.sort(doSortByMessage);
     } else if (sortBy === 'level') {
@@ -487,7 +480,7 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
     }
 
     if (sortDirection === SORT_DIRECTION.DESC) {
-      debug('Reversing');
+      d('Reversing');
       sortedList.reverse();
     }
 
@@ -567,7 +560,7 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
    * @memberof LogTable
    */
   private rowGetter({ index }: { index: number }): LogEntry {
-    return this.state.sortedList![index];
+    return this.state.sortedList[index];
   }
 
   /**
@@ -577,15 +570,15 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
    * @param {Array<LogEntry>} sortedList
    * @returns {JSX.Element}
    */
-  private renderTable(options: any): JSX.Element {
+  private renderTable(options: Size): JSX.Element {
     const { sortedList, selectedIndex, searchList, ignoreSearchIndex, scrollToSelection } = this.state;
     const { searchIndex } = this.props;
 
-    const tableOptions = {
+    const tableOptions: TableProps = {
       ...options,
       rowHeight: 30,
       rowGetter: this.rowGetter,
-      rowCount: sortedList!.length,
+      rowCount: sortedList.length,
       onRowClick: this.onRowClick,
       rowClassName: this.rowClassNameGetter,
       headerHeight: 30,
@@ -594,7 +587,7 @@ export class LogTable extends React.Component<LogTableProps, Partial<LogTableSta
       sortDirection: this.state.sortDirection,
     };
 
-    if (!ignoreSearchIndex) tableOptions.scrollToIndex = searchList![searchIndex] || 0;
+    if (!ignoreSearchIndex) tableOptions.scrollToIndex = searchList[searchIndex] || 0;
     if (scrollToSelection) tableOptions.scrollToIndex = selectedIndex || 0;
 
     return (

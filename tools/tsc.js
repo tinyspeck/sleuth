@@ -1,4 +1,4 @@
-/* tslint:disable */
+/* eslint-disable */
 
 const { run } = require('./run-bin');
 

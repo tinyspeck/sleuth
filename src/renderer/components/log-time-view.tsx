@@ -84,7 +84,7 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
             type='bar'
             data={{
               datasets
-            } as any}
+            }}
             options={
               {
                 maintainAspectRatio: false,

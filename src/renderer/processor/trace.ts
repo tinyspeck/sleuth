@@ -1,4 +1,6 @@
 import fs from 'fs-extra';
+import debug from 'debug';
+
 import type { UnzippedFile } from '../../interfaces';
 import type {
   ChromiumTrace,
@@ -9,16 +11,16 @@ import type {
   ThreadInfo,
 } from './interfaces';
 
-const debug = require('debug')('sleuth:trace-processor');
+const d = debug('sleuth:trace-processor');
 export interface RendererDescription {
   title?: string;
   isClient: boolean;
   processId: number;
 }
 
-function getProcessLabel(processLabelEvents: any, pid: number) {
+function getProcessLabel(processLabelEvents: ChromiumTraceEvent[], pid: number) {
   const processLabel = processLabelEvents.find(
-    (label: any) => label.pid === pid
+    (label) => label.pid === pid
   );
   return processLabel ? processLabel.args?.labels : '';
 }
@@ -40,7 +42,7 @@ export class TraceProcessor {
         return json;
       }
     } catch (e) {
-      debug('Unable to parse trace', e);
+      d('Unable to parse trace', e);
     }
     return undefined;
   }
@@ -77,7 +79,7 @@ export class TraceProcessor {
 
     if (clientParseEvent) {
       const url = clientParseEvent.args.beginData.url;
-      debug(`Discovered renderer thread via ParseHTML event: ${url}`);
+      d(`Discovered renderer thread via ParseHTML event: ${url}`);
       const processId = clientParseEvent.pid;
       const title = getProcessLabel(labelEvents, processId);
       if (!discovered[processId]) {
@@ -95,7 +97,7 @@ export class TraceProcessor {
 
     rendererThreadsEvents.forEach((thread) => {
       const title = getProcessLabel(labelEvents, thread.pid);
-      debug(`Discovered renderer thread via thread event: ${title}`);
+      d(`Discovered renderer thread via thread event: ${title}`);
       const isClient = title.startsWith('Slack |');
       const processId = thread.pid;
       if (!discovered[processId]) {
