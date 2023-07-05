@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import fs from 'fs-extra';
 import path from 'path';
 import debug from 'debug';
+import { ConfigProvider, theme } from 'antd';
 
 import { Unzipper } from '../unzip';
 import { Welcome } from './welcome';
@@ -19,6 +20,7 @@ import { UnzippedFiles, UnzippedFile } from '../../interfaces';
 import { autorun } from 'mobx';
 import { getWindowTitle } from '../../utils/get-window-title';
 import { IpcEvents } from '../../ipc-events';
+import { observer } from 'mobx-react';
 
 const d = debug('sleuth:app');
 
@@ -27,6 +29,7 @@ export interface AppState {
   openEmpty?: boolean;
 }
 
+@observer
 export class App extends React.Component<object, Partial<AppState>> {
   public readonly sleuthState: SleuthState;
 
@@ -198,11 +201,21 @@ export class App extends React.Component<object, Partial<AppState>> {
       : <Welcome state={this.sleuthState} />;
 
     return (
-      <div className={className}>
-        <Preferences state={this.sleuthState} />
-        {titleBar}
-        {content}
-      </div>
+      <ConfigProvider
+        theme={{
+          algorithm: this.sleuthState.isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm, 
+          token: {
+            colorPrimary: '#137cbd',
+            colorBgBase: this.sleuthState.isDarkMode ? '#182026' : '#ffffff'
+          }
+        }}
+      >
+        <div className={className}>
+          <Preferences state={this.sleuthState} />
+          {titleBar}
+          {content}
+        </div>
+      </ConfigProvider>
     );
   }
 
