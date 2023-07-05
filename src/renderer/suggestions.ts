@@ -2,11 +2,12 @@ import { shell } from 'electron';
 import fs from 'fs-extra';
 import path from 'path';
 import { formatDistanceToNow } from 'date-fns';
+import debug from 'debug';
 
 import { Suggestion } from '../interfaces';
 import { getPath, showMessageBox } from './ipc';
 
-const debug = require('debug')('sleuth:suggestions');
+const d = debug('sleuth:suggestions');
 
 export async function getItemsInSuggestionFolders(): Promise<Array<Suggestion>> {
  const suggestionsArr = [];
@@ -20,7 +21,7 @@ export async function getItemsInSuggestionFolders(): Promise<Array<Suggestion>> 
         .map((file) => path.join(downloadsDir, file));
       suggestionsArr.push(...await getSuggestions(downloads));
     } catch (e) {
-      debug(e);
+      d(e);
     }
 
     try {
@@ -29,7 +30,7 @@ export async function getItemsInSuggestionFolders(): Promise<Array<Suggestion>> 
         .map((file) => path.join(desktopDir, file));
       suggestionsArr.push(...await getSuggestions(desktop));
     } catch (e) {
-      debug(e);
+      d(e);
     }
 
     const sortedSuggestions  = suggestionsArr.sort((a, b) => {
@@ -38,7 +39,7 @@ export async function getItemsInSuggestionFolders(): Promise<Array<Suggestion>> 
 
     return sortedSuggestions;
   } catch (error) {
-    debug(error);
+    d(error);
   }
   return [];
 }
@@ -94,7 +95,7 @@ async function getSuggestions(input: Array<string>): Promise<Array<Suggestion>> 
   const suggestions: Array<Suggestion> = [];
 
   for (const file of input) {
-    debug(`Checking ${file}`);
+    d(`Checking ${file}`);
     // If the file is from #alerts-desktop-logs, the server will
     // have named it, not the desktop app itself.
     // It'll look like T8KJ1FXTL_U8KCVGGLR_1580765146766674.zip
@@ -105,8 +106,8 @@ async function getSuggestions(input: Array<string>): Promise<Array<Suggestion>> 
     const logsFormat = /.*logs.*\.zip/;
     const iosLogsFormat = /(utf-8'')?Default_(.){0,14}(\.txt$)/;
     const androidLogsFormat = /attachment?.{0,5}.txt/;
-    const chromeLogsFormat = /app\.slack\.com\-\d{13,}\.log/;
-    const firefoxLogsFormat = /console(-export)?[\d\-\_]{0,22}\.(txt|log)/;
+    const chromeLogsFormat = /app\.slack\.com-\d{13,}\.log/;
+    const firefoxLogsFormat = /console(-export)?[\d\-_]{0,22}\.(txt|log)/;
     const shouldAdd = logsFormat.test(file)
     || serverFormat.test(file)
     || iosLogsFormat.test(file)
@@ -121,7 +122,7 @@ async function getSuggestions(input: Array<string>): Promise<Array<Suggestion>> 
 
         suggestions.push({filePath: file, ...stats, age });
       } catch (error) {
-        debug(`Tried to add ${file}, but failed: ${error}`);
+        d(`Tried to add ${file}, but failed: ${error}`);
       }
     }
   }

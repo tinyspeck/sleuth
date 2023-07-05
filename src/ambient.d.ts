@@ -1,5 +1,4 @@
 // Ambient type declarations for modules that do not have type definitions
-declare module 'yauzl';
 declare module 'react-json-tree';
 declare module 'react-keydown';
 declare module 'react-autobind';
@@ -7,7 +6,6 @@ declare module 'jsonic';
 declare module 'electron-devtools-installer';
 declare module 'electron-window-state';
 declare module 'electron-default-menu';
-declare module 'debounce';
 declare module 'cachetool';
 declare module 'chartjs-plugin-zoom';
 declare module 'chartjs-adapter-date-fns';

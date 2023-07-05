@@ -1,6 +1,7 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import fs from 'fs-extra';
+import debug from 'debug';
 
 import { SleuthState } from '../state/sleuth';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -11,13 +12,10 @@ export interface NetLogViewProps {
   file: UnzippedFile;
 }
 
-export interface NetLogViewState {
-}
-
-const debug = require('debug')('sleuth:netlogview');
+const d = debug('sleuth:netlogview');
 
 @observer
-export class NetLogView extends React.Component<NetLogViewProps, NetLogViewState> {
+export class NetLogView extends React.Component<NetLogViewProps, object> {
   private disposeDarkModeAutorun: IReactionDisposer | undefined;
 
   constructor(props: NetLogViewProps) {
@@ -50,7 +48,7 @@ export class NetLogView extends React.Component<NetLogViewProps, NetLogViewState
    * @memberof NetLogView
    */
   public async loadFile() {
-    debug(`iFrame loaded`);
+    d(`iFrame loaded`);
 
     const { file } = this.props;
     const iframe = document.getElementsByTagName('iframe');
@@ -66,7 +64,7 @@ export class NetLogView extends React.Component<NetLogViewProps, NetLogViewState
           payload: { fileName: file.fileName, content: raw }
         }, 'file://');
       } catch (error) {
-        debug(`Failed to read file and load contents in catapult`, error);
+        d(`Failed to read file and load contents in catapult`, error);
       }
     }
 
@@ -95,7 +93,7 @@ export class NetLogView extends React.Component<NetLogViewProps, NetLogViewState
         }, 'file://');
       }
     } catch (error) {
-      debug(`Failed to set dark mode`, error);
+      d(`Failed to set dark mode`, error);
     }
   }
 }

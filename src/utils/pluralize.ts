@@ -1,4 +1,4 @@
-export function plural(text: string, input: Array<any> | number, pluralText?: string): string {
+export function plural(text: string, input: Array<unknown> | number, pluralText?: string): string {
   let pluralize = false;
 
   if (typeof input === 'number' && input > 1) {

@@ -1,4 +1,4 @@
-/* tslint:disable */
+/* eslint-disable */
 
 const fs = require("fs");
 const os = require("os");

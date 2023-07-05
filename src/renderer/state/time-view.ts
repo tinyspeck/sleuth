@@ -42,10 +42,6 @@ function getBucket(range: number, momentValue: number): number {
 
   /**
    * Get initial range (difference between highest and lowest timestamp) from the selected log file
-   *
-   * @export
-   * @param {SleuthState} state
-   * @returns {number} initialRange
    */
   export function getInitialTimeViewRange(selectedLogFile: SelectableLogFile): number {
     if (!isLogFile(selectedLogFile) || selectedLogFile.logEntries.length === 0) {
@@ -54,12 +50,16 @@ function getBucket(range: number, momentValue: number): number {
 
     let min = Number.MAX_SAFE_INTEGER;
     let max = 0;
-    for (const entry of selectedLogFile.logEntries) {
-      if (entry.momentValue! < min) {
-        min = entry.momentValue!;
+    for (const { momentValue } of selectedLogFile.logEntries) {
+
+      if (!momentValue) continue;
+
+      if (momentValue < min) {
+        min = momentValue;
       }
-      if (entry.momentValue! > max) {
-        max = entry.momentValue!;
+
+      if (momentValue > max) {
+        max = momentValue;
       }
     }
     return max - min;

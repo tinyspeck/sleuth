@@ -1,9 +1,10 @@
 import fs from 'fs-extra';
+import debug from 'debug';
 
 import { showMessageBox } from './ipc';
 import { shell } from 'electron';
 
-const debug = require('debug')('sleuth:sentry');
+const d = debug('sleuth:sentry');
 
 export async function openSentry(installationFilePath?: string): Promise<void> {
   // No file? Do nothing
@@ -25,7 +26,7 @@ export async function openSentry(installationFilePath?: string): Promise<void> {
       shell.openExternal(getSentryHref(id));
     }
   } catch (error) {
-    debug(`Failed to read Sentry link`);
+    d(`Failed to read Sentry link`);
   }
 }
 

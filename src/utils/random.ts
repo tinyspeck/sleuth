@@ -6,7 +6,7 @@
  * @returns {number}
  */
 export function getRandomNumber(
-  min: number = 0, max: number = 1
+  min = 0, max = 1
 ): number {
   return Math.floor(Math.random() * max) + min;
 }

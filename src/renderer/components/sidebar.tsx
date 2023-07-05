@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { ITreeNode, Tree, Icon, Position, Tooltip, Intent } from '@blueprintjs/core';
 import { observer } from 'mobx-react';
 
-import { MergedFilesLoadStatus, ProcessedLogFile, UnzippedFile } from '../../interfaces';
+import { MergedFilesLoadStatus, ProcessedLogFile, SelectableLogType, Tool, UnzippedFile } from '../../interfaces';
 import { levelsHave } from '../../utils/level-counts';
 import { SleuthState } from '../state/sleuth';
 import { isProcessedLogFile } from '../../utils/is-logfile';
@@ -20,6 +20,11 @@ export interface SidebarProps {
 
 export interface SidebarState {
   nodes: Array<ITreeNode>;
+}
+
+export interface SidebarNodeData {
+  file: UnzippedFile | ProcessedLogFile;
+  type: SelectableLogType | Tool;
 }
 
 const enum NODE_ID {
@@ -166,7 +171,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    * @returns {ITreeNode}
    */
   public static getNode(
-    id: string, nodeData: any, isSelected: boolean, options: Partial<ITreeNode> = {}
+    id: string, nodeData: Partial<SidebarNodeData>, isSelected: boolean, options: Partial<ITreeNode> = {}
   ): ITreeNode {
     return {
       id,
@@ -176,7 +181,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
       icon: 'document',
       ...options
     };
-  }
+  } 
 
   /**
    * Get a single tree node for a file.
@@ -188,8 +193,8 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    */
   public static getFileNode(file: ProcessedLogFile | UnzippedFile, props: SidebarProps): ITreeNode {
     return isProcessedLogFile(file)
-      ? Sidebar.getLogFileNode(file as ProcessedLogFile, props)
-      : Sidebar.getStateFileNode(file as UnzippedFile, props);
+      ? Sidebar.getLogFileNode(file, props)
+      : Sidebar.getStateFileNode(file, props);
   }
 
   /**
@@ -438,20 +443,13 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
 
   /**
    * Handle a click on a single tree node.
-   *
-   * @private
-   * @param {ITreeNode} node
-   * @param {Array<number>} _nodePath
-   * @param {React.MouseEvent<HTMLElement>} _e
    */
-  private handleNodeClick(node: ITreeNode, _nodePath: Array<number>, _e: React.MouseEvent<HTMLElement>) {
-    const nodeData: any = node.nodeData;
+  private handleNodeClick(node: ITreeNode<Partial<SidebarNodeData>>, _nodePath: Array<number>, _e: React.MouseEvent<HTMLElement>) {
+    const { nodeData } = node;
 
-    if (nodeData && nodeData.file) {
+    if (nodeData?.file) {
       this.props.state.selectLogFile(nodeData.file);
-    }
-
-    if (nodeData && nodeData.type) {
+    } else if (nodeData?.type) {
       this.props.state.selectLogFile(null, nodeData.type);
     }
 

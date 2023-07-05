@@ -1,4 +1,4 @@
-/* tslint:disable */
+/* eslint-disable */
 
 const { compileParcel } = require('./parcel-build');
 const { copyCatapult } = require('./copy-catapult');

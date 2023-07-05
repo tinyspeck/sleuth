@@ -18,15 +18,17 @@ export function highlightText(text: string, query: string): Array<React.ReactNod
   const words = query
     .split(/\s+/)
     .filter((word) => word.length > 0)
-    .map((s) => s.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1'));
+    .map((s) => s.replace(/([.*+?^=!:${}()|[\]/\\])/g, '\\$1'));
 
   if (words.length === 0) return [ text ];
 
   const regexp = new RegExp(words.join('|'), 'gi');
   const tokens: Array<React.ReactNode> = [];
 
-  while (true) {
-    const match = regexp.exec(text);
+  let match = regexp.exec(text);
+
+  while (match) {
+    match = regexp.exec(text);
 
     if (!match) {
       break;

@@ -13,6 +13,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { UnzippedFile } from '../../interfaces';
 import { RendererDescription, TraceProcessor } from '../processor/trace';
 import autoBind from 'react-autobind';
+import debug from 'debug';
 
 export interface DevtoolsViewProps {
   state: SleuthState;
@@ -23,7 +24,7 @@ export interface DevtoolsViewState {
   profilePid?: number;
 }
 
-const debug = require('debug')('sleuth:devtoolsview');
+const d = debug('sleuth:devtoolsview');
 
 @observer
 export class DevtoolsView extends React.Component<
@@ -145,7 +146,7 @@ export class DevtoolsView extends React.Component<
       return;
     }
 
-    debug(`iFrame loaded`);
+    d(`iFrame loaded`);
     const iframe = document.querySelector('iframe');
 
     if (iframe) {
@@ -191,7 +192,7 @@ export class DevtoolsView extends React.Component<
         );
       }
     } catch (error) {
-      debug(`Failed to set dark mode`, error);
+      d(`Failed to set dark mode`, error);
     }
   }
 }

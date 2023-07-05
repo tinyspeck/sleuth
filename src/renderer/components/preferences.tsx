@@ -15,6 +15,7 @@ import { renderEditorItem, Editor, EDITORS, nameForCmd } from './preferences-edi
 import { SORT_DIRECTION } from './log-table-constants';
 import { IpcEvents } from '../../ipc-events';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageInfo = require('../../../package.json');
 
 const FontSelect = Select.ofType<string>();
@@ -54,7 +55,7 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
         <div className={classes}>
           <h2>Preferences</h2>
           <Callout>
-            You're running Sleuth {packageInfo.version} {getSleuth()} with
+            You&apos;re running Sleuth {packageInfo.version} {getSleuth()} with
             Electron {process.versions.electron} and
             Chrome {process.versions.chrome}.
           </Callout>
@@ -180,9 +181,10 @@ export class Preferences extends React.Component<PreferencesProps, Partial<Prefe
     this.props.state.defaultEditor = editor.cmd;
   }
 
-  private onEditorCmdChange({ target }: React.FormEvent<HTMLInputElement>) {
-    if (target && (target as any).value) {
-      this.props.state.defaultEditor = (target as any).value;
+  private onEditorCmdChange(event: React.FormEvent<HTMLInputElement>) {
+    const target = event.target as HTMLInputElement;
+    if (target?.value) {
+      this.props.state.defaultEditor = target.value;
     }
   }
 

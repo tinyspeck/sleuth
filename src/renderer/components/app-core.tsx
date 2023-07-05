@@ -91,6 +91,7 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
     const newProcessedLogFiles: ProcessedLogFiles = { ... processedLogFiles };
 
     for (const [type, filesOfType] of Object.entries(filesToAdd)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const currentState = processedLogFiles[type as keyof ProcessedLogFiles] as Array<any>;
       newProcessedLogFiles[type as keyof ProcessedLogFiles] = currentState.concat(filesOfType);
     }
@@ -132,7 +133,7 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
 
     this.addFilesToState(rawLogFiles);
 
-    console.log(this.state.processedLogFiles!.state);
+    console.log(this.state.processedLogFiles?.state);
 
     console.time('process-files');
     for (const type of LOG_TYPES_TO_PROCESS) {

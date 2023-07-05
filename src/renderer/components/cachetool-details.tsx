@@ -112,7 +112,7 @@ export class CachetoolDetails extends React.Component<CachetoolDetailsProps, Cac
         <br />
         <Callout intent={Intent.WARNING}>
           <p>
-            We're blindly hoping that we're dealing with an image. If we're not, you
+            We&apos;re blindly hoping that we&apos;re dealing with an image. If we&apos;re not, you
             might be able to open the file yourself with another program.
           </p>
         </Callout>

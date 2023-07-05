@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import readline from 'readline';
 import path from 'path';
+import debug from 'debug';
 
 import { logPerformance } from './processor/performance';
 import {
@@ -17,14 +18,14 @@ import {
 } from '../interfaces';
 import { getIdForLogFiles } from '../utils/id-for-logfiles';
 
-const debug = require('debug')('sleuth:processor');
+const d = debug('sleuth:processor');
 
-const DESKTOP_RGX = /^\s*\[([\d\/\,\s\:]{22,24})\] ([A-Za-z]{0,20})\:?(.*)$/g;
+const DESKTOP_RGX = /^\s*\[([\d/,\s:]{22,24})\] ([A-Za-z]{0,20}):?(.*)$/g;
 
 const WEBAPP_A_RGX = /^(\w*): (.{3}-\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 const WEBAPP_B_RGX = /^(\w*): (\d{4}\/\d{1,2}\/\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 
-const IOS_RGX = /^\s*\[((?:[0-9]{1,4}(?:\/|\-|\.|\. )?){3}(?:\, | |\){0,2}))((?:上午|下午){0,1}(?:[0-9]{1,2}[:.][0-9]{2}[:.][0-9]{2}\s?(?:AM|PM)?))\] (-|.{0,2}[</[]\w+[>\]])(.+)$/;
+const IOS_RGX = /^\s*\[((?:[0-9]{1,4}(?:\/|-|\.|\. )?){3}(?:, | |\){0,2}))((?:上午|下午){0,1}(?:[0-9]{1,2}[:.][0-9]{2}[:.][0-9]{2}\s?(?:AM|PM)?))\] (-|.{0,2}[</[]\w+[>\]])(.+)$/;
 
 const ANDROID_A_RGX = /^\s*([0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}:[0-9]{3}) (.+)$/;
 const ANDROID_B_RGX = /^(?:\u200B|[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})?\s*(.*)\s*([a-zA-Z]{3}-[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})\s(.*)/;
@@ -46,17 +47,12 @@ const CHROMIUM_RGX = /^\[(\d+:\d{4}\/\d{6}\.\d{3,6}:[a-zA-Z]+:.*\(\d+\))\] (.*)$
 
 /**
  * Sort an array, but do it on a different thread
- *
- * @export
- * @param {Array<any>} data
- * @param {string} sortFn
  */
-export function sortWithWebWorker(data: Array<any>, sortFn: string): Promise<Array<LogEntry>> {
+export function sortWithWebWorker(data: Array<unknown>, sortFn: string): Promise<Array<LogEntry>> {
   return new Promise((resolve) => {
     // For test cases only
-    if (!(window as any).Worker) {
-      // tslint:disable-next-line:function-constructor
-      const sortedData = data.sort(new Function(`return ${sortFn}`)());
+    if (!window.Worker) {
+      const sortedData = data.sort(new Function(`return ${sortFn}`)()) as Array<LogEntry>;
       resolve(sortedData);
       return;
     }
@@ -214,7 +210,7 @@ export function getTypesForFiles(logFiles: UnzippedFiles): SortedUnzippedFiles {
     const logType = getTypeForFile(logFile);
 
     if (logType === LogType.UNKNOWN) {
-      debug(`File ${logFile.fileName} seems weird - we don't recognize it. Throwing it away.`);
+      d(`File ${logFile.fileName} seems weird - we don't recognize it. Throwing it away.`);
     } else if (result[logType]) {
       result[logType].push(logFile);
     }
@@ -246,25 +242,25 @@ function getShouldProcessFile(logFile: UnzippedFile): boolean {
 
 /**
  * Processes an array of unzipped logfiles.
- *
- * @param {UnzippedFiles} logFiles
- * @returns {Promise<ProcessedLogFiles>}
  */
-export function processLogFiles(
-  logFiles: UnzippedFiles,
+export async function processLogFiles(
+  files: UnzippedFiles,
   progressCb?: (status: string) => void
-): Promise<Array<ProcessedLogFile | UnzippedFile>> {
-  const promises: Array<any> = [];
+) {
+  const promises: Array<Promise<ProcessedLogFile>> = [];
+  const rawFiles: Array<UnzippedFile> = [];
 
-  logFiles.forEach((logFile) => {
+  files.forEach((logFile) => {
     if (getShouldProcessFile(logFile)) {
       promises.push(processLogFile(logFile, progressCb));
     } else {
-      promises.push(logFile);
+      rawFiles.push(logFile);
     }
   });
 
-  return Promise.all(promises);
+  const processedAndRawFiles = [...rawFiles, ...(await Promise.all(promises))];
+
+  return processedAndRawFiles;
 }
 
 /**
@@ -348,7 +344,7 @@ export function readFile(
   logType?: LogType,
   progressCb?: (status: string) => void
 ): Promise<ReadFileResult> {
-  return new Promise(async (resolve) => {
+  return new Promise((resolve) => {
     const entries: Array<LogEntry> = [];
     const readStream = fs.createReadStream(logFile.fullPath);
     const readInterface = readline.createInterface({ input: readStream, terminal: false });
@@ -394,6 +390,7 @@ export function readFile(
 
         if (previous && previous.message === entry.message && previous.meta === entry.meta) {
           entries[lastIndex].repeated = entries[lastIndex].repeated || [];
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           entries[lastIndex].repeated!.push(entry.timestamp);
 
           repeatedCounts[entry.message] = (repeatedCounts[entry.message] || 0) + 1;
@@ -700,15 +697,15 @@ export function matchLineConsole(line: string): MatchResult | undefined {
   // (cont.) Sep-24 14:40:32.318 (T34263EUF) Notification (message) suppressed because:
   // 11:50:19.372 service-worker.js:1 Jan-19 11:50:19.372 [SERVICE-WORKER] checking if asset
   // (cont.) is in an existing cache bucket: gantry-1611070538 https://a.slack-edge.com/
-  // 11:50:19.377 ​ Jan-19 11:50:19.377 [SERVICE-WORKER] checking if asset is in an existing
+  // 11:50:19.377 Jan-19 11:50:19.377 [SERVICE-WORKER] checking if asset is in an existing
   // (cont.) cache bucket: gantry-1611070538 https://a.slack-edge.com/
   //
   // CONSOLE_B_RGX:
   // edgeapi.slack.com/cache/E12KS1G65/T34263EUF/users/info:1 Failed to load resource: net::ERR_TIMED_OUT
   //
   // CONSOLE_C_RGX:
-  // 11:50:09.731 ​ Exposing workspace desktop delegate for  {
-  // 11:50:10.297 ​ [API-Q] (T34263EUF) noversion-1611085810.297 Flannel users/info is ENQUEUED
+  // 11:50:09.731 Exposing workspace desktop delegate for  {
+  // 11:50:10.297 [API-Q] (T34263EUF) noversion-1611085810.297 Flannel users/info is ENQUEUED
   // 11:50:18.322 gantry-shared.f1348ec.min.js?cacheKey=gantry-1611070538:1
   // (cont.) [API-Q] (T34263EUF) noversion-1611085818.279 Flannel users/info is RESOLVED
 
@@ -918,6 +915,7 @@ export function matchLineMobile(line: string): MatchResult | undefined {
 export function matchLineCall(line: string): MatchResult | undefined {
   // Matcher for calls
   // [YYYY/MM/DD hh:mm:ss uuu* LEVEL FILE->FUNCTION:LINE] message
+  // eslint-disable-next-line no-control-regex
   const callRegex = /(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}\.\d{3})	([A-Z]{0,10}) ([\s\S]*)$/;
   const results = callRegex.exec(line);
 
