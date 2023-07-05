@@ -16,6 +16,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { DatePicker } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
+import { IpcEvents } from '../../ipc-events';
 import { LogLevel } from '../../interfaces';
 
 export interface FilterProps {
@@ -42,11 +43,11 @@ export class Filter extends React.Component<FilterProps, object> {
   }
 
   public componentDidMount() {
-    ipcRenderer.on('find', this.focus);
+    ipcRenderer.on(IpcEvents.FIND, this.focus);
   }
 
   public componentWillUnmount() {
-    ipcRenderer.off('find', this.focus);
+    ipcRenderer.off(IpcEvents.FIND, this.focus);
   }
 
   public onSearchChange(value: string) {
