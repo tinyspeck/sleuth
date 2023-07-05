@@ -24,6 +24,7 @@ export interface LogTableProps {
   searchIndex: number;
   dateRange?: DateRange;
   selectedEntry?: LogEntry;
+  resultFunction: (results: number) => void;
 }
 
 export interface LogTableState {
