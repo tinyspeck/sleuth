@@ -15,7 +15,8 @@
     "start": "rimraf ./dist && electron-forge start",
     "test": "jest --config=jest.json --coverage --runInBand",
     "update-snapshots": "jest --config=jest.json --updateSnapshot",
-    "catapult:update": "git submodule foreach git pull origin master"
+    "catapult:update": "git submodule foreach git pull origin master",
+    "postinstall": "patch-package"
   },
   "keywords": [],
   "author": "Felix Rieseberg <felix@felixrieseberg.com>",
