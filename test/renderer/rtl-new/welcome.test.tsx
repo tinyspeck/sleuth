@@ -47,8 +47,9 @@ describe('Welcome', () => {
               age: '7 days',
             }
           ],
+          getSuggestions: jest.fn()
         };
-        render(<Welcome state={state as SleuthState} />);
+        render(<Welcome state={state as unknown as SleuthState} />);
         const list = screen.getByRole('list');
         const suggestions = within(list).getAllByRole('listitem');
         const btn = within(suggestions[0]).getByRole('button', {
