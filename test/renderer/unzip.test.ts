@@ -1,3 +1,7 @@
+/*
+* @jest-environment node
+*/
+
 import { Unzipper } from '../../src/renderer/unzip';
 import path from 'path';
 
