@@ -1,0 +1,12 @@
+diff --git a/node_modules/mobx-react/dist/inject.d.ts b/node_modules/mobx-react/dist/inject.d.ts
+index bbd4aa6..52bd36e 100644
+--- a/node_modules/mobx-react/dist/inject.d.ts
++++ b/node_modules/mobx-react/dist/inject.d.ts
+@@ -1,5 +1,6 @@
+ import { IReactComponent } from "./types/IReactComponent";
+ import { IWrappedComponent } from "./types/IWrappedComponent";
+ import { IStoresToProps } from "./types/IStoresToProps";
++import { IValueMap } from "./types/IValueMap";
+ export declare function inject(...stores: Array<string>): <T extends IReactComponent<any>>(target: T) => T & (T extends IReactComponent<infer P> ? IWrappedComponent<P> : never);
+-export declare function inject<S, P, I, C>(fn: IStoresToProps<S, P, I, C>): <T extends IReactComponent>(target: T) => T & IWrappedComponent<P>;
++export function inject<S extends IValueMap = {}, P extends IValueMap = {}, I extends IValueMap = {}, C extends IValueMap = {}>(fn: IStoresToProps<S, P, I, C>): <T extends IReactComponent>(target: T) => T & IWrappedComponent<P>;

@@ -3,7 +3,9 @@
     "\\.(js|jsx|ts|tsx)$": "ts-jest"
   },
   "testEnvironment": "jsdom",
-  "testURL": "http://localhost",
+  "testEnvironmentOptions": {
+    "url": "http://localhost"
+  },
   "testMatch": ["**/test/**/*.test.ts?(x)"],
   "bail": true,
   "resetMocks": true,
