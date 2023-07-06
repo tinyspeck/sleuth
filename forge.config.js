@@ -1,24 +1,50 @@
 /* eslint-disable */
-
-const fs = require("fs");
+//@ts-check
+const fs = require("fs-extra");
 const os = require("os");
 const path = require("path");
 
 const iconDir = path.join(__dirname, "static/img");
 const version = require("./package.json").version;
 
-if (process.env["WINDOWS_CODESIGN_FILE"]) {
-  const certPath = path.join(__dirname, "win-certificate.pfx");
-  const certExists = fs.existsSync(certPath);
+const http = require("http");
+const httpProxy = require("http-proxy");
 
-  if (certExists) {
-    process.env["WINDOWS_CODESIGN_FILE"] = certPath;
-  }
-}
+let server;
+const PORT = 37492;
 
 const options = {
   hooks: {
     generateAssets: require("./tools/generateAssets"),
+    preMake: async () => {
+      let dir = null;
+      try {
+        const timestampProxiedProxy = httpProxy.createProxyServer({});
+
+        server = http.createServer((req, res) => {
+          return timestampProxiedProxy.web(req, res, {
+            target: "http://timestamp.digicert.com",
+          });
+        });
+
+        await new Promise((resolve) => {
+          server.listen(PORT, () => {
+            resolve(null);
+          });
+          console.log(`server listening on port ${PORT}`);
+        });
+
+        dir = await fs.mkdtemp(
+          path.resolve(os.tmpdir(), "slack-builder-folder-")
+        );
+      } finally {
+        if (dir) await fs.remove(dir);
+      }
+    },
+    postMake: async () => {
+      server.close();
+      console.log(`server closing`);
+    },
   },
   packagerConfig: {
     name: "Sleuth",
@@ -54,15 +80,8 @@ const options = {
       name: "@electron-forge/maker-squirrel",
       platforms: ["win32"],
       config: (arch) => {
-        let sleuthCert = undefined;
-        if (process.env.WINDOWS_CODESIGN_CERT_B64) {
-          const codeSignCert = Buffer.from(
-            process.env.WINDOWS_CODESIGN_CERT_B64,
-            "base64"
-          );
-          sleuthCert = path.resolve(os.tmpdir(), "sleuth-sign.pfx");
-          fs.writeFileSync(sleuthCert, codeSignCert);
-        }
+        const certThumbPrint = process.env.CERT_THUMBPRINT;
+        const intermediateCert = path.resolve(__dirname, 'tools', 'certs', 'DigiCertCA2.cer');
 
         return {
           name: "sleuth",
@@ -71,8 +90,7 @@ const options = {
           noMsi: true,
           setupExe: `sleuth-${version}-${arch}-setup.exe`,
           setupIcon: path.resolve(iconDir, "sleuth-icon.ico"),
-          certificateFile: sleuthCert,
-          certificatePassword: process.env.WINDOWS_CODESIGN_PASSWORD,
+          signWithParams: `/v /debug /a /sm /fd sha256 /sha1 ${certThumbPrint} /tr http://localhost:${PORT} /td sha256 /ac ${intermediateCert}`,
         };
       },
     },
