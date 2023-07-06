@@ -42,10 +42,11 @@ commands:
           paths:
             - node_modules
           key: v1-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
-  erick:
+  load_cloudhsm:
     steps:
       - run:
-          name: Load environment
+          # This is a necessary hack to persist environment variables across multiple CircleCI steps
+          name: Load CloudHSM environment variables
           command: |
               New-Item $Profile.CurrentUserAllHosts -Force
               Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:CERT_THUMBPRINT = Get-Childitem -path cert:\LocalMachine\my | select-object -expandproperty thumbprint'
@@ -99,7 +100,7 @@ jobs:
     resource_class: tinyspeck/aws-windows-runner
     shell: powershell.exe -ExecutionPolicy Bypass
     steps:
-      - erick
+      - load_cloudhsm
       - build_sleuth
   build-ubuntu:
     executor: ubuntu
