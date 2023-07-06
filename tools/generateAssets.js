@@ -9,7 +9,7 @@ const { copyDevtoolsFrontend } = require('./copy-devtools-frontend');
 const windowSdkLocation = `C:\\Program Files (x86)\\Windows Kits\\10\\bin\\${
   process.arch === 'ia32' ? 'x86' : 'x64'
 }`;
-export const signTool = path.join(windowSdkLocation, 'signtool.exe');
+const signTool = path.join(windowSdkLocation, 'signtool.exe');
 
 module.exports = async () => {
   await Promise.all([ compileParcel({ production: true }), copyCatapult(), copyDevtoolsFrontend()]);
