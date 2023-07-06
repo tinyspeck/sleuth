@@ -40,15 +40,6 @@ import { RendererDescription } from '../processor/trace';
 
 const d = debug('sleuth:state');
 
-export const defaults: Partial<Record<keyof SleuthState, unknown>> = {
-  dateTimeFormat_v3: 'HH:mm:ss (dd/MM)',
-  defaultEditor: 'code --goto {filepath}:{line}',
-  font: process.platform === 'darwin' ? 'San Francisco' : 'Segoe UI',
-  isDarkMode: true,
-  isOpenMostRecent: false,
-  isSmartCopy: true
-};
-
 export class SleuthState {
   // ** Log file selection **
   // The selected log entry (single log message plus meta data)
@@ -396,8 +387,14 @@ export class SleuthState {
   ): T | string | null {
     const localStorageValue: string | null = localStorage.getItem(key);
 
-    if (options?.parse && options.fallback === undefined) {
-      return JSON.parse(localStorageValue || 'null') as T | null;
+    if (options?.parse) {
+      const parsed = JSON.parse(localStorageValue || 'null') as T | null;
+
+      if (parsed === null && options.fallback !== undefined) {
+        return options.fallback;
+      } else {
+        return parsed;
+      }
     }
 
     if (localStorageValue === null && options?.fallback !== undefined) {
