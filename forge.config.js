@@ -81,6 +81,7 @@ const options = {
       platforms: ["win32"],
       config: (arch) => {
         const certThumbPrint = process.env.CERT_THUMBPRINT;
+        const intermediateCert = path.resolve(__dirname, 'tools', 'certs', 'DigiCertCA2.cer');
 
         return {
           name: "sleuth",
@@ -89,7 +90,7 @@ const options = {
           noMsi: true,
           setupExe: `sleuth-${version}-${arch}-setup.exe`,
           setupIcon: path.resolve(iconDir, "sleuth-icon.ico"),
-          signWithParams: `/v /debug /a /sm /fd sha256 /sha1 ${certThumbPrint} /tr http://localhost:${PORT} /td sha256`,
+          signWithParams: `/v /debug /a /sm /fd sha256 /sha1 ${certThumbPrint} /tr http://localhost:${PORT} /td sha256 /ac ${intermediateCert}`,
         };
       },
     },
