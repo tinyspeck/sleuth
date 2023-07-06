@@ -17,7 +17,6 @@ const options = {
   hooks: {
     generateAssets: require("./tools/generateAssets"),
     preMake: async () => {
-      let server = null;
       let dir = null;
       try {
         const timestampProxiedProxy = httpProxy.createProxyServer({});
