@@ -120,6 +120,7 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
                     <a key="list-delete" onClick={deleteItem}><DeleteOutlined style={{ marginRight: 8 }} />Delete</a>
                   ]}
                   onClick={openItem}
+                  style={{ padding: 12 }}
                 >
                   <List.Item.Meta
                     avatar={this.platformIcon(item.platform)}
