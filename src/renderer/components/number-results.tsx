@@ -6,11 +6,7 @@ export interface NumberResultsProps {
 
 export default function NumberResults(props: NumberResultsProps){
 	const conversion = (numberToConvert: number): string => {
-		if(numberToConvert){
-			return numberToConvert.toLocaleString();
-		}else{
-			return '0'
-		}
+		return numberToConvert.toLocaleString();
 	}
 
 	return (

@@ -21,12 +21,12 @@ export interface LogContentProps {
 }
 
 export interface LogContentState {
-  tableHeight: number;
+  tableHeight?: number;
   numberResults: number;
 }
 
 @observer
-export class LogContent extends React.Component<LogContentProps, Partial<LogContentState>> {
+export class LogContent extends React.Component<LogContentProps, LogContentState> {
   constructor(props: LogContentProps) {
     super(props);
 
