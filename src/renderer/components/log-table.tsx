@@ -574,7 +574,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     const { sortedList, selectedIndex, searchList, ignoreSearchIndex, scrollToSelection } = this.state;
     const { searchIndex, resultFunction } = this.props;
 
-    if(sortedList){
+    if(Array.isArray(sortedList)){
       resultFunction(sortedList.length)
     }
 
