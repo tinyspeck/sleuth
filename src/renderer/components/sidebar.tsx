@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { ITreeNode, Tree, Icon, Position, Tooltip, Intent } from '@blueprintjs/core';
 import { observer } from 'mobx-react';
 
-import { MergedFilesLoadStatus, ProcessedLogFile, SelectableLogType, Tool, UnzippedFile } from '../../interfaces';
+import { LogType, MergedFilesLoadStatus, ProcessedLogFile, SelectableLogType, Tool, UnzippedFile } from '../../interfaces';
 import { levelsHave } from '../../utils/level-counts';
 import { SleuthState } from '../state/sleuth';
 import { isProcessedLogFile } from '../../utils/is-logfile';
@@ -56,7 +56,7 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     hasCaret: false,
     label: 'All Desktop Logs',
     icon: 'compressed',
-    nodeData: { type: 'all' }
+    nodeData: { type: LogType.ALL }
   }, {
     id: NODE_ID.BROWSER,
     hasCaret: true,
@@ -64,7 +64,7 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     label: 'Browser Process',
     isExpanded: true,
     childNodes: [],
-    nodeData: { type: 'browser' }
+    nodeData: { type: LogType.BROWSER }
   }, {
     id: NODE_ID.TRACE,
     hasCaret: true,
@@ -72,7 +72,7 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     label: 'Trace',
     isExpanded: true,
     childNodes: [],
-    nodeData: { type: 'trace' }
+    nodeData: { type: LogType.TRACE }
   }, {
     id: NODE_ID.CHROMIUM,
     hasCaret: true,
@@ -86,7 +86,7 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     label: 'Renderer Process',
     isExpanded: true,
     childNodes: [],
-    nodeData: { type: 'renderer' }
+    nodeData: { type: LogType.RENDERER }
   }, {
     id: NODE_ID.PRELOAD,
     hasCaret: true,
@@ -94,7 +94,7 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     label: 'BrowserView Process',
     isExpanded: true,
     childNodes: [],
-    nodeData: { type: 'preload' },
+    nodeData: { type: LogType.PRELOAD },
   }, {
     id: NODE_ID.WEBAPP,
     hasCaret: true,
@@ -102,7 +102,7 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     label: 'WebApp',
     isExpanded: true,
     childNodes: [],
-    nodeData: { type: 'webapp' }
+    nodeData: { type: LogType.WEBAPP }
   }, {
     id: NODE_ID.CALLS,
     hasCaret: true,

@@ -311,10 +311,10 @@ export class SleuthState {
       d(`Selecting log file ${name}`);
 
       this.selectedLogFile = logFile;
-    } else if (logType && logType in LogType && this.mergedLogFiles) {
+    } else if (logType && Object.values(LogType).includes(logType as LogType) && this.mergedLogFiles) {
       d(`Selecting log type ${logType}`);
-      this.mergedLogFiles[logType as KnownLogType];
-    } else if (logType && logType in Tool) {
+      this.selectedLogFile = this.mergedLogFiles[logType as KnownLogType];
+    } else if (logType && Object.values(Tool).includes(logType as Tool)) {
       this.selectedLogFile = (logType as Tool);
     }
   }
