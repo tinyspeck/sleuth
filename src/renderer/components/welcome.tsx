@@ -2,7 +2,7 @@ import React from 'react';
 import path from 'path';
 
 import { Button, List, Result, Spin, Typography } from 'antd';
-import { WindowsOutlined, AppleOutlined, QqOutlined, SlackOutlined, DeleteOutlined } from '@ant-design/icons';
+import { WindowsOutlined, AppleOutlined, QqOutlined, SlackOutlined, DeleteOutlined, AndroidOutlined, MobileOutlined } from '@ant-design/icons';
 import { observer } from 'mobx-react';
 
 import { getSleuth } from '../sleuth';
@@ -45,12 +45,17 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
   }
 
   private logFileDescription(item: Suggestion) {
+    let appVersionToUse = item.appVersion;
+    if (item.platform === 'android') {
+      appVersionToUse = appVersionToUse.split('.', 3).join('.');
+    }
+
     if (item.platform !== 'unknown') {
-      return `${this.prettyPlatform(item.platform)} logs from Slack@${item.appVersion}, ${item.age} old`;
+      return `${this.prettyPlatform(item.platform)} logs from Slack@${appVersionToUse}, ${item.age} old`;
     }
 
     if (item.appVersion !== '0.0.0') {
-      return `Logs from Slack@${item.appVersion} on an unknown platform, ${item.age} old`;
+      return `Logs from Slack@${appVersionToUse} on an unknown platform, ${item.age} old`;
     }
 
     return `Unknown logs, ${item.age} old`;
@@ -64,6 +69,10 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
         return 'macOS';
       case 'linux':
         return 'Linux';
+      case 'ios':
+        return 'iOS';
+      case 'android':
+        return 'Android';
       default:
         return 'Unknown';
     }
@@ -77,6 +86,10 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
         return <AppleOutlined style={iconStyle} />;
       case 'linux':
         return <QqOutlined style={iconStyle} />;
+      case 'ios':
+        return <MobileOutlined style={iconStyle} />;
+      case 'android':
+        return <AndroidOutlined style={iconStyle} />;
       default:
         return <SlackOutlined style={iconStyle} />;
     }
@@ -91,20 +104,31 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
           <List
             itemLayout="horizontal"
             dataSource={this.props.state.suggestions || []}
-            renderItem={(item) => (
-              <List.Item
-                actions={[
-                  // <a key="list-loadmore-edit">edit</a>,
-                  <a key="list-loadmore-more"><DeleteOutlined style={{ marginRight: 8 }} />Delete</a>
-                ]}
-              >
-                <List.Item.Meta
-                  avatar={this.platformIcon(item.platform)}
-                  title={<a href="#" onClick={(e) => { e.preventDefault(); openFile(item.filePath); }}>{path.basename(item.filePath)}</a>}
-                  description={this.logFileDescription(item)}
-                />
-              </List.Item>
-            )}
+            renderItem={(item) => {
+              const openItem = (e) => {
+                e.preventDefault();
+                openFile(item.filePath);
+              };
+              const deleteItem = (e) => {
+                e.stopPropagation();
+                this.deleteSuggestion(item.filePath);
+              };
+
+              return (
+                <List.Item
+                  actions={[
+                    <a key="list-delete" onClick={deleteItem}><DeleteOutlined style={{ marginRight: 8 }} />Delete</a>
+                  ]}
+                  onClick={openItem}
+                >
+                  <List.Item.Meta
+                    avatar={this.platformIcon(item.platform)}
+                    title={<a href="#" onClick={openItem}>{path.basename(item.filePath)}</a>}
+                    description={this.logFileDescription(item)}
+                  />
+                </List.Item>
+              )}
+            }
           />
           {this.renderDeleteAll()}
         </div>
@@ -167,12 +191,14 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
 
         {
           suggestions ? (
-            <div style={scrollStyle}>
+            <>
               <Typography.Title level={5}>From your Downloads folder, may we suggest:</Typography.Title>
-              <div style={{ textAlign: 'initial' }}>
-                {suggestions}
+              <div style={scrollStyle}>
+                <div style={{ textAlign: 'initial' }}>
+                  {suggestions}
+                </div>
               </div>
-            </div>
+            </>
           ) : this.props.state.suggestionsLoaded ? (
             <Result
               subTitle="You have no logs in your Downloads folder"

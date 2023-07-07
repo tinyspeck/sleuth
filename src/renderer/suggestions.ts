@@ -100,7 +100,26 @@ function streamToString (zip: ZipFile, entry: Entry): Promise<string> {
 
 async function getSuggestionInfo(path: string) {
   if (!path.endsWith('.zip')) {
-    // TODO: Guess android vs iOS from filePath
+    const logContent = await fs.readFile(path, 'utf8');
+    const firstFewLines = logContent.split('\n', 5);
+    const appVersion = firstFewLines.find(line => line.startsWith('App Version:'))?.substring(13)?.trim() || '0.0.0',;
+
+    if (firstFewLines.some(line => line.startsWith('Agent:'))) {
+      // Android Log
+      return {
+        platform: 'android',
+        appVersion,
+        instanceUuid: '',
+      }
+    } else if (firstFewLines.some(line => line.startsWith('OS Version:'))) {
+      // iOS Log
+      return {
+        platform: 'ios',
+        appVersion,
+        instanceUuid: '',
+      }
+    }
+
     return {
       platform: 'unknown',
       appVersion: '0.0.0',
@@ -165,12 +184,15 @@ async function getSuggestions(input: Array<string>): Promise<Array<Suggestion>> 
     const androidLogsFormat = /attachment?.{0,5}.txt/;
     const chromeLogsFormat = /app\.slack\.com-\d{13,}\.log/;
     const firefoxLogsFormat = /console(-export)?[\d\-_]{0,22}\.(txt|log)/;
+
+    const isIosLog = iosLogsFormat.test(file);
+    const isAndroidLog = androidLogsFormat.test(file)
+    const isWebLog = chromeLogsFormat.test(file) || firefoxLogsFormat.test(file);
     const shouldAdd = logsFormat.test(file)
     || serverFormat.test(file)
-    || iosLogsFormat.test(file)
-    || chromeLogsFormat.test(file)
-    || firefoxLogsFormat.test(file)
-    || androidLogsFormat.test(file);
+    || isIosLog
+    || isWebLog
+    || isAndroidLog;
 
     if (shouldAdd) {
       try {
@@ -181,7 +203,13 @@ async function getSuggestions(input: Array<string>): Promise<Array<Suggestion>> 
           filePath: file,
           ...stats,
           age,
-          ...await getSuggestionInfo(file),
+          ...(isWebLog ? (
+            {
+              platform: 'web',
+              appVersion: '0.0.0',
+              instanceUuid: '',
+            }
+          ) : await getSuggestionInfo(file)),
         });
       } catch (error) {
         d(`Tried to add ${file}, but failed: ${error}`);
