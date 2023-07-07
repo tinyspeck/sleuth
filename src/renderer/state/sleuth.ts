@@ -79,6 +79,7 @@ export class SleuthState {
 
   // ** Various "what are we showing" properties **
   @observable public suggestions: Array<Suggestion> = [];
+  @observable public suggestionsLoaded = false;
   @observable public webAppLogsWarningDismissed = false;
   @observable public opened = 0;
   @observable public dateRange: DateRange = { from: null, to: null };
@@ -239,6 +240,7 @@ export class SleuthState {
   @action
   public async getSuggestions() {
     this.suggestions = await getItemsInSuggestionFolders();
+    this.suggestionsLoaded = true;
 
     // This is a side effect. There's probably a better
     // place for it, since we only want to run it once,

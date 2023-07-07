@@ -61,6 +61,7 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
+    "@ant-design/icons": "^5.1.4",
     "@electron-forge/cli": "6.0.0-beta.54",
     "@electron-forge/maker-deb": "6.0.0-beta.54",
     "@electron-forge/maker-rpm": "6.0.0-beta.54",
