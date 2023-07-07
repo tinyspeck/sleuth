@@ -1,7 +1,7 @@
 import React from 'react';
 import path from 'path';
 
-import { Button, List, Result, Spin, Typography } from 'antd';
+import { Button, List, Result, Spin, Tooltip, Typography } from 'antd';
 import { WindowsOutlined, AppleOutlined, QqOutlined, SlackOutlined, DeleteOutlined, AndroidOutlined, MobileOutlined } from '@ant-design/icons';
 import { observer } from 'mobx-react';
 
@@ -44,18 +44,29 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
     await this.props.state.getSuggestions();
   }
 
-  private logFileDescription(item: Suggestion) {
+  private logFileDescription(item: Suggestion): React.ReactNode {
     let appVersionToUse = item.appVersion;
     if (item.platform === 'android') {
       appVersionToUse = appVersionToUse.split('.', 3).join('.');
     }
 
+    let appVersionElem = <>Slack@{appVersionToUse}</>;
+    if (appVersionToUse !== item.appVersion) {
+      appVersionElem = (
+        <Tooltip title={`Slack@${item.appVersion}`}>
+          <span style={{ textDecoration: 'underline', textDecorationStyle: 'dotted' }}>
+            {appVersionElem}
+          </span>
+        </Tooltip>
+      );
+    }
+
     if (item.platform !== 'unknown') {
-      return `${this.prettyPlatform(item.platform)} logs from Slack@${appVersionToUse}, ${item.age} old`;
+      return <>{this.prettyPlatform(item.platform)} logs from {appVersionElem}, {item.age} old</>
     }
 
     if (item.appVersion !== '0.0.0') {
-      return `Logs from Slack@${appVersionToUse} on an unknown platform, ${item.age} old`;
+      return <>Logs from {appVersionElem} on an unknown platform, {item.age} old</>;
     }
 
     return `Unknown logs, ${item.age} old`;
@@ -105,11 +116,11 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
             itemLayout="horizontal"
             dataSource={this.props.state.suggestions || []}
             renderItem={(item) => {
-              const openItem = (e) => {
+              const openItem = (e: React.MouseEvent) => {
                 e.preventDefault();
                 openFile(item.filePath);
               };
-              const deleteItem = (e) => {
+              const deleteItem = (e: React.MouseEvent) => {
                 e.stopPropagation();
                 this.deleteSuggestion(item.filePath);
               };

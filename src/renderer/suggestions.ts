@@ -102,7 +102,7 @@ async function getSuggestionInfo(path: string) {
   if (!path.endsWith('.zip')) {
     const logContent = await fs.readFile(path, 'utf8');
     const firstFewLines = logContent.split('\n', 5);
-    const appVersion = firstFewLines.find(line => line.startsWith('App Version:'))?.substring(13)?.trim() || '0.0.0',;
+    const appVersion = firstFewLines.find(line => line.startsWith('App Version:'))?.substring(13)?.trim() || '0.0.0';
 
     if (firstFewLines.some(line => line.startsWith('Agent:'))) {
       // Android Log
