@@ -27,7 +27,6 @@ export interface LogContentState {
 
 @observer
 export class LogContent extends React.Component<LogContentProps, Partial<LogContentState>> {
-
   constructor(props: LogContentProps) {
     super(props);
 

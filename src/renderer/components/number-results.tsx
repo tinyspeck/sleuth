@@ -1,11 +1,11 @@
 import React from "react"
 
 export interface NumberResultsProps {
-	numberOfResults: number | undefined;
+	numberOfResults: number;
 }
 
 export default function NumberResults(props: NumberResultsProps){
-	const conversion = (numberToConvert: number | undefined): string => {
+	const conversion = (numberToConvert: number): string => {
 		if(numberToConvert){
 			return numberToConvert.toLocaleString();
 		}else{
