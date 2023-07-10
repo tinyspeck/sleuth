@@ -62,7 +62,7 @@ export function getBookmark(state: SleuthState): Bookmark | undefined {
  */
 export function toggleBookmark(
   state: SleuthState,
-  bookmark: Bookmark | undefined = getBookmark(state)
+  bookmark: Bookmark | undefined = getBookmark(state),
 ): void {
   if (getIsBookmark(state, bookmark)) {
     deleteBookmark(state, bookmark);
@@ -78,7 +78,7 @@ export function toggleBookmark(
  */
 export function saveBookmark(
   state: SleuthState,
-  bookmark: Bookmark | undefined = getBookmark(state)
+  bookmark: Bookmark | undefined = getBookmark(state),
 ): void {
   const hasBookmark = getIsBookmark(state, bookmark);
 
@@ -91,7 +91,7 @@ export function saveBookmark(
     () => {
       saveBookmarks(state);
     },
-    { timeout: 2000 }
+    { timeout: 2000 },
   );
 }
 
@@ -103,7 +103,7 @@ export function saveBookmark(
  */
 export function deleteBookmark(
   state: SleuthState,
-  bookmark: Bookmark | undefined = getBookmark(state)
+  bookmark: Bookmark | undefined = getBookmark(state),
 ): void {
   const index = getBookmarkIndex(state, bookmark);
 
@@ -130,7 +130,7 @@ export function deleteAllBookmarks(state: SleuthState) {
  */
 export function getIsBookmark(
   state: SleuthState,
-  bookmark: Bookmark | undefined = getBookmark(state)
+  bookmark: Bookmark | undefined = getBookmark(state),
 ): boolean {
   return getBookmarkIndex(state, bookmark) > -1;
 }
@@ -144,7 +144,7 @@ export function getIsBookmark(
  */
 export function getBookmarkIndex(
   state: SleuthState,
-  bookmark: Bookmark | undefined = getBookmark(state)
+  bookmark: Bookmark | undefined = getBookmark(state),
 ): number {
   if (!bookmark) return -1;
 
@@ -186,14 +186,14 @@ export function rehydrateBookmarks(state: SleuthState) {
 
   if (!serializedBookmarks) {
     console.warn(
-      `Tried to rehydrate bookmarks, but no "serializedBookmarks" available`
+      `Tried to rehydrate bookmarks, but no "serializedBookmarks" available`,
     );
     return;
   }
 
   if (Object.keys(serializedBookmarks).length === 0) {
     console.log(
-      `Tried to rehydrate bookmarks, but "serializedBookmarks" is empty`
+      `Tried to rehydrate bookmarks, but "serializedBookmarks" is empty`,
     );
     return;
   }
@@ -220,7 +220,7 @@ export function serializeBookmark(bookmark: Bookmark): SerializedBookmark {
 
 export function deserializeBookmark(
   state: SleuthState,
-  serialized: SerializedBookmark
+  serialized: SerializedBookmark,
 ): Bookmark | undefined {
   let logFile: LogFile | undefined;
   let logEntry: LogEntry | undefined;
@@ -233,7 +233,7 @@ export function deserializeBookmark(
     Object.keys(processedLogFiles).some((key: keyof ProcessedLogFiles) => {
       const files = processedLogFiles[key];
       const foundFile = (files as Array<ProcessedLogFile>).find(
-        (file: ProcessedLogFile) => file.id === serialized.logFile.id
+        (file: ProcessedLogFile) => file.id === serialized.logFile.id,
       );
 
       if (foundFile) {
@@ -292,7 +292,7 @@ export const CompressedLogTypes = {
  * @returns {CompressedBookmark}
  */
 export function compressBookmark(
-  input: SerializedBookmark
+  input: SerializedBookmark,
 ): CompressedBookmark {
   return [
     input.logEntry.line,
@@ -309,12 +309,12 @@ export function compressBookmark(
  * @returns {SerializedBookmark}
  */
 export function decompressBookmark(
-  input: CompressedBookmark
+  input: CompressedBookmark,
 ): SerializedBookmark {
   const logFileType = Object.keys(CompressedLogTypes).find(
     (key: keyof typeof CompressedLogTypes) => {
       return input[3] === CompressedLogTypes[key];
-    }
+    },
   ) as 'MergedLogFile' | 'ProcessedLogFile';
 
   return {
@@ -376,7 +376,7 @@ export async function importBookmarks(state: SleuthState, input: string) {
 
     if (deserialized.length === 0) {
       throw new Error(
-        'We could parse the data, but we could not find any matching bookmarks.'
+        'We could parse the data, but we could not find any matching bookmarks.',
       );
     }
 
@@ -386,7 +386,7 @@ export async function importBookmarks(state: SleuthState, input: string) {
       title: 'Import bookmarks?',
       message: `We're ready to import ${deserialized.length} ${plural(
         'bookmark',
-        deserialized.length
+        deserialized.length,
       )}.`,
       buttons: ['Merge with my bookmarks', 'Replace my bookmarks', 'Cancel'],
       defaultId: 0,
@@ -400,7 +400,7 @@ export async function importBookmarks(state: SleuthState, input: string) {
     }
   } catch (error) {
     alert(
-      `We tried to parse the bookmark data, but failed. The error was: ${error}`
+      `We tried to parse the bookmark data, but failed. The error was: ${error}`,
     );
   }
 }

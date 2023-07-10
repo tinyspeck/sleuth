@@ -140,7 +140,7 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
           label: 'Slack Channel',
           click() {
             shell.openExternal(
-              'https://slack-pde.slack.com/archives/C8EH27UDT'
+              'https://slack-pde.slack.com/archives/C8EH27UDT',
             );
           },
         },
@@ -236,7 +236,7 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
       {
         label: 'File',
         submenu: newAndOpenItems,
-      }
+      },
     );
   } else {
     const windowsLinuxSubmenu: Array<Electron.MenuItemConstructorOptions> = [

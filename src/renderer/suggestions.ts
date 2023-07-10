@@ -20,7 +20,7 @@ export async function getItemsInSuggestionFolders(): Promise<
     try {
       const downloadsDir = await getPath('downloads');
       const downloads = (await fs.readdir(downloadsDir)).map((file) =>
-        path.join(downloadsDir, file)
+        path.join(downloadsDir, file),
       );
       suggestionsArr.push(...(await getSuggestions(downloads)));
     } catch (e) {
@@ -30,7 +30,7 @@ export async function getItemsInSuggestionFolders(): Promise<
     try {
       const desktopDir = await getPath('desktop');
       const desktop = (await fs.readdir(desktopDir)).map((file) =>
-        path.join(desktopDir, file)
+        path.join(desktopDir, file),
       );
       suggestionsArr.push(...(await getSuggestions(desktop)));
     } catch (e) {
@@ -92,7 +92,7 @@ export async function deleteSuggestions(filePaths: Array<string>) {
  * @returns {Promise<StringMap<Suggestion>>}
  */
 async function getSuggestions(
-  input: Array<string>
+  input: Array<string>,
 ): Promise<Array<Suggestion>> {
   const suggestions: Array<Suggestion> = [];
 

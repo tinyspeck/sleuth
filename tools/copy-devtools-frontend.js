@@ -5,7 +5,7 @@ module.exports = {
   async copyDevtoolsFrontend() {
     const basePath = path.join(
       __dirname,
-      '../node_modules/devtools-frontend-prebuilt/front_end'
+      '../node_modules/devtools-frontend-prebuilt/front_end',
     );
     const hasSubmodules = fs.existsSync(basePath);
     const isCI = process.env.CI;

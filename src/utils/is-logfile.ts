@@ -7,7 +7,7 @@ import {
 } from '../interfaces';
 
 export function isProcessedLogFile(
-  file?: SelectableLogFile
+  file?: SelectableLogFile,
 ): file is ProcessedLogFile {
   if (file && (file as ProcessedLogFile).type) {
     return (
@@ -20,7 +20,7 @@ export function isProcessedLogFile(
 }
 
 export function isMergedLogFile(
-  file?: SelectableLogFile
+  file?: SelectableLogFile,
 ): file is MergedLogFile {
   if (file && (file as MergedLogFile).type) {
     return (
@@ -48,7 +48,7 @@ export function isTool(file?: SelectableLogFile): file is Tool {
 }
 
 export function isLogFile(
-  file?: SelectableLogFile
+  file?: SelectableLogFile,
 ): file is MergedLogFile | ProcessedLogFile {
   return !!(isProcessedLogFile(file) || isMergedLogFile(file));
 }

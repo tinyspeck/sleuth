@@ -93,7 +93,7 @@ export class IpcManager {
       try {
         const doubleClickAction = systemPreferences.getUserDefault(
           'AppleActionOnDoubleClick',
-          'string'
+          'string',
         );
         const win = BrowserWindow.fromWebContents(event.sender);
         if (win) {
@@ -118,7 +118,7 @@ export class IpcManager {
       IpcEvents.MESSAGE_BOX,
       async (_event, options: Electron.MessageBoxOptions) => {
         return dialog.showMessageBox(options);
-      }
+      },
     );
   }
 
@@ -152,10 +152,10 @@ export class IpcManager {
 
   private setupSettings() {
     ipcMain.handle(IpcEvents.SET_SETTINGS, (_event, key: string, value: any) =>
-      settingsFileManager.setItem(key, value)
+      settingsFileManager.setItem(key, value),
     );
     ipcMain.handle(IpcEvents.CHANGE_ICON, (_event, iconName: ICON_NAMES) =>
-      changeIcon(iconName)
+      changeIcon(iconName),
     );
   }
 
@@ -190,7 +190,7 @@ export class IpcManager {
           defaultPath: path.join(app.getPath('downloads'), filename),
           properties: ['createDirectory'],
         });
-      }
+      },
     );
   }
 

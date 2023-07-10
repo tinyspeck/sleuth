@@ -781,7 +781,7 @@ export function removeUnneccessaryRegions(input: Array<Language>) {
         ...languageNames[bucket].map((lang) => {
           lang.label = lang.nativeName;
           return lang;
-        })
+        }),
       );
     }
   });
@@ -801,7 +801,7 @@ export function removeUnneccessaryRegions(input: Array<Language>) {
  */
 export function getLanguageNames(
   key: string,
-  options: GetLanguageNamesOptions = { includeEnglishNames: true }
+  options: GetLanguageNamesOptions = { includeEnglishNames: true },
 ) {
   const { includeEnglishNames } = options;
 
@@ -840,7 +840,7 @@ export function getLanguageNames(
 function getLabel(
   lang: Iso639Language,
   includeEnglishNames = true,
-  sub?: string
+  sub?: string,
 ): string {
   if (lang.name === lang.nativeName) {
     if (sub) {

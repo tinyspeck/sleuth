@@ -83,11 +83,11 @@ export class DevtoolsView extends React.Component<
     const isLoading = !rendererThreads;
     const startTime = parseInt(
       this.props.file.fileName.split('.')[0]?.split('_')[4] || '0',
-      10
+      10,
     );
     const endTime = parseInt(
       this.props.file.fileName.split('.')[0]?.split('_')[0] || '0',
-      10
+      10,
     );
     const duration = endTime - startTime;
 
@@ -162,7 +162,7 @@ export class DevtoolsView extends React.Component<
           instruction: 'load',
           payload: { events },
         },
-        'oop://oop/static/devtools-frontend.html'
+        'oop://oop/static/devtools-frontend.html',
       );
     }
 
@@ -191,7 +191,7 @@ export class DevtoolsView extends React.Component<
             instruction: 'dark-mode',
             payload: enabled,
           },
-          'oop://oop/static/devtools-frontend.html'
+          'oop://oop/static/devtools-frontend.html',
         );
       }
     } catch (error) {

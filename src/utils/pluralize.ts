@@ -1,7 +1,7 @@
 export function plural(
   text: string,
   input: Array<unknown> | number,
-  pluralText?: string
+  pluralText?: string,
 ): string {
   let pluralize = false;
 

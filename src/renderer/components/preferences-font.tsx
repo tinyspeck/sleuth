@@ -358,7 +358,7 @@ export const FONTS =
 
 export const renderFontItem: ItemRenderer<string> = (
   font,
-  { handleClick, modifiers }
+  { handleClick, modifiers },
 ) => {
   if (!modifiers.matchesPredicate) {
     return null;

@@ -46,7 +46,7 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, object> {
       // Ensure at least 3 lines
       if (!splitRaw || splitRaw.length < 3) {
         throw new Error(
-          'Split lines, but less than 3 - no way this is a table'
+          'Split lines, but less than 3 - no way this is a table',
         );
       }
 
@@ -62,7 +62,7 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, object> {
       const tableRows = splitRaw.map((line, i) => {
         const columns = line.split('|').map((v) => (v || '').trim());
         const elements = columns.map((c) =>
-          i === 0 ? <th key={c}>{c}</th> : <td key={c}>{c}</td>
+          i === 0 ? <th key={c}>{c}</th> : <td key={c}>{c}</td>,
         );
         return <tr key={`${i}-${line}`}>{elements}</tr>;
       });

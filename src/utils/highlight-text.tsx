@@ -14,7 +14,7 @@ import React from 'react';
  */
 export function highlightText(
   text: string,
-  query: string
+  query: string,
 ): Array<React.ReactNode | string> | null {
   let lastIndex = 0;
 

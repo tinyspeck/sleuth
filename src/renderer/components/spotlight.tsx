@@ -26,7 +26,7 @@ const SleuthOmnibar = Omnibar.ofType<SpotlightItem>();
 
 export const renderItem: ItemRenderer<SpotlightItem> = (
   { text, label, icon },
-  { handleClick, modifiers, query }
+  { handleClick, modifiers, query },
 ) => {
   if (!modifiers.matchesPredicate) {
     return null;
@@ -106,7 +106,7 @@ export class Spotlight extends React.Component<
         click: () => {
           this.props.state.openFile(filePath);
         },
-      })
+      }),
     );
 
     const logFileSuggestions: Array<SpotlightItem> = [];

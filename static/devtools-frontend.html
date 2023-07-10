@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -24,7 +24,7 @@
     <script>
       async function getTimelinePanel() {
         const module = await import(
-          "../devtools-frontend/panels/timeline/TimelinePanel.js"
+          '../devtools-frontend/panels/timeline/TimelinePanel.js'
         );
         return module.TimelinePanel.instance();
       }
@@ -32,11 +32,11 @@
       function registerLoadCompleted() {
         // Use the legacy "loadCompleted" callback to hide navigation
         window.InspectorFrontendHost.loadCompleted = () => {
-          const main = document.querySelector(".main-tabbed-pane");
+          const main = document.querySelector('.main-tabbed-pane');
           if (main && main.shadowRoot) {
-            const header = main.shadowRoot.querySelector(".tabbed-pane-header");
+            const header = main.shadowRoot.querySelector('.tabbed-pane-header');
             if (header) {
-              header.style.display = "none";
+              header.style.display = 'none';
             }
           }
         };
@@ -45,7 +45,7 @@
       async function load(payload) {
         try {
           console.log(`Attempting to load`, payload);
-          document.body.classList.add("ready");
+          document.body.classList.add('ready');
           const TimelinePanel = await getTimelinePanel();
           const { events } = payload;
           TimelinePanel.loadFromEvents(events);
@@ -59,26 +59,26 @@
         console.log(`Setting dark mode to`, isDarkMode);
         const html = document.documentElement;
         if (isDarkMode) {
-            html.classList.add("-theme-with-dark-background");
-          } else {
-            html.classList.remove("-theme-with-dark-background");
-          }
+          html.classList.add('-theme-with-dark-background');
+        } else {
+          html.classList.remove('-theme-with-dark-background');
+        }
       }
 
       // Since we're on a file:// protocol, we can't just
       // call window.myMethod() from Sleuth and have to send
       // it as a cross-origin message. This will help.
-      window.addEventListener("message", async ({ data }) => {
+      window.addEventListener('message', async ({ data }) => {
         if (!data) return;
         const { instruction, payload } = data;
-        if (instruction === "load") {
+        if (instruction === 'load') {
           return await load(payload);
-        } else if (instruction === "dark-mode") {
+        } else if (instruction === 'dark-mode') {
           setDarkMode(!!payload);
         }
       });
 
-      document.addEventListener("DOMContentLoaded", registerLoadCompleted);
+      document.addEventListener('DOMContentLoaded', registerLoadCompleted);
     </script>
   </head>
   <body class="undocked" id="-blink-dev-tools"></body>

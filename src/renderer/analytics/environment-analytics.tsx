@@ -8,7 +8,7 @@ export function getEnvInfo(data: any): Array<JSX.Element> {
     <p>
       📋 This user is running Slack <span>{getVersionInfo(data)}</span> on{' '}
       {getOSInfo(data)}
-    </p>
+    </p>,
   );
   result.push(<p>📡 {getChannelInfo(data)}</p>);
   result.push(<p>🖥 GPU Composition is {getGPUComposition(data)}.</p>);

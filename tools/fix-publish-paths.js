@@ -15,7 +15,7 @@ for (const publishKey of fs.readdirSync(publishFolder)) {
 
     const publishMeta = JSON.parse(fs.readFileSync(publishMetaPath, 'utf8'));
     publishMeta.artifacts = publishMeta.artifacts.map((s) =>
-      s.replace(/\\/g, '/')
+      s.replace(/\\/g, '/'),
     );
     fs.writeFileSync(publishMetaPath, JSON.stringify(publishMeta, null, 2));
   }

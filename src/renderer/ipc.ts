@@ -41,13 +41,13 @@ export function showOpenDialog(): Promise<Electron.OpenDialogReturnValue> {
 }
 
 export function showSaveDialog(
-  filename: string
+  filename: string,
 ): Promise<Electron.SaveDialogReturnValue> {
   return ipcRenderer.invoke(IpcEvents.SHOW_SAVE_DIALOG, filename);
 }
 
 export function showMessageBox(
-  options: Electron.MessageBoxOptions
+  options: Electron.MessageBoxOptions,
 ): Promise<Electron.MessageBoxReturnValue> {
   return ipcRenderer.invoke(IpcEvents.MESSAGE_BOX, options);
 }

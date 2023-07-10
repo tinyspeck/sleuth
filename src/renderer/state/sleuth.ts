@@ -91,7 +91,7 @@ export class SleuthState {
     Array<SerializedBookmark>
   > = this.retrieve<Record<string, Array<SerializedBookmark>>>(
     'serializedBookmarks',
-    { parse: true, fallback: {} }
+    { parse: true, fallback: {} },
   );
   // ** Profiler **
   @observable public rendererThreads: Array<RendererDescription> | undefined;
@@ -103,14 +103,14 @@ export class SleuthState {
   });
   @observable public isOpenMostRecent = !!this.retrieve<boolean>(
     'isOpenMostRecent',
-    { parse: true, fallback: false }
+    { parse: true, fallback: false },
   );
   @observable public dateTimeFormat_v3: string = testDateTimeFormat(
     this.retrieve<string>('dateTimeFormat_v3', {
       parse: false,
       fallback: 'HH:mm:ss (dd/MM)',
     }),
-    'HH:mm:ss (dd/MM)'
+    'HH:mm:ss (dd/MM)',
   );
   @observable public font: string = this.retrieve<string>('font', {
     parse: false,
@@ -118,7 +118,7 @@ export class SleuthState {
   });
   @observable public defaultEditor: string = this.retrieve<string>(
     'defaultEditor',
-    { parse: false, fallback: 'code --goto {filepath}:{line}' }
+    { parse: false, fallback: 'code --goto {filepath}:{line}' },
   );
   @observable public defaultSort: SORT_DIRECTION =
     this.retrieve<SORT_DIRECTION>('defaultSort', {
@@ -141,7 +141,7 @@ export class SleuthState {
 
   constructor(
     public readonly openFile: (file: string) => void,
-    public readonly resetApp: () => void
+    public readonly resetApp: () => void,
   ) {
     this.getSuggestions();
 
@@ -203,7 +203,7 @@ export class SleuthState {
     ipcRenderer.on(IpcEvents.TOGGLE_SIDEBAR, this.toggleSidebar);
     ipcRenderer.on(IpcEvents.TOGGLE_SPOTLIGHT, this.toggleSpotlight);
     ipcRenderer.on(IpcEvents.OPEN_BOOKMARKS, (_event, data) =>
-      importBookmarks(this, data)
+      importBookmarks(this, data),
     );
     ipcRenderer.on(IpcEvents.COPY, () => copy(this));
     ipcRenderer.on(IpcEvents.RESET, () => this.reset(true));
@@ -330,7 +330,7 @@ export class SleuthState {
   @action
   public selectLogFile(
     logFile: ProcessedLogFile | UnzippedFile | null,
-    logType?: SelectableLogType | Tool
+    logType?: SelectableLogType | Tool,
   ): void {
     this.selectedEntry = undefined;
     this.selectedRangeEntries = undefined;
@@ -414,7 +414,7 @@ export class SleuthState {
    */
   private retrieve<T>(
     key: keyof SleuthState,
-    options: { parse: boolean; fallback: T }
+    options: { parse: boolean; fallback: T },
   ): T;
   private retrieve<T>(key: keyof SleuthState, options: { parse: boolean }): T;
   private retrieve(key: keyof SleuthState, options: never): string | null;
@@ -423,7 +423,7 @@ export class SleuthState {
     options: Partial<{
       parse: boolean;
       fallback: T;
-    }>
+    }>,
   ): T | string | null {
     const localStorageValue: string | null = localStorage.getItem(key);
 

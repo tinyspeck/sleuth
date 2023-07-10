@@ -49,11 +49,11 @@ export function getNotificationsInfo({
       .replace(`html`, `Slack's built-in notifications (html)`)
       .replace(
         `winrt`,
-        `default Windows 10 notifications for the Windows Action Center (winrt)`
+        `default Windows 10 notifications for the Windows Action Center (winrt)`,
       )
       .replace(
         `window`,
-        `Electron's default for the current operating system (window)`
+        `Electron's default for the current operating system (window)`,
       );
     notificationsInfo += `Notifications are set to be delivered via ${type}. `;
   } else {

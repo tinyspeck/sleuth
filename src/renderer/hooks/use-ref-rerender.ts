@@ -2,7 +2,7 @@ import { useRef, useCallback } from 'react';
 
 export function useRefReRender<T>(
   initialValue: T | null,
-  teardown?: (current: T | null) => void
+  teardown?: (current: T | null) => void,
 ): [() => T | null, (ref: T) => void] {
   const ref = useRef<T | null>(initialValue);
   const setRef = useCallback((value) => {

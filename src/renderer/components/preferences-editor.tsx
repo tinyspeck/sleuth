@@ -22,7 +22,7 @@ export function nameForCmd(input: string): string {
 
 export const renderEditorItem: ItemRenderer<Editor> = (
   { name },
-  { handleClick, modifiers }
+  { handleClick, modifiers },
 ) => {
   return (
     <MenuItem

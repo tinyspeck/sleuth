@@ -48,15 +48,15 @@ commands:
           # This is a necessary hack to persist environment variables across multiple CircleCI steps
           name: Load CloudHSM environment variables
           command: |
-              New-Item $Profile.CurrentUserAllHosts -Force
-              Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:CERT_THUMBPRINT = Get-Childitem -path cert:\LocalMachine\my | select-object -expandproperty thumbprint'
-              Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:n3fips_password = [System.Environment]::GetEnvironmentVariable("n3fips_password","Machine")'
-      
+            New-Item $Profile.CurrentUserAllHosts -Force
+            Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:CERT_THUMBPRINT = Get-Childitem -path cert:\LocalMachine\my | select-object -expandproperty thumbprint'
+            Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:n3fips_password = [System.Environment]::GetEnvironmentVariable("n3fips_password","Machine")'
+
   build_sleuth:
     parameters:
       make_flags:
         type: string
-        default: ""
+        default: ''
     steps:
       - checkout_sleuth
       - install_deps
@@ -90,7 +90,7 @@ jobs:
     parameters:
       arch:
         type: enum
-        enum: ["x64", "arm64"]
+        enum: ['x64', 'arm64']
     executor: macos
     steps:
       - build_sleuth:
@@ -114,16 +114,16 @@ jobs:
     parameters:
       arch:
         type: enum
-        enum: ["x64", "arm64"]
+        enum: ['x64', 'arm64']
       prod_name:
         type: string
-        default: "Sleuth"
+        default: 'Sleuth'
       artifact_dir:
         type: string
-        default: "/tmp/circleci-workspace/artifacts"
+        default: '/tmp/circleci-workspace/artifacts'
       darwin_platform:
         type: enum
-        enum: ["macos", "mas"]
+        enum: ['macos', 'mas']
         default: macos
     steps:
       - run:
@@ -154,7 +154,7 @@ jobs:
       - persist_to_workspace:
           root: << parameters.artifact_dir >>
           paths:
-            - "*"
+            - '*'
   publish:
     executor: ubuntu
     steps:

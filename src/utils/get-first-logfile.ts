@@ -1,7 +1,7 @@
 import { ProcessedLogFiles, Tool, SelectableLogFile } from '../interfaces';
 
 export function getFirstLogFile(
-  files: ProcessedLogFiles | undefined
+  files: ProcessedLogFiles | undefined,
 ): SelectableLogFile {
   if (files) {
     if (files.browser && files.browser.length > 0) return files.browser[0];

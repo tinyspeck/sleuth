@@ -67,7 +67,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    */
   public shouldComponentUpdate(
     nextProps: LogTableProps,
-    nextState: LogTableState
+    nextState: LogTableState,
   ): boolean {
     const { dateTimeFormat, levelFilter, logFile, searchIndex, dateRange } =
       this.props;
@@ -270,7 +270,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   }
 
   private findIndexForSelectedEntry(
-    sortedList: Array<LogEntry> | undefined
+    sortedList: Array<LogEntry> | undefined,
   ): number {
     const { selectedEntry } = this.props.state;
 
@@ -302,7 +302,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       selectedRange = getRangeEntries(
         selectedRangeIndex,
         selectedIndex,
-        sortedList
+        sortedList,
       );
     } else {
       selectedIndex = index;
@@ -396,10 +396,10 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     if (!filterOrDefault) return false;
     const allEnabled = Object.keys(filterOrDefault).every(
-      (k: keyof LevelFilter) => filterOrDefault[k]
+      (k: keyof LevelFilter) => filterOrDefault[k],
     );
     const allDisabled = Object.keys(filterOrDefault).every(
-      (k: keyof LevelFilter) => !filterOrDefault[k]
+      (k: keyof LevelFilter) => !filterOrDefault[k],
     );
 
     return !(allEnabled || allDisabled);
@@ -414,7 +414,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    */
   private doSearchFilter(
     search: string,
-    list: Array<LogEntry>
+    list: Array<LogEntry>,
   ): Array<LogEntry> {
     let searchRegex = getRegExpMaybeSafe(search || '');
 
@@ -478,7 +478,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
   private doRangeFilter(
     { from, to }: DateRange,
-    list: Array<LogEntry>
+    list: Array<LogEntry>,
   ): Array<LogEntry> {
     if (!from && !to) return list;
 
@@ -553,7 +553,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     // DateRange
     if (dateRange) {
       d(
-        `Performing date range filter (from: ${dateRange.from}, to: ${dateRange.to})`
+        `Performing date range filter (from: ${dateRange.from}, to: ${dateRange.to})`,
       );
       sortedList = this.doRangeFilter(dateRange, sortedList);
     }

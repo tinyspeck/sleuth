@@ -166,7 +166,7 @@ export class StateTable extends React.Component<
     return (
       <Card className="StateTable-Info" elevation={Elevation.ONE}>
         {...getSettingsInfo(
-          (this.state as StateTableState<StateType.settings>).data || {}
+          (this.state as StateTableState<StateType.settings>).data || {},
         )}
       </Card>
     );

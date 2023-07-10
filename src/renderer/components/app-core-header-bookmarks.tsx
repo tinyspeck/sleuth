@@ -51,7 +51,7 @@ export class Bookmarks extends React.Component<BookmarksProps, object> {
           icon="export"
           text="Export bookmarks"
           onClick={() => exportBookmarks(this.props.state)}
-        />
+        />,
       );
     }
 
@@ -60,7 +60,7 @@ export class Bookmarks extends React.Component<BookmarksProps, object> {
         icon="star"
         text="Add this log message to bookmarks"
         onClick={() => saveBookmark(this.props.state)}
-      />
+      />,
     );
 
     return items;

@@ -264,7 +264,7 @@ export class App extends React.Component<object, Partial<AppState>> {
     };
 
     ipcRenderer.on(IpcEvents.FILE_DROPPED, (_event: any, url: string) =>
-      this.openFile(url)
+      this.openFile(url),
     );
   }
 

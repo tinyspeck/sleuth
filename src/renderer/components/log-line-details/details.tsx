@@ -159,7 +159,7 @@ export class LogLineDetails extends React.Component<
 
   private renderType(): JSX.Element {
     const logTypes = Array.from(new Set(this.getProperties('logType'))).map(
-      capitalize
+      capitalize,
     );
     const type = `${logTypes.join(', ')} Process${
       logTypes.length > 1 ? 'es' : ''

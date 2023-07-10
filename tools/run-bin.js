@@ -14,8 +14,8 @@ async function run(name, bin, args = []) {
       args,
       {
         cwd: path.resolve(__dirname, '..'),
-        stdio: 'inherit'
-      }
+        stdio: 'inherit',
+      },
     );
 
     child.on('exit', (code) => {
@@ -24,8 +24,8 @@ async function run(name, bin, args = []) {
       reject(new Error(`${name} failed`));
     });
   });
-};
+}
 
 module.exports = {
-  run
-}
+  run,
+};

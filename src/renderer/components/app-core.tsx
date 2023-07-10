@@ -183,19 +183,19 @@ export class CoreApplication extends React.Component<
 
     if (processedLogFiles) {
       await mergeLogFiles(processedLogFiles.browser, LogType.BROWSER).then(
-        setMergedFile
+        setMergedFile,
       );
       await mergeLogFiles(processedLogFiles.renderer, LogType.RENDERER).then(
-        setMergedFile
+        setMergedFile,
       );
       await mergeLogFiles(processedLogFiles.preload, LogType.PRELOAD).then(
-        setMergedFile
+        setMergedFile,
       );
       await mergeLogFiles(processedLogFiles.call, LogType.CALL).then(
-        setMergedFile
+        setMergedFile,
       );
       await mergeLogFiles(processedLogFiles.webapp, LogType.WEBAPP).then(
-        setMergedFile
+        setMergedFile,
       );
 
       const merged = this.props.state.mergedLogFiles as MergedLogFiles;

@@ -7,7 +7,7 @@
  * @param {jest.ProvidesCallback} callback
  */
 export function beforeEachWithDefaultMock(
-  callback: jest.ProvidesCallback
+  callback: jest.ProvidesCallback,
 ): void {
   jest.mock('electron', () => require('./__mocks__/electron'), {
     virtual: true,

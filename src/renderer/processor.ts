@@ -57,13 +57,13 @@ const CHROMIUM_RGX =
  */
 export function sortWithWebWorker(
   data: Array<unknown>,
-  sortFn: string
+  sortFn: string,
 ): Promise<Array<LogEntry>> {
   return new Promise((resolve) => {
     // For test cases only
     if (!window.Worker) {
       const sortedData = data.sort(
-        new Function(`return ${sortFn}`)()
+        new Function(`return ${sortFn}`)(),
       ) as Array<LogEntry>;
       resolve(sortedData);
       return;
@@ -85,7 +85,7 @@ export function sortWithWebWorker(
  */
 export function mergeLogFiles(
   logFiles: Array<ProcessedLogFile> | Array<MergedLogFile>,
-  logType: SelectableLogType
+  logType: SelectableLogType,
 ): Promise<MergedLogFile> {
   return new Promise((resolve) => {
     let logEntries: Array<LogEntry> = [];
@@ -157,7 +157,7 @@ export function mergeLogFiles(
  * @returns {LogType}
  */
 export function getTypeForFile(
-  logFile: UnzippedFile
+  logFile: UnzippedFile,
 ): Exclude<LogType, LogType.ALL> {
   const fileName = path.basename(logFile.fileName);
 
@@ -250,7 +250,7 @@ export function getTypesForFiles(logFiles: UnzippedFiles): SortedUnzippedFiles {
 
     if (logType === LogType.UNKNOWN) {
       d(
-        `File ${logFile.fileName} seems weird - we don't recognize it. Throwing it away.`
+        `File ${logFile.fileName} seems weird - we don't recognize it. Throwing it away.`,
       );
     } else if (result[logType]) {
       result[logType].push(logFile);
@@ -285,7 +285,7 @@ function getShouldProcessFile(logFile: UnzippedFile): boolean {
  */
 export async function processLogFiles(
   files: UnzippedFiles,
-  progressCb?: (status: string) => void
+  progressCb?: (status: string) => void,
 ) {
   const promises: Array<Promise<ProcessedLogFile>> = [];
   const rawFiles: Array<UnzippedFile> = [];
@@ -311,13 +311,13 @@ export async function processLogFiles(
  */
 export async function processLogFile(
   logFile: UnzippedFile,
-  progressCb?: (status: string) => void
+  progressCb?: (status: string) => void,
 ): Promise<ProcessedLogFile> {
   const logType = getTypeForFile(logFile);
 
   if (logType === LogType.UNKNOWN) {
     throw new Error(
-      `Error, attempting to process unknown log file ${logFile.fullPath}`
+      `Error, attempting to process unknown log file ${logFile.fullPath}`,
     );
   }
 
@@ -327,7 +327,7 @@ export async function processLogFile(
   const { entries, lines, levelCounts, repeatedCounts } = await readFile(
     logFile,
     logType,
-    progressCb
+    progressCb,
   );
   const result: ProcessedLogFile = {
     logFile,
@@ -364,7 +364,7 @@ export function makeLogEntry(
   options: MatchResult,
   logType: string,
   line: number,
-  sourceFile: string
+  sourceFile: string,
 ): LogEntry {
   options.message = options.message || '';
   options.timestamp = options.timestamp || '';
@@ -391,7 +391,7 @@ export interface ReadFileResult {
 export function readFile(
   logFile: UnzippedFile,
   logType?: LogType,
-  progressCb?: (status: string) => void
+  progressCb?: (status: string) => void,
 ): Promise<ReadFileResult> {
   return new Promise((resolve) => {
     const entries: Array<LogEntry> = [];
@@ -518,7 +518,7 @@ export function readFile(
               current.timestamp.substring(0, 16) +
               androidDebug.timestamp.substring(7);
             androidDebug.momentValue = new Date(
-              androidDebug.timestamp
+              androidDebug.timestamp,
             ).valueOf();
           } else {
             // Give the debug line current's timestamp and momentvalue and push it separately
@@ -623,7 +623,7 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
   if (results && results.length === 4) {
     // Expected format: MM/DD/YY(YY), HH:mm:ss:SSS'
     const momentValue = new Date(
-      results[1].replace(', 24:', ', 00:')
+      results[1].replace(', 24:', ', 00:'),
     ).valueOf();
     let message = results[3];
 
@@ -756,7 +756,7 @@ export function matchLineElectron(line: string): MatchResult | undefined {
   if (results && results.length === 4) {
     // Expected format: MM/DD/YY, HH:mm:ss:SSS'
     const momentValue = new Date(
-      results[1].replace(', 24:', ', 00:')
+      results[1].replace(', 24:', ', 00:'),
     ).valueOf();
 
     return {
@@ -1055,7 +1055,7 @@ export function matchLineChromium(line: string): MatchResult | undefined {
     parseInt(time.slice(0, 2), 10), // hour
     parseInt(time.slice(2, 4), 10), // minute
     parseInt(time.slice(4, 6), 10), // second
-    parseInt(time.slice(7, 10), 10) // millisecond
+    parseInt(time.slice(7, 10), 10), // millisecond
   );
 
   // make sure we aren't time traveling. Maybe this
@@ -1092,7 +1092,7 @@ export function matchLineChromium(line: string): MatchResult | undefined {
  */
 export function getMatchFunction(
   logType: LogType,
-  logFile: UnzippedFile
+  logFile: UnzippedFile,
 ): (line: string) => MatchResult | undefined {
   if (logType === LogType.WEBAPP) {
     if (

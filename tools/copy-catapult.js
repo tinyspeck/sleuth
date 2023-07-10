@@ -4,7 +4,7 @@ const path = require('path');
 module.exports = {
   async copyCatapult() {
     const hasSubmodules = fs.existsSync(
-      path.join(__dirname, '../catapult/netlog_viewer/netlog_viewer')
+      path.join(__dirname, '../catapult/netlog_viewer/netlog_viewer'),
     );
     const isCI = process.env.CI;
 
@@ -19,21 +19,21 @@ module.exports = {
           {
             source: path.join(
               __dirname,
-              '../catapult/netlog_viewer/netlog_viewer'
+              '../catapult/netlog_viewer/netlog_viewer',
             ),
             target: path.join(__dirname, '../dist/catapult'),
           },
           {
             source: path.join(
               __dirname,
-              '../catapult/third_party/polymer/components/polymer'
+              '../catapult/third_party/polymer/components/polymer',
             ),
             target: path.join(__dirname, '../dist/catapult/polymer'),
           },
           {
             source: path.join(
               __dirname,
-              '../catapult/third_party/polymer/components/webcomponentsjs'
+              '../catapult/third_party/polymer/components/webcomponentsjs',
             ),
             target: path.join(__dirname, '../dist/catapult/webcomponentsjs'),
           },

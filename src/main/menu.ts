@@ -56,7 +56,7 @@ export class AppMenu {
    * @returns {Electron.MenuItemOptions}
    */
   public getOpenItem(
-    type: '' | 'DevEnv' | 'DevMode' = ''
+    type: '' | 'DevEnv' | 'DevMode' = '',
   ): MenuItemConstructorOptions {
     const appData = app.getPath('appData');
     const logsPath = path.join(appData, `Slack${type}`, 'logs');
@@ -77,7 +77,7 @@ export class AppMenu {
           const { webContents } = await getCurrentWindow();
           const name = `Local Slack${type} Logs - ${format(
             Date.now(),
-            `MMM d, y HH.mm.SSSS`
+            `MMM d, y HH.mm.SSSS`,
           )}`;
           const tmpOptions: tmp.DirOptions = { unsafeCleanup: true, name };
           //@ts-expect-error promisify type doesn't expect the correct number of arguments
@@ -102,7 +102,7 @@ export class AppMenu {
    * Opens, you guessed it, a cache folder.
    */
   public getOpenCacheItem(
-    type: '' | 'DevEnv' | 'DevMode' = ''
+    type: '' | 'DevEnv' | 'DevMode' = '',
   ): Electron.MenuItemConstructorOptions {
     const appData = app.getPath('appData');
     const cachePath = path.join(appData, `Slack${type}`, 'Cache');

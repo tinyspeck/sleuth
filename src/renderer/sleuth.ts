@@ -2,7 +2,7 @@ import os from 'os';
 
 export function getSleuth(
   platform: string = process.platform,
-  release: string = os.release()
+  release: string = os.release(),
 ) {
   let sleuths = [
     '🕵',

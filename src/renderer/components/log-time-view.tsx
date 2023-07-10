@@ -66,7 +66,7 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
     const { timeBucketedLogMetrics } = this.props.state;
     if (timeBucketedLogMetrics) {
       const buckedLogMetricsByTime = Object.entries<LogMetrics>(
-        timeBucketedLogMetrics
+        timeBucketedLogMetrics,
       );
       datasets = Object.keys(LogLevel).map((type: LogLevel) => {
         return {

@@ -37,7 +37,7 @@ describe('Welcome', () => {
       const suggestions = within(list).getAllByRole('listitem');
       expect(suggestions).toHaveLength(1);
       expect(suggestions[0].textContent).toContain(
-        'logs-21-11-02_12-36-26.zip'
+        'logs-21-11-02_12-36-26.zip',
       );
 
       const ageLabel = within(suggestions[0]).getByRole('textbox');
@@ -66,8 +66,8 @@ describe('Welcome', () => {
       fireEvent.click(btn);
       await waitFor(() =>
         expect(shell.trashItem).toHaveBeenCalledWith(
-          '/Users/ezhao/Downloads/logs-21-11-02_12-36-26.zip'
-        )
+          '/Users/ezhao/Downloads/logs-21-11-02_12-36-26.zip',
+        ),
       );
     });
   });

@@ -1,7 +1,7 @@
 export function getRangeEntries<T>(
   a: number,
   b: number,
-  list: Array<T>
+  list: Array<T>,
 ): Array<T> {
   const lower = Math.min(a, b);
   const upper = Math.max(a, b);

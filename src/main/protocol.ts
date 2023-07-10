@@ -27,7 +27,7 @@ export async function handleUrl(url: string) {
     // searchParams.get() will do replacements we don't like
     window.webContents.send(
       IpcEvents.OPEN_BOOKMARKS,
-      parsed.search.replace('?data=', '')
+      parsed.search.replace('?data=', ''),
     );
   }
 }

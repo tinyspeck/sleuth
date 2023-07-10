@@ -180,7 +180,7 @@ export class CachetoolDetails extends React.Component<
 
   public async getData(
     cachePath?: string,
-    key?: string
+    key?: string,
   ): Promise<string | undefined> {
     if (!cachePath || !key) return '';
 

@@ -15,12 +15,12 @@ function getBucket(range: number, momentValue: number): number {
   } else if (range < 1000 * 60 * 60 * 8) {
     const r = 30 - (getMinutes(momentValue) % 15);
     return getUnixTime(
-      set(add(momentValue, { minutes: r }), { seconds: 0, milliseconds: 0 })
+      set(add(momentValue, { minutes: r }), { seconds: 0, milliseconds: 0 }),
     );
   } else if (range < 1000 * 60 * 60 * 24) {
     const r = 30 - (getMinutes(momentValue) % 30);
     return getUnixTime(
-      set(add(momentValue, { minutes: r }), { seconds: 0, milliseconds: 0 })
+      set(add(momentValue, { minutes: r }), { seconds: 0, milliseconds: 0 }),
     );
   }
   return getUnixTime(startOfHour(momentValue));
@@ -35,7 +35,7 @@ function getBucket(range: number, momentValue: number): number {
  */
 export function getTimeBuckedLogMetrics(
   selectedLogFile: SelectableLogFile,
-  range: number
+  range: number,
 ): TimeBucketedLogMetrics {
   if (!isLogFile(selectedLogFile)) {
     return {};
@@ -62,7 +62,7 @@ export function getTimeBuckedLogMetrics(
  * Get initial range (difference between highest and lowest timestamp) from the selected log file
  */
 export function getInitialTimeViewRange(
-  selectedLogFile: SelectableLogFile
+  selectedLogFile: SelectableLogFile,
 ): number {
   if (!isLogFile(selectedLogFile) || selectedLogFile.logEntries.length === 0) {
     return 0;

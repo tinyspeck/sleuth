@@ -196,7 +196,7 @@ describe('getTypeForFile', () => {
         fileName: 'browser.log',
         fullPath: '_',
         size: 0,
-      })
+      }),
     ).toEqual('browser');
   });
 
@@ -207,7 +207,7 @@ describe('getTypeForFile', () => {
         fileName: 'renderer-12.log',
         fullPath: '_',
         size: 0,
-      })
+      }),
     ).toEqual('renderer');
   });
 
@@ -218,7 +218,7 @@ describe('getTypeForFile', () => {
         fileName: 'webapp-4.log',
         fullPath: '_',
         size: 0,
-      })
+      }),
     ).toEqual('webapp');
   });
 
@@ -229,7 +229,7 @@ describe('getTypeForFile', () => {
         fileName: 'renderer-webapp-44-preload.log',
         fullPath: '_',
         size: 0,
-      })
+      }),
     ).toEqual('preload');
   });
 });

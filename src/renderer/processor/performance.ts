@@ -15,7 +15,7 @@ export function logPerformance(input: ProcessorPerformanceInfo) {
 }
 
 export function combineResultsForType(
-  type: SelectableLogType
+  type: SelectableLogType,
 ): ProcessorPerformanceInfo {
   return logBuffer.reduce(
     (prev, curr) => {
@@ -34,7 +34,7 @@ export function combineResultsForType(
       processingTime: 0,
       name: `All ${type} logs`,
       type,
-    }
+    },
   );
 }
 

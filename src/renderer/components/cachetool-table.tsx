@@ -85,7 +85,7 @@ export class CachetoolTable extends React.Component<
    */
   public shouldComponentUpdate(
     nextProps: CachetoolTableProps,
-    nextState: CachetoolTableState
+    nextState: CachetoolTableState,
   ): boolean {
     const { searchIndex } = this.props;
     const { sortBy, sortDirection, searchList, selectedIndex } = this.state;
@@ -114,7 +114,7 @@ export class CachetoolTable extends React.Component<
    * @param {CachetoolTableProps} nextProps
    */
   public UNSAFE_componentWillReceiveProps(
-    nextProps: CachetoolTableProps
+    nextProps: CachetoolTableProps,
   ): void {
     const { search, showOnlySearchResults, searchIndex } = this.props;
 
@@ -193,7 +193,7 @@ export class CachetoolTable extends React.Component<
   }
 
   private findIndexForSelectedEntry(
-    sortedList: Array<string> | undefined
+    sortedList: Array<string> | undefined,
   ): number {
     const { selectedCacheKey } = this.props.state;
 

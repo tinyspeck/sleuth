@@ -121,7 +121,7 @@ export class TouchBarManager {
     try {
       this.items = options.items;
       this.touchBar = new TouchBar(
-        options as Electron.TouchBarConstructorOptions
+        options as Electron.TouchBarConstructorOptions,
       );
       this.browserWindow.setTouchBar(this.touchBar);
     } catch (error) {
@@ -224,7 +224,7 @@ export class TouchBarManager {
 
   public handleFilterUpdate(
     event: Electron.IpcMainEvent,
-    levelFilter: LevelFilter
+    levelFilter: LevelFilter,
   ) {
     if (!this.isRightSender(event)) return;
 
@@ -237,7 +237,7 @@ export class TouchBarManager {
 
   public handleDarkModeUpdate(
     event: Electron.IpcMainEvent,
-    isDarkMode: boolean
+    isDarkMode: boolean,
   ) {
     if (!this.isRightSender(event)) return;
 
@@ -246,7 +246,7 @@ export class TouchBarManager {
 
   public handleLogFileUpdate(
     event: Electron.IpcMainEvent,
-    update: TouchBarLogFileUpdate
+    update: TouchBarLogFileUpdate,
   ) {
     if (this.isRightSender(event)) {
       this.setWarningLabel(update.levelCounts);

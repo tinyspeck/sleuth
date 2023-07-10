@@ -64,7 +64,7 @@ export class Preferences extends React.Component<
     autoBind(this);
 
     ipcRenderer.on(IpcEvents.PREFERENCES_SHOW, () =>
-      this.setState({ isOpen: true })
+      this.setState({ isOpen: true }),
     );
   }
 
@@ -74,7 +74,7 @@ export class Preferences extends React.Component<
     const classes = classNames(
       Classes.CARD,
       Classes.ELEVATION_4,
-      'Preferences'
+      'Preferences',
     );
 
     return (

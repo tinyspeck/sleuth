@@ -78,15 +78,15 @@ export class Unzipper {
           async (error: Error, zipStream: NodeJS.ReadableStream) => {
             if (error) {
               d(
-                `Encountered error while trying to read stream for ${entry.fileName}`
+                `Encountered error while trying to read stream for ${entry.fileName}`,
               );
               return reject(error);
             }
 
             resolve(zipStream);
-          }
+          },
         );
-      }
+      },
     );
 
     await pipeline(readStream, fs.createWriteStream(targetPath));
