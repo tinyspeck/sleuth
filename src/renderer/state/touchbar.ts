@@ -21,7 +21,7 @@ export function setupTouchBarAutoruns(state: SleuthState) {
       : {};
     const options: TouchBarLogFileUpdate = {
       isLogFile: isLogFile(state.selectedLogFile),
-      levelCounts
+      levelCounts,
     };
 
     ipcRenderer.send(IpcEvents.LOG_FILE_UPDATE, toJS(options));

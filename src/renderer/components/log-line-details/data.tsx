@@ -22,7 +22,7 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, object> {
    */
   public renderJSON(raw: string): JSX.Element {
     return (
-      <div className='LogLineData'>
+      <div className="LogLineData">
         <Card elevation={Elevation.TWO}>
           <JSONView raw={raw} state={this.props.state} />
         </Card>
@@ -45,37 +45,48 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, object> {
 
       // Ensure at least 3 lines
       if (!splitRaw || splitRaw.length < 3) {
-        throw new Error('Split lines, but less than 3 - no way this is a table');
+        throw new Error(
+          'Split lines, but less than 3 - no way this is a table'
+        );
       }
 
       // Ensure beginning and end are as expected
-      if (!contentRgx.test(splitRaw[0]) || !contentRgx.test(splitRaw[splitRaw.length - 1])) {
+      if (
+        !contentRgx.test(splitRaw[0]) ||
+        !contentRgx.test(splitRaw[splitRaw.length - 1])
+      ) {
         throw new Error('Split lines, but beginning and end not recognized');
       }
 
       // Let's make a table
       const tableRows = splitRaw.map((line, i) => {
         const columns = line.split('|').map((v) => (v || '').trim());
-        const elements = columns.map((c) => i === 0 ? <th key={c}>{c}</th> : <td key={c}>{c}</td>);
-        return (<tr key={`${i}-${line}`}>{elements}</tr>);
+        const elements = columns.map((c) =>
+          i === 0 ? <th key={c}>{c}</th> : <td key={c}>{c}</td>
+        );
+        return <tr key={`${i}-${line}`}>{elements}</tr>;
       });
 
-      return (<table className='ConvertedTable'>{tableRows}</table>);
+      return <table className="ConvertedTable">{tableRows}</table>;
     } catch (e) {
       d(`Tried to render table, but failed`, e);
       data = <code>{raw}</code>;
     }
 
-    return (<div className='LogLineData'>{data}</div>);
+    return <div className="LogLineData">{data}</div>;
   }
 
   public renderChromiumFile(selectedEntry: LogEntry) {
     if (!selectedEntry?.meta || typeof selectedEntry.meta === 'string') return;
     const str = `https://source.chromium.org/search?q=LOG%20filepath:${selectedEntry.meta.sourceFile}&ss=chromium`;
 
-    return <div className='LogLineData'>
-      <AnchorButton href={str} icon='search'>Search the log in the Chromium source</AnchorButton>
-    </div>;
+    return (
+      <div className="LogLineData">
+        <AnchorButton href={str} icon="search">
+          Search the log in the Chromium source
+        </AnchorButton>
+      </div>
+    );
   }
 
   /**

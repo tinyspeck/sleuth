@@ -10,7 +10,7 @@ import {
   InputGroup,
   Popover,
   Menu,
-  Position
+  Position,
 } from '@blueprintjs/core';
 import dayjs, { Dayjs } from 'dayjs';
 import { DatePicker } from 'antd';
@@ -30,8 +30,10 @@ export class Filter extends React.Component<FilterProps, object> {
   constructor(props: FilterProps) {
     super(props);
 
-    this.props.state.onFilterToggle = this.props.state.onFilterToggle.bind(this);
-    this.toggleSearchResultVisibility = this.toggleSearchResultVisibility.bind(this);
+    this.props.state.onFilterToggle =
+      this.props.state.onFilterToggle.bind(this);
+    this.toggleSearchResultVisibility =
+      this.toggleSearchResultVisibility.bind(this);
     this.onSearchChange = debounce(this.onSearchChange.bind(this), 700);
     this.onChange = this.onChange.bind(this);
     this.renderFilter = this.renderFilter.bind(this);
@@ -65,12 +67,13 @@ export class Filter extends React.Component<FilterProps, object> {
   public onChange(values: [Dayjs, Dayjs], dateStrings: [string, string]) {
     this.props.state.dateRange = {
       from: values && values[0] ? new Date(dateStrings[0]) : null,
-      to: values && values[1] ? new Date(dateStrings[1]) : null
+      to: values && values[1] ? new Date(dateStrings[1]) : null,
     };
   }
 
   public toggleSearchResultVisibility() {
-    this.props.state.showOnlySearchResults = !this.props.state.showOnlySearchResults;
+    this.props.state.showOnlySearchResults =
+      !this.props.state.showOnlySearchResults;
   }
 
   public renderFilter() {
@@ -81,37 +84,37 @@ export class Filter extends React.Component<FilterProps, object> {
         <Menu.Item
           active={debug}
           onClick={() => this.props.state.onFilterToggle(LogLevel.debug)}
-          icon='code'
+          icon="code"
           shouldDismissPopover={false}
-          text='Debug'
+          text="Debug"
         />
         <Menu.Item
           active={info}
           onClick={() => this.props.state.onFilterToggle(LogLevel.info)}
-          icon='info-sign'
+          icon="info-sign"
           shouldDismissPopover={false}
-          text='Info'
+          text="Info"
         />
         <Menu.Item
           active={warn}
           onClick={() => this.props.state.onFilterToggle(LogLevel.warn)}
-          icon='warning-sign'
+          icon="warning-sign"
           shouldDismissPopover={false}
-          text='Warning'
+          text="Warning"
         />
         <Menu.Item
           active={error}
           onClick={() => this.props.state.onFilterToggle(LogLevel.error)}
-          icon='error'
+          icon="error"
           shouldDismissPopover={false}
-          text='Error'
+          text="Error"
         />
       </Menu>
     );
 
     return (
       <Popover content={menu} position={Position.BOTTOM}>
-        <Button icon='filter-list' text='Filter'/>
+        <Button icon="filter-list" text="Filter" />
       </Popover>
     );
   }
@@ -128,32 +131,43 @@ export class Filter extends React.Component<FilterProps, object> {
       />
     );
 
-    const { RangePicker} = DatePicker;
+    const { RangePicker } = DatePicker;
 
     return (
       <>
-        <NavbarGroup className='FilterGroup'>
-          {this.renderFilter()}
-        </NavbarGroup>
-        <NavbarGroup className='SearchGroup'>
+        <NavbarGroup className="FilterGroup">{this.renderFilter()}</NavbarGroup>
+        <NavbarGroup className="SearchGroup">
           <NavbarDivider />
           <RangePicker
-            showTime={{defaultValue: [dayjs('00:00:00', 'HH:mm:ss'), dayjs('23:59:59', 'HH:mm:ss')]}}
+            showTime={{
+              defaultValue: [
+                dayjs('00:00:00', 'HH:mm:ss'),
+                dayjs('23:59:59', 'HH:mm:ss'),
+              ],
+            }}
             onChange={this.onChange}
             allowEmpty={[true, true]}
           />
           <NavbarDivider />
           <InputGroup
-            leftIcon='search'
+            leftIcon="search"
             inputRef={this.searchRef}
-            placeholder='Search'
+            placeholder="Search"
             rightElement={showOnlySearchResultsButton}
-            onChange={(e: React.FormEvent) => this.onSearchChange((e.target as HTMLInputElement).value)}
+            onChange={(e: React.FormEvent) =>
+              this.onSearchChange((e.target as HTMLInputElement).value)
+            }
           />
           <NavbarDivider />
           <ButtonGroup>
-            <Button icon='arrow-left' onClick={() => this.onSearchIndexChange(-1)} />
-            <Button icon='arrow-right' onClick={() => this.onSearchIndexChange(1)} />
+            <Button
+              icon="arrow-left"
+              onClick={() => this.onSearchIndexChange(-1)}
+            />
+            <Button
+              icon="arrow-right"
+              onClick={() => this.onSearchIndexChange(1)}
+            />
           </ButtonGroup>
         </NavbarGroup>
       </>

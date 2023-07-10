@@ -16,7 +16,11 @@ export function copy(state: SleuthState): boolean {
   const hasSelection = !!window.getSelection()?.toString();
   const shouldCopy = !hasSelection && isSmartCopy;
 
-  if (shouldCopy && Array.isArray(selectedRangeEntries) && selectedRangeEntries.length > 1) {
+  if (
+    shouldCopy &&
+    Array.isArray(selectedRangeEntries) &&
+    selectedRangeEntries.length > 1
+  ) {
     clipboard.writeText(selectedRangeEntries.map(getCopyText).join('\n'));
     return true;
   } else if (shouldCopy && selectedEntry) {

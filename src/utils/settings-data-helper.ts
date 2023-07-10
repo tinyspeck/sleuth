@@ -5,7 +5,10 @@ export function getOSInfo(data?: Record<string, any>): string {
 
   const os = getPlatform(data);
   const { platformVersion, pretendNotReallyWindows10 } = data;
-  const osVersion = platformVersion && platformVersion.major ? `(${platformVersion.major}.${platformVersion.minor})` : '(unknown version)';
+  const osVersion =
+    platformVersion && platformVersion.major
+      ? `(${platformVersion.major}.${platformVersion.minor})`
+      : '(unknown version)';
   let windowsInfo = '';
 
   if (os === 'Windows' && platformVersion) {
@@ -28,7 +31,12 @@ function getPlatform(data?: Record<string, any>): string {
   }
 
   const { platform } = data;
-  let os = platform ? platform.replace('darwin', 'macOS').replace('win32', 'Windows').replace('linux', 'Linux') : null;
+  let os = platform
+    ? platform
+        .replace('darwin', 'macOS')
+        .replace('win32', 'Windows')
+        .replace('linux', 'Linux')
+    : null;
 
   if (!os) {
     if (data.win32) {
@@ -38,18 +46,26 @@ function getPlatform(data?: Record<string, any>): string {
     } else if (data.linux) {
       os = 'Linux';
     }
-
   }
 
   return os;
 }
 
-function getWindowsVersion({ major, minor, build }: { major: number, minor: number, build: number }): string {
+function getWindowsVersion({
+  major,
+  minor,
+  build,
+}: {
+  major: number;
+  minor: number;
+  build: number;
+}): string {
   if (major === 10 && minor === 0) {
     let buildName = '';
 
     if (build <= 10240) buildName = 'Original Release (RTM), ';
-    if (build >= 10586) buildName = 'Threshold 2 (First major round of updates in 2015), ';
+    if (build >= 10586)
+      buildName = 'Threshold 2 (First major round of updates in 2015), ';
     if (build >= 14393) buildName = 'Anniversary Update, ';
     if (build >= 15063) buildName = 'Creators Update, ';
     if (build >= 16299) buildName = 'Fall Creators Update, ';
@@ -61,10 +77,10 @@ function getWindowsVersion({ major, minor, build }: { major: number, minor: numb
 
   // Windows NT 6 and up
   if (major === 6) {
-    if (minor === 0) return (`Windows Vista (NT 6.0, Build ${build})`);
-    if (minor === 1) return (`Windows 7 (NT 6.1, Build ${build})`);
-    if (minor === 2) return (`Windows 8 (NT 6.2, Build ${build})`);
-    if (minor === 3) return (`Windows 8.1 (NT 6.3, Build ${build})`);
+    if (minor === 0) return `Windows Vista (NT 6.0, Build ${build})`;
+    if (minor === 1) return `Windows 7 (NT 6.1, Build ${build})`;
+    if (minor === 2) return `Windows 8 (NT 6.2, Build ${build})`;
+    if (minor === 3) return `Windows 8.1 (NT 6.3, Build ${build})`;
   }
 
   return `an unknown Windows version (${major}.${minor}, Build ${build})`;

@@ -4,7 +4,15 @@ import classNames from 'classnames';
 import { format } from 'date-fns';
 import { default as keydown, Keys } from 'react-keydown';
 import autoBind from 'react-autobind';
-import { Table, AutoSizer, Column, TableCellProps, RowMouseEventHandlerParams, Size, TableProps } from 'react-virtualized';
+import {
+  Table,
+  AutoSizer,
+  Column,
+  TableCellProps,
+  RowMouseEventHandlerParams,
+  Size,
+  TableProps,
+} from 'react-virtualized';
 import { Icon } from '@blueprintjs/core';
 import debug from 'debug';
 
@@ -32,7 +40,9 @@ const { DOWN } = Keys;
  * here!
  */
 export class LogTable extends React.Component<LogTableProps, LogTableState> {
-  private changeSelectedEntry: ((() => void) & { clear(): void; } & { flush(): void; }) | null = null;
+  private changeSelectedEntry:
+    | ((() => void) & { clear(): void } & { flush(): void })
+    | null = null;
 
   constructor(props: LogTableProps) {
     super(props);
@@ -42,7 +52,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sortBy: 'index',
       sortDirection: props.state.defaultSort || SORT_DIRECTION.DESC,
       searchList: [],
-      ignoreSearchIndex: false
+      ignoreSearchIndex: false,
     };
 
     autoBind(this);
@@ -55,9 +65,20 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    * @param {LogTableState} nextState
    * @returns {boolean}
    */
-  public shouldComponentUpdate(nextProps: LogTableProps, nextState: LogTableState): boolean {
-    const { dateTimeFormat, levelFilter, logFile, searchIndex, dateRange } = this.props;
-    const { sortBy, sortDirection, sortedList, searchList, selectedIndex, selectedRangeIndex } = this.state;
+  public shouldComponentUpdate(
+    nextProps: LogTableProps,
+    nextState: LogTableState
+  ): boolean {
+    const { dateTimeFormat, levelFilter, logFile, searchIndex, dateRange } =
+      this.props;
+    const {
+      sortBy,
+      sortDirection,
+      sortedList,
+      searchList,
+      selectedIndex,
+      selectedRangeIndex,
+    } = this.state;
 
     // Selected row changed
     if (selectedIndex !== nextState.selectedIndex) return true;
@@ -67,17 +88,22 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     if (dateTimeFormat !== nextProps.dateTimeFormat) return true;
 
     // Sort direction changed
-    const newSort = (nextState.sortBy !== sortBy || nextState.sortDirection !== sortDirection);
+    const newSort =
+      nextState.sortBy !== sortBy || nextState.sortDirection !== sortDirection;
     if (newSort) return true;
 
     // File changed - and update is in order
     const nextFile = nextProps.logFile;
-    const newFile = ((!nextFile && logFile)
-      || nextFile && logFile && nextFile.logType !== logFile.logType);
-    const newEntries = (nextFile && logFile
-      && nextFile.logEntries.length !== logFile.logEntries.length);
-    const newResults = ((!sortedList && nextState.sortedList)
-      || sortedList && nextState.sortedList.length !== sortedList.length);
+    const newFile =
+      (!nextFile && logFile) ||
+      (nextFile && logFile && nextFile.logType !== logFile.logType);
+    const newEntries =
+      nextFile &&
+      logFile &&
+      nextFile.logEntries.length !== logFile.logEntries.length;
+    const newResults =
+      (!sortedList && nextState.sortedList) ||
+      (sortedList && nextState.sortedList.length !== sortedList.length);
     if (newFile || newEntries || newResults) return true;
 
     // Filter changed
@@ -87,7 +113,11 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     if (dateRange !== nextProps.dateRange) return true;
 
     // Search changed
-    if (searchList !== nextState.searchList || searchIndex !== nextProps.searchIndex) return true;
+    if (
+      searchList !== nextState.searchList ||
+      searchIndex !== nextProps.searchIndex
+    )
+      return true;
 
     return false;
   }
@@ -104,7 +134,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       logFile,
       showOnlySearchResults,
       searchIndex,
-      dateRange
+      dateRange,
     } = this.props;
 
     // Next props
@@ -117,10 +147,15 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     // Filter or search changed
     const entryChanged = nextEntry !== this.state.selectedEntry;
     const filterChanged = didFilterChange(levelFilter, nextLevelFilter);
-    const searchChanged = search !== nextProps.search || showOnlySearchResults !== nextShowOnlySearchResults;
-    const fileChanged = ((!logFile && nextFile)
-      || logFile && nextFile && logFile.logEntries.length !== nextFile.logEntries.length
-      || logFile && nextFile && logFile.logType !== nextFile.logType);
+    const searchChanged =
+      search !== nextProps.search ||
+      showOnlySearchResults !== nextShowOnlySearchResults;
+    const fileChanged =
+      (!logFile && nextFile) ||
+      (logFile &&
+        nextFile &&
+        logFile.logEntries.length !== nextFile.logEntries.length) ||
+      (logFile && nextFile && logFile.logType !== nextFile.logType);
 
     // Date range changed
     const rangeChanged = dateRange !== nextProps.dateRange;
@@ -130,17 +165,23 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     if (entryChanged) {
       this.setState({
         selectedEntry: this.props.state.selectedEntry,
-        scrollToSelection: true
+        scrollToSelection: true,
       });
     }
 
-    if (filterChanged || searchChanged || fileChanged || rangeChanged || entryChanged) {
+    if (
+      filterChanged ||
+      searchChanged ||
+      fileChanged ||
+      rangeChanged ||
+      entryChanged
+    ) {
       const sortOptions: SortFilterListOptions = {
         showOnlySearchResults: nextShowOnlySearchResults,
         filter: nextLevelFilter,
         search: nextSearch,
         logFile: nextFile,
-        dateRange: nextRange
+        dateRange: nextRange,
       };
       const sortedList = this.sortFilterList(sortOptions);
       let searchList: Array<number> = [];
@@ -158,7 +199,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         sortedList,
         searchList,
         selectedIndex,
-        scrollToSelection: !!selectedIndex
+        scrollToSelection: !!selectedIndex,
       });
     }
 
@@ -181,8 +222,11 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   public componentDidMount() {
     const sortedList = this.sortFilterList();
     const { selectedEntry, selectedIndex } = this.props.state;
-    const update: Pick<LogTableState, 'sortedList' | 'selectedIndex' | 'selectedEntry' | 'scrollToSelection'> = {
-      sortedList
+    const update: Pick<
+      LogTableState,
+      'sortedList' | 'selectedIndex' | 'selectedEntry' | 'scrollToSelection'
+    > = {
+      sortedList,
     };
 
     if (selectedEntry) {
@@ -212,12 +256,13 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   public render(): JSX.Element | null {
     const { logFile } = this.props;
 
-    const typeClassName = logFile.type === 'MergedLogFile' ? 'Merged' : 'Single';
+    const typeClassName =
+      logFile.type === 'MergedLogFile' ? 'Merged' : 'Single';
     const className = classNames('LogTable', 'bp3-text-muted', typeClassName);
 
     return (
       <div className={className}>
-        <div className='Sizer'>
+        <div className="Sizer">
           <AutoSizer>{(options) => this.renderTable(options)}</AutoSizer>
         </div>
       </div>
@@ -231,8 +276,10 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     if (selectedEntry && sortedList) {
       const foundIndex = sortedList.findIndex((v) => {
-        return v.line === selectedEntry.line &&
-          v.momentValue === selectedEntry.momentValue;
+        return (
+          v.line === selectedEntry.line &&
+          v.momentValue === selectedEntry.momentValue
+        );
       });
 
       return foundIndex;
@@ -252,7 +299,11 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     if (event.shiftKey && this.props.state.selectedIndex) {
       selectedIndex = this.props.state.selectedIndex;
       selectedRangeIndex = index;
-      selectedRange = getRangeEntries(selectedRangeIndex, selectedIndex, sortedList);
+      selectedRange = getRangeEntries(
+        selectedRangeIndex,
+        selectedIndex,
+        sortedList
+      );
     } else {
       selectedIndex = index;
     }
@@ -269,7 +320,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       selectedIndex,
       selectedRangeIndex,
       ignoreSearchIndex: true,
-      scrollToSelection: false
+      scrollToSelection: false,
     });
   }
 
@@ -280,14 +331,24 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    * @param {string} sortBy
    * @param {string} sortDirection
    */
-  private onSortChange(
-    { sortBy, sortDirection }: { sortBy: string, sortDirection: SORT_DIRECTION }
-  ) {
+  private onSortChange({
+    sortBy,
+    sortDirection,
+  }: {
+    sortBy: string;
+    sortDirection: SORT_DIRECTION;
+  }) {
     const currentState = this.state;
-    const newSort = (currentState.sortBy !== sortBy || currentState.sortDirection !== sortDirection);
+    const newSort =
+      currentState.sortBy !== sortBy ||
+      currentState.sortDirection !== sortDirection;
 
     if (newSort) {
-      this.setState({ sortBy, sortDirection, sortedList: this.sortFilterList({ sortBy, sortDirection }) });
+      this.setState({
+        sortBy,
+        sortDirection,
+        sortedList: this.sortFilterList({ sortBy, sortDirection }),
+      });
     }
   }
 
@@ -319,7 +380,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         this.setState({
           selectedIndex: nextIndex,
           ignoreSearchIndex: false,
-          scrollToSelection: true
+          scrollToSelection: true,
         });
       }
     }
@@ -334,8 +395,12 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     const filterOrDefault = filter || this.props.levelFilter;
 
     if (!filterOrDefault) return false;
-    const allEnabled = Object.keys(filterOrDefault).every((k: keyof LevelFilter) => filterOrDefault[k]);
-    const allDisabled = Object.keys(filterOrDefault).every((k: keyof LevelFilter) => !filterOrDefault[k]);
+    const allEnabled = Object.keys(filterOrDefault).every(
+      (k: keyof LevelFilter) => filterOrDefault[k]
+    );
+    const allDisabled = Object.keys(filterOrDefault).every(
+      (k: keyof LevelFilter) => !filterOrDefault[k]
+    );
 
     return !(allEnabled || allDisabled);
   }
@@ -347,11 +412,18 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    * @param {Array<LogEntry>} list
    * @returns Array<LogEntry>
    */
-  private doSearchFilter(search: string, list: Array<LogEntry>): Array<LogEntry> {
+  private doSearchFilter(
+    search: string,
+    list: Array<LogEntry>
+  ): Array<LogEntry> {
     let searchRegex = getRegExpMaybeSafe(search || '');
 
-    function doSearch(a: LogEntry) { return (!search || searchRegex.test(a.message)); }
-    function doExclude(a: LogEntry) { return (!search || !searchRegex.test(a.message)); }
+    function doSearch(a: LogEntry) {
+      return !search || searchRegex.test(a.message);
+    }
+    function doExclude(a: LogEntry) {
+      return !search || !searchRegex.test(a.message);
+    }
     const searchParams = search.split(' ');
 
     searchParams.forEach((param) => {
@@ -404,7 +476,10 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     return foundIndices;
   }
 
-  private doRangeFilter({ from, to }: DateRange, list: Array<LogEntry>): Array<LogEntry> {
+  private doRangeFilter(
+    { from, to }: DateRange,
+    list: Array<LogEntry>
+  ): Array<LogEntry> {
     if (!from && !to) return list;
 
     const fromTs = from ? from.getTime() : null;
@@ -424,17 +499,23 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   private sortFilterList(options: SortFilterListOptions = {}): Array<LogEntry> {
     const logFile = options.logFile || this.props.logFile;
     const filter = options.filter || this.props.levelFilter;
-    const search = options.search !== undefined ? options.search : this.props.search;
+    const search =
+      options.search !== undefined ? options.search : this.props.search;
     const sortBy = options.sortBy || this.state.sortBy;
     const dateRange = options.dateRange || this.props.dateRange;
-    const showOnlySearchResults = options.showOnlySearchResults !== undefined ? options.showOnlySearchResults : this.props.showOnlySearchResults;
+    const showOnlySearchResults =
+      options.showOnlySearchResults !== undefined
+        ? options.showOnlySearchResults
+        : this.props.showOnlySearchResults;
     const sortDirection = options.sortDirection || this.state.sortDirection;
 
     d(`Starting filter`);
     if (!logFile) return [];
 
     const shouldFilter = this.shouldFilter(filter);
-    const noSort = (!sortBy || sortBy === 'index') && (!sortDirection || sortDirection === SORT_DIRECTION.ASC);
+    const noSort =
+      (!sortBy || sortBy === 'index') &&
+      (!sortDirection || sortDirection === SORT_DIRECTION.ASC);
 
     // Check if we can bail early and just use the naked logEntries array
     if (noSort && !shouldFilter && !search) return logFile.logEntries;
@@ -442,14 +523,22 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     let sortedList = logFile.logEntries.concat();
 
     // Named definition here allows V8 to go craaaaaazy, speed-wise.
-    function doSortByMessage(a: LogEntry, b: LogEntry) { return a.message.localeCompare(b.message); }
-    function doSortByLevel(a: LogEntry, b: LogEntry) { return a.level.localeCompare(b.level); }
-    function doSortByLine(a: LogEntry, b: LogEntry) { return a.line > b.line ? 1 : -1; }
+    function doSortByMessage(a: LogEntry, b: LogEntry) {
+      return a.message.localeCompare(b.message);
+    }
+    function doSortByLevel(a: LogEntry, b: LogEntry) {
+      return a.level.localeCompare(b.level);
+    }
+    function doSortByLine(a: LogEntry, b: LogEntry) {
+      return a.line > b.line ? 1 : -1;
+    }
     function doSortByTimestamp(a: LogEntry, b: LogEntry) {
       if (a.momentValue === b.momentValue) return 0;
       return (a.momentValue || 0) > (b.momentValue || 0) ? 1 : -1;
     }
-    function doFilter(a: LogEntry) { return (a.level && filter[a.level]); }
+    function doFilter(a: LogEntry) {
+      return a.level && filter[a.level];
+    }
 
     // Filter
     if (shouldFilter) {
@@ -463,7 +552,9 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     // DateRange
     if (dateRange) {
-      d(`Performing date range filter (from: ${dateRange.from}, to: ${dateRange.to})`);
+      d(
+        `Performing date range filter (from: ${dateRange.from}, to: ${dateRange.to})`
+      );
       sortedList = this.doRangeFilter(dateRange, sortedList);
     }
 
@@ -493,11 +584,15 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    * @param {any} { cellData, columnData, dataKey, rowData, rowIndex }
    * @returns {(JSX.Element | string)}
    */
-  private messageCellRenderer({ rowData: entry }: TableCellProps): JSX.Element | string {
+  private messageCellRenderer({
+    rowData: entry,
+  }: TableCellProps): JSX.Element | string {
     if (entry && entry.meta) {
-      const icon = isReduxAction(entry.message)
-        ? <Icon icon='diagram-tree' />
-        : <Icon icon='paperclip' />;
+      const icon = isReduxAction(entry.message) ? (
+        <Icon icon="diagram-tree" />
+      ) : (
+        <Icon icon="paperclip" />
+      );
 
       return (
         <span title={entry.message}>
@@ -528,28 +623,62 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    * @param {any} { cellData, columnData, dataKey, rowData, rowIndex }
    * @returns {JSX.Element}
    */
-  private timestampCellRenderer({ rowData: entry }: TableCellProps): JSX.Element | string {
+  private timestampCellRenderer({
+    rowData: entry,
+  }: TableCellProps): JSX.Element | string {
     const { dateTimeFormat } = this.props;
     const timestamp = entry.momentValue
       ? format(entry.momentValue, dateTimeFormat)
       : entry.timestamp;
-    let prefix = <i className='Meta ts_icon ts_icon_question'/>;
+    let prefix = <i className="Meta ts_icon ts_icon_question" />;
 
     if (entry.logType === 'browser') {
-      prefix = <i title='Browser Log' className='Meta Color-Browser ts_icon ts_icon_power_off'/>;
+      prefix = (
+        <i
+          title="Browser Log"
+          className="Meta Color-Browser ts_icon ts_icon_power_off"
+        />
+      );
     } else if (entry.logType === 'renderer') {
-      prefix = <i title='Renderer Log' className='Meta Color-Renderer ts_icon ts_icon_laptop'/>;
+      prefix = (
+        <i
+          title="Renderer Log"
+          className="Meta Color-Renderer ts_icon ts_icon_laptop"
+        />
+      );
     } else if (entry.logType === 'webapp') {
-      prefix = <i title='Webapp Log' className='Meta Color-Webapp ts_icon ts_icon_globe'/>;
+      prefix = (
+        <i
+          title="Webapp Log"
+          className="Meta Color-Webapp ts_icon ts_icon_globe"
+        />
+      );
     } else if (entry.logType === 'preload') {
-      prefix = <i title='Preload Log' className='Meta Color-Preload ts_icon ts_icon_all_files_alt'/>;
+      prefix = (
+        <i
+          title="Preload Log"
+          className="Meta Color-Preload ts_icon ts_icon_all_files_alt"
+        />
+      );
     } else if (entry.logType === 'call') {
-      prefix = <i title='Call Log' className='Meta Color-Call ts_icon ts_icon_phone'/>;
+      prefix = (
+        <i title="Call Log" className="Meta Color-Call ts_icon ts_icon_phone" />
+      );
     } else if (entry.logType === 'mobile') {
-      prefix = <i title='Mobile Log' className='Meta Color-Mobile ts_icon ts_icon_phone'/>;
+      prefix = (
+        <i
+          title="Mobile Log"
+          className="Meta Color-Mobile ts_icon ts_icon_phone"
+        />
+      );
     }
 
-    return (<span title={entry.timestamp}>{prefix}{timestamp}</span>);
+    return (
+      <span title={entry.timestamp}>
+        {prefix}
+        {timestamp}
+      </span>
+    );
   }
 
   /**
@@ -571,11 +700,17 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    * @returns {JSX.Element}
    */
   private renderTable(options: Size): JSX.Element {
-    const { sortedList, selectedIndex, searchList, ignoreSearchIndex, scrollToSelection } = this.state;
+    const {
+      sortedList,
+      selectedIndex,
+      searchList,
+      ignoreSearchIndex,
+      scrollToSelection,
+    } = this.state;
     const { searchIndex, resultFunction } = this.props;
 
-    if(Array.isArray(sortedList)){
-      resultFunction(sortedList.length)
+    if (Array.isArray(sortedList)) {
+      resultFunction(sortedList.length);
     }
 
     const tableOptions: TableProps = {
@@ -591,38 +726,31 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sortDirection: this.state.sortDirection,
     };
 
-    if (!ignoreSearchIndex) tableOptions.scrollToIndex = searchList[searchIndex] || 0;
+    if (!ignoreSearchIndex)
+      tableOptions.scrollToIndex = searchList[searchIndex] || 0;
     if (scrollToSelection) tableOptions.scrollToIndex = selectedIndex || 0;
 
     return (
       <Table {...tableOptions}>
         <Column
-          label='Index'
-          dataKey='index'
+          label="Index"
+          dataKey="index"
           width={100}
           flexGrow={0}
           flexShrink={1}
         />
+        <Column label="Line" dataKey="line" width={100} />
         <Column
-          label='Line'
-          dataKey='line'
-          width={100}
-        />
-        <Column
-          label='Timestamp'
+          label="Timestamp"
           cellRenderer={this.timestampCellRenderer}
-          dataKey='momentValue'
+          dataKey="momentValue"
           width={200}
           flexGrow={2}
         />
+        <Column label="Level" dataKey="level" width={100} />
         <Column
-          label='Level'
-          dataKey='level'
-          width={100}
-        />
-        <Column
-          label='Message'
-          dataKey='message'
+          label="Message"
+          dataKey="message"
           cellRenderer={this.messageCellRenderer}
           width={options.width - 300}
           flexGrow={2}
@@ -641,11 +769,15 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    */
   private rowClassNameGetter(input: { index: number }): string {
     const { index } = input;
-    const { searchList, selectedIndex, selectedRangeIndex, ignoreSearchIndex } = this.state;
-    const isSearchIndex = !ignoreSearchIndex
-      && index === (searchList || [])[this.props.searchIndex];
-    const isRangeActive = selectedIndex !== undefined && selectedRangeIndex !== undefined
-      && between(index, selectedIndex, selectedRangeIndex);
+    const { searchList, selectedIndex, selectedRangeIndex, ignoreSearchIndex } =
+      this.state;
+    const isSearchIndex =
+      !ignoreSearchIndex &&
+      index === (searchList || [])[this.props.searchIndex];
+    const isRangeActive =
+      selectedIndex !== undefined &&
+      selectedRangeIndex !== undefined &&
+      between(index, selectedIndex, selectedRangeIndex);
 
     if (isSearchIndex || selectedIndex === index || isRangeActive) {
       return 'ActiveRow';
@@ -656,9 +788,15 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     }
 
     const row = this.rowGetter(input);
-    if (row?.level === 'error' || (row?.repeated?.length || 0) > RepeatedLevels.ERROR) {
+    if (
+      row?.level === 'error' ||
+      (row?.repeated?.length || 0) > RepeatedLevels.ERROR
+    ) {
       return 'ErrorRow';
-    } else if (row?.level === 'warn' || (row?.repeated?.length || 0) > RepeatedLevels.WARNING) {
+    } else if (
+      row?.level === 'warn' ||
+      (row?.repeated?.length || 0) > RepeatedLevels.WARNING
+    ) {
       return 'WarnRow';
     }
 

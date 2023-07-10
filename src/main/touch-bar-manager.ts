@@ -3,7 +3,7 @@ import {
   TouchBarPopoverConstructorOptions,
   BrowserWindow,
   ipcMain,
-  TouchBar
+  TouchBar,
 } from 'electron';
 
 import { getNiceGreeting } from '../utils/get-nice-greeting';
@@ -18,7 +18,7 @@ const {
   TouchBarGroup,
   TouchBarPopover,
   TouchBarSpacer,
-  TouchBarLabel
+  TouchBarLabel,
 } = TouchBar;
 
 export class TouchBarManager {
@@ -36,9 +36,9 @@ export class TouchBarManager {
         this.homeBtn,
         this.darkModeBtn,
         this.sidebarBtn,
-        this.spotlightBtn
-      ]
-    })
+        this.spotlightBtn,
+      ],
+    }),
   });
 
   public toggleFilterBtns = {
@@ -48,30 +48,33 @@ export class TouchBarManager {
     }),
     warn: new TouchBarButton({
       label: '⚠️ Warning',
-      click: () => this.send(IpcEvents.TOGGLE_FILTER, 'warn')
+      click: () => this.send(IpcEvents.TOGGLE_FILTER, 'warn'),
     }),
     info: new TouchBarButton({
       label: 'ℹ️ Info',
-      click: () => this.send(IpcEvents.TOGGLE_FILTER, 'info')
+      click: () => this.send(IpcEvents.TOGGLE_FILTER, 'info'),
     }),
     debug: new TouchBarButton({
       label: '🐛 Debug',
-      click: () => this.send(IpcEvents.TOGGLE_FILTER, 'debug')
-    })
+      click: () => this.send(IpcEvents.TOGGLE_FILTER, 'debug'),
+    }),
   };
 
   public filterBtn = new TouchBarPopover(this.getFilterBtnOptions());
 
   // Lol have mercy, TS
-  public items: Array<Electron.TouchBarButton
-    | Electron.TouchBarColorPicker
-    | Electron.TouchBarGroup
-    | Electron.TouchBarLabel
-    | Electron.TouchBarPopover
-    | Electron.TouchBarScrubber
-    | Electron.TouchBarSegmentedControl
-    | Electron.TouchBarSlider
-    | Electron.TouchBarSpacer>
+  public items:
+    | Array<
+        | Electron.TouchBarButton
+        | Electron.TouchBarColorPicker
+        | Electron.TouchBarGroup
+        | Electron.TouchBarLabel
+        | Electron.TouchBarPopover
+        | Electron.TouchBarScrubber
+        | Electron.TouchBarSegmentedControl
+        | Electron.TouchBarSlider
+        | Electron.TouchBarSpacer
+      >
     | undefined;
 
   constructor(public readonly browserWindow: BrowserWindow) {
@@ -117,7 +120,9 @@ export class TouchBarManager {
   public setTouchBar(options: Partial<Electron.TouchBarConstructorOptions>) {
     try {
       this.items = options.items;
-      this.touchBar = new TouchBar(options as Electron.TouchBarConstructorOptions);
+      this.touchBar = new TouchBar(
+        options as Electron.TouchBarConstructorOptions
+      );
       this.browserWindow.setTouchBar(this.touchBar);
     } catch (error) {
       console.warn(`Could not set touch bar`, { error });
@@ -132,8 +137,8 @@ export class TouchBarManager {
       items: [
         new TouchBarSpacer({ size: 'flexible' }),
         new TouchBarLabel({ label: getNiceGreeting() }),
-        new TouchBarSpacer({ size: 'flexible' })
-      ]
+        new TouchBarSpacer({ size: 'flexible' }),
+      ],
     });
   }
 
@@ -147,8 +152,8 @@ export class TouchBarManager {
         new TouchBarSpacer({ size: 'flexible' }),
         this.errorsLabel,
         new TouchBarSpacer({ size: 'flexible' }),
-        this.filterBtn
-      ]
+        this.filterBtn,
+      ],
     });
   }
 
@@ -163,7 +168,7 @@ export class TouchBarManager {
       this.toggleFilterBtns.error,
       this.toggleFilterBtns.warn,
       this.toggleFilterBtns.info,
-      this.toggleFilterBtns.debug
+      this.toggleFilterBtns.debug,
     ];
 
     return { label, items: new TouchBar({ items }) };
@@ -177,7 +182,7 @@ export class TouchBarManager {
   public getHomeBtnOptions(): TouchBarButtonConstructorOptions {
     return {
       label: '🏠',
-      click: () => this.send(IpcEvents.RESET)
+      click: () => this.send(IpcEvents.RESET),
     };
   }
 
@@ -189,7 +194,7 @@ export class TouchBarManager {
   public getDarkModeBtnOptions(): TouchBarButtonConstructorOptions {
     return {
       label: '🌙',
-      click: () => this.send(IpcEvents.TOGGLE_DARKMODE)
+      click: () => this.send(IpcEvents.TOGGLE_DARKMODE),
     };
   }
 
@@ -201,7 +206,7 @@ export class TouchBarManager {
   public getSpotlightBtnOptions(): TouchBarButtonConstructorOptions {
     return {
       label: '🔍',
-      click: () => this.send(IpcEvents.TOGGLE_SPOTLIGHT)
+      click: () => this.send(IpcEvents.TOGGLE_SPOTLIGHT),
     };
   }
 
@@ -213,30 +218,36 @@ export class TouchBarManager {
   public getSidebarBtnOptions(): TouchBarButtonConstructorOptions {
     return {
       label: '🗂',
-      click: () => this.send(IpcEvents.TOGGLE_SIDEBAR)
+      click: () => this.send(IpcEvents.TOGGLE_SIDEBAR),
     };
   }
 
-  public handleFilterUpdate(event: Electron.IpcMainEvent, levelFilter: LevelFilter) {
+  public handleFilterUpdate(
+    event: Electron.IpcMainEvent,
+    levelFilter: LevelFilter
+  ) {
     if (!this.isRightSender(event)) return;
 
-    Object.keys(levelFilter)
-      .forEach((key: LogLevel) => {
-        this.toggleFilterBtns[key].backgroundColor = levelFilter[key]
-          ? '#ffffff'
-          : '#4d5a68';
-      });
+    Object.keys(levelFilter).forEach((key: LogLevel) => {
+      this.toggleFilterBtns[key].backgroundColor = levelFilter[key]
+        ? '#ffffff'
+        : '#4d5a68';
+    });
   }
 
-  public handleDarkModeUpdate(event: Electron.IpcMainEvent, isDarkMode: boolean) {
+  public handleDarkModeUpdate(
+    event: Electron.IpcMainEvent,
+    isDarkMode: boolean
+  ) {
     if (!this.isRightSender(event)) return;
 
-    this.darkModeBtn.label = isDarkMode
-      ? '🌙'
-      : '☀️';
+    this.darkModeBtn.label = isDarkMode ? '🌙' : '☀️';
   }
 
-  public handleLogFileUpdate(event: Electron.IpcMainEvent, update: TouchBarLogFileUpdate) {
+  public handleLogFileUpdate(
+    event: Electron.IpcMainEvent,
+    update: TouchBarLogFileUpdate
+  ) {
     if (this.isRightSender(event)) {
       this.setWarningLabel(update.levelCounts);
 

@@ -1,5 +1,9 @@
 import { fakeUnzippedFile } from '../__mocks__/unzipped-file';
-import { ProcessedLogFile, ProcessedLogFiles, LogType } from '../../src/interfaces';
+import {
+  ProcessedLogFile,
+  ProcessedLogFiles,
+  LogType,
+} from '../../src/interfaces';
 import { getFirstLogFile } from '../../src/utils/get-first-logfile';
 
 const fakeFile: ProcessedLogFile = {
@@ -9,7 +13,7 @@ const fakeFile: ProcessedLogFile = {
   logFile: fakeUnzippedFile,
   logType: LogType.BROWSER,
   type: 'ProcessedLogFile',
-  levelCounts: {}
+  levelCounts: {},
 };
 
 const files: ProcessedLogFiles = {

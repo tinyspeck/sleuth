@@ -26,12 +26,8 @@ export class NetLogView extends React.Component<NetLogViewProps, object> {
 
   public render() {
     return (
-      <div className='NetLogView'>
-        <iframe
-          src='catapult.html'
-          onLoad={this.loadFile}
-          frameBorder={0}
-        />
+      <div className="NetLogView">
+        <iframe src="catapult.html" onLoad={this.loadFile} frameBorder={0} />
       </div>
     );
   }
@@ -59,10 +55,13 @@ export class NetLogView extends React.Component<NetLogViewProps, object> {
         const raw = await fs.readFile(file.fullPath, 'utf8');
 
         // See catapult.html for the postMessage handler
-        catapultWindow?.postMessage({
-          instruction: 'load',
-          payload: { fileName: file.fileName, content: raw }
-        }, 'file://');
+        catapultWindow?.postMessage(
+          {
+            instruction: 'load',
+            payload: { fileName: file.fileName, content: raw },
+          },
+          'file://'
+        );
       } catch (error) {
         d(`Failed to read file and load contents in catapult`, error);
       }
@@ -87,10 +86,13 @@ export class NetLogView extends React.Component<NetLogViewProps, object> {
       if (iframe && iframe.length > 0) {
         const catapultWindow = iframe[0].contentWindow;
 
-        catapultWindow?.postMessage({
-          instruction: 'dark-mode',
-          payload: enabled
-        }, 'file://');
+        catapultWindow?.postMessage(
+          {
+            instruction: 'dark-mode',
+            payload: enabled,
+          },
+          'file://'
+        );
       }
     } catch (error) {
       d(`Failed to set dark mode`, error);

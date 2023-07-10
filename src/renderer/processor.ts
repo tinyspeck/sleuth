@@ -14,7 +14,7 @@ import {
   SelectableLogType,
   SortedUnzippedFiles,
   UnzippedFile,
-  UnzippedFiles
+  UnzippedFiles,
 } from '../interfaces';
 import { getIdForLogFiles } from '../utils/id-for-logfiles';
 
@@ -23,16 +23,22 @@ const d = debug('sleuth:processor');
 const DESKTOP_RGX = /^\s*\[([\d/,\s:]{22,24})\] ([A-Za-z]{0,20}):?(.*)$/g;
 
 const WEBAPP_A_RGX = /^(\w*): (.{3}-\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
-const WEBAPP_B_RGX = /^(\w*): (\d{4}\/\d{1,2}\/\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
+const WEBAPP_B_RGX =
+  /^(\w*): (\d{4}\/\d{1,2}\/\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 
-const IOS_RGX = /^\s*\[((?:[0-9]{1,4}(?:\/|-|\.|\. )?){3}(?:, | |\){0,2}))((?:上午|下午){0,1}(?:[0-9]{1,2}[:.][0-9]{2}[:.][0-9]{2}\s?(?:AM|PM)?))\] (-|.{0,2}[</[]\w+[>\]])(.+)$/;
+const IOS_RGX =
+  /^\s*\[((?:[0-9]{1,4}(?:\/|-|\.|\. )?){3}(?:, | |\){0,2}))((?:上午|下午){0,1}(?:[0-9]{1,2}[:.][0-9]{2}[:.][0-9]{2}\s?(?:AM|PM)?))\] (-|.{0,2}[</[]\w+[>\]])(.+)$/;
 
-const ANDROID_A_RGX = /^\s*([0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}:[0-9]{3}) (.+)$/;
-const ANDROID_B_RGX = /^(?:\u200B|[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})?\s*(.*)\s*([a-zA-Z]{3}-[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})\s(.*)/;
+const ANDROID_A_RGX =
+  /^\s*([0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}:[0-9]{3}) (.+)$/;
+const ANDROID_B_RGX =
+  /^(?:\u200B|[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})?\s*(.*)\s*([a-zA-Z]{3}-[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})\s(.*)/;
 
-const CONSOLE_A_RGX = /(\S*:1)?(?:[\u200B\t ]?)([A-Za-z]{3}-[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}) (.+)/g;
+const CONSOLE_A_RGX =
+  /(\S*:1)?(?:[\u200B\t ]?)([A-Za-z]{3}-[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}) (.+)/g;
 const CONSOLE_B_RGX = /^(\S*:1) (.+)/g;
-const CONSOLE_C_RGX = /^([0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}) (\S*:1)? ?(?:\u200B )?(.+)/g;
+const CONSOLE_C_RGX =
+  /^([0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}) (\S*:1)? ?(?:\u200B )?(.+)/g;
 
 // Mar-26 09:29:38.460 []
 const WEBAPP_NEW_TIMESTAMP_RGX = /^ ?\w{3}-\d{1,2} \d{1,2}:\d{2}:\d{2}\.\d{3}/g;
@@ -43,22 +49,28 @@ const SHIPIT_MAC_RGX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (.*)$/;
 const SQUIRREL_RGX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})> (.*)$/;
 
 // [70491:0302/160742.806582:WARNING:gpu_process_host.cc(1303)] The GPU process has crashed 1 time(s)
-const CHROMIUM_RGX = /^\[(\d+:\d{4}\/\d{6}\.\d{3,6}:[a-zA-Z]+:.*\(\d+\))\] (.*)$/;
+const CHROMIUM_RGX =
+  /^\[(\d+:\d{4}\/\d{6}\.\d{3,6}:[a-zA-Z]+:.*\(\d+\))\] (.*)$/;
 
 /**
  * Sort an array, but do it on a different thread
  */
-export function sortWithWebWorker(data: Array<unknown>, sortFn: string): Promise<Array<LogEntry>> {
+export function sortWithWebWorker(
+  data: Array<unknown>,
+  sortFn: string
+): Promise<Array<LogEntry>> {
   return new Promise((resolve) => {
     // For test cases only
     if (!window.Worker) {
-      const sortedData = data.sort(new Function(`return ${sortFn}`)()) as Array<LogEntry>;
+      const sortedData = data.sort(
+        new Function(`return ${sortFn}`)()
+      ) as Array<LogEntry>;
       resolve(sortedData);
       return;
     }
 
     const code = `onmessage = function (evt) {evt.data.sort(${sortFn}); postMessage(evt.data)}`;
-    const worker = new Worker(URL.createObjectURL(new Blob([ code ])));
+    const worker = new Worker(URL.createObjectURL(new Blob([code])));
 
     worker.onmessage = (e) => resolve(e.data);
     worker.postMessage(data);
@@ -72,14 +84,15 @@ export function sortWithWebWorker(data: Array<unknown>, sortFn: string): Promise
  * @param {ProcessedLogFiles} logFiles
  */
 export function mergeLogFiles(
-  logFiles: Array<ProcessedLogFile>|Array<MergedLogFile>, logType: SelectableLogType
+  logFiles: Array<ProcessedLogFile> | Array<MergedLogFile>,
+  logType: SelectableLogType
 ): Promise<MergedLogFile> {
   return new Promise((resolve) => {
     let logEntries: Array<LogEntry> = [];
     const start = performance.now();
     const performanceData = {
       type: logType,
-      name: `Merged ${logType}`
+      name: `Merged ${logType}`,
     };
 
     // Single file? Cool, shortcut!
@@ -90,14 +103,14 @@ export function mergeLogFiles(
         type: 'MergedLogFile',
         logType,
         // The id just needs to be unique
-        id: (logFiles as Array<ProcessedLogFile>).map(({ id }) => id).join(',')
+        id: (logFiles as Array<ProcessedLogFile>).map(({ id }) => id).join(','),
       };
 
       logPerformance({
         ...performanceData,
         entries: singleResult.logEntries.length,
         lines: 0,
-        processingTime: performance.now() - start
+        processingTime: performance.now() - start,
       });
 
       return resolve(singleResult);
@@ -116,25 +129,24 @@ export function mergeLogFiles(
       }
     }`;
 
-    sortWithWebWorker(logEntries, sortFn)
-      .then((sortedLogEntries) => {
-        const multiResult: MergedLogFile = {
-          logFiles: logFiles as Array<ProcessedLogFile>,
-          logEntries: sortedLogEntries,
-          logType,
-          type: 'MergedLogFile',
-          id: getIdForLogFiles(logFiles)
-        };
+    sortWithWebWorker(logEntries, sortFn).then((sortedLogEntries) => {
+      const multiResult: MergedLogFile = {
+        logFiles: logFiles as Array<ProcessedLogFile>,
+        logEntries: sortedLogEntries,
+        logType,
+        type: 'MergedLogFile',
+        id: getIdForLogFiles(logFiles),
+      };
 
-        logPerformance({
-          ...performanceData,
-          entries: multiResult.logEntries.length,
-          lines: 0,
-          processingTime: performance.now() - start
-        });
-
-        resolve(multiResult);
+      logPerformance({
+        ...performanceData,
+        entries: multiResult.logEntries.length,
+        lines: 0,
+        processingTime: performance.now() - start,
       });
+
+      resolve(multiResult);
+    });
   });
 }
 
@@ -144,40 +156,68 @@ export function mergeLogFiles(
  * @param {UnzippedFile} logFile
  * @returns {LogType}
  */
-export function getTypeForFile(logFile: UnzippedFile): Exclude<LogType, LogType.ALL> {
+export function getTypeForFile(
+  logFile: UnzippedFile
+): Exclude<LogType, LogType.ALL> {
   const fileName = path.basename(logFile.fileName);
 
   if (fileName.endsWith('.trace')) {
     return LogType.TRACE;
-  } else if (fileName.startsWith('browser') || fileName === 'epics-browser.log') {
+  } else if (
+    fileName.startsWith('browser') ||
+    fileName === 'epics-browser.log'
+  ) {
     return LogType.BROWSER;
-  } else if (fileName.endsWith('preload.log') || fileName.startsWith('webview')) {
+  } else if (
+    fileName.endsWith('preload.log') ||
+    fileName.startsWith('webview')
+  ) {
     return LogType.PRELOAD;
-  } else if (fileName.startsWith('renderer')
-    || fileName === 'epics-renderer.log'
-    || fileName.startsWith('google')
-    || fileName.startsWith('onedrive')
-    || fileName.startsWith('box')
-    || fileName.startsWith('dropbox')
-    || fileName.startsWith('unknown')
-    || fileName.endsWith('window-console.log')
-    || fileName.endsWith('chrome-console.log')) {
+  } else if (
+    fileName.startsWith('renderer') ||
+    fileName === 'epics-renderer.log' ||
+    fileName.startsWith('google') ||
+    fileName.startsWith('onedrive') ||
+    fileName.startsWith('box') ||
+    fileName.startsWith('dropbox') ||
+    fileName.startsWith('unknown') ||
+    fileName.endsWith('window-console.log') ||
+    fileName.endsWith('chrome-console.log')
+  ) {
     return LogType.RENDERER;
-  } else if (fileName.startsWith('webapp') || fileName.startsWith('app.slack') || fileName.startsWith('console')) {
+  } else if (
+    fileName.startsWith('webapp') ||
+    fileName.startsWith('app.slack') ||
+    fileName.startsWith('console')
+  ) {
     return LogType.WEBAPP;
   } else if (fileName.startsWith('call')) {
     return LogType.CALL;
-  } else if ((fileName.startsWith('net') && !fileName.includes('net-log-window-console')) || fileName.startsWith('slackNetlog')) {
+  } else if (
+    (fileName.startsWith('net') &&
+      !fileName.includes('net-log-window-console')) ||
+    fileName.startsWith('slackNetlog')
+  ) {
     return LogType.NETLOG;
-  } else if (fileName.startsWith('ShipIt') || fileName.includes('SquirrelSetup')) {
+  } else if (
+    fileName.startsWith('ShipIt') ||
+    fileName.includes('SquirrelSetup')
+  ) {
     return LogType.INSTALLER;
-  } else if (/(utf-8'')?Default_(.){0,14}(\.txt$)/.test(fileName)
-  || fileName.startsWith('attachment')
-  || /\w{9,}_\w{9,}_\d{16,}\.txt/.test(fileName)) {
+  } else if (
+    /(utf-8'')?Default_(.){0,14}(\.txt$)/.test(fileName) ||
+    fileName.startsWith('attachment') ||
+    /\w{9,}_\w{9,}_\d{16,}\.txt/.test(fileName)
+  ) {
     return LogType.MOBILE;
   } else if (fileName.startsWith('electron_debug')) {
     return LogType.CHROMIUM;
-  } else if (/^slack-[\s\S]*$/.test(fileName) || fileName.endsWith('.html') || fileName.endsWith('.json') || fileName === 'installation') {
+  } else if (
+    /^slack-[\s\S]*$/.test(fileName) ||
+    fileName.endsWith('.html') ||
+    fileName.endsWith('.json') ||
+    fileName === 'installation'
+  ) {
     return LogType.STATE;
   }
 
@@ -191,7 +231,6 @@ export function getTypeForFile(logFile: UnzippedFile): Exclude<LogType, LogType.
  * @returns {SortedUnzippedFiles}
  */
 export function getTypesForFiles(logFiles: UnzippedFiles): SortedUnzippedFiles {
-
   const result: SortedUnzippedFiles = {
     browser: [],
     call: [],
@@ -210,7 +249,9 @@ export function getTypesForFiles(logFiles: UnzippedFiles): SortedUnzippedFiles {
     const logType = getTypeForFile(logFile);
 
     if (logType === LogType.UNKNOWN) {
-      d(`File ${logFile.fileName} seems weird - we don't recognize it. Throwing it away.`);
+      d(
+        `File ${logFile.fileName} seems weird - we don't recognize it. Throwing it away.`
+      );
     } else if (result[logType]) {
       result[logType].push(logFile);
     }
@@ -229,9 +270,8 @@ export function getTypesForFiles(logFiles: UnzippedFiles): SortedUnzippedFiles {
  * @returns {boolean}
  */
 function getShouldProcessFile(logFile: UnzippedFile): boolean {
-  const name = logFile && logFile.fileName
-    ? logFile.fileName.toLowerCase()
-    : '';
+  const name =
+    logFile && logFile.fileName ? logFile.fileName.toLowerCase() : '';
 
   if (name.includes('shipit') && name.endsWith('plist')) {
     return false;
@@ -276,13 +316,19 @@ export async function processLogFile(
   const logType = getTypeForFile(logFile);
 
   if (logType === LogType.UNKNOWN) {
-    throw new Error(`Error, attempting to process unknown log file ${logFile.fullPath}`);
+    throw new Error(
+      `Error, attempting to process unknown log file ${logFile.fullPath}`
+    );
   }
 
   if (progressCb) progressCb(`Processing file ${logFile.fileName}...`);
 
   const timeStart = performance.now();
-  const { entries, lines, levelCounts, repeatedCounts } = await readFile(logFile, logType, progressCb);
+  const { entries, lines, levelCounts, repeatedCounts } = await readFile(
+    logFile,
+    logType,
+    progressCb
+  );
   const result: ProcessedLogFile = {
     logFile,
     logEntries: entries,
@@ -290,7 +336,7 @@ export async function processLogFile(
     type: 'ProcessedLogFile',
     levelCounts,
     repeatedCounts,
-    id: logFile.fileName
+    id: logFile.fileName,
   };
 
   logPerformance({
@@ -298,7 +344,7 @@ export async function processLogFile(
     type: logType,
     lines,
     entries: entries.length,
-    processingTime: performance.now() - timeStart
+    processingTime: performance.now() - timeStart,
   });
 
   return result;
@@ -315,13 +361,16 @@ export async function processLogFile(
  * @returns {LogEntry}
  */
 export function makeLogEntry(
-  options: MatchResult, logType: string, line: number, sourceFile: string
+  options: MatchResult,
+  logType: string,
+  line: number,
+  sourceFile: string
 ): LogEntry {
   options.message = options.message || '';
   options.timestamp = options.timestamp || '';
   options.level = options.level || '';
 
-  const logEntry = {...options, logType, line, sourceFile };
+  const logEntry = { ...options, logType, line, sourceFile };
   return logEntry as LogEntry;
 }
 
@@ -347,7 +396,10 @@ export function readFile(
   return new Promise((resolve) => {
     const entries: Array<LogEntry> = [];
     const readStream = fs.createReadStream(logFile.fullPath);
-    const readInterface = readline.createInterface({ input: readStream, terminal: false });
+    const readInterface = readline.createInterface({
+      input: readStream,
+      terminal: false,
+    });
     const parsedlogType = logType || getTypeForFile(logFile);
     const matchFn = getMatchFunction(parsedlogType, logFile);
     const isCall = logType === 'call';
@@ -372,45 +424,62 @@ export function readFile(
         const lastIndex = entries.length - 1;
         const previous = entries.length > 0 ? entries[lastIndex] : null;
 
-        if (previous && previous.timestamp && previous.momentValue && entry.timestamp === new Date('Jan-01-70 00:00:00').toString()) {
+        if (
+          previous &&
+          previous.timestamp &&
+          previous.momentValue &&
+          entry.timestamp === new Date('Jan-01-70 00:00:00').toString()
+        ) {
           // In this case, the line didn't have a timestamp. If possible, give it the timestamp of the line before.
           // Jan-01-70 is the default timestamp Sleuth is giving to console log lines (regex B) and Android debug lines
           entry.timestamp = previous.timestamp;
           entry.momentValue = previous.momentValue;
-
-        } else if (previous && previous.timestamp && previous.momentValue && entry.timestamp.startsWith('No Date')) {
+        } else if (
+          previous &&
+          previous.timestamp &&
+          previous.momentValue &&
+          entry.timestamp.startsWith('No Date')
+        ) {
           // In this case, the line has a time but no date. If possible, give it the date of the line before!
           // 'No Date' is the default timestamp Sleuth is giving to console log lines (regex C) only
-          const newTimestamp = previous.timestamp.substring(0, 16) + entry.timestamp.substring(7);
+          const newTimestamp =
+            previous.timestamp.substring(0, 16) + entry.timestamp.substring(7);
           const newDate = new Date(newTimestamp);
 
           entry.timestamp = newTimestamp;
           entry.momentValue = newDate.valueOf();
         }
 
-        if (previous && previous.message === entry.message && previous.meta === entry.meta) {
+        if (
+          previous &&
+          previous.message === entry.message &&
+          previous.meta === entry.meta
+        ) {
           entries[lastIndex].repeated = entries[lastIndex].repeated || [];
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           entries[lastIndex].repeated!.push(entry.timestamp);
 
-          repeatedCounts[entry.message] = (repeatedCounts[entry.message] || 0) + 1;
+          repeatedCounts[entry.message] =
+            (repeatedCounts[entry.message] || 0) + 1;
         } else {
           entry.index = entries.length;
 
           if (entry.level) {
-            levelCounts[entry.level] = (levelCounts[entry.level] || 0)  + 1;
+            levelCounts[entry.level] = (levelCounts[entry.level] || 0) + 1;
           }
 
           entries.push(entry);
         }
-
-
       }
     }
 
     function readLine(line: string) {
       lines = lines + 1;
-      if (!line || line.length === 0 || (logType === 'mobile' && line.startsWith('====='))) {
+      if (
+        !line ||
+        line.length === 0 ||
+        (logType === 'mobile' && line.startsWith('====='))
+      ) {
         return;
       }
 
@@ -424,8 +493,11 @@ export function readFile(
 
         // Deal with leading Android debug log lines with no timestamp that were given the Jan 1970 default
         // and console log lines given 'No Date'
-        if ((logType === 'mobile' || logType === 'webapp') &&
-        (current?.timestamp === new Date('Jan-01-70 00:00:00').toString() || current?.timestamp.startsWith('No Date'))) {
+        if (
+          (logType === 'mobile' || logType === 'webapp') &&
+          (current?.timestamp === new Date('Jan-01-70 00:00:00').toString() ||
+            current?.timestamp.startsWith('No Date'))
+        ) {
           // If a debug line isn't currently being stored
           if (!androidDebug) {
             // Copy the current log entry to the debug store
@@ -434,12 +506,20 @@ export function readFile(
             // Append the current log entry message to the debug store
             androidDebug.message += '\n' + current?.message;
           }
-        // If a debug line is stored and current exists
-        } else if ((logType === 'mobile' || logType === 'webapp') && androidDebug && current) {
+          // If a debug line is stored and current exists
+        } else if (
+          (logType === 'mobile' || logType === 'webapp') &&
+          androidDebug &&
+          current
+        ) {
           if (androidDebug.timestamp.startsWith('No Date')) {
             // If it's a console log with only the timestamp, give it the date of the next possible log line
-            androidDebug.timestamp = current.timestamp.substring(0, 16) + androidDebug.timestamp.substring(7);
-            androidDebug.momentValue = new Date(androidDebug.timestamp).valueOf();
+            androidDebug.timestamp =
+              current.timestamp.substring(0, 16) +
+              androidDebug.timestamp.substring(7);
+            androidDebug.momentValue = new Date(
+              androidDebug.timestamp
+            ).valueOf();
           } else {
             // Give the debug line current's timestamp and momentvalue and push it separately
             androidDebug.timestamp = current.timestamp;
@@ -449,8 +529,7 @@ export function readFile(
           pushEntry(androidDebug);
           androidDebug = null;
           pushEntry(current);
-        }
-        else {
+        } else {
           // No Android log line to deal with, push the last entry
           pushEntry(current);
         }
@@ -466,12 +545,20 @@ export function readFile(
         } else if (logType === 'mobile' && current) {
           // Android logs do too
           current.message += '\n' + line;
-        } else if (current && (logFile.fileName.startsWith('app.slack') || logFile.fileName.startsWith('console-export-'))) {
+        } else if (
+          current &&
+          (logFile.fileName.startsWith('app.slack') ||
+            logFile.fileName.startsWith('console-export-'))
+        ) {
           // For console logs which are typed as webapp so we can't just detect using type:
           if (toParse && toParse.length > 0) {
             // If there's already a meta, just add to the meta
             toParse += line + '\n';
-          } else if (line.includes('@') || line.includes('(async)') || line.match(/Show [\d]+ more frames/)) {
+          } else if (
+            line.includes('@') ||
+            line.includes('(async)') ||
+            line.match(/Show [\d]+ more frames/)
+          ) {
             // This is part of a stack trace - I could add it to the above line but that's a mouthful
             toParse += line + '\n';
           } else {
@@ -534,9 +621,10 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
 
   // First, try the expected default format
   if (results && results.length === 4) {
-
     // Expected format: MM/DD/YY(YY), HH:mm:ss:SSS'
-    const momentValue = new Date(results[1].replace(', 24:', ', 00:')).valueOf();
+    const momentValue = new Date(
+      results[1].replace(', 24:', ', 00:')
+    ).valueOf();
     let message = results[3];
 
     // If we have two timestamps, cut that from the message
@@ -549,7 +637,7 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
       timestamp: results[1],
       level: results[2].toLowerCase(),
       message,
-      momentValue
+      momentValue,
     };
   }
 
@@ -561,7 +649,7 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
     return {
       timestamp: results[2],
       level: results[1],
-      message: results[3]
+      message: results[3],
     };
   }
 
@@ -573,7 +661,7 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
     return {
       timestamp: results[2],
       level: results[1],
-      message: results[3]
+      message: results[3],
     };
   }
 
@@ -601,7 +689,7 @@ export function matchLineSquirrel(line: string): MatchResult | undefined {
       timestamp: results[1],
       level: 'info',
       message: results[2],
-      momentValue
+      momentValue,
     };
   }
 
@@ -643,7 +731,7 @@ export function matchLineShipItMac(line: string): MatchResult | undefined {
       level: 'info',
       message,
       momentValue,
-      toParseHead
+      toParseHead,
     };
   }
 
@@ -667,19 +755,20 @@ export function matchLineElectron(line: string): MatchResult | undefined {
 
   if (results && results.length === 4) {
     // Expected format: MM/DD/YY, HH:mm:ss:SSS'
-    const momentValue = new Date(results[1].replace(', 24:', ', 00:')).valueOf();
+    const momentValue = new Date(
+      results[1].replace(', 24:', ', 00:')
+    ).valueOf();
 
     return {
       timestamp: results[1],
       level: results[2].toLowerCase(),
       message: results[3],
-      momentValue
+      momentValue,
     };
   }
 
   return;
 }
-
 
 /**
  * Matches a console log line (Chrome or Firefox)
@@ -709,7 +798,13 @@ export function matchLineConsole(line: string): MatchResult | undefined {
   // 11:50:18.322 gantry-shared.f1348ec.min.js?cacheKey=gantry-1611070538:1
   // (cont.) [API-Q] (T34263EUF) noversion-1611085818.279 Flannel users/info is RESOLVED
 
-  if (line.includes('@') || line.includes('(async)') || line.match(/Show [\d]+ more frames/)) { return; }
+  if (
+    line.includes('@') ||
+    line.includes('(async)') ||
+    line.match(/Show [\d]+ more frames/)
+  ) {
+    return;
+  }
   // These lines are part of a stack trace, let's skip the regex so we can add them to the meta
 
   CONSOLE_A_RGX.lastIndex = 0;
@@ -720,7 +815,8 @@ export function matchLineConsole(line: string): MatchResult | undefined {
     const newTimestamp = new Date(results[2]);
     newTimestamp.setFullYear(currentDate.getFullYear());
 
-    if (newTimestamp > currentDate) { // If the date is in the future, change the year by -1
+    if (newTimestamp > currentDate) {
+      // If the date is in the future, change the year by -1
       newTimestamp.setFullYear(newTimestamp.getFullYear() - 1);
     }
 
@@ -730,7 +826,7 @@ export function matchLineConsole(line: string): MatchResult | undefined {
       level: 'info',
       message: results[1] ? results[3] + ' <' + results[1] + '>' : results[3],
       momentValue,
-   };
+    };
   }
 
   CONSOLE_B_RGX.lastIndex = 0;
@@ -741,7 +837,7 @@ export function matchLineConsole(line: string): MatchResult | undefined {
       // Jan-01-70 is the default timestamp given to logs with bad/no timestamps so we can identify & append new datestamps in pushEntry()
       timestamp: new Date('Jan-01-70 00:00:00').toString(),
       level: 'info',
-      message: results [2] + ' ' + results[1],
+      message: results[2] + ' ' + results[1],
       momentValue: new Date('Jan-01-70 00:00:00').valueOf(),
     };
   }
@@ -759,10 +855,8 @@ export function matchLineConsole(line: string): MatchResult | undefined {
     };
   }
 
-
   return;
 }
-
 
 /**
  * Matches an iOS line
@@ -771,8 +865,9 @@ export function matchLineConsole(line: string): MatchResult | undefined {
  * @returns {(MatchResult | undefined)}
  */
 export function matchLineIOS(line: string): MatchResult | undefined {
-
-  if (line.startsWith('=====')) { return; } // We're ignoring these lines
+  if (line.startsWith('=====')) {
+    return;
+  } // We're ignoring these lines
 
   // The iOS regex is long because it accounts for the localized versions
   // Android logs are always in English which makes them simpler than iOS
@@ -815,12 +910,11 @@ export function matchLineIOS(line: string): MatchResult | undefined {
       timestamp,
       level: newLevel,
       message: results[4],
-      momentValue
+      momentValue,
     };
   }
   return;
 }
-
 
 /**
  * Matches an Android line
@@ -829,16 +923,18 @@ export function matchLineIOS(line: string): MatchResult | undefined {
  * @returns {(MatchResult | undefined)}
  */
 export function matchLineAndroid(line: string): MatchResult | undefined {
-
-    // Let's pretend some of the debugging metadata is a log line so we can search for it and give it a default date
-    if (line.startsWith('UsersCounts') || line.startsWith('Messag') && !line.startsWith('MessageGap(')) {
-      return {
-        timestamp: new Date('Jan-01-70 00:00:00').toString(),
-        level: 'info',
-        message: line,
-        momentValue: new Date('Jan-01-70 00:00:00').valueOf(),
-      };
-    }
+  // Let's pretend some of the debugging metadata is a log line so we can search for it and give it a default date
+  if (
+    line.startsWith('UsersCounts') ||
+    (line.startsWith('Messag') && !line.startsWith('MessageGap('))
+  ) {
+    return {
+      timestamp: new Date('Jan-01-70 00:00:00').toString(),
+      level: 'info',
+      message: line,
+      momentValue: new Date('Jan-01-70 00:00:00').valueOf(),
+    };
+  }
 
   // ANDROID_A_RGX expects lines that start with MM-DD HH:mm:ss:sss
   ANDROID_A_RGX.lastIndex = 0;
@@ -850,7 +946,8 @@ export function matchLineAndroid(line: string): MatchResult | undefined {
     const newTimestamp = new Date(results[1]);
     newTimestamp.setFullYear(currentDate.getFullYear());
 
-    if (newTimestamp > currentDate) { // If the date is in the future, change the year by -1
+    if (newTimestamp > currentDate) {
+      // If the date is in the future, change the year by -1
       newTimestamp.setFullYear(newTimestamp.getFullYear() - 1);
     }
 
@@ -861,7 +958,7 @@ export function matchLineAndroid(line: string): MatchResult | undefined {
       timestamp: newTimestamp.toString(),
       level: 'info',
       message: results[2],
-      momentValue
+      momentValue,
     };
   }
 
@@ -875,7 +972,8 @@ export function matchLineAndroid(line: string): MatchResult | undefined {
     const newTimestamp = new Date(results[2]);
     newTimestamp.setFullYear(currentDate.getFullYear());
 
-    if (newTimestamp > currentDate) { // If the date is in the future, change the year by -1
+    if (newTimestamp > currentDate) {
+      // If the date is in the future, change the year by -1
       newTimestamp.setFullYear(newTimestamp.getFullYear() - 1);
     }
 
@@ -885,10 +983,9 @@ export function matchLineAndroid(line: string): MatchResult | undefined {
       timestamp: newTimestamp.toString(),
       level: 'info',
       message: results[3] + ' ' + results[1],
-      momentValue
+      momentValue,
     };
   }
-
 
   return;
 }
@@ -915,8 +1012,9 @@ export function matchLineMobile(line: string): MatchResult | undefined {
 export function matchLineCall(line: string): MatchResult | undefined {
   // Matcher for calls
   // [YYYY/MM/DD hh:mm:ss uuu* LEVEL FILE->FUNCTION:LINE] message
-  // eslint-disable-next-line no-control-regex
-  const callRegex = /(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}\.\d{3})	([A-Z]{0,10}) ([\s\S]*)$/;
+  const callRegex =
+   // eslint-disable-next-line no-control-regex
+    /(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}\.\d{3})	([A-Z]{0,10}) ([\s\S]*)$/;
   const results = callRegex.exec(line);
 
   if (results && results.length === 4) {
@@ -927,7 +1025,7 @@ export function matchLineCall(line: string): MatchResult | undefined {
       timestamp: results[1],
       level: results[2],
       message: results[3],
-      momentValue
+      momentValue,
     };
   }
 
@@ -979,7 +1077,7 @@ export function matchLineChromium(line: string): MatchResult | undefined {
     momentValue: logDate.valueOf(),
     meta: {
       sourceFile: sourceFile.split('(')[0],
-      pid
+      pid,
     },
   };
 }
@@ -997,7 +1095,10 @@ export function getMatchFunction(
   logFile: UnzippedFile
 ): (line: string) => MatchResult | undefined {
   if (logType === LogType.WEBAPP) {
-    if (logFile.fileName.startsWith('app.slack') || logFile.fileName.startsWith('console')) {
+    if (
+      logFile.fileName.startsWith('app.slack') ||
+      logFile.fileName.startsWith('console')
+    ) {
       return matchLineConsole;
     } else {
       return matchLineWebApp;
@@ -1013,7 +1114,7 @@ export function getMatchFunction(
   } else if (logType === LogType.MOBILE) {
     if (logFile.fileName.startsWith('attachment')) {
       return matchLineAndroid;
-    } else if (/(utf-8'')?Default_(.){0,14}(\.txt$)/.test(logFile.fileName)){
+    } else if (/(utf-8'')?Default_(.){0,14}(\.txt$)/.test(logFile.fileName)) {
       return matchLineIOS;
     } else {
       return matchLineMobile;

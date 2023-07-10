@@ -1,5 +1,7 @@
 import { BrowserWindow } from 'electron';
-import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
+import installExtension, {
+  REACT_DEVELOPER_TOOLS,
+} from 'electron-devtools-installer';
 import windowStateKeeper from 'electron-window-state';
 
 import { settingsFileManager } from './settings';
@@ -28,7 +30,7 @@ interface WindowState {
 function getWindowState() {
   const mainWindowState = windowStateKeeper({
     defaultWidth: 1200,
-    defaultHeight: 800
+    defaultHeight: 800,
   }) as WindowState;
 
   let x = mainWindowState.x;
@@ -45,7 +47,7 @@ function getWindowState() {
   return {
     mainWindowState,
     x,
-    y
+    y,
   };
 }
 
@@ -61,9 +63,11 @@ export async function createWindow(): Promise<BrowserWindow> {
   const { mainWindowState, x, y } = getWindowState();
 
   // We might want a custom window
-  const icon = process.platform !== 'darwin' && !!(await settingsFileManager.getItem('isMarkIcon'))
-    ? getIconPath(ICON_NAMES.mark)
-    : getIconPath(ICON_NAMES.default);
+  const icon =
+    process.platform !== 'darwin' &&
+    !!(await settingsFileManager.getItem('isMarkIcon'))
+      ? getIconPath(ICON_NAMES.mark)
+      : getIconPath(ICON_NAMES.default);
 
   // Create the browser window.
   const options: Electron.BrowserWindowConstructorOptions = {
@@ -80,7 +84,7 @@ export async function createWindow(): Promise<BrowserWindow> {
       webviewTag: false,
       nodeIntegration: true,
       contextIsolation: false,
-    }
+    },
   };
   console.log(`Windows: Creating window with options`, options);
 
@@ -137,7 +141,9 @@ export async function getCurrentWindow(): Promise<BrowserWindow> {
 
   // No window focused? Find a ready one
   for (const window of windows) {
-    const isBusy = window.webContents.send(IpcEvents.ARE_YOU_BUSY) as unknown as boolean;
+    const isBusy = window.webContents.send(
+      IpcEvents.ARE_YOU_BUSY
+    ) as unknown as boolean;
 
     console.log(`Asked window ${window.id} if it's busy. Answer: ${isBusy}`);
 

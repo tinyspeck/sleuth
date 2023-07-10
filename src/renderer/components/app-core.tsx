@@ -40,7 +40,10 @@ export interface CoreAppState {
 }
 
 @observer
-export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreAppState>> {
+export class CoreApplication extends React.Component<
+  CoreAppProps,
+  Partial<CoreAppState>
+> {
   constructor(props: CoreAppProps) {
     super(props);
 
@@ -60,7 +63,7 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
       },
       loadingMessage: '',
       loadedLogFiles: false,
-      loadedMergeFiles: false
+      loadedMergeFiles: false,
     };
   }
 
@@ -88,16 +91,19 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
       return;
     }
 
-    const newProcessedLogFiles: ProcessedLogFiles = { ... processedLogFiles };
+    const newProcessedLogFiles: ProcessedLogFiles = { ...processedLogFiles };
 
     for (const [type, filesOfType] of Object.entries(filesToAdd)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const currentState = processedLogFiles[type as keyof ProcessedLogFiles] as Array<any>;
-      newProcessedLogFiles[type as keyof ProcessedLogFiles] = currentState.concat(filesOfType);
+      const currentState = processedLogFiles[
+        type as keyof ProcessedLogFiles
+      ] as Array<any>;
+      newProcessedLogFiles[type as keyof ProcessedLogFiles] =
+        currentState.concat(filesOfType);
     }
 
     this.setState({
-      processedLogFiles: newProcessedLogFiles
+      processedLogFiles: newProcessedLogFiles,
     });
   }
 
@@ -109,13 +115,16 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
     const { cachePath } = this.props.state;
 
     const sortedUnzippedFiles = getTypesForFiles(unzippedFiles);
-    const noFiles = Object.keys(sortedUnzippedFiles).map((k: keyof SortedUnzippedFiles) => sortedUnzippedFiles[k]).every((s) => s.length === 0);
+    const noFiles = Object.keys(sortedUnzippedFiles)
+      .map((k: keyof SortedUnzippedFiles) => sortedUnzippedFiles[k])
+      .every((s) => s.length === 0);
 
     if (noFiles && !cachePath) {
       showMessageBox({
         title: 'Huh, weird logs!',
-        message: 'Sorry, Sleuth does not understand the file(s). It seems like there are no Slack logs here.\n\nCheck the #sleuth FAQ for help!',
-        type: 'error'
+        message:
+          'Sorry, Sleuth does not understand the file(s). It seems like there are no Slack logs here.\n\nCheck the #sleuth FAQ for help!',
+        type: 'error',
       });
 
       // Reload
@@ -173,14 +182,30 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
     const { setMergedFile } = this.props.state;
 
     if (processedLogFiles) {
-      await mergeLogFiles(processedLogFiles.browser, LogType.BROWSER).then(setMergedFile);
-      await mergeLogFiles(processedLogFiles.renderer, LogType.RENDERER).then(setMergedFile);
-      await mergeLogFiles(processedLogFiles.preload, LogType.PRELOAD).then(setMergedFile);
-      await mergeLogFiles(processedLogFiles.call, LogType.CALL).then(setMergedFile);
-      await mergeLogFiles(processedLogFiles.webapp, LogType.WEBAPP).then(setMergedFile);
+      await mergeLogFiles(processedLogFiles.browser, LogType.BROWSER).then(
+        setMergedFile
+      );
+      await mergeLogFiles(processedLogFiles.renderer, LogType.RENDERER).then(
+        setMergedFile
+      );
+      await mergeLogFiles(processedLogFiles.preload, LogType.PRELOAD).then(
+        setMergedFile
+      );
+      await mergeLogFiles(processedLogFiles.call, LogType.CALL).then(
+        setMergedFile
+      );
+      await mergeLogFiles(processedLogFiles.webapp, LogType.WEBAPP).then(
+        setMergedFile
+      );
 
       const merged = this.props.state.mergedLogFiles as MergedLogFiles;
-      const toMerge = [merged.browser, merged.renderer, merged.preload, merged.call, merged.webapp];
+      const toMerge = [
+        merged.browser,
+        merged.renderer,
+        merged.preload,
+        merged.call,
+        merged.webapp,
+      ];
 
       mergeLogFiles(toMerge, LogType.ALL).then((r) => setMergedFile(r));
     }
@@ -193,13 +218,14 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
    */
   private getPercentageLoaded(): number {
     const { unzippedFiles } = this.props;
-    const processedLogFiles: Partial<ProcessedLogFiles> = this.state.processedLogFiles || {};
+    const processedLogFiles: Partial<ProcessedLogFiles> =
+      this.state.processedLogFiles || {};
     const alreadyLoaded = Object.keys(processedLogFiles)
       .map((k: keyof ProcessedLogFiles) => processedLogFiles[k])
       .reduce((p, c) => p + (c ? c.length : 0), 0);
     const toLoad = unzippedFiles.length;
 
-    return Math.round(alreadyLoaded / toLoad * 100);
+    return Math.round((alreadyLoaded / toLoad) * 100);
   }
 
   /**
@@ -211,13 +237,41 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
     const { mergedLogFiles } = this.props.state;
 
     return {
-      all: !!(mergedLogFiles && mergedLogFiles.all && mergedLogFiles.all.logEntries),
-      browser: !!(mergedLogFiles && mergedLogFiles.browser && mergedLogFiles.browser.logEntries),
-      renderer: !!(mergedLogFiles && mergedLogFiles.renderer && mergedLogFiles.renderer.logEntries),
-      preload: !!(mergedLogFiles && mergedLogFiles.preload && mergedLogFiles.preload.logEntries),
-      webapp: !!(mergedLogFiles && mergedLogFiles.webapp && mergedLogFiles.webapp.logEntries),
-      call: !!(mergedLogFiles && mergedLogFiles.call && mergedLogFiles.call.logEntries),
-      mobile: !!(mergedLogFiles && mergedLogFiles.mobile && mergedLogFiles.mobile.logEntries)
+      all: !!(
+        mergedLogFiles &&
+        mergedLogFiles.all &&
+        mergedLogFiles.all.logEntries
+      ),
+      browser: !!(
+        mergedLogFiles &&
+        mergedLogFiles.browser &&
+        mergedLogFiles.browser.logEntries
+      ),
+      renderer: !!(
+        mergedLogFiles &&
+        mergedLogFiles.renderer &&
+        mergedLogFiles.renderer.logEntries
+      ),
+      preload: !!(
+        mergedLogFiles &&
+        mergedLogFiles.preload &&
+        mergedLogFiles.preload.logEntries
+      ),
+      webapp: !!(
+        mergedLogFiles &&
+        mergedLogFiles.webapp &&
+        mergedLogFiles.webapp.logEntries
+      ),
+      call: !!(
+        mergedLogFiles &&
+        mergedLogFiles.call &&
+        mergedLogFiles.call.logEntries
+      ),
+      mobile: !!(
+        mergedLogFiles &&
+        mergedLogFiles.mobile &&
+        mergedLogFiles.mobile.logEntries
+      ),
     };
   }
 
@@ -237,9 +291,7 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
           selectedLogFileName={selectedFileName}
           state={this.props.state}
         />
-        <Spotlight
-          state={this.props.state}
-        />
+        <Spotlight state={this.props.state} />
       </>
     );
   }
@@ -254,8 +306,8 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
     const percentageLoaded = this.getPercentageLoaded();
 
     return (
-      <div className='AppCore'>
-        <div id='content'>
+      <div className="AppCore">
+        <div id="content">
           <Loading percentage={percentageLoaded} message={loadingMessage} />
         </div>
       </div>
@@ -272,10 +324,10 @@ export class CoreApplication extends React.Component<CoreAppProps, Partial<CoreA
     const logContentClassName = classNames({ isSidebarOpen });
 
     return (
-      <div className='AppCore'>
+      <div className="AppCore">
         {this.renderSidebarSpotlight()}
 
-        <div id='content' className={logContentClassName}>
+        <div id="content" className={logContentClassName}>
           <AppCoreHeader state={this.props.state} />
           <LogContent state={this.props.state} />
         </div>

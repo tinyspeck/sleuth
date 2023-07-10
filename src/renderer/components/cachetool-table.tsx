@@ -3,11 +3,22 @@ import React from 'react';
 import classNames from 'classnames';
 import { default as keydown, Keys } from 'react-keydown';
 import autoBind from 'react-autobind';
-import { Table, TableProps, AutoSizer, Column, Size, RowMouseEventHandlerParams } from 'react-virtualized';
+import {
+  Table,
+  TableProps,
+  AutoSizer,
+  Column,
+  Size,
+  RowMouseEventHandlerParams,
+} from 'react-virtualized';
 import debug from 'debug';
 
 import { SleuthState } from '../state/sleuth';
-import { SORT_DIRECTION, LogTableColumnWidths, SortFilterListOptions } from './log-table-constants';
+import {
+  SORT_DIRECTION,
+  LogTableColumnWidths,
+  SortFilterListOptions,
+} from './log-table-constants';
 import { getRegExpMaybeSafe } from '../../utils/regexp';
 
 const d = debug('sleuth:Cachetooltable');
@@ -39,12 +50,17 @@ export interface CachetoolKey {
   key: string;
 }
 
-export class CachetoolTable extends React.Component<CachetoolTableProps, CachetoolTableState> {
-  private changeSelectedEntry: (() => void) & {
-    clear(): void;
-} & {
-    flush(): void;
-} | null = null;
+export class CachetoolTable extends React.Component<
+  CachetoolTableProps,
+  CachetoolTableState
+> {
+  private changeSelectedEntry:
+    | ((() => void) & {
+        clear(): void;
+      } & {
+        flush(): void;
+      })
+    | null = null;
 
   constructor(props: CachetoolTableProps) {
     super(props);
@@ -54,7 +70,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
       sortBy: 'index',
       sortDirection: props.state.defaultSort || SORT_DIRECTION.DESC,
       searchList: [],
-      ignoreSearchIndex: false
+      ignoreSearchIndex: false,
     };
 
     autoBind(this);
@@ -67,7 +83,10 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
    * @param {CachetoolTableState} nextState
    * @returns {boolean}
    */
-  public shouldComponentUpdate(nextProps: CachetoolTableProps, nextState: CachetoolTableState): boolean {
+  public shouldComponentUpdate(
+    nextProps: CachetoolTableProps,
+    nextState: CachetoolTableState
+  ): boolean {
     const { searchIndex } = this.props;
     const { sortBy, sortDirection, searchList, selectedIndex } = this.state;
 
@@ -75,11 +94,16 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
     if (selectedIndex !== nextState.selectedIndex) return true;
 
     // Sort direction changed
-    const newSort = (nextState.sortBy !== sortBy || nextState.sortDirection !== sortDirection);
+    const newSort =
+      nextState.sortBy !== sortBy || nextState.sortDirection !== sortDirection;
     if (newSort) return true;
 
     // Search changed
-    if (searchList !== nextState.searchList || searchIndex !== nextProps.searchIndex) return true;
+    if (
+      searchList !== nextState.searchList ||
+      searchIndex !== nextProps.searchIndex
+    )
+      return true;
 
     return true;
   }
@@ -89,19 +113,19 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
    *
    * @param {CachetoolTableProps} nextProps
    */
-  public UNSAFE_componentWillReceiveProps(nextProps: CachetoolTableProps): void {
-    const {
-      search,
-      showOnlySearchResults,
-      searchIndex,
-    } = this.props;
+  public UNSAFE_componentWillReceiveProps(
+    nextProps: CachetoolTableProps
+  ): void {
+    const { search, showOnlySearchResults, searchIndex } = this.props;
 
     // Next props
     const nextshowOnlySearchResults = nextProps.showOnlySearchResults;
     const nextSearch = nextProps.search;
 
     // Search changed
-    const searchChanged = search !== nextProps.search || showOnlySearchResults !== nextshowOnlySearchResults;
+    const searchChanged =
+      search !== nextProps.search ||
+      showOnlySearchResults !== nextshowOnlySearchResults;
 
     if (searchChanged) {
       const sortOptions: SortFilterListOptions = {
@@ -125,7 +149,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
         sortedList,
         searchList,
         selectedIndex,
-        scrollToSelection: !!selectedIndex
+        scrollToSelection: !!selectedIndex,
       });
     }
 
@@ -161,7 +185,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
 
     return (
       <div className={className}>
-        <div className='Sizer'>
+        <div className="Sizer">
           <AutoSizer>{(options) => this.renderTable(options)}</AutoSizer>
         </div>
       </div>
@@ -185,7 +209,9 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
    * Handles a single click onto a row
    */
   private onRowClick({ index }: RowMouseEventHandlerParams) {
-    const selectedCacheKey = this.state.sortedList ? this.state.sortedList[index] : undefined;
+    const selectedCacheKey = this.state.sortedList
+      ? this.state.sortedList[index]
+      : undefined;
 
     console.debug(selectedCacheKey);
 
@@ -194,7 +220,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
     this.setState({
       selectedIndex: index,
       ignoreSearchIndex: true,
-      scrollToSelection: false
+      scrollToSelection: false,
     });
   }
 
@@ -205,14 +231,24 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
    * @param {string} sortBy
    * @param {string} sortDirection
    */
-  private onSortChange(
-    { sortBy, sortDirection }: { sortBy: string, sortDirection: SORT_DIRECTION }
-  ) {
+  private onSortChange({
+    sortBy,
+    sortDirection,
+  }: {
+    sortBy: string;
+    sortDirection: SORT_DIRECTION;
+  }) {
     const currentState = this.state;
-    const newSort = (currentState.sortBy !== sortBy || currentState.sortDirection !== sortDirection);
+    const newSort =
+      currentState.sortBy !== sortBy ||
+      currentState.sortDirection !== sortDirection;
 
     if (newSort) {
-      this.setState({ sortBy, sortDirection, sortedList: this.sortList({ sortBy, sortDirection }) });
+      this.setState({
+        sortBy,
+        sortDirection,
+        sortedList: this.sortList({ sortBy, sortDirection }),
+      });
     }
   }
 
@@ -243,7 +279,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
         this.setState({
           selectedIndex: nextIndex,
           ignoreSearchIndex: false,
-          scrollToSelection: true
+          scrollToSelection: true,
         });
       }
     }
@@ -259,8 +295,12 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
   private doSearchFilter(search: string, list: Array<string>): Array<string> {
     let searchRegex = getRegExpMaybeSafe(search || '');
 
-    function doSearch(a: string) { return (!search || searchRegex.test(a)); }
-    function doExclude(a: string) { return (!search || !searchRegex.test(a)); }
+    function doSearch(a: string) {
+      return !search || searchRegex.test(a);
+    }
+    function doExclude(a: string) {
+      return !search || !searchRegex.test(a);
+    }
     const searchParams = search.split(' ');
 
     searchParams.forEach((param) => {
@@ -317,15 +357,21 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
    * Sorts the list
    */
   private sortList(options: SortFilterListOptions = {}): Array<string> {
-    const search = options.search !== undefined ? options.search : this.props.search;
+    const search =
+      options.search !== undefined ? options.search : this.props.search;
     const sortBy = options.sortBy || this.state.sortBy;
-    const showOnlySearchResults = options.showOnlySearchResults !== undefined ? options.showOnlySearchResults : this.props.showOnlySearchResults;
+    const showOnlySearchResults =
+      options.showOnlySearchResults !== undefined
+        ? options.showOnlySearchResults
+        : this.props.showOnlySearchResults;
     const sortDirection = options.sortDirection || this.state.sortDirection;
 
     d(`Starting filter`);
     if (!this.props.keys || this.props.keys.length === 0) return [];
 
-    const noSort = (!sortBy || sortBy === 'index') && (!sortDirection || sortDirection === SORT_DIRECTION.ASC);
+    const noSort =
+      (!sortBy || sortBy === 'index') &&
+      (!sortDirection || sortDirection === SORT_DIRECTION.ASC);
 
     // Check if we can bail early and just use the naked logEntries array
     if (noSort && !search) return this.props.keys;
@@ -333,7 +379,9 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
     let sortedList = this.props.keys.concat();
 
     // Named definition here allows V8 to go craaaaaazy, speed-wise.
-    function doSortByMessage(a: string, b: string) { return a.localeCompare(b); }
+    function doSortByMessage(a: string, b: string) {
+      return a.localeCompare(b);
+    }
 
     // Search
     if (search && showOnlySearchResults) {
@@ -367,7 +415,7 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
 
     return {
       index: this.props.state.cacheKeys.indexOf(key),
-      key
+      key,
     };
   }
 
@@ -378,7 +426,13 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
    * @returns {JSX.Element}
    */
   private renderTable(options: Size): JSX.Element {
-    const { sortedList, selectedIndex, searchList, ignoreSearchIndex, scrollToSelection } = this.state;
+    const {
+      sortedList,
+      selectedIndex,
+      searchList,
+      ignoreSearchIndex,
+      scrollToSelection,
+    } = this.state;
     const { searchIndex } = this.props;
 
     const tableOptions: TableProps = {
@@ -394,21 +448,22 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
       sortDirection: this.state.sortDirection,
     };
 
-    if (!ignoreSearchIndex) tableOptions.scrollToIndex = searchList[searchIndex] || 0;
+    if (!ignoreSearchIndex)
+      tableOptions.scrollToIndex = searchList[searchIndex] || 0;
     if (scrollToSelection) tableOptions.scrollToIndex = selectedIndex || 0;
 
     return (
       <Table {...tableOptions}>
         <Column
-          label='Index'
-          dataKey='index'
+          label="Index"
+          dataKey="index"
           width={100}
           flexGrow={0}
           flexShrink={1}
         />
         <Column
-          label='Key'
-          dataKey='key'
+          label="Key"
+          dataKey="key"
           width={options.width - 100}
           flexGrow={2}
         />
@@ -426,8 +481,9 @@ export class CachetoolTable extends React.Component<CachetoolTableProps, Cacheto
    */
   private rowClassNameGetter({ index }: { index: number }): string {
     const { searchList, selectedIndex, ignoreSearchIndex } = this.state;
-    const isSearchIndex = !ignoreSearchIndex
-      && index === (searchList || [])[this.props.searchIndex];
+    const isSearchIndex =
+      !ignoreSearchIndex &&
+      index === (searchList || [])[this.props.searchIndex];
 
     if (isSearchIndex || selectedIndex === index) {
       return 'ActiveRow';

@@ -20,7 +20,10 @@ export interface LogLineDetailsProps {
 }
 
 @observer
-export class LogLineDetails extends React.Component<LogLineDetailsProps, object> {
+export class LogLineDetails extends React.Component<
+  LogLineDetailsProps,
+  object
+> {
   constructor(props: LogLineDetailsProps) {
     super(props);
 
@@ -91,21 +94,29 @@ export class LogLineDetails extends React.Component<LogLineDetailsProps, object>
     if (!selectedEntry) return null;
 
     return (
-      <div className='Details-LogEntry'>
-        <div className='MetaInfo'>
-          <div className='Details-Moment'>
+      <div className="Details-LogEntry">
+        <div className="MetaInfo">
+          <div className="Details-Moment">
             <Timestamp
               timestamps={this.getProperties('timestamp')}
               momentValues={this.getProperties('momentValue')}
             />
           </div>
-          <div className='Details-LogType'>
+          <div className="Details-LogType">
             {this.renderLevel()}
             {this.renderType()}
             <ButtonGroup>
-              <Button icon='star' active={getIsBookmark(this.props.state)} onClick={() => toggleBookmark(this.props.state)} />
-              <Button icon='document-open' onClick={this.openSource} text='Open Source' />
-              <Button icon='cross' onClick={this.toggle} text='Close' />
+              <Button
+                icon="star"
+                active={getIsBookmark(this.props.state)}
+                onClick={() => toggleBookmark(this.props.state)}
+              />
+              <Button
+                icon="document-open"
+                onClick={this.openSource}
+                text="Open Source"
+              />
+              <Button icon="cross" onClick={this.toggle} text="Close" />
             </ButtonGroup>
           </div>
         </div>
@@ -123,16 +134,16 @@ export class LogLineDetails extends React.Component<LogLineDetailsProps, object>
       return null;
     }
 
-    return (
-      <LogLineData state={this.props.state} meta={selectedEntry.meta} />
-    );
+    return <LogLineData state={this.props.state} meta={selectedEntry.meta} />;
   }
 
   private renderMessage(): JSX.Element {
     const message = this.getProperties('message').join('\n');
 
     return (
-      <Card className='Message Monospace' elevation={Elevation.THREE}>{message}</Card>
+      <Card className="Message Monospace" elevation={Elevation.THREE}>
+        {message}
+      </Card>
     );
   }
 
@@ -140,16 +151,24 @@ export class LogLineDetails extends React.Component<LogLineDetailsProps, object>
     const levels = Array.from(new Set(this.getProperties('level'))).join(', ');
 
     return (
-      <Tag large={true} icon='box'>{levels}</Tag>
+      <Tag large={true} icon="box">
+        {levels}
+      </Tag>
     );
   }
 
   private renderType(): JSX.Element {
-    const logTypes = Array.from(new Set(this.getProperties('logType'))).map(capitalize);
-    const type = `${logTypes.join(', ')} Process${logTypes.length > 1 ? 'es' : ''}`;
+    const logTypes = Array.from(new Set(this.getProperties('logType'))).map(
+      capitalize
+    );
+    const type = `${logTypes.join(', ')} Process${
+      logTypes.length > 1 ? 'es' : ''
+    }`;
 
     return (
-      <Tag large={true} icon='applications'>{type}</Tag>
+      <Tag large={true} icon="applications">
+        {type}
+      </Tag>
     );
   }
 
@@ -164,8 +183,8 @@ export class LogLineDetails extends React.Component<LogLineDetailsProps, object>
 
     if (selectedRangeEntries && selectedRangeEntries.length > 0) {
       return selectedRangeEntries.map((v) => v[key] as unknown as T);
-    } else  if (selectedEntry) {
-      return [ selectedEntry[key] as unknown as T ];
+    } else if (selectedEntry) {
+      return [selectedEntry[key] as unknown as T];
     }
 
     return [];

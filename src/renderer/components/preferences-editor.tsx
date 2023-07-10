@@ -11,7 +11,7 @@ export const EDITORS = [
   { name: 'Visual Studio Code', cmd: `code --goto {filepath}:{line}` },
   { name: 'Sublime', cmd: `subl {filepath}:{line}` },
   { name: 'Atom', cmd: 'atom {filepath}:{line}' },
-  { name: 'Custom', cmd: '' }
+  { name: 'Custom', cmd: '' },
 ];
 
 export function nameForCmd(input: string): string {
@@ -20,7 +20,10 @@ export function nameForCmd(input: string): string {
   return result ? result.name : 'Custom';
 }
 
-export const renderEditorItem: ItemRenderer<Editor> = ({ name }, { handleClick, modifiers }) => {
+export const renderEditorItem: ItemRenderer<Editor> = (
+  { name },
+  { handleClick, modifiers }
+) => {
   return (
     <MenuItem
       active={modifiers.active}

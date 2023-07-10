@@ -1,13 +1,7 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 
-import {
-  HTMLTable,
-  Button,
-  Card,
-  Icon,
-  ButtonGroup,
-} from '@blueprintjs/core';
+import { HTMLTable, Button, Card, Icon, ButtonGroup } from '@blueprintjs/core';
 import { SleuthState } from '../state/sleuth';
 import { autorun, IReactionDisposer } from 'mobx';
 import { UnzippedFile } from '../../interfaces';
@@ -53,7 +47,7 @@ export class DevtoolsView extends React.Component<
     return (
       <tr>
         <td>
-          {isClient && <Icon icon='chat' />} {title || 'Unknown'}
+          {isClient && <Icon icon="chat" />} {title || 'Unknown'}
         </td>
         <td>{processId}</td>
         <td>
@@ -73,7 +67,7 @@ export class DevtoolsView extends React.Component<
   public render() {
     if (this.state.profilePid) {
       return (
-        <div className='Devtools'>
+        <div className="Devtools">
           <iframe
             src={`oop://oop/static/devtools-frontend.html?panel=timeline`}
             onLoad={() => this.loadFile(this.state.profilePid)}
@@ -87,17 +81,28 @@ export class DevtoolsView extends React.Component<
     const hasThreads = !!rendererThreads?.length;
     const missingThreads = rendererThreads?.length === 0;
     const isLoading = !rendererThreads;
-    const startTime = parseInt(this.props.file.fileName.split('.')[0]?.split('_')[4] || '0', 10);
-    const endTime = parseInt(this.props.file.fileName.split('.')[0]?.split('_')[0] || '0', 10);
+    const startTime = parseInt(
+      this.props.file.fileName.split('.')[0]?.split('_')[4] || '0',
+      10
+    );
+    const endTime = parseInt(
+      this.props.file.fileName.split('.')[0]?.split('_')[0] || '0',
+      10
+    );
     const duration = endTime - startTime;
 
     return (
-      <div className='ProcessTable'>
+      <div className="ProcessTable">
         <Card>
           <h1>Renderer Threads</h1>
-          <h4>Duration: {duration ? Math.floor(duration / 1000).toString() : 'unknown'} seconds
-          {' '}| Trace started: {startTime ? new Date(startTime).toLocaleString() : 'unknown'}
-          {' '}| Trace ended: {endTime ? new Date(endTime).toLocaleString() : 'unknown'}</h4>
+          <h4>
+            Duration:{' '}
+            {duration ? Math.floor(duration / 1000).toString() : 'unknown'}{' '}
+            seconds | Trace started:{' '}
+            {startTime ? new Date(startTime).toLocaleString() : 'unknown'} |
+            Trace ended:{' '}
+            {endTime ? new Date(endTime).toLocaleString() : 'unknown'}
+          </h4>
           <h5>* Start & end times displayed in your local time</h5>
           <HTMLTable>
             <thead>
@@ -108,9 +113,7 @@ export class DevtoolsView extends React.Component<
             </thead>
             <tbody>
               {hasThreads &&
-                rendererThreads?.map((thread) =>
-                  this.rowRenderer(thread)
-                )}
+                rendererThreads?.map((thread) => this.rowRenderer(thread))}
               {missingThreads && (
                 <tr>
                   <td colSpan={3}>No renderer threads found</td>
