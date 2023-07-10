@@ -1013,7 +1013,7 @@ export function matchLineCall(line: string): MatchResult | undefined {
   // Matcher for calls
   // [YYYY/MM/DD hh:mm:ss uuu* LEVEL FILE->FUNCTION:LINE] message
   const callRegex =
-   // eslint-disable-next-line no-control-regex
+    // eslint-disable-next-line no-control-regex
     /(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}\.\d{3})	([A-Z]{0,10}) ([\s\S]*)$/;
   const results = callRegex.exec(line);
 
