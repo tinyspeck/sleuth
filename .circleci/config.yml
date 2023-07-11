@@ -222,4 +222,4 @@ workflows:
               ignore: /.*/
             <<: *job_filter_releases
           context:
-            - slack-gh-release
+            - sleuth-release
