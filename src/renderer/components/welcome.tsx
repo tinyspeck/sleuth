@@ -5,9 +5,12 @@ import { ControlGroup, Button, InputGroup, Tooltip} from '@blueprintjs/core';
 import { observer } from 'mobx-react';
 
 import { getSleuth } from '../sleuth';
-import { deleteSuggestion, deleteSuggestions } from '../suggestions';
+import { deleteSuggestion, deleteSuggestions} from '../suggestions';
 import { SleuthState } from '../state/sleuth';
 import { isBefore } from 'date-fns';
+
+import fs from 'fs-extra';
+import { getPath } from '../ipc';
 
 export interface WelcomeState {
   sleuth: string;
@@ -38,6 +41,21 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
     await this.props.state.getSuggestions();
   }
 
+  public async watchSuggestions(close: boolean) {
+    try {
+      const downloadsDir = await getPath('downloads');
+      const watcher = fs.watch(downloadsDir, async () => {
+        console.log("still watching")
+        await this.props.state.getSuggestions()
+      } )
+      if(close == true){
+        setTimeout(() => watcher.close(), 1000)
+      }
+    }catch(error){
+      console.log(`this is the error: ${error}`)
+    }
+  }
+
   public renderSuggestions(): JSX.Element | null {
     const { openFile } = this.props.state;
     const suggestions = this.props.state.suggestions || [];
@@ -52,6 +70,10 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
             onClick={() => this.deleteSuggestion(file.filePath)}
           />
         );
+    const leave = async () => {
+      await this.watchSuggestions(true)
+      openFile(file.filePath)
+    }
 
         return (
           <li key={basename}>
@@ -60,7 +82,7 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
                 <Button
                   className='OpenButton'
                   alignText='left'
-                  onClick={() => openFile(file.filePath)}
+                  onClick={() => leave()}
                   icon='document'
                 >
                   {basename}
@@ -123,6 +145,8 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
       marginBottom: '50px',
       overflowY: 'auto'
     };
+    
+    this.watchSuggestions(false)
 
     return (
       <div className='Welcome'>
