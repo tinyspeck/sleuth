@@ -18,10 +18,11 @@ export interface RendererDescription {
   processId: number;
 }
 
-function getProcessLabel(processLabelEvents: ChromiumTraceEvent[], pid: number) {
-  const processLabel = processLabelEvents.find(
-    (label) => label.pid === pid
-  );
+function getProcessLabel(
+  processLabelEvents: ChromiumTraceEvent[],
+  pid: number,
+) {
+  const processLabel = processLabelEvents.find((label) => label.pid === pid);
   return processLabel ? processLabel.args?.labels : '';
 }
 
@@ -47,7 +48,9 @@ export class TraceProcessor {
     return undefined;
   }
 
-  private async getBrowserThread(threads: Array<ThreadNameEvent>): Promise<BrowserThread | undefined> {
+  private async getBrowserThread(
+    threads: Array<ThreadNameEvent>,
+  ): Promise<BrowserThread | undefined> {
     for (const thread of threads) {
       if (thread.args?.name === 'CrBrowserMain') {
         return {
@@ -62,17 +65,20 @@ export class TraceProcessor {
 
   private async getRendererThreads(
     events: Array<ChromiumTraceEvent>,
-    threads: Array<ThreadNameEvent>
+    threads: Array<ThreadNameEvent>,
   ) {
     const discovered: { [processId: number]: RendererThread } = {};
     // Search (sometimes missing) ParseHTML events
     const parseEvents = events.filter((e) => e.name === 'ParseHTML');
-    const clientParseEvent = parseEvents.find((event) =>
-      event?.args?.beginData?.url?.startsWith?.('https://app.slack.com/client')
+    const clientParseEvent = parseEvents.find(
+      (event) =>
+        event?.args?.beginData?.url?.startsWith?.(
+          'https://app.slack.com/client',
+        ),
     );
     // Search any renderer event
     const rendererThreadsEvents = threads.filter(
-      (thread) => thread?.args?.name === 'CrRendererMain'
+      (thread) => thread?.args?.name === 'CrRendererMain',
     );
     // Get process labels to help determine if a thread is a client
     const labelEvents = events.filter((e) => e.name === 'process_labels');
@@ -120,12 +126,14 @@ export class TraceProcessor {
     const trace = await this.tracePromise;
     if (trace) {
       const { traceEvents: events } = trace;
-      const threads = events.filter(({name}) => name === 'thread_name') as Array<ThreadNameEvent>;
+      const threads = events.filter(
+        ({ name }) => name === 'thread_name',
+      ) as Array<ThreadNameEvent>;
       const browser = await this.getBrowserThread(threads);
       const renderers = await this.getRendererThreads(events, threads);
       return { browser, renderers };
     }
-    return {renderers: []};
+    return { renderers: [] };
   }
 
   private async getEarliestTimestamp() {
@@ -145,7 +153,9 @@ export class TraceProcessor {
     return trace?.traceEvents;
   }
 
-  async getRendererProcesses(): Promise<Array<RendererDescription> | undefined> {
+  async getRendererProcesses(): Promise<
+    Array<RendererDescription> | undefined
+  > {
     const { renderers } = await this.getThreadInfo();
     return renderers.map(({ data, isClient, title }) => {
       const { processId } = data;
@@ -157,9 +167,13 @@ export class TraceProcessor {
     });
   }
 
-  async makeInitialEntry(pid?: number): Promise<ChromiumTraceEvent | undefined> {
+  async makeInitialEntry(
+    pid?: number,
+  ): Promise<ChromiumTraceEvent | undefined> {
     const { browser, renderers } = await this.getThreadInfo();
-    const rendererThread = renderers.find((thread) => thread.data.processId === pid);
+    const rendererThread = renderers.find(
+      (thread) => thread.data.processId === pid,
+    );
 
     return {
       args: {
@@ -176,7 +190,7 @@ export class TraceProcessor {
   }
 
   public async getRendererProfile(
-    pid: number
+    pid: number,
   ): Promise<Array<ChromiumTraceEvent>> {
     const initialEntry = await this.makeInitialEntry(pid);
     const events = await this.getTraceEvents();

@@ -11,7 +11,11 @@ export function getSettingsInfo(data: any): Array<JSX.Element> {
   return result;
 }
 
-export function getHWInfo({ isAeroGlassEnabled, platform, useHwAcceleration }: any): string {
+export function getHWInfo({
+  isAeroGlassEnabled,
+  platform,
+  useHwAcceleration,
+}: any): string {
   let hwInfo = '';
 
   if (platform === 'win32') {
@@ -24,7 +28,9 @@ export function getHWInfo({ isAeroGlassEnabled, platform, useHwAcceleration }: a
   }
 
   if (useHwAcceleration !== undefined) {
-    hwInfo += `HW acceleration is ${useHwAcceleration ? 'enabled' : 'disabled'}.`;
+    hwInfo += `HW acceleration is ${
+      useHwAcceleration ? 'enabled' : 'disabled'
+    }.`;
   } else {
     hwInfo += `HW acceleration isn't configured, so likely being used. `;
   }
@@ -32,14 +38,23 @@ export function getHWInfo({ isAeroGlassEnabled, platform, useHwAcceleration }: a
   return hwInfo;
 }
 
-export function getNotificationsInfo({ notificationMethod, notificationPlayback }: any): string {
+export function getNotificationsInfo({
+  notificationMethod,
+  notificationPlayback,
+}: any): string {
   let notificationsInfo = '';
 
   if (notificationMethod) {
     const type = notificationMethod
       .replace(`html`, `Slack's built-in notifications (html)`)
-      .replace(`winrt`, `default Windows 10 notifications for the Windows Action Center (winrt)`)
-      .replace(`window`, `Electron's default for the current operating system (window)`);
+      .replace(
+        `winrt`,
+        `default Windows 10 notifications for the Windows Action Center (winrt)`,
+      )
+      .replace(
+        `window`,
+        `Electron's default for the current operating system (window)`,
+      );
     notificationsInfo += `Notifications are set to be delivered via ${type}. `;
   } else {
     notificationsInfo += `Notifications are set to be delivered via the default for the OS. `;

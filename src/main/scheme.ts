@@ -3,7 +3,7 @@ import { protocol } from 'electron';
 
 export function registerSchemePrivilege() {
   protocol.registerSchemesAsPrivileged([
-    { scheme: 'oop', privileges: { standard: true } }
+    { scheme: 'oop', privileges: { standard: true } },
   ]);
 }
 
@@ -13,22 +13,22 @@ export function registerSchemePrivilege() {
  * protecting against Sleuth freezes
  */
 export function registerScheme() {
-    protocol.registerFileProtocol('oop', (request, callback) => {
-        const url = new URL(request.url);
-        if (url.host !== 'oop') {
-          // request did not match known path, cowardly refusing
-          callback('Not found');
-        }
+  protocol.registerFileProtocol('oop', (request, callback) => {
+    const url = new URL(request.url);
+    if (url.host !== 'oop') {
+      // request did not match known path, cowardly refusing
+      callback('Not found');
+    }
 
-        const dist = normalize(`${__dirname}/../..`);
-        const path = join(dist, url.pathname);
+    const dist = normalize(`${__dirname}/../..`);
+    const path = join(dist, url.pathname);
 
-        const relation = relative(dist, path);
-        if (relation.includes('..')) {
-          // request appears to be try to be navigating outside of dist
-          callback('Not found');
-        } else {
-          callback({ path });
-        }
-      });
+    const relation = relative(dist, path);
+    if (relation.includes('..')) {
+      // request appears to be try to be navigating outside of dist
+      callback('Not found');
+    } else {
+      callback({ path });
+    }
+  });
 }

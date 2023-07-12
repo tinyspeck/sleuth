@@ -6,7 +6,7 @@
   "main": "./dist/src/main/index",
   "scripts": {
     "tsc": "tsc -p tsconfig.json --noEmit",
-    "lint": "npm run tsc && eslint .  --ignore-path .gitignore",
+    "lint": "npm run tsc && eslint .  --ignore-path .gitignore && prettier --check .",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "parcel:build": "node ./tools/parcel-build.js",
@@ -16,7 +16,8 @@
     "test": "jest --config=jest.json --coverage --runInBand",
     "update-snapshots": "jest --config=jest.json --updateSnapshot",
     "catapult:update": "git submodule foreach git pull origin master",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "lint:fix": "npm run tsc && eslint . --fix  --ignore-path .gitignore && prettier . --write"
   },
   "keywords": [],
   "author": "Felix Rieseberg <felix@felixrieseberg.com>",
@@ -41,12 +42,14 @@
     "electron-devtools-installer": "3.2.0",
     "electron-squirrel-startup": "1.0.0",
     "electron-window-state": "5.0.3",
+    "eslint-config-prettier": "^8.8.0",
     "fs-extra": "9.0.1",
     "jsonic": "1.0.1",
     "lodash.throttle": "^4.1.1",
     "lz-string": "^1.4.4",
     "mobx": "5.15.7",
     "mobx-react": "6.3.0",
+    "prettier": "^3.0.0",
     "react": "^17.0.1",
     "react-addons-css-transition-group": "15.6.2",
     "react-autobind": "^1.0.6",

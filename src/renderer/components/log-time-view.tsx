@@ -24,21 +24,23 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
     if (!chartElements.length) return;
 
     const [first] = chartElements;
-    const {element}: {element: any} = first;
+    const { element }: { element: any } = first;
     const chart = element.$context.chart;
 
     const canvasPosition = element.getCenterPoint();
 
     const dataX = chart.scales.x.getValueForPixel(canvasPosition.x);
 
-      const { selectedLogFile } = this.props.state;
-      if (isLogFile(selectedLogFile)) {
-        const { logEntries } = selectedLogFile;
-        const selectedEntry = logEntries.find((entry) => {
-          return parse(entry.timestamp, 'MM/dd/yy, HH:mm:ss:SSS', new Date()) >= dataX;
-        });
-        this.props.state.selectedEntry = selectedEntry;
-      }
+    const { selectedLogFile } = this.props.state;
+    if (isLogFile(selectedLogFile)) {
+      const { logEntries } = selectedLogFile;
+      const selectedEntry = logEntries.find((entry) => {
+        return (
+          parse(entry.timestamp, 'MM/dd/yy, HH:mm:ss:SSS', new Date()) >= dataX
+        );
+      });
+      this.props.state.selectedEntry = selectedEntry;
+    }
   }
 
   private onZoomComplete({ chart }: any) {
@@ -49,8 +51,8 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
 
   public render(): JSX.Element | null {
     const { selectedLogFile, isLogViewVisible } = this.props.state;
-    if (!isLogViewVisible || !selectedLogFile || !isLogFile(selectedLogFile)) return null;
-
+    if (!isLogViewVisible || !selectedLogFile || !isLogFile(selectedLogFile))
+      return null;
 
     const className = classNames('Details', { IsVisible: isLogViewVisible });
 
@@ -58,12 +60,14 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
       [LogLevel.info]: '#7FD1E0',
       [LogLevel.warn]: '#F8B82C',
       [LogLevel.error]: '#E32072',
-      [LogLevel.debug]: ''
+      [LogLevel.debug]: '',
     };
     let datasets: Array<any> = [];
     const { timeBucketedLogMetrics } = this.props.state;
     if (timeBucketedLogMetrics) {
-      const buckedLogMetricsByTime = Object.entries<LogMetrics>(timeBucketedLogMetrics);
+      const buckedLogMetricsByTime = Object.entries<LogMetrics>(
+        timeBucketedLogMetrics,
+      );
       datasets = Object.keys(LogLevel).map((type: LogLevel) => {
         return {
           label: type,
@@ -71,7 +75,7 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
             y: buckets[type],
             x: new Date(parseInt(time, 10) * 1000),
           })),
-          backgroundColor: backgroundColors[type]
+          backgroundColor: backgroundColors[type],
         };
       });
     }
@@ -81,55 +85,53 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           <ChartJSChart
             key={selectedLogFile.id}
-            type='bar'
+            type="bar"
             data={{
-              datasets
+              datasets,
             }}
-            options={
-              {
-                maintainAspectRatio: false,
-                scales: {
-                  x: {
-                    stacked: true,
-                    type: 'time',
-                    time: {
-                      unit: 'hour',
-                    },
-                    ticks: {
-                      autoSkip: true,
-                      maxRotation: 0,
-                      major: {
-                        enabled: true
-                      },
-                    }
+            options={{
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  stacked: true,
+                  type: 'time',
+                  time: {
+                    unit: 'hour',
                   },
-                  y: {
-                    stacked: true,
+                  ticks: {
+                    autoSkip: true,
+                    maxRotation: 0,
+                    major: {
+                      enabled: true,
+                    },
                   },
                 },
-                plugins: {
-                  zoom: {
-                    limits: {
-                      x: {
-                        min: 'original',
-                        max: 'original'
-                      }
-                    },
-                    pan: {
-                      enabled: true,
-                      mode: 'x',
-                    },
-                    zoom: {
-                      mode: 'x',
-                      wheel: {
-                        enabled: true,
-                      },
-                      onZoomComplete: this.onZoomComplete,
+                y: {
+                  stacked: true,
+                },
+              },
+              plugins: {
+                zoom: {
+                  limits: {
+                    x: {
+                      min: 'original',
+                      max: 'original',
                     },
                   },
-                }
-              }
-            }
+                  pan: {
+                    enabled: true,
+                    mode: 'x',
+                  },
+                  zoom: {
+                    mode: 'x',
+                    wheel: {
+                      enabled: true,
+                    },
+                    onZoomComplete: this.onZoomComplete,
+                  },
+                },
+              },
+            }}
             plugins={[zoomPlugin]}
             getElementAtEvent={this.onChartClick}
           />

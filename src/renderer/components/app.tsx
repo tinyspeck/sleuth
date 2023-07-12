@@ -37,7 +37,7 @@ export class App extends React.Component<object, Partial<AppState>> {
     super(props);
 
     this.state = {
-      unzippedFiles: []
+      unzippedFiles: [],
     };
 
     localStorage.debug = 'sleuth*';
@@ -93,7 +93,6 @@ export class App extends React.Component<object, Partial<AppState>> {
     }
   }
 
-
   /**
    * We were handed a single log file. We'll pretend it's an imaginary folder
    * with a single file in it.
@@ -113,11 +112,11 @@ export class App extends React.Component<object, Partial<AppState>> {
       fullPath: url,
       size: stats.size,
       id: url,
-      type: 'UnzippedFile'
+      type: 'UnzippedFile',
     };
 
     this.sleuthState.setSource(url);
-    this.setState({ unzippedFiles: [ file ] });
+    this.setState({ unzippedFiles: [file] });
 
     console.groupEnd();
   }
@@ -147,7 +146,13 @@ export class App extends React.Component<object, Partial<AppState>> {
         if (!shouldIgnoreFile(fileName)) {
           const fullPath = path.join(url, fileName);
           const stats = fs.statSync(fullPath);
-          const file: UnzippedFile = { fileName, fullPath, size: stats.size, id: fullPath, type: 'UnzippedFile' };
+          const file: UnzippedFile = {
+            fileName,
+            fullPath,
+            size: stats.size,
+            id: fullPath,
+            type: 'UnzippedFile',
+          };
 
           d('Found file, adding to result.', file);
           unzippedFiles.push(file);
@@ -194,20 +199,35 @@ export class App extends React.Component<object, Partial<AppState>> {
    */
   public render(): JSX.Element {
     const { unzippedFiles, openEmpty } = this.state;
-    const className = classNames('App', { Darwin: process.platform === 'darwin' });
-    const titleBar = process.platform === 'darwin' ? <MacTitlebar state={this.sleuthState}/> : '';
-    const content = unzippedFiles && (unzippedFiles.length || openEmpty)
-      ? <CoreApplication state={this.sleuthState} unzippedFiles={unzippedFiles} />
-      : <Welcome state={this.sleuthState} />;
+    const className = classNames('App', {
+      Darwin: process.platform === 'darwin',
+    });
+    const titleBar =
+      process.platform === 'darwin' ? (
+        <MacTitlebar state={this.sleuthState} />
+      ) : (
+        ''
+      );
+    const content =
+      unzippedFiles && (unzippedFiles.length || openEmpty) ? (
+        <CoreApplication
+          state={this.sleuthState}
+          unzippedFiles={unzippedFiles}
+        />
+      ) : (
+        <Welcome state={this.sleuthState} />
+      );
 
     return (
       <ConfigProvider
         theme={{
-          algorithm: this.sleuthState.isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm, 
+          algorithm: this.sleuthState.isDarkMode
+            ? theme.darkAlgorithm
+            : theme.defaultAlgorithm,
           token: {
             colorPrimary: '#137cbd',
-            colorBgBase: this.sleuthState.isDarkMode ? '#182026' : '#ffffff'
-          }
+            colorBgBase: this.sleuthState.isDarkMode ? '#182026' : '#ffffff',
+          },
         }}
       >
         <div className={className}>
@@ -243,14 +263,16 @@ export class App extends React.Component<object, Partial<AppState>> {
       event.preventDefault();
     };
 
-    ipcRenderer.on(IpcEvents.FILE_DROPPED, (_event: any, url: string) => this.openFile(url));
+    ipcRenderer.on(IpcEvents.FILE_DROPPED, (_event: any, url: string) =>
+      this.openFile(url),
+    );
   }
 
   private setupOpenSentry() {
     ipcRenderer.on(IpcEvents.OPEN_SENTRY, () => {
       // Get the file path to the installation file. Only app-* classes know.
       const installationFile = this.state.unzippedFiles?.find((file) => {
-        return (file.fileName === 'installation');
+        return file.fileName === 'installation';
       });
 
       // Then, let the utility handle the details

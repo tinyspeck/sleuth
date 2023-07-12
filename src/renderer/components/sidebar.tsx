@@ -1,9 +1,23 @@
 import React from 'react';
 import classNames from 'classnames';
-import { ITreeNode, Tree, Icon, Position, Tooltip, Intent } from '@blueprintjs/core';
+import {
+  ITreeNode,
+  Tree,
+  Icon,
+  Position,
+  Tooltip,
+  Intent,
+} from '@blueprintjs/core';
 import { observer } from 'mobx-react';
 
-import { LogType, MergedFilesLoadStatus, ProcessedLogFile, SelectableLogType, Tool, UnzippedFile } from '../../interfaces';
+import {
+  LogType,
+  MergedFilesLoadStatus,
+  ProcessedLogFile,
+  SelectableLogType,
+  Tool,
+  UnzippedFile,
+} from '../../interfaces';
 import { levelsHave } from '../../utils/level-counts';
 import { SleuthState } from '../state/sleuth';
 import { isProcessedLogFile } from '../../utils/is-logfile';
@@ -51,43 +65,49 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     label: 'State & Settings',
     isExpanded: true,
     childNodes: [],
-  }, {
+  },
+  {
     id: NODE_ID.ALL,
     hasCaret: false,
     label: 'All Desktop Logs',
     icon: 'compressed',
-    nodeData: { type: LogType.ALL }
-  }, {
+    nodeData: { type: LogType.ALL },
+  },
+  {
     id: NODE_ID.BROWSER,
     hasCaret: true,
     icon: 'application',
     label: 'Browser Process',
     isExpanded: true,
     childNodes: [],
-    nodeData: { type: LogType.BROWSER }
-  }, {
+    nodeData: { type: LogType.BROWSER },
+  },
+  {
     id: NODE_ID.TRACE,
     hasCaret: true,
     icon: 'applications',
     label: 'Trace',
     isExpanded: true,
     childNodes: [],
-    nodeData: { type: LogType.TRACE }
-  }, {
+    nodeData: { type: LogType.TRACE },
+  },
+  {
     id: NODE_ID.CHROMIUM,
     hasCaret: true,
     icon: 'modal',
     label: 'Chromium',
-    isExpanded: true
-  }, {
+    isExpanded: true,
+  },
+  {
     id: NODE_ID.RENDERER,
     hasCaret: true,
     icon: 'applications',
     label: 'Renderer Process',
     isExpanded: true,
     childNodes: [],
-    nodeData: { type: LogType.RENDERER }
-  }, {
+    nodeData: { type: LogType.RENDERER },
+  },
+  {
     id: NODE_ID.PRELOAD,
     hasCaret: true,
     icon: 'applications',
@@ -95,67 +115,133 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     isExpanded: true,
     childNodes: [],
     nodeData: { type: LogType.PRELOAD },
-  }, {
+  },
+  {
     id: NODE_ID.WEBAPP,
     hasCaret: true,
     icon: 'chat',
     label: 'WebApp',
     isExpanded: true,
     childNodes: [],
-    nodeData: { type: LogType.WEBAPP }
-  }, {
+    nodeData: { type: LogType.WEBAPP },
+  },
+  {
     id: NODE_ID.CALLS,
     hasCaret: true,
     icon: 'phone',
     label: 'Calls',
     isExpanded: true,
     childNodes: [],
-  }, {
+  },
+  {
     id: NODE_ID.INSTALLER,
     hasCaret: true,
     icon: 'automatic-updates',
     label: 'Installer',
     isExpanded: true,
     childNodes: [],
-  }, {
+  },
+  {
     id: NODE_ID.NETWORK,
     hasCaret: true,
     icon: 'feed',
     label: 'Network',
     isExpanded: true,
     childNodes: [],
-  }, {
+  },
+  {
     id: NODE_ID.CACHE,
     hasCaret: false,
     icon: 'projects',
     label: 'Cache',
-    nodeData: { type: 'cache' }
-  }, {
+    nodeData: { type: 'cache' },
+  },
+  {
     id: NODE_ID.MOBILE,
     hasCaret: true,
     icon: 'mobile-phone',
     label: 'Mobile',
-  isExpanded: true  }
+    isExpanded: true,
+  },
 ];
 
 @observer
 export class Sidebar extends React.Component<SidebarProps, SidebarState> {
-  public static getDerivedStateFromProps(props: SidebarProps, state: SidebarState) {
+  public static getDerivedStateFromProps(
+    props: SidebarProps,
+    state: SidebarState,
+  ) {
     const { processedLogFiles } = props.state;
 
     if (!processedLogFiles) return {};
 
-    Sidebar.setChildNodes(NODE_ID.STATE, state, processedLogFiles.state.map((file) => Sidebar.getStateFileNode(file, props)));
-    Sidebar.setChildNodes(NODE_ID.BROWSER, state, processedLogFiles.browser.map((file) => Sidebar.getFileNode(file, props)));
-    Sidebar.setChildNodes(NODE_ID.RENDERER, state, processedLogFiles.renderer.map((file) => Sidebar.getFileNode(file, props)));
-    Sidebar.setChildNodes(NODE_ID.PRELOAD, state, processedLogFiles.preload.map((file) => Sidebar.getFileNode(file, props)));
-    Sidebar.setChildNodes(NODE_ID.WEBAPP, state, processedLogFiles.webapp.map((file) => Sidebar.getFileNode(file, props)));
-    Sidebar.setChildNodes(NODE_ID.CALLS, state, processedLogFiles.call.map((file) => Sidebar.getFileNode(file, props)));
-    Sidebar.setChildNodes(NODE_ID.INSTALLER, state, processedLogFiles.installer.map((file) => Sidebar.getInstallerFileNode(file, props)));
-    Sidebar.setChildNodes(NODE_ID.NETWORK, state, processedLogFiles.netlog.map((file, i) => Sidebar.getNetlogFileNode(file, props, i)));
-    Sidebar.setChildNodes(NODE_ID.MOBILE, state, processedLogFiles.mobile.map((file) => Sidebar.getFileNode(file, props)));
-    Sidebar.setChildNodes(NODE_ID.TRACE, state, processedLogFiles.trace.map((file) => Sidebar.getStateFileNode(file, props)));
-    Sidebar.setChildNodes(NODE_ID.CHROMIUM, state, processedLogFiles.chromium.map((file) => Sidebar.getFileNode(file, props)));
+    Sidebar.setChildNodes(
+      NODE_ID.STATE,
+      state,
+      processedLogFiles.state.map((file) =>
+        Sidebar.getStateFileNode(file, props),
+      ),
+    );
+    Sidebar.setChildNodes(
+      NODE_ID.BROWSER,
+      state,
+      processedLogFiles.browser.map((file) => Sidebar.getFileNode(file, props)),
+    );
+    Sidebar.setChildNodes(
+      NODE_ID.RENDERER,
+      state,
+      processedLogFiles.renderer.map((file) =>
+        Sidebar.getFileNode(file, props),
+      ),
+    );
+    Sidebar.setChildNodes(
+      NODE_ID.PRELOAD,
+      state,
+      processedLogFiles.preload.map((file) => Sidebar.getFileNode(file, props)),
+    );
+    Sidebar.setChildNodes(
+      NODE_ID.WEBAPP,
+      state,
+      processedLogFiles.webapp.map((file) => Sidebar.getFileNode(file, props)),
+    );
+    Sidebar.setChildNodes(
+      NODE_ID.CALLS,
+      state,
+      processedLogFiles.call.map((file) => Sidebar.getFileNode(file, props)),
+    );
+    Sidebar.setChildNodes(
+      NODE_ID.INSTALLER,
+      state,
+      processedLogFiles.installer.map((file) =>
+        Sidebar.getInstallerFileNode(file, props),
+      ),
+    );
+    Sidebar.setChildNodes(
+      NODE_ID.NETWORK,
+      state,
+      processedLogFiles.netlog.map((file, i) =>
+        Sidebar.getNetlogFileNode(file, props, i),
+      ),
+    );
+    Sidebar.setChildNodes(
+      NODE_ID.MOBILE,
+      state,
+      processedLogFiles.mobile.map((file) => Sidebar.getFileNode(file, props)),
+    );
+    Sidebar.setChildNodes(
+      NODE_ID.TRACE,
+      state,
+      processedLogFiles.trace.map((file) =>
+        Sidebar.getStateFileNode(file, props),
+      ),
+    );
+    Sidebar.setChildNodes(
+      NODE_ID.CHROMIUM,
+      state,
+      processedLogFiles.chromium.map((file) =>
+        Sidebar.getFileNode(file, props),
+      ),
+    );
 
     return { nodes: state.nodes };
   }
@@ -171,7 +257,10 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    * @returns {ITreeNode}
    */
   public static getNode(
-    id: string, nodeData: Partial<SidebarNodeData>, isSelected: boolean, options: Partial<ITreeNode> = {}
+    id: string,
+    nodeData: Partial<SidebarNodeData>,
+    isSelected: boolean,
+    options: Partial<ITreeNode> = {},
   ): ITreeNode {
     return {
       id,
@@ -179,9 +268,9 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
       isSelected,
       nodeData,
       icon: 'document',
-      ...options
+      ...options,
     };
-  } 
+  }
 
   /**
    * Get a single tree node for a file.
@@ -191,7 +280,10 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    * @param {SidebarProps} props
    * @returns {ITreeNode}
    */
-  public static getFileNode(file: ProcessedLogFile | UnzippedFile, props: SidebarProps): ITreeNode {
+  public static getFileNode(
+    file: ProcessedLogFile | UnzippedFile,
+    props: SidebarProps,
+  ): ITreeNode {
     return isProcessedLogFile(file)
       ? Sidebar.getLogFileNode(file, props)
       : Sidebar.getStateFileNode(file, props);
@@ -205,9 +297,12 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    * @param {SidebarProps} props
    * @returns {ITreeNode}
    */
-  public static getStateFileNode(file: UnzippedFile, props: SidebarProps): ITreeNode {
+  public static getStateFileNode(
+    file: UnzippedFile,
+    props: SidebarProps,
+  ): ITreeNode {
     const { selectedLogFileName } = props;
-    const isSelected = (selectedLogFileName === file.fileName);
+    const isSelected = selectedLogFileName === file.fileName;
 
     let label;
     if (file.fileName.endsWith('gpu-log.html')) {
@@ -225,7 +320,9 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
       label = nameMatch && nameMatch.length > 1 ? nameMatch[1] : file.fileName;
     }
 
-    const options: Partial<ITreeNode> = { secondaryLabel: this.getStateFileHint(file) };
+    const options: Partial<ITreeNode> = {
+      secondaryLabel: this.getStateFileHint(file),
+    };
 
     return Sidebar.getNode(label, { file }, isSelected, options);
   }
@@ -239,9 +336,13 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    * @param {number} index
    * @returns {ITreeNode}
    */
-  public static getNetlogFileNode(file: UnzippedFile, props: SidebarProps, i: number): ITreeNode {
-    const {  selectedLogFileName } = props;
-    const isSelected = (selectedLogFileName === file.fileName);
+  public static getNetlogFileNode(
+    file: UnzippedFile,
+    props: SidebarProps,
+    i: number,
+  ): ITreeNode {
+    const { selectedLogFileName } = props;
+    const isSelected = selectedLogFileName === file.fileName;
 
     return Sidebar.getNode(`Net Log ${i + 1}`, { file }, isSelected);
   }
@@ -255,11 +356,14 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    * @returns {ITreeNode}
    */
   public static getInstallerFileNode(
-    file: UnzippedFile | ProcessedLogFile, props: SidebarProps
+    file: UnzippedFile | ProcessedLogFile,
+    props: SidebarProps,
   ): ITreeNode {
-    const {  selectedLogFileName } = props;
-    const name = isProcessedLogFile(file) ? file.logFile.fileName : file.fileName;
-    const isSelected = (selectedLogFileName === name);
+    const { selectedLogFileName } = props;
+    const name = isProcessedLogFile(file)
+      ? file.logFile.fileName
+      : file.fileName;
+    const isSelected = selectedLogFileName === name;
 
     return Sidebar.getNode(name, { file }, isSelected);
   }
@@ -272,12 +376,25 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    * @param {SidebarProps} props
    * @returns {ITreeNode}
    */
-  public static getLogFileNode(file: ProcessedLogFile, props: SidebarProps): ITreeNode {
+  public static getLogFileNode(
+    file: ProcessedLogFile,
+    props: SidebarProps,
+  ): ITreeNode {
     const { selectedLogFileName } = props;
     const name = file.logFile.fileName;
-    const isSelected = (selectedLogFileName === name);
-    const hoverText = name.length > 20 ? <Tooltip content={name} hoverOpenDelay={800}>{name}</Tooltip> : name;
-    const options: Partial<ITreeNode> = { secondaryLabel: this.getLogNodeHint(file), label: hoverText};
+    const isSelected = selectedLogFileName === name;
+    const hoverText =
+      name.length > 20 ? (
+        <Tooltip content={name} hoverOpenDelay={800}>
+          {name}
+        </Tooltip>
+      ) : (
+        name
+      );
+    const options: Partial<ITreeNode> = {
+      secondaryLabel: this.getLogNodeHint(file),
+      label: hoverText,
+    };
 
     return Sidebar.getNode(name, { file }, isSelected, options);
   }
@@ -296,8 +413,12 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
       if (warnings && warnings.length > 0) {
         const content = warnings.join('\n');
         return (
-          <Tooltip content={content} position={Position.RIGHT} boundary='viewport'>
-            <Icon icon='error' intent={Intent.WARNING} />
+          <Tooltip
+            content={content}
+            position={Position.RIGHT}
+            boundary="viewport"
+          >
+            <Icon icon="error" intent={Intent.WARNING} />
           </Tooltip>
         );
       }
@@ -308,8 +429,12 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
       if (warnings && warnings.length > 0) {
         const content = warnings.join('\n');
         return (
-          <Tooltip content={content} position={Position.RIGHT} boundary='viewport'>
-            <Icon icon='error' intent={Intent.WARNING} />
+          <Tooltip
+            content={content}
+            position={Position.RIGHT}
+            boundary="viewport"
+          >
+            <Icon icon="error" intent={Intent.WARNING} />
           </Tooltip>
         );
       }
@@ -359,8 +484,8 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     }
 
     return (
-      <Tooltip content={content} position={Position.RIGHT} boundary='viewport'>
-        <Icon icon='error' intent={Intent.WARNING} />
+      <Tooltip content={content} position={Position.RIGHT} boundary="viewport">
+        <Icon icon="error" intent={Intent.WARNING} />
       </Tooltip>
     );
   }
@@ -377,7 +502,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
   public static setChildNodes(
     searchId: NODE_ID,
     state: SidebarState,
-    childNodes: Array<ITreeNode>
+    childNodes: Array<ITreeNode>,
   ) {
     const parentNode = state.nodes.find(({ id }) => id === searchId);
 
@@ -387,7 +512,8 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
 
     // Renderer and Preload is on their way out, so let's not show
     // these categories if we don't have files for them
-    const hideIfEmpty = searchId === NODE_ID.PRELOAD || searchId === NODE_ID.RENDERER;
+    const hideIfEmpty =
+      searchId === NODE_ID.PRELOAD || searchId === NODE_ID.RENDERER;
     if (childNodes.length === 0 && hideIfEmpty) {
       state.nodes = state.nodes.filter(({ id }) => searchId !== id);
     }
@@ -399,7 +525,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     super(props);
 
     this.state = {
-      nodes: DEFAULT_NODES
+      nodes: DEFAULT_NODES,
     };
 
     this.forEachNode = this.forEachNode.bind(this);
@@ -431,7 +557,10 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    * @param {Array<ITreeNode>} nodes
    * @param {(node: ITreeNode) => void} callback
    */
-  private forEachNode(nodes: Array<ITreeNode>, callback: (node: ITreeNode) => void) {
+  private forEachNode(
+    nodes: Array<ITreeNode>,
+    callback: (node: ITreeNode) => void,
+  ) {
     for (const node of nodes) {
       callback(node);
 
@@ -444,7 +573,11 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
   /**
    * Handle a click on a single tree node.
    */
-  private handleNodeClick(node: ITreeNode<Partial<SidebarNodeData>>, _nodePath: Array<number>, _e: React.MouseEvent<HTMLElement>) {
+  private handleNodeClick(
+    node: ITreeNode<Partial<SidebarNodeData>>,
+    _nodePath: Array<number>,
+    _e: React.MouseEvent<HTMLElement>,
+  ) {
     const { nodeData } = node;
 
     if (nodeData?.file) {

@@ -5,8 +5,6 @@
  * @param {number} [max=1]
  * @returns {number}
  */
-export function getRandomNumber(
-  min = 0, max = 1
-): number {
+export function getRandomNumber(min = 0, max = 1): number {
   return Math.floor(Math.random() * max) + min;
 }

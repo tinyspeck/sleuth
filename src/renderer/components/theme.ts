@@ -16,7 +16,7 @@ export function getTheme(isDark = false) {
       base0C: '#1ABC9C',
       base0D: '#3498DB',
       base0E: '#9B59B6',
-      base0F: '#be643c'
+      base0F: '#be643c',
     };
   }
 
@@ -36,6 +36,6 @@ export function getTheme(isDark = false) {
     base0C: '#3971ED',
     base0D: '#3971ED',
     base0E: '#71105F',
-    base0F: '#4d6dc3'
+    base0F: '#4d6dc3',
   };
 }

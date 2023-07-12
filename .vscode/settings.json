@@ -6,7 +6,7 @@
     "**/.hg": true,
     "**/.DS_Store": true,
     "**/out": true,
-    "**/catapult": true,
+    "**/catapult": true
   },
   "typescript.tsdk": "node_modules/typescript/lib"
 }

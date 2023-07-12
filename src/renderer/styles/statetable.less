@@ -14,7 +14,7 @@
     iframe {
       width: 100%;
       border: none;
-      height: calc(~"100vh - 170px");
+      height: calc(~'100vh - 170px');
     }
   }
 }
@@ -36,19 +36,19 @@
   }
 
   ul li:after {
-    content: ", ";
+    content: ', ';
   }
 
   ul li:last-child:after {
-    content: "";
+    content: '';
   }
 
   ul li:nth-last-child(2):after {
-    content: " and ";
+    content: ' and ';
   }
 
   ul li:nth-last-child(3) ~ li:nth-last-child(2):after {
-    content: ", and ";
+    content: ', and ';
   }
 }
 

@@ -5,11 +5,22 @@ import { IpcEvents } from '../ipc-events';
 // This file handles sending IPC events. Other classes might
 // listen to IPC events.
 
-
-type name = 'home' | 'appData' | 'userData' | 'cache' | 'temp' | 'exe' | 'module' | 'desktop' | 'documents' | 'downloads' | 'music' | 'pictures' | 'videos' | 'logs';
-export function getPath(
-  path: name
-): Promise<string> {
+type name =
+  | 'home'
+  | 'appData'
+  | 'userData'
+  | 'cache'
+  | 'temp'
+  | 'exe'
+  | 'module'
+  | 'desktop'
+  | 'documents'
+  | 'downloads'
+  | 'music'
+  | 'pictures'
+  | 'videos'
+  | 'logs';
+export function getPath(path: name): Promise<string> {
   return ipcRenderer.invoke(IpcEvents.GET_PATH, path);
 }
 
@@ -21,7 +32,7 @@ export function sendWindowReady() {
   ipcRenderer.send(IpcEvents.WINDOW_READY);
 }
 
-export function sendDoubleClick(){
+export function sendDoubleClick() {
   ipcRenderer.send(IpcEvents.CLICK_TITLEBAR_MAC);
 }
 
@@ -29,12 +40,14 @@ export function showOpenDialog(): Promise<Electron.OpenDialogReturnValue> {
   return ipcRenderer.invoke(IpcEvents.SHOW_OPEN_DIALOG);
 }
 
-export function showSaveDialog(filename: string): Promise<Electron.SaveDialogReturnValue> {
+export function showSaveDialog(
+  filename: string,
+): Promise<Electron.SaveDialogReturnValue> {
   return ipcRenderer.invoke(IpcEvents.SHOW_SAVE_DIALOG, filename);
 }
 
 export function showMessageBox(
-  options: Electron.MessageBoxOptions
+  options: Electron.MessageBoxOptions,
 ): Promise<Electron.MessageBoxReturnValue> {
   return ipcRenderer.invoke(IpcEvents.MESSAGE_BOX, options);
 }

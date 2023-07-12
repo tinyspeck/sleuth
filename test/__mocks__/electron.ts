@@ -4,8 +4,7 @@ const ipcRenderer = {
 };
 
 const shell = {
-  trashItem: jest.fn()
+  trashItem: jest.fn(),
 };
-
 
 module.exports = { ipcRenderer, shell };

@@ -9,31 +9,35 @@ import { getPath, showMessageBox } from './ipc';
 
 const d = debug('sleuth:suggestions');
 
-export async function getItemsInSuggestionFolders(): Promise<Array<Suggestion>> {
- const suggestionsArr = [];
+export async function getItemsInSuggestionFolders(): Promise<
+  Array<Suggestion>
+> {
+  const suggestionsArr = [];
 
   // We'll get suggestions from the downloads folder and
   // the desktop
   try {
     try {
       const downloadsDir = await getPath('downloads');
-      const downloads = (await fs.readdir(downloadsDir))
-        .map((file) => path.join(downloadsDir, file));
-      suggestionsArr.push(...await getSuggestions(downloads));
+      const downloads = (await fs.readdir(downloadsDir)).map((file) =>
+        path.join(downloadsDir, file),
+      );
+      suggestionsArr.push(...(await getSuggestions(downloads)));
     } catch (e) {
       d(e);
     }
 
     try {
       const desktopDir = await getPath('desktop');
-      const desktop = (await fs.readdir(desktopDir))
-        .map((file) => path.join(desktopDir, file));
-      suggestionsArr.push(...await getSuggestions(desktop));
+      const desktop = (await fs.readdir(desktopDir)).map((file) =>
+        path.join(desktopDir, file),
+      );
+      suggestionsArr.push(...(await getSuggestions(desktop)));
     } catch (e) {
       d(e);
     }
 
-    const sortedSuggestions  = suggestionsArr.sort((a, b) => {
+    const sortedSuggestions = suggestionsArr.sort((a, b) => {
       return b.mtimeMs - a.mtimeMs;
     });
 
@@ -45,16 +49,14 @@ export async function getItemsInSuggestionFolders(): Promise<Array<Suggestion>> 
 }
 
 export async function deleteSuggestion(filePath: string) {
-  const trashName = process.platform === 'darwin'
-    ? 'trash'
-    : 'recycle bin';
+  const trashName = process.platform === 'darwin' ? 'trash' : 'recycle bin';
 
   const { response } = await showMessageBox({
     title: 'Delete File?',
     message: `Do you want to move ${filePath} to the ${trashName}?`,
     type: 'question',
-    buttons: [ 'Cancel', `Move to ${trashName}` ],
-    cancelId: 0
+    buttons: ['Cancel', `Move to ${trashName}`],
+    cancelId: 0,
   });
 
   if (response) {
@@ -65,16 +67,14 @@ export async function deleteSuggestion(filePath: string) {
 }
 
 export async function deleteSuggestions(filePaths: Array<string>) {
-  const trashName = process.platform === 'darwin'
-    ? 'trash'
-    : 'recycle bin';
+  const trashName = process.platform === 'darwin' ? 'trash' : 'recycle bin';
 
   const { response } = await showMessageBox({
     title: 'Delete Files?',
     message: `Do you want to move all log files older than 48 hours to the ${trashName}?`,
     type: 'question',
-    buttons: [ 'Cancel', `Move to ${trashName}` ],
-    cancelId: 0
+    buttons: ['Cancel', `Move to ${trashName}`],
+    cancelId: 0,
   });
 
   if (response) {
@@ -91,7 +91,9 @@ export async function deleteSuggestions(filePaths: Array<string>) {
  * @param {Array<string>} input
  * @returns {Promise<StringMap<Suggestion>>}
  */
-async function getSuggestions(input: Array<string>): Promise<Array<Suggestion>> {
+async function getSuggestions(
+  input: Array<string>,
+): Promise<Array<Suggestion>> {
   const suggestions: Array<Suggestion> = [];
 
   for (const file of input) {
@@ -108,19 +110,20 @@ async function getSuggestions(input: Array<string>): Promise<Array<Suggestion>> 
     const androidLogsFormat = /attachment?.{0,5}.txt/;
     const chromeLogsFormat = /app\.slack\.com-\d{13,}\.log/;
     const firefoxLogsFormat = /console(-export)?[\d\-_]{0,22}\.(txt|log)/;
-    const shouldAdd = logsFormat.test(file)
-    || serverFormat.test(file)
-    || iosLogsFormat.test(file)
-    || chromeLogsFormat.test(file)
-    || firefoxLogsFormat.test(file)
-    || androidLogsFormat.test(file);
+    const shouldAdd =
+      logsFormat.test(file) ||
+      serverFormat.test(file) ||
+      iosLogsFormat.test(file) ||
+      chromeLogsFormat.test(file) ||
+      firefoxLogsFormat.test(file) ||
+      androidLogsFormat.test(file);
 
     if (shouldAdd) {
       try {
         const stats = fs.statSync(file);
         const age = formatDistanceToNow(stats.mtimeMs);
 
-        suggestions.push({filePath: file, ...stats, age });
+        suggestions.push({ filePath: file, ...stats, age });
       } catch (error) {
         d(`Tried to add ${file}, but failed: ${error}`);
       }

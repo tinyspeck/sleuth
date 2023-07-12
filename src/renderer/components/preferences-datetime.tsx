@@ -12,10 +12,13 @@ export const DATE_TIME_FORMATS = [
   'hh:mm:ss.SSS a (dd/MM)',
   'hh:mm a, MMM do',
   'eeee, MMMM do y, h:mm:ss a',
-  'eeee, ha'
+  'eeee, ha',
 ];
 
-export const renderDateTimeItem: ItemRenderer<string> = (input, { handleClick, modifiers }) => {
+export const renderDateTimeItem: ItemRenderer<string> = (
+  input,
+  { handleClick, modifiers },
+) => {
   if (!modifiers.matchesPredicate) {
     return null;
   }
