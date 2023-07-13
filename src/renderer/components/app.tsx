@@ -285,7 +285,7 @@ export class App extends React.Component<object, Partial<AppState>> {
    * handling a set of logfiles.
    */
   private setupBusyResponse() {
-    ipcRenderer.on(IpcEvents.ARE_YOU_BUSY, (event) => {
+    ipcRenderer.on(IpcEvents.ARE_YOU_BUSY, (event: any) => {
       const { unzippedFiles } = this.state;
 
       event.returnValue = !(!unzippedFiles || unzippedFiles.length === 0);
