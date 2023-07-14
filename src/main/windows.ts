@@ -9,7 +9,7 @@ import { config } from '../config';
 import { getIconPath } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { TouchBarManager } from './touch-bar-manager';
-import { IpcEvents } from '../ipc-events';
+// import { IpcEvents } from '../ipc-events';
 
 export let windows: Array<Electron.BrowserWindow> = [];
 
@@ -137,19 +137,6 @@ export async function getCurrentWindow(): Promise<BrowserWindow> {
 
   if (focused) {
     return focused;
-  }
-
-  // No window focused? Find a ready one
-  for (const window of windows) {
-    const isBusy = window.webContents.send(
-      IpcEvents.ARE_YOU_BUSY,
-    ) as unknown as boolean;
-
-    console.log(`Asked window ${window.id} if it's busy. Answer: ${isBusy}`);
-
-    if (isBusy === false) {
-      return window;
-    }
   }
 
   // None ready or focused? The first one then.
