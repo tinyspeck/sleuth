@@ -8,7 +8,7 @@ anchors:
 parameters:
   build_image_tag_ubuntu:
     type: string
-    default: slack-desktop-docker.jfrog.io/desktop-base-ubuntu-bionic:99d1b3fe-344
+    default: slack-desktop-docker.jfrog.io/desktop-base-ubuntu-bionic:7041ce1e-376
 
 executors:
   ubuntu:
