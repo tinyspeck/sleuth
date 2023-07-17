@@ -56,7 +56,6 @@ export class App extends React.Component<object, Partial<AppState>> {
     sendWindowReady();
 
     this.setupFileDrop();
-    this.setupBusyResponse();
     this.setupOpenSentry();
     this.setupWindowTitle();
   }
@@ -277,18 +276,6 @@ export class App extends React.Component<object, Partial<AppState>> {
 
       // Then, let the utility handle the details
       openSentry(installationFile?.fullPath);
-    });
-  }
-
-  /**
-   * Sometimes, the main process wants to know whether or not this window is currently
-   * handling a set of logfiles.
-   */
-  private setupBusyResponse() {
-    ipcRenderer.on(IpcEvents.ARE_YOU_BUSY, (event) => {
-      const { unzippedFiles } = this.state;
-
-      event.returnValue = !(!unzippedFiles || unzippedFiles.length === 0);
     });
   }
 }

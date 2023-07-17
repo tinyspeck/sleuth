@@ -127,7 +127,6 @@ export class IpcManager {
       | 'home'
       | 'appData'
       | 'userData'
-      | 'cache'
       | 'temp'
       | 'exe'
       | 'module'
