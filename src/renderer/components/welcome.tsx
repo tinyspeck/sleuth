@@ -33,20 +33,22 @@ export class Welcome extends React.Component<
 
     this.state = {
       sleuth: props.sleuth || getSleuth(),
-      watcher: undefined
+      watcher: undefined,
     };
   }
 
   public async componentDidMount(): Promise<void> {
     const downloadsDir = await getPath('downloads');
-    this.setState({watcher: fs.watch(downloadsDir, async () => {
-      await this.props.state.getSuggestions()})
-    })
+    this.setState({
+      watcher: fs.watch(downloadsDir, async () => {
+        await this.props.state.getSuggestions();
+      }),
+    });
   }
 
   public componentWillUnmount(): void {
     this.state.watcher?.close();
-    this.setState({watcher: undefined})
+    this.setState({ watcher: undefined });
   }
 
   public async deleteSuggestion(filePath: string) {
@@ -146,7 +148,7 @@ export class Welcome extends React.Component<
       marginBottom: '50px',
       overflowY: 'auto',
     };
-    
+
     return (
       <div className="Welcome">
         <div>
