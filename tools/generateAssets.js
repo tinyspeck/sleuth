@@ -12,11 +12,18 @@ const windowSdkLocation = `C:\\Program Files (x86)\\Windows Kits\\10\\bin\\${
 const signTool = path.join(windowSdkLocation, 'signtool.exe');
 
 module.exports = async () => {
-  await Promise.all([ compileParcel({ production: true }), copyCatapult(), copyDevtoolsFrontend()]);
+  await Promise.all([
+    compileParcel({ production: true }),
+    copyCatapult(),
+    copyDevtoolsFrontend(),
+  ]);
   if (process.env.CI && process.platform === 'win32') {
     await fs.copy(
       `${signTool}`,
-      path.resolve(__dirname, '../node_modules/electron-winstaller/vendor/signtool.exe')
+      path.resolve(
+        __dirname,
+        '../node_modules/electron-winstaller/vendor/signtool.exe',
+      ),
     );
   }
-}
+};

@@ -15,7 +15,10 @@ export interface ToolViewProps {
 }
 
 @observer
-export class ToolView extends React.Component<ToolViewProps, Partial<ToolViewState>> {
+export class ToolView extends React.Component<
+  ToolViewProps,
+  Partial<ToolViewState>
+> {
   public render() {
     const { state } = this.props;
 

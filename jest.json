@@ -10,26 +10,10 @@
   "bail": true,
   "resetMocks": true,
   "resetModules": true,
-  "modulePathIgnorePatterns": [
-    "/catapult"
-  ],
-  "moduleFileExtensions": [
-    "js",
-    "jsx",
-    "json",
-    "ts",
-    "tsx"
-  ],
-  "testPathIgnorePatterns": [
-    "/.tmp/",
-    "/src/main/",
-    "/catapult",
-    "/dist"
-  ],
-  "coverageReporters": [
-    "json",
-    "html"
-  ],
+  "modulePathIgnorePatterns": ["/catapult"],
+  "moduleFileExtensions": ["js", "jsx", "json", "ts", "tsx"],
+  "testPathIgnorePatterns": ["/.tmp/", "/src/main/", "/catapult", "/dist"],
+  "coverageReporters": ["json", "html"],
   "collectCoverageFrom": [
     "src/**/*.{ts, tsx}",
     "!src/main/*.{ts, tsx}",

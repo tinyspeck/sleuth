@@ -1,5 +1,4 @@
 export const enum IpcEvents {
-  ARE_YOU_BUSY = 'ARE_YOU_BUSY',
   GET_PATH = 'GET_PATH',
   GET_USER_AGENT = 'GET_USER_AGENT',
   WINDOW_READY = 'WINDOW_READY',

@@ -25,7 +25,9 @@ export async function handleUrl(url: string) {
 
   if (parsed.host === 'bookmarks' && parsed.searchParams.has('data')) {
     // searchParams.get() will do replacements we don't like
-    window.webContents.send(IpcEvents.OPEN_BOOKMARKS, parsed.search.replace('?data=', ''));
+    window.webContents.send(
+      IpcEvents.OPEN_BOOKMARKS,
+      parsed.search.replace('?data=', ''),
+    );
   }
 }
-

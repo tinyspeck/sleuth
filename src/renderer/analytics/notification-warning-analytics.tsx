@@ -2,7 +2,8 @@ import React from 'react';
 
 export const warningDescriptionDict = {
   'Quiet Hours': {
-    QUIET_HOURS: 'Are Windows Quiet Hours (8 - 10) or Windows Focus Assist (10+) active?',
+    QUIET_HOURS:
+      'Are Windows Quiet Hours (8 - 10) or Windows Focus Assist (10+) active?',
   },
 
   'Presentation Mode': {
@@ -17,9 +18,9 @@ export const warningDescriptionDict = {
       'A full-screen (exclusive mode) Direct3D application is running. This is \
       most likely a game.',
     PRESENTATION_MODE:
-      'The user has activated Windows presentation settings to block \
-      notifications and pop-up messages. Note that this isn\'t always a manual \
-      action, presentation apps usually enable this for the user.',
+      "The user has activated Windows presentation settings to block \
+      notifications and pop-up messages. Note that this isn't always a manual \
+      action, presentation apps usually enable this for the user.",
     PRESENTATION_BUSY:
       'A full-screen application is running or Presentation Settings are applied. \
       Presentation Settings allow a user to put their machine into a state fit \
@@ -67,14 +68,25 @@ export function getNotifWarningsInfo(data: Array<string>): Array<JSX.Element> {
   result.push(<p>⚠️ The following notification warnings were detected. ⚠️</p>);
 
   Object.keys(categoryDescriptionDict).forEach((category: Category) => {
-    const categoryDict: Record<string, string> = warningDescriptionDict[category];
-    const categoryWarnings = Object.keys(categoryDict).filter((value) => -1 !== data.indexOf(value.toString()));
+    const categoryDict: Record<string, string> =
+      warningDescriptionDict[category];
+    const categoryWarnings = Object.keys(categoryDict).filter(
+      (value) => -1 !== data.indexOf(value.toString()),
+    );
     if (categoryWarnings && categoryWarnings.length > 0) {
       const warningList: Array<JSX.Element> = categoryWarnings.map((w) => {
-        return (<li key={w}>{w}: {categoryDict[w]}</li>);
+        return (
+          <li key={w}>
+            {w}: {categoryDict[w]}
+          </li>
+        );
       });
 
-      result.push(<p><b>{category}</b></p>);
+      result.push(
+        <p>
+          <b>{category}</b>
+        </p>,
+      );
       result.push(<p>{categoryDescriptionDict[category]}</p>);
       result.push(<ul>{warningList}</ul>);
     }

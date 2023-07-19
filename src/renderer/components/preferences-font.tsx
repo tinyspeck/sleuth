@@ -249,7 +249,7 @@ export const WINDOWS_FONTS = [
   'Webdings',
   'Westminster',
   'Wide Latin',
-  'Wingdins'
+  'Wingdins',
 ];
 
 export const MACOS_FONTS = [
@@ -353,11 +353,13 @@ export const MACOS_FONTS = [
   'Verdana',
 ];
 
-export const FONTS = process.platform === 'darwin'
-  ? MACOS_FONTS
-  : WINDOWS_FONTS;
+export const FONTS =
+  process.platform === 'darwin' ? MACOS_FONTS : WINDOWS_FONTS;
 
-export const renderFontItem: ItemRenderer<string> = (font, { handleClick, modifiers }) => {
+export const renderFontItem: ItemRenderer<string> = (
+  font,
+  { handleClick, modifiers },
+) => {
   if (!modifiers.matchesPredicate) {
     return null;
   }

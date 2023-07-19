@@ -15,8 +15,6 @@ if (!config.isDevMode) {
   process.env.NODE_ENV = 'production';
 }
 
-app.allowRendererProcessReuse = false;
-
 if (require('electron-squirrel-startup')) {
   // No-op, we're done here
 } else {

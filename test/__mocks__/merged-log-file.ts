@@ -5,5 +5,5 @@ export const fakeMergedFile: MergedLogFile = {
   logEntries: [],
   logFiles: [],
   logType: LogType.BROWSER,
-  type: 'MergedLogFile'
+  type: 'MergedLogFile',
 };

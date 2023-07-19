@@ -1,4 +1,9 @@
-import { isProcessedLogFile, isUnzippedFile, isTool, isMergedLogFile } from './is-logfile';
+import {
+  isProcessedLogFile,
+  isUnzippedFile,
+  isTool,
+  isMergedLogFile,
+} from './is-logfile';
 import { SelectableLogFile } from '../interfaces';
 import { capitalize } from './capitalize';
 

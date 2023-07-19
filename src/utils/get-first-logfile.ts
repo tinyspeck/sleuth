@@ -1,6 +1,8 @@
 import { ProcessedLogFiles, Tool, SelectableLogFile } from '../interfaces';
 
-export function getFirstLogFile(files: ProcessedLogFiles | undefined): SelectableLogFile {
+export function getFirstLogFile(
+  files: ProcessedLogFiles | undefined,
+): SelectableLogFile {
   if (files) {
     if (files.browser && files.browser.length > 0) return files.browser[0];
     if (files.renderer && files.renderer.length > 0) return files.renderer[0];
@@ -9,7 +11,8 @@ export function getFirstLogFile(files: ProcessedLogFiles | undefined): Selectabl
     if (files.call && files.call.length > 0) return files.call[0];
     if (files.netlog && files.netlog.length > 0) return files.netlog[0];
     if (files.trace && files.trace.length > 0) return files.netlog[0];
-    if (files.installer && files.installer.length > 0) return files.installer[0];
+    if (files.installer && files.installer.length > 0)
+      return files.installer[0];
     if (files.state && files.state.length > 0) return files.state[0];
     if (files.mobile && files.mobile.length > 0) return files.mobile[0];
   }

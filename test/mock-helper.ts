@@ -6,9 +6,13 @@
  * need to explicitly call `jest.clearAllMocks()`.
  * @param {jest.ProvidesCallback} callback
  */
-export function beforeEachWithDefaultMock(callback: jest.ProvidesCallback): void {
-  jest.mock('electron', () => require('./__mocks__/electron'), { virtual: true });
-  jest.mock('debug', () => (() => jest.fn()));
+export function beforeEachWithDefaultMock(
+  callback: jest.ProvidesCallback,
+): void {
+  jest.mock('electron', () => require('./__mocks__/electron'), {
+    virtual: true,
+  });
+  jest.mock('debug', () => () => jest.fn());
 
   beforeEach(callback);
 }

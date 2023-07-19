@@ -1,11 +1,11 @@
 import React from 'react';
 import path from 'path';
 
-import { ControlGroup, Button, InputGroup, Tooltip} from '@blueprintjs/core';
+import { ControlGroup, Button, InputGroup, Tooltip } from '@blueprintjs/core';
 import { observer } from 'mobx-react';
 
 import { getSleuth } from '../sleuth';
-import { deleteSuggestion, deleteSuggestions} from '../suggestions';
+import { deleteSuggestion, deleteSuggestions } from '../suggestions';
 import { SleuthState } from '../state/sleuth';
 import { isBefore } from 'date-fns';
 
@@ -24,7 +24,10 @@ export interface WelcomeProps {
 }
 
 @observer
-export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>> {
+export class Welcome extends React.Component<
+  WelcomeProps,
+  Partial<WelcomeState>
+> {
   constructor(props: WelcomeProps) {
     super(props);
 
@@ -59,46 +62,48 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
   public renderSuggestions(): JSX.Element | null {
     const { openFile } = this.props.state;
     const suggestions = this.props.state.suggestions || [];
-    const elements = suggestions
-      .map((file) => {
-        const stats = file;
-        const basename = path.basename(file.filePath);
-        const deleteElement = (
-          <Button
-            icon='trash'
-            minimal={true}
-            onClick={() => this.deleteSuggestion(file.filePath)}
-          />
-        );
+    const elements = suggestions.map((file) => {
+      const stats = file;
+      const basename = path.basename(file.filePath);
+      const deleteElement = (
+        <Button
+          icon="trash"
+          minimal={true}
+          onClick={() => this.deleteSuggestion(file.filePath)}
+        />
+      );
 
-        return (
-          <li key={basename}>
-            <ControlGroup className='Suggestion' fill={true}>
-              <Tooltip content={basename.length > 38 ? basename : ''} hoverOpenDelay={800}>
-                <Button
-                  className='OpenButton'
-                  alignText='left'
-                  onClick={() => openFile(file.filePath)}
-                  icon='document'
-                >
-                  {basename}
-                </Button>
-              </Tooltip>
-              <InputGroup
-                leftIcon='time'
-                defaultValue={`${stats.age} old`}
-                readOnly={true}
-                rightElement={deleteElement}
-              />
-            </ControlGroup>
-          </li>
-        );
-      });
+      return (
+        <li key={basename}>
+          <ControlGroup className="Suggestion" fill={true}>
+            <Tooltip
+              content={basename.length > 38 ? basename : ''}
+              hoverOpenDelay={800}
+            >
+              <Button
+                className="OpenButton"
+                alignText="left"
+                onClick={() => openFile(file.filePath)}
+                icon="document"
+              >
+                {basename}
+              </Button>
+            </Tooltip>
+            <InputGroup
+              leftIcon="time"
+              defaultValue={`${stats.age} old`}
+              readOnly={true}
+              rightElement={deleteElement}
+            />
+          </ControlGroup>
+        </li>
+      );
+    });
 
     if (elements.length > 0) {
       return (
-        <div className='Suggestions'>
-          <ul className='bp3-list-unstyled'>{elements}</ul>
+        <div className="Suggestions">
+          <ul className="bp3-list-unstyled">{elements}</ul>
           {this.renderDeleteAll()}
         </div>
       );
@@ -123,7 +128,7 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
     if (toDeleteAll.length > 0) {
       return (
         <Button
-          icon='trash'
+          icon="trash"
           onClick={() => this.deleteSuggestions(toDeleteAll)}
         >
           Delete files older than 2 days
@@ -139,24 +144,24 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
     const scrollStyle: React.CSSProperties = {
       marginTop: '50px',
       marginBottom: '50px',
-      overflowY: 'auto'
+      overflowY: 'auto',
     };
     
     return (
-      <div className='Welcome'>
+      <div className="Welcome">
         <div>
-          <h1 className='Title'>
-            <span className='Emoji'>{sleuth}</span>
+          <h1 className="Title">
+            <span className="Emoji">{sleuth}</span>
             <span>Sleuth</span>
           </h1>
-          <h4>Drop a logs zip file or folder anywhere on this window to open it.</h4>
+          <h4>
+            Drop a logs zip file or folder anywhere on this window to open it.
+          </h4>
         </div>
 
         <div style={scrollStyle}>
           <h5>From your Downloads folder, may we suggest:</h5>
-          <div >
-            {this.renderSuggestions()}
-          </div>
+          <div>{this.renderSuggestions()}</div>
         </div>
       </div>
     );

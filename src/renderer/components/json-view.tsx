@@ -25,7 +25,7 @@ export class JSONView extends React.Component<JSONViewProps, JSONViewState> {
       const theme = getTheme(this.props.state.isDarkMode);
 
       return (
-        <div className='Monospace'>
+        <div className="Monospace">
           <JSONTree
             invertTheme={!this.props.state.isDarkMode}
             data={data}
@@ -37,7 +37,7 @@ export class JSONView extends React.Component<JSONViewProps, JSONViewState> {
       );
     } else if (this.props.raw) {
       return (
-        <div className='Monospace'>
+        <div className="Monospace">
           <code>{this.props.raw}</code>
         </div>
       );

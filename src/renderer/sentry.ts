@@ -11,7 +11,8 @@ export async function openSentry(installationFilePath?: string): Promise<void> {
   if (!installationFilePath) {
     showMessageBox({
       title: 'No installation id found',
-      message: 'We did not find an installation id in this set of logs and can therefore not look for crashes for this user.',
+      message:
+        'We did not find an installation id in this set of logs and can therefore not look for crashes for this user.',
     });
 
     return;

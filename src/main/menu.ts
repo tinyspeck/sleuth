@@ -1,4 +1,10 @@
-import { app, dialog, Menu, MenuItem, MenuItemConstructorOptions } from 'electron';
+import {
+  app,
+  dialog,
+  Menu,
+  MenuItem,
+  MenuItemConstructorOptions,
+} from 'electron';
 import fs from 'fs-extra';
 import path from 'path';
 import tmp from 'tmp';
@@ -49,7 +55,9 @@ export class AppMenu {
    * @param {('' | 'DevEnv' | 'DevMode')} [type='']
    * @returns {Electron.MenuItemOptions}
    */
-  public getOpenItem(type: '' | 'DevEnv' | 'DevMode' = ''): MenuItemConstructorOptions {
+  public getOpenItem(
+    type: '' | 'DevEnv' | 'DevMode' = '',
+  ): MenuItemConstructorOptions {
     const appData = app.getPath('appData');
     const logsPath = path.join(appData, `Slack${type}`, 'logs');
     const storagePath = path.join(appData, `Slack${type}`, 'storage');
@@ -67,10 +75,13 @@ export class AppMenu {
 
         if (files && files.length > 0) {
           const { webContents } = await getCurrentWindow();
-          const name = `Local Slack${type} Logs - ${format(Date.now(), `MMM d, y HH.mm.SSSS`)}`;
+          const name = `Local Slack${type} Logs - ${format(
+            Date.now(),
+            `MMM d, y HH.mm.SSSS`,
+          )}`;
           const tmpOptions: tmp.DirOptions = { unsafeCleanup: true, name };
           //@ts-expect-error promisify type doesn't expect the correct number of arguments
-          const tmpdir = await (promisify(tmp.dir))(tmpOptions);
+          const tmpdir = await promisify(tmp.dir)(tmpOptions);
 
           await fs.copy(logsPath, tmpdir);
           await fs.copy(storagePath, tmpdir);
@@ -80,17 +91,19 @@ export class AppMenu {
           dialog.showMessageBox({
             type: 'error',
             title: 'Could not find local Slack logs',
-            message: `We attempted to find your local Slack's logs, but we couldn't find them. We checked for them in ${logsPath}.`
+            message: `We attempted to find your local Slack's logs, but we couldn't find them. We checked for them in ${logsPath}.`,
           });
         }
-      }
+      },
     };
   }
 
   /**
    * Opens, you guessed it, a cache folder.
    */
-  public getOpenCacheItem(type: '' | 'DevEnv' | 'DevMode' = ''): Electron.MenuItemConstructorOptions {
+  public getOpenCacheItem(
+    type: '' | 'DevEnv' | 'DevMode' = '',
+  ): Electron.MenuItemConstructorOptions {
     const appData = app.getPath('appData');
     const cachePath = path.join(appData, `Slack${type}`, 'Cache');
 
@@ -99,7 +112,7 @@ export class AppMenu {
       click: async () => {
         const { webContents } = await getCurrentWindow();
         webContents.send(IpcEvents.FILE_DROPPED, cachePath);
-      }
+      },
     };
   }
 
@@ -117,15 +130,15 @@ export class AppMenu {
         try {
           const { filePaths } = await dialog.showOpenDialog({
             defaultPath: app.getPath('downloads'),
-            filters: [ { name: 'zip', extensions: [ 'zip' ] } ],
-            properties: [ 'openFile', 'openDirectory', 'showHiddenFiles' ],
+            filters: [{ name: 'zip', extensions: ['zip'] }],
+            properties: ['openFile', 'openDirectory', 'showHiddenFiles'],
           });
 
           await this.handleFilePaths(filePaths);
         } catch (error) {
           d(`Failed to open item. ${error}`);
         }
-      }
+      },
     };
 
     const openRecentItem = {
@@ -134,12 +147,15 @@ export class AppMenu {
       submenu: [
         {
           label: 'Clear Recent',
-          role: 'clearRecentDocuments' as const
-        }
-      ]
+          role: 'clearRecentDocuments' as const,
+        },
+      ],
     };
 
-    const openItems: Array<Electron.MenuItemConstructorOptions> = [ openItem, openRecentItem ];
+    const openItems: Array<Electron.MenuItemConstructorOptions> = [
+      openItem,
+      openRecentItem,
+    ];
 
     // Windows and Linux don't understand combo dialogs
     if (process.platform !== 'darwin') {
@@ -152,18 +168,22 @@ export class AppMenu {
         click: async () => {
           const { filePaths } = await dialog.showOpenDialog({
             defaultPath: app.getPath('downloads'),
-            filters: [ { name: 'zip', extensions: [ 'zip' ] } ],
-            properties: [ 'openFile', 'showHiddenFiles' ],
+            filters: [{ name: 'zip', extensions: ['zip'] }],
+            properties: ['openFile', 'showHiddenFiles'],
           });
 
           await this.handleFilePaths(filePaths);
-        }
+        },
       };
 
       openItems.push(openFile);
     }
 
-    if (this.productionLogsExist || this.devEnvLogsExist || this.devModeLogsExist) {
+    if (
+      this.productionLogsExist ||
+      this.devEnvLogsExist ||
+      this.devModeLogsExist
+    ) {
       openItems.push({ type: 'separator' });
     }
 
@@ -173,13 +193,19 @@ export class AppMenu {
 
     // We only support cache files on macOS right now
     if (process.platform === 'darwin') {
-      if (this.productionCacheExist || this.devEnvCacheExist || this.devModeCacheExist) {
+      if (
+        this.productionCacheExist ||
+        this.devEnvCacheExist ||
+        this.devModeCacheExist
+      ) {
         openItems.push({ type: 'separator' });
       }
 
       if (this.productionCacheExist) openItems.push(this.getOpenCacheItem());
-      if (this.devEnvCacheExist) openItems.push(this.getOpenCacheItem('DevEnv'));
-      if (this.devModeCacheExist) openItems.push(this.getOpenCacheItem('DevMode'));
+      if (this.devEnvCacheExist)
+        openItems.push(this.getOpenCacheItem('DevEnv'));
+      if (this.devModeCacheExist)
+        openItems.push(this.getOpenCacheItem('DevMode'));
     }
 
     return openItems;
@@ -198,10 +224,10 @@ export class AppMenu {
           dialog.showMessageBox({
             type: 'error',
             title: 'Could not prune logs',
-            message: `We attempted to prune logs at ${targetPath}, but failed with the following error: "${error}".`
+            message: `We attempted to prune logs at ${targetPath}, but failed with the following error: "${error}".`,
           });
         }
-      }
+      },
     });
 
     const result = [];
@@ -230,7 +256,7 @@ export class AppMenu {
 
     this.menu = getMenuTemplate({
       openItems: this.getOpenItems(),
-      pruneItems: this.getPruneItems()
+      pruneItems: this.getPruneItems(),
     });
 
     Menu.setApplicationMenu(Menu.buildFromTemplate(this.menu));

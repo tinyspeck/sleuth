@@ -1,4 +1,8 @@
-export function plural(text: string, input: Array<unknown> | number, pluralText?: string): string {
+export function plural(
+  text: string,
+  input: Array<unknown> | number,
+  pluralText?: string,
+): string {
   let pluralize = false;
 
   if (typeof input === 'number' && input > 1) {
@@ -7,11 +11,7 @@ export function plural(text: string, input: Array<unknown> | number, pluralText?
     pluralize = true;
   }
 
-  const pluralized = pluralText
-    ? pluralText
-    : `${text}s`;
+  const pluralized = pluralText ? pluralText : `${text}s`;
 
-  return pluralize
-    ? pluralized
-    : text;
+  return pluralize ? pluralized : text;
 }

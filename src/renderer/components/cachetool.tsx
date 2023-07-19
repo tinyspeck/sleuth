@@ -21,12 +21,15 @@ export interface CachetoolProps {
 }
 
 @observer
-export class Cachetool extends React.Component<CachetoolProps, Partial<CachetoolState>> {
+export class Cachetool extends React.Component<
+  CachetoolProps,
+  Partial<CachetoolState>
+> {
   constructor(props: CachetoolProps) {
     super(props);
 
     this.state = {
-      tableHeight: 600
+      tableHeight: 600,
     };
 
     autoBind(this);
@@ -47,11 +50,7 @@ export class Cachetool extends React.Component<CachetoolProps, Partial<Cachetool
       content = this.renderData();
     }
 
-    return (
-      <div className='cachetool'>
-        {content}
-      </div>
-    );
+    return <div className="cachetool">{content}</div>;
   }
 
   private async onOpenFolder() {
@@ -63,18 +62,32 @@ export class Cachetool extends React.Component<CachetoolProps, Partial<Cachetool
   }
 
   public resizeHandler(height: number) {
-    if (height < 100 || height > (window.innerHeight - 100)) return;
+    if (height < 100 || height > window.innerHeight - 100) return;
     this.setState({ tableHeight: height });
   }
 
   private renderData() {
-    const { search, searchIndex, showOnlySearchResults, isDetailsVisible, font, cacheKeys } = this.props.state;
-    const scrubber = <Scrubber elementSelector='LogTableContainer' onResizeHandler={this.resizeHandler} />;
-    const tableStyle = isDetailsVisible ? { height: this.state.tableHeight } : { flexGrow: 1 };
+    const {
+      search,
+      searchIndex,
+      showOnlySearchResults,
+      isDetailsVisible,
+      font,
+      cacheKeys,
+    } = this.props.state;
+    const scrubber = (
+      <Scrubber
+        elementSelector="LogTableContainer"
+        onResizeHandler={this.resizeHandler}
+      />
+    );
+    const tableStyle = isDetailsVisible
+      ? { height: this.state.tableHeight }
+      : { flexGrow: 1 };
 
     return (
-      <div className='LogContent' style={{ fontFamily: getFontForCSS(font) }}>
-        <div id='LogTableContainer' style={tableStyle}>
+      <div className="LogContent" style={{ fontFamily: getFontForCSS(font) }}>
+        <div id="LogTableContainer" style={tableStyle}>
           <CachetoolTable
             state={this.props.state}
             keys={cacheKeys}
@@ -92,10 +105,7 @@ export class Cachetool extends React.Component<CachetoolProps, Partial<Cachetool
   private renderLoading() {
     return (
       <Card>
-        <Loading
-          message={'Loading cache keys...'}
-          animate={true}
-        />
+        <Loading message={'Loading cache keys...'} animate={true} />
       </Card>
     );
   }
@@ -105,18 +115,27 @@ export class Cachetool extends React.Component<CachetoolProps, Partial<Cachetool
       <Card>
         <h2>Cachetool</h2>
         <p>
-          This tool allows you to closely examine Slack&apos;s cache. It will accept the <code>Cache</code> folder
-          found in the user&apos;s &quot;app data&quot; directory from Slack, Chrome, or any other Electron application.
-          By default, it can be found in the following locations:
+          This tool allows you to closely examine Slack&apos;s cache. It will
+          accept the <code>Cache</code> folder found in the user&apos;s
+          &quot;app data&quot; directory from Slack, Chrome, or any other
+          Electron application. By default, it can be found in the following
+          locations:
         </p>
         <ul>
-          <li><strong>Windows:</strong> <code>%APPDATA%\Slack\Cache</code></li>
-          <li><strong>macOS:</strong> <code>~/Libary/Application Support/Slack/Cache</code></li>
-          <li><strong>Linux:</strong> <code>~/.config/Slack/Cache</code></li>
+          <li>
+            <strong>Windows:</strong> <code>%APPDATA%\Slack\Cache</code>
+          </li>
+          <li>
+            <strong>macOS:</strong>{' '}
+            <code>~/Libary/Application Support/Slack/Cache</code>
+          </li>
+          <li>
+            <strong>Linux:</strong> <code>~/.config/Slack/Cache</code>
+          </li>
         </ul>
         <Button
-          text='Open Cache Folder'
-          icon='folder-open'
+          text="Open Cache Folder"
+          icon="folder-open"
           onClick={this.onOpenFolder}
         />
       </Card>
@@ -126,16 +145,19 @@ export class Cachetool extends React.Component<CachetoolProps, Partial<Cachetool
   private renderPlatformWarning(): JSX.Element | null {
     if (process.platform !== 'darwin') {
       return (
-        <Callout intent={Intent.WARNING} style={{ margin: '2.2rem', width: 'unset' }}>
+        <Callout
+          intent={Intent.WARNING}
+          style={{ margin: '2.2rem', width: 'unset' }}
+        >
           <p>
-            Bad news: This feature is currently <strong>only supported on macOS.</strong>
-            It can analyze caches from Slack, Electron, or Chrome ran
-            on any platform, but the tool itself can only do so when
-            running on macOS.
+            Bad news: This feature is currently{' '}
+            <strong>only supported on macOS.</strong>
+            It can analyze caches from Slack, Electron, or Chrome ran on any
+            platform, but the tool itself can only do so when running on macOS.
           </p>
           <p>
-            Once Chromium offers a <code>cachetool.cc</code> version for Windows,
-            Sleuth will be able to offer this feature on Windows, too.
+            Once Chromium offers a <code>cachetool.cc</code> version for
+            Windows, Sleuth will be able to offer this feature on Windows, too.
           </p>
         </Callout>
       );

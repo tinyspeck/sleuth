@@ -1,12 +1,12 @@
 #tab-list,
 #events-view-filter-box,
 #events-view-splitter-box {
-  top: 0!important;
+  top: 0 !important;
 }
 
 #events-view-source-list-table td {
-  border-left: 1px solid rgba(16, 22, 26, 0.05)!important;
-  border-bottom: 1px solid rgba(16, 22, 26, 0.05)!important;
+  border-left: 1px solid rgba(16, 22, 26, 0.05) !important;
+  border-bottom: 1px solid rgba(16, 22, 26, 0.05) !important;
 }
 
 .bp3-dark #timeline-view-graph-canvas,
@@ -14,7 +14,7 @@
 .bp3-dark #events-view-source-list-table,
 .bp3-dark #events-view-filter-box,
 .bp3-dark #timeline-view-graph-div {
-  filter: invert(.9);
+  filter: invert(0.9);
 }
 
 .bp3-dark #events-view-source-list-table {
@@ -29,7 +29,8 @@
   border-right: 1px solid #4a4a4a;
 }
 
-.bp3-dark #tab-list a, #tab-list a:visited {
+.bp3-dark #tab-list a,
+#tab-list a:visited {
   color: #f5f8fa;
 }
 
