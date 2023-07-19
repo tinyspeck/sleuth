@@ -9,7 +9,7 @@ import { deleteSuggestion, deleteSuggestions } from '../suggestions';
 import { SleuthState } from '../state/sleuth';
 import { isBefore } from 'date-fns';
 
-const fs = require("fs")
+import fs from 'fs-extra';
 import { getPath } from '../ipc';
 import { FSWatcher } from 'fs';
 
