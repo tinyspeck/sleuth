@@ -9,11 +9,13 @@ import { deleteSuggestion, deleteSuggestions} from '../suggestions';
 import { SleuthState } from '../state/sleuth';
 import { isBefore } from 'date-fns';
 
-import fs from 'fs-extra';
+const fs = require("fs")
 import { getPath } from '../ipc';
+import { FSWatcher } from 'fs';
 
 export interface WelcomeState {
   sleuth: string;
+  watcher?: FSWatcher;
 }
 
 export interface WelcomeProps {
@@ -27,8 +29,21 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
     super(props);
 
     this.state = {
-      sleuth: props.sleuth || getSleuth()
+      sleuth: props.sleuth || getSleuth(),
+      watcher: undefined
     };
+  }
+
+  public async componentDidMount(): Promise<void> {
+    const downloadsDir = await getPath('downloads');
+    this.setState({watcher: fs.watch(downloadsDir, async () => {
+      await this.props.state.getSuggestions()})
+    })
+  }
+
+  public componentWillUnmount(): void {
+    this.state.watcher?.close();
+    this.setState({watcher: undefined})
   }
 
   public async deleteSuggestion(filePath: string) {
@@ -39,21 +54,6 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
   public async deleteSuggestions(filePaths: Array<string>) {
     await deleteSuggestions(filePaths);
     await this.props.state.getSuggestions();
-  }
-
-  public async watchSuggestions(close: boolean) {
-    try {
-      const downloadsDir = await getPath('downloads');
-      const watcher = fs.watch(downloadsDir, async () => {
-        console.log("still watching")
-        await this.props.state.getSuggestions()
-      } )
-      if(close == true){
-        setTimeout(() => watcher.close(), 1000)
-      }
-    }catch(error){
-      console.log(`this is the error: ${error}`)
-    }
   }
 
   public renderSuggestions(): JSX.Element | null {
@@ -70,10 +70,6 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
             onClick={() => this.deleteSuggestion(file.filePath)}
           />
         );
-    const leave = async () => {
-      await this.watchSuggestions(true)
-      openFile(file.filePath)
-    }
 
         return (
           <li key={basename}>
@@ -82,7 +78,7 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
                 <Button
                   className='OpenButton'
                   alignText='left'
-                  onClick={() => leave()}
+                  onClick={() => openFile(file.filePath)}
                   icon='document'
                 >
                   {basename}
@@ -146,8 +142,6 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
       overflowY: 'auto'
     };
     
-    this.watchSuggestions(false)
-
     return (
       <div className='Welcome'>
         <div>
