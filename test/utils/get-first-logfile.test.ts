@@ -18,7 +18,6 @@ const fakeFile: ProcessedLogFile = {
 
 const files: ProcessedLogFiles = {
   browser: [],
-  call: [],
   webapp: [],
   preload: [],
   state: [],
@@ -32,7 +31,6 @@ const files: ProcessedLogFiles = {
 describe('getFirstLogFile', () => {
   afterEach(() => {
     files.browser = [];
-    files.call = [];
     files.webapp = [];
     files.state = [];
   });
@@ -40,13 +38,6 @@ describe('getFirstLogFile', () => {
   it('should return the first logfile (browser if available)', () => {
     fakeFile.logType = LogType.BROWSER;
     files.browser = [fakeFile];
-
-    expect(getFirstLogFile(files)).toEqual(fakeFile);
-  });
-
-  it('should return the first logfile (call if available)', () => {
-    fakeFile.logType = LogType.CALL;
-    files.call = [fakeFile];
 
     expect(getFirstLogFile(files)).toEqual(fakeFile);
   });

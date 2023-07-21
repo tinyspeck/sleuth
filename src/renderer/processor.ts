@@ -179,8 +179,6 @@ export function getTypeForFile(
     fileName.startsWith('console')
   ) {
     return LogType.WEBAPP;
-  } else if (fileName.startsWith('call')) {
-    return LogType.CALL;
   } else if (
     (fileName.startsWith('net') &&
       !fileName.includes('net-log-window-console')) ||
@@ -221,7 +219,6 @@ export function getTypeForFile(
 export function getTypesForFiles(logFiles: UnzippedFiles): SortedUnzippedFiles {
   const result: SortedUnzippedFiles = {
     browser: [],
-    call: [],
     webapp: [],
     preload: [],
     state: [],
@@ -389,7 +386,6 @@ export function readFile(
     });
     const parsedlogType = logType || getTypeForFile(logFile);
     const matchFn = getMatchFunction(parsedlogType, logFile);
-    const isCall = logType === 'call';
 
     let lines = 0;
     let lastLogged = 0;
@@ -526,10 +522,7 @@ export function readFile(
         current = makeLogEntry(matched, parsedlogType, lines, logFile.fullPath);
       } else {
         // We couldn't match, let's treat it
-        if (isCall && current) {
-          // Call logs sometimes have random newlines
-          current.message += line;
-        } else if (logType === 'mobile' && current) {
+        if (logType === 'mobile' && current) {
           // Android logs do too
           current.message += '\n' + line;
         } else if (
@@ -990,35 +983,6 @@ export function matchLineMobile(line: string): MatchResult | undefined {
   return results;
 }
 
-/**
- * Matches a Call line
- *
- * @param {string} line
- * @returns {(MatchResult | undefined)}
- */
-export function matchLineCall(line: string): MatchResult | undefined {
-  // Matcher for calls
-  // [YYYY/MM/DD hh:mm:ss uuu* LEVEL FILE->FUNCTION:LINE] message
-  const callRegex =
-    // eslint-disable-next-line no-control-regex
-    /(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}\.\d{3})	([A-Z]{0,10}) ([\s\S]*)$/;
-  const results = callRegex.exec(line);
-
-  if (results && results.length === 4) {
-    // Expected format: YYYY/MM/DD hh:mm:ss.SSS
-    const momentValue = new Date(results[1]).valueOf();
-
-    return {
-      timestamp: results[1],
-      level: results[2],
-      message: results[3],
-      momentValue,
-    };
-  }
-
-  return;
-}
-
 export function matchLineChromium(line: string): MatchResult | undefined {
   // See format: https://support.google.com/chrome/a/answer/6271282
   const results = CHROMIUM_RGX.exec(line);
@@ -1090,8 +1054,6 @@ export function getMatchFunction(
     } else {
       return matchLineWebApp;
     }
-  } else if (logType === LogType.CALL) {
-    return matchLineCall;
   } else if (logType === LogType.INSTALLER) {
     if (logFile.fileName.includes('Squirrel')) {
       return matchLineSquirrel;

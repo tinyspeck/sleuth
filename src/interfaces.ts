@@ -14,7 +14,6 @@ export enum LogType {
   PRELOAD = 'preload',
   WEBAPP = 'webapp',
   STATE = 'state',
-  CALL = 'call',
   NETLOG = 'netlog',
   TRACE = 'trace',
   INSTALLER = 'installer',
@@ -30,7 +29,6 @@ export const LOG_TYPES_TO_PROCESS = [
   LogType.BROWSER,
   LogType.WEBAPP,
   LogType.PRELOAD,
-  LogType.CALL,
   LogType.INSTALLER,
   LogType.MOBILE,
   LogType.CHROMIUM,
@@ -138,7 +136,6 @@ export interface MergedFilesLoadStatus {
   browser: boolean;
   preload: boolean;
   webapp: boolean;
-  call: boolean;
   mobile: boolean;
 }
 

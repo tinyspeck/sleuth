@@ -48,7 +48,6 @@ const enum NODE_ID {
   PRELOAD = 'preload',
   TRACE = 'trace',
   WEBAPP = 'webapp',
-  CALLS = 'calls',
   INSTALLER = 'installer',
   NETWORK = 'network',
   CACHE = 'cache',
@@ -116,14 +115,6 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     nodeData: { type: LogType.WEBAPP },
   },
   {
-    id: NODE_ID.CALLS,
-    hasCaret: true,
-    icon: 'phone',
-    label: 'Calls',
-    isExpanded: true,
-    childNodes: [],
-  },
-  {
     id: NODE_ID.INSTALLER,
     hasCaret: true,
     icon: 'automatic-updates',
@@ -186,11 +177,6 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
       NODE_ID.WEBAPP,
       state,
       processedLogFiles.webapp.map((file) => Sidebar.getFileNode(file, props)),
-    );
-    Sidebar.setChildNodes(
-      NODE_ID.CALLS,
-      state,
-      processedLogFiles.call.map((file) => Sidebar.getFileNode(file, props)),
     );
     Sidebar.setChildNodes(
       NODE_ID.INSTALLER,
