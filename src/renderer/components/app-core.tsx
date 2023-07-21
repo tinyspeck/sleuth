@@ -191,11 +191,7 @@ export class CoreApplication extends React.Component<
       );
 
       const merged = this.props.state.mergedLogFiles as MergedLogFiles;
-      const toMerge = [
-        merged.browser,
-        merged.preload,
-        merged.webapp,
-      ];
+      const toMerge = [merged.browser, merged.preload, merged.webapp];
 
       mergeLogFiles(toMerge, LogType.ALL).then((r) => setMergedFile(r));
     }
