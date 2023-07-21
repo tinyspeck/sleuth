@@ -45,7 +45,6 @@ const enum NODE_ID {
   ALL = 'all-desktop',
   STATE = 'state',
   BROWSER = 'browser',
-  RENDERER = 'renderer',
   PRELOAD = 'preload',
   TRACE = 'trace',
   WEBAPP = 'webapp',
@@ -97,15 +96,6 @@ const DEFAULT_NODES: Array<ITreeNode> = [
     icon: 'modal',
     label: 'Chromium',
     isExpanded: true,
-  },
-  {
-    id: NODE_ID.RENDERER,
-    hasCaret: true,
-    icon: 'applications',
-    label: 'Renderer Process',
-    isExpanded: true,
-    childNodes: [],
-    nodeData: { type: LogType.RENDERER },
   },
   {
     id: NODE_ID.PRELOAD,
@@ -186,13 +176,6 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
       NODE_ID.BROWSER,
       state,
       processedLogFiles.browser.map((file) => Sidebar.getFileNode(file, props)),
-    );
-    Sidebar.setChildNodes(
-      NODE_ID.RENDERER,
-      state,
-      processedLogFiles.renderer.map((file) =>
-        Sidebar.getFileNode(file, props),
-      ),
     );
     Sidebar.setChildNodes(
       NODE_ID.PRELOAD,
@@ -510,10 +493,9 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
       return;
     }
 
-    // Renderer and Preload is on their way out, so let's not show
+    // Preload is on their way out, so let's not show
     // these categories if we don't have files for them
-    const hideIfEmpty =
-      searchId === NODE_ID.PRELOAD || searchId === NODE_ID.RENDERER;
+    const hideIfEmpty = searchId === NODE_ID.PRELOAD;
     if (childNodes.length === 0 && hideIfEmpty) {
       state.nodes = state.nodes.filter(({ id }) => searchId !== id);
     }

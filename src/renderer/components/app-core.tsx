@@ -50,7 +50,6 @@ export class CoreApplication extends React.Component<
     this.state = {
       processedLogFiles: {
         browser: [],
-        renderer: [],
         preload: [],
         webapp: [],
         state: [],
@@ -185,9 +184,6 @@ export class CoreApplication extends React.Component<
       await mergeLogFiles(processedLogFiles.browser, LogType.BROWSER).then(
         setMergedFile,
       );
-      await mergeLogFiles(processedLogFiles.renderer, LogType.RENDERER).then(
-        setMergedFile,
-      );
       await mergeLogFiles(processedLogFiles.preload, LogType.PRELOAD).then(
         setMergedFile,
       );
@@ -201,7 +197,6 @@ export class CoreApplication extends React.Component<
       const merged = this.props.state.mergedLogFiles as MergedLogFiles;
       const toMerge = [
         merged.browser,
-        merged.renderer,
         merged.preload,
         merged.call,
         merged.webapp,
@@ -246,11 +241,6 @@ export class CoreApplication extends React.Component<
         mergedLogFiles &&
         mergedLogFiles.browser &&
         mergedLogFiles.browser.logEntries
-      ),
-      renderer: !!(
-        mergedLogFiles &&
-        mergedLogFiles.renderer &&
-        mergedLogFiles.renderer.logEntries
       ),
       preload: !!(
         mergedLogFiles &&
