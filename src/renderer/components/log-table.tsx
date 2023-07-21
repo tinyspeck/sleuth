@@ -660,10 +660,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
           className="Meta Color-Preload ts_icon ts_icon_all_files_alt"
         />
       );
-    } else if (entry.logType === 'call') {
-      prefix = (
-        <i title="Call Log" className="Meta Color-Call ts_icon ts_icon_phone" />
-      );
     } else if (entry.logType === 'mobile') {
       prefix = (
         <i

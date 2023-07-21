@@ -54,7 +54,6 @@ export class CoreApplication extends React.Component<
         preload: [],
         webapp: [],
         state: [],
-        call: [],
         installer: [],
         netlog: [],
         trace: [],
@@ -191,9 +190,6 @@ export class CoreApplication extends React.Component<
       await mergeLogFiles(processedLogFiles.preload, LogType.PRELOAD).then(
         setMergedFile,
       );
-      await mergeLogFiles(processedLogFiles.call, LogType.CALL).then(
-        setMergedFile,
-      );
       await mergeLogFiles(processedLogFiles.webapp, LogType.WEBAPP).then(
         setMergedFile,
       );
@@ -203,7 +199,6 @@ export class CoreApplication extends React.Component<
         merged.browser,
         merged.renderer,
         merged.preload,
-        merged.call,
         merged.webapp,
       ];
 
@@ -261,11 +256,6 @@ export class CoreApplication extends React.Component<
         mergedLogFiles &&
         mergedLogFiles.webapp &&
         mergedLogFiles.webapp.logEntries
-      ),
-      call: !!(
-        mergedLogFiles &&
-        mergedLogFiles.call &&
-        mergedLogFiles.call.logEntries
       ),
       mobile: !!(
         mergedLogFiles &&
