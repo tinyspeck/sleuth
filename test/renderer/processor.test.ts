@@ -144,11 +144,6 @@ describe('getTypesForFiles', () => {
         size: 0,
       },
       {
-        fileName: 'renderer-webapp-123-preload.log',
-        fullPath: '_',
-        size: 0,
-      },
-      {
         fileName: 'slack-teams.log',
         fullPath: '_',
         size: 0,
@@ -168,7 +163,6 @@ describe('getTypesForFiles', () => {
     const result = getTypesForFiles(files as UnzippedFiles);
     expect(result.browser).toHaveLength(1);
     expect(result.webapp).toHaveLength(1);
-    expect(result.preload).toHaveLength(1);
     expect(result.state).toHaveLength(3);
   });
 });
@@ -198,17 +192,6 @@ describe('getTypeForFile', () => {
         size: 0,
       }),
     ).toEqual('webapp');
-  });
-
-  it('should get the type for preload log files', () => {
-    expect(
-      getTypeForFile({
-        ...base,
-        fileName: 'renderer-webapp-44-preload.log',
-        fullPath: '_',
-        size: 0,
-      }),
-    ).toEqual('preload');
   });
 });
 

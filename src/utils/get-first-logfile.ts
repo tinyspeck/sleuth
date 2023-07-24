@@ -5,7 +5,6 @@ export function getFirstLogFile(
 ): SelectableLogFile {
   if (files) {
     if (files.browser && files.browser.length > 0) return files.browser[0];
-    if (files.preload && files.preload.length > 0) return files.preload[0];
     if (files.webapp && files.webapp.length > 0) return files.webapp[0];
     if (files.netlog && files.netlog.length > 0) return files.netlog[0];
     if (files.trace && files.trace.length > 0) return files.netlog[0];
