@@ -139,16 +139,6 @@ describe('getTypesForFiles', () => {
         size: 0,
       },
       {
-        fileName: 'renderer-1.log',
-        fullPath: '_',
-        size: 0,
-      },
-      {
-        fileName: 'renderer-2.log',
-        fullPath: '_',
-        size: 0,
-      },
-      {
         fileName: 'webapp.log',
         fullPath: '_',
         size: 0,
@@ -177,7 +167,6 @@ describe('getTypesForFiles', () => {
 
     const result = getTypesForFiles(files as UnzippedFiles);
     expect(result.browser).toHaveLength(1);
-    expect(result.renderer).toHaveLength(2);
     expect(result.webapp).toHaveLength(1);
     expect(result.preload).toHaveLength(1);
     expect(result.state).toHaveLength(3);
@@ -198,17 +187,6 @@ describe('getTypeForFile', () => {
         size: 0,
       }),
     ).toEqual('browser');
-  });
-
-  it('should get the type for renderer log files', () => {
-    expect(
-      getTypeForFile({
-        ...base,
-        fileName: 'renderer-12.log',
-        fullPath: '_',
-        size: 0,
-      }),
-    ).toEqual('renderer');
   });
 
   it('should get the type for webapp log files', () => {

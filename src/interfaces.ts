@@ -11,7 +11,6 @@ export type RepeatedCounts = Record<string, number>;
 export enum LogType {
   ALL = 'all',
   BROWSER = 'browser',
-  RENDERER = 'renderer',
   PRELOAD = 'preload',
   WEBAPP = 'webapp',
   STATE = 'state',
@@ -28,7 +27,6 @@ export type SelectableLogType = Exclude<LogType, LogType.UNKNOWN>;
 
 export const LOG_TYPES_TO_PROCESS = [
   LogType.BROWSER,
-  LogType.RENDERER,
   LogType.WEBAPP,
   LogType.PRELOAD,
   LogType.INSTALLER,
@@ -136,7 +134,6 @@ export interface MergedLogFile extends BaseFile {
 export interface MergedFilesLoadStatus {
   all: boolean;
   browser: boolean;
-  renderer: boolean;
   preload: boolean;
   webapp: boolean;
   mobile: boolean;

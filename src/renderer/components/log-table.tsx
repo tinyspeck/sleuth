@@ -639,13 +639,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
           className="Meta Color-Browser ts_icon ts_icon_power_off"
         />
       );
-    } else if (entry.logType === 'renderer') {
-      prefix = (
-        <i
-          title="Renderer Log"
-          className="Meta Color-Renderer ts_icon ts_icon_laptop"
-        />
-      );
     } else if (entry.logType === 'webapp') {
       prefix = (
         <i
