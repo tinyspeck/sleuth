@@ -171,7 +171,8 @@ export function getTypeForFile(
   } else if (
     fileName.startsWith('webapp') ||
     fileName.startsWith('app.slack') ||
-    fileName.startsWith('console')
+    fileName.startsWith('console') ||
+    fileName.startsWith('unknown')
   ) {
     return LogType.WEBAPP;
   } else if (

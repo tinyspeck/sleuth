@@ -9,8 +9,13 @@ import { deleteSuggestion, deleteSuggestions } from '../suggestions';
 import { SleuthState } from '../state/sleuth';
 import { isBefore } from 'date-fns';
 
+import fs from 'fs-extra';
+import { getPath } from '../ipc';
+import { FSWatcher } from 'fs';
+
 export interface WelcomeState {
   sleuth: string;
+  watcher?: FSWatcher;
 }
 
 export interface WelcomeProps {
@@ -28,7 +33,22 @@ export class Welcome extends React.Component<
 
     this.state = {
       sleuth: props.sleuth || getSleuth(),
+      watcher: undefined,
     };
+  }
+
+  public async componentDidMount(): Promise<void> {
+    const downloadsDir = await getPath('downloads');
+    this.setState({
+      watcher: fs.watch(downloadsDir, async () => {
+        await this.props.state.getSuggestions();
+      }),
+    });
+  }
+
+  public componentWillUnmount(): void {
+    this.state.watcher?.close();
+    this.setState({ watcher: undefined });
   }
 
   public async deleteSuggestion(filePath: string) {

@@ -13,6 +13,10 @@ import { ipcRenderer, shell } from 'electron';
 jest.mock('electron');
 
 describe('Welcome', () => {
+  beforeEach(() => {
+    // fake getPath("downloads") for the Watcher
+    (ipcRenderer.invoke as jest.Mock).mockResolvedValue(process.cwd());
+  });
   it('renders the Sleuth title', () => {
     const state: Partial<SleuthState> = {
       suggestions: [],
@@ -44,10 +48,7 @@ describe('Welcome', () => {
       expect(ageLabel).toHaveValue('7 days old');
     });
 
-    it('triggers a message box when', async () => {
-      (ipcRenderer.invoke as jest.Mock).mockResolvedValue({
-        response: true,
-      });
+    it('triggers a message box when attempting to delete a log bundle', async () => {
       const state = {
         suggestions: [
           {
@@ -62,6 +63,9 @@ describe('Welcome', () => {
       const suggestions = within(list).getAllByRole('listitem');
       const btn = within(suggestions[0]).getByRole('button', {
         name: 'trash',
+      });
+      (ipcRenderer.invoke as jest.Mock).mockResolvedValue({
+        response: true,
       });
       fireEvent.click(btn);
       await waitFor(() =>
