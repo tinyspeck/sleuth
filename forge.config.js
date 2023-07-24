@@ -126,7 +126,12 @@ const options = {
       },
     },
   ],
-  plugins: [['@electron-forge/plugin-auto-unpack-natives']],
+  plugins: [
+    {
+      name: '@electron-forge/plugin-auto-unpack-natives',
+      config: {},
+    },
+  ],
 };
 
 module.exports = options;
