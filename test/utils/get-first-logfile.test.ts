@@ -19,7 +19,6 @@ const fakeFile: ProcessedLogFile = {
 const files: ProcessedLogFiles = {
   browser: [],
   webapp: [],
-  preload: [],
   state: [],
   netlog: [],
   installer: [],
@@ -45,13 +44,6 @@ describe('getFirstLogFile', () => {
   it('should return the first logfile (webapp if available)', () => {
     fakeFile.logType = LogType.WEBAPP;
     files.webapp = [fakeFile];
-
-    expect(getFirstLogFile(files)).toEqual(fakeFile);
-  });
-
-  it('should return the first logfile (preload if available)', () => {
-    fakeFile.logType = LogType.PRELOAD;
-    files.preload = [fakeFile];
 
     expect(getFirstLogFile(files)).toEqual(fakeFile);
   });

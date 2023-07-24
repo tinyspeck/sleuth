@@ -151,7 +151,7 @@ export function mergeLogFiles(
 }
 
 /**
- * Takes a logfile and returns the file's type (browser/webapp/preload/mobile).
+ * Takes a logfile and returns the file's type (browser/webapp/mobile).
  *
  * @param {UnzippedFile} logFile
  * @returns {LogType}
@@ -168,11 +168,6 @@ export function getTypeForFile(
     fileName === 'epics-browser.log'
   ) {
     return LogType.BROWSER;
-  } else if (
-    fileName.endsWith('preload.log') ||
-    fileName.startsWith('webview')
-  ) {
-    return LogType.PRELOAD;
   } else if (
     fileName.startsWith('webapp') ||
     fileName.startsWith('app.slack') ||
@@ -221,7 +216,6 @@ export function getTypesForFiles(logFiles: UnzippedFiles): SortedUnzippedFiles {
   const result: SortedUnzippedFiles = {
     browser: [],
     webapp: [],
-    preload: [],
     state: [],
     installer: [],
     netlog: [],
@@ -720,7 +714,7 @@ export function matchLineShipItMac(line: string): MatchResult | undefined {
 }
 
 /**
- * Matches an Electron line (Browser, Preload)
+ * Matches an Electron line (Browser)
  *
  * @param {string} line
  * @returns {(MatchResult | undefined)}
