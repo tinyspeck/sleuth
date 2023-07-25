@@ -3,7 +3,7 @@
   "productName": "Sleuth",
   "version": "3.4.0",
   "description": "Slack Log Viewer",
-  "main": "./dist/src/main/index",
+  "main": "dist/src/main/index",
   "scripts": {
     "tsc": "tsc -p tsconfig.json --noEmit",
     "lint": "npm run tsc && eslint .  --ignore-path .gitignore && prettier --check .",
