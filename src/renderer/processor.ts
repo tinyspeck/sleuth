@@ -187,7 +187,7 @@ export function getTypeForFile(
   ) {
     return LogType.INSTALLER;
   } else if (
-    /(utf-8'')?Default_(.){0,14}(\.txt$)/.test(fileName) ||
+    fileName.startsWith('Default_') ||
     fileName.startsWith('attachment') ||
     /\w{9,}_\w{9,}_\d{16,}\.txt/.test(fileName)
   ) {

@@ -106,8 +106,8 @@ async function getSuggestions(
     // have named it T8KJ1FXTL_U8KCVGGLR_1580765146766674.txt
     const serverFormat = /\w{9,}_\w{9,}_\d{13,}(?:_\d)?\.(zip|txt)/;
     const logsFormat = /.*logs.*\.zip/;
-    const iosLogsFormat = /(utf-8'')?Default_(.){0,14}(\.txt$)/;
-    const androidLogsFormat = /attachment?.{0,5}.txt/;
+    const iosLogsFormat = /(utf-8'')?Default_(.){0,20}(\.txt$)/;
+    const androidLogsFormat = /attachment?.{0,20}.txt/;
     const chromeLogsFormat = /app\.slack\.com-\d{13,}\.log/;
     const firefoxLogsFormat = /console(-export)?[\d\-_]{0,22}\.(txt|log)/;
     const shouldAdd =
