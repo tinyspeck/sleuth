@@ -90,7 +90,7 @@ jobs:
     parameters:
       arch:
         type: enum
-        enum: ['x64', 'arm64']
+        enum: ['x64', 'arm64', 'universal']
     executor: macos
     steps:
       - build_sleuth:
@@ -114,7 +114,7 @@ jobs:
     parameters:
       arch:
         type: enum
-        enum: ['x64', 'arm64']
+        enum: ['x64', 'arm64', 'universal']
       prod_name:
         type: string
         default: 'Sleuth'
@@ -185,6 +185,11 @@ workflows:
           arch: arm64
           filters:
             <<: *job_filter_releases
+      - build-macos:
+          name: build-macos-universal
+          arch: universal
+          filters:
+            <<: *job_filter_releases
       - build-windows:
           context:
             - slack-code-signing
@@ -207,6 +212,15 @@ workflows:
           requires:
             - build-macos-arm64
           arch: arm64
+          filters:
+            branches:
+              only: main
+            <<: *job_filter_releases
+      - code-sign-macos:
+          name: code-sign-macos-universal
+          requires:
+            - build-macos-universal
+          arch: universal
           filters:
             branches:
               only: main
