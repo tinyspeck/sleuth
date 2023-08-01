@@ -466,7 +466,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
 
     // Do not show categories if they have no files in them
     if (childNodes.length === 0) {
-      state.nodes = state.nodes.filter(({id}) => searchId !== id)
+      state.nodes = state.nodes.filter(({ id }) => searchId !== id);
     }
 
     parentNode.childNodes = childNodes;
