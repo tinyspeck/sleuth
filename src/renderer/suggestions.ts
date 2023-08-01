@@ -10,8 +10,10 @@ import { getPath, showMessageBox } from './ipc';
 
 const d = debug('sleuth:suggestions');
 
-export async function getItemsInSuggestionFolders(): Promise<Array<Suggestion>> {
- const suggestionsArr: Suggestion[] = [];
+export async function getItemsInSuggestionFolders(): Promise<
+  Array<Suggestion>
+> {
+  const suggestionsArr: Suggestion[] = [];
 
   // We'll get suggestions from the downloads folder and
   // the desktop
@@ -83,7 +85,7 @@ export async function deleteSuggestions(filePaths: Array<string>) {
   return !!response;
 }
 
-function streamToString (zip: ZipFile, entry: Entry): Promise<string> {
+function streamToString(zip: ZipFile, entry: Entry): Promise<string> {
   const chunks: Buffer[] = [];
   return new Promise((resolve, reject) => {
     zip.openReadStream(entry, (err, stream) => {
@@ -93,29 +95,33 @@ function streamToString (zip: ZipFile, entry: Entry): Promise<string> {
       stream.on('error', (err) => reject(err));
       stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     });
-  })
+  });
 }
 
 async function getSuggestionInfo(path: string) {
   if (!path.endsWith('.zip')) {
     const logContent = await fs.readFile(path, 'utf8');
     const firstFewLines = logContent.split('\n', 5);
-    const appVersion = firstFewLines.find(line => line.startsWith('App Version:'))?.substring(13)?.trim() || '0.0.0';
+    const appVersion =
+      firstFewLines
+        .find((line) => line.startsWith('App Version:'))
+        ?.substring(13)
+        ?.trim() || '0.0.0';
 
-    if (firstFewLines.some(line => line.startsWith('Agent:'))) {
+    if (firstFewLines.some((line) => line.startsWith('Agent:'))) {
       // Android Log
       return {
         platform: 'android',
         appVersion,
         instanceUuid: '',
-      }
-    } else if (firstFewLines.some(line => line.startsWith('OS Version:'))) {
+      };
+    } else if (firstFewLines.some((line) => line.startsWith('OS Version:'))) {
       // iOS Log
       return {
         platform: 'ios',
         appVersion,
         instanceUuid: '',
-      }
+      };
     }
 
     return {
@@ -136,7 +142,10 @@ async function getSuggestionInfo(path: string) {
         if (/\/$/.test(entry.fileName)) {
           zipfile.readEntry();
         } else {
-          if (entry.fileName === 'installation' || entry.fileName === 'environment.json') {
+          if (
+            entry.fileName === 'installation' ||
+            entry.fileName === 'environment.json'
+          ) {
             files[entry.fileName] = streamToString(zipfile, entry);
             files[entry.fileName].then(() => zipfile.readEntry());
           } else {
@@ -155,7 +164,7 @@ async function getSuggestionInfo(path: string) {
     platform: environment.platform,
     appVersion: environment.appVersion,
     instanceUuid: Buffer.from(installation, 'base64').toString('utf-8'),
-  }
+  };
 }
 
 /**
@@ -186,13 +195,15 @@ async function getSuggestions(
     const firefoxLogsFormat = /console(-export)?[\d\-_]{0,22}\.(txt|log)/;
 
     const isIosLog = iosLogsFormat.test(file);
-    const isAndroidLog = androidLogsFormat.test(file)
-    const isWebLog = chromeLogsFormat.test(file) || firefoxLogsFormat.test(file);
-    const shouldAdd = logsFormat.test(file)
-    || serverFormat.test(file)
-    || isIosLog
-    || isWebLog
-    || isAndroidLog;
+    const isAndroidLog = androidLogsFormat.test(file);
+    const isWebLog =
+      chromeLogsFormat.test(file) || firefoxLogsFormat.test(file);
+    const shouldAdd =
+      logsFormat.test(file) ||
+      serverFormat.test(file) ||
+      isIosLog ||
+      isWebLog ||
+      isAndroidLog;
 
     if (shouldAdd) {
       try {
@@ -203,13 +214,13 @@ async function getSuggestions(
           filePath: file,
           ...stats,
           age,
-          ...(isWebLog ? (
-            {
-              platform: 'web',
-              appVersion: '0.0.0',
-              instanceUuid: '',
-            }
-          ) : await getSuggestionInfo(file)),
+          ...(isWebLog
+            ? {
+                platform: 'web',
+                appVersion: '0.0.0',
+                instanceUuid: '',
+              }
+            : await getSuggestionInfo(file)),
         });
       } catch (error) {
         d(`Tried to add ${file}, but failed: ${error}`);

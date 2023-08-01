@@ -2,7 +2,15 @@ import React from 'react';
 import path from 'path';
 
 import { Button, List, Result, Spin, Tooltip, Typography } from 'antd';
-import { WindowsOutlined, AppleOutlined, QqOutlined, SlackOutlined, DeleteOutlined, AndroidOutlined, MobileOutlined } from '@ant-design/icons';
+import {
+  WindowsOutlined,
+  AppleOutlined,
+  QqOutlined,
+  SlackOutlined,
+  DeleteOutlined,
+  AndroidOutlined,
+  MobileOutlined,
+} from '@ant-design/icons';
 import { observer } from 'mobx-react';
 
 import { getSleuth } from '../sleuth';
@@ -77,7 +85,12 @@ export class Welcome extends React.Component<
     if (appVersionToUse !== item.appVersion) {
       appVersionElem = (
         <Tooltip title={`Slack@${item.appVersion}`}>
-          <span style={{ textDecoration: 'underline', textDecorationStyle: 'dotted' }}>
+          <span
+            style={{
+              textDecoration: 'underline',
+              textDecorationStyle: 'dotted',
+            }}
+          >
             {appVersionElem}
           </span>
         </Tooltip>
@@ -85,11 +98,20 @@ export class Welcome extends React.Component<
     }
 
     if (item.platform !== 'unknown') {
-      return <>{this.prettyPlatform(item.platform)} logs from {appVersionElem}, {item.age} old</>
+      return (
+        <>
+          {this.prettyPlatform(item.platform)} logs from {appVersionElem},{' '}
+          {item.age} old
+        </>
+      );
     }
 
     if (item.appVersion !== '0.0.0') {
-      return <>Logs from {appVersionElem} on an unknown platform, {item.age} old</>;
+      return (
+        <>
+          Logs from {appVersionElem} on an unknown platform, {item.age} old
+        </>
+      );
     }
 
     return `Unknown logs, ${item.age} old`;
@@ -110,7 +132,7 @@ export class Welcome extends React.Component<
       default:
         return 'Unknown';
     }
-  }
+  };
 
   private platformIcon = (platform: string) => {
     switch (platform) {
@@ -127,14 +149,14 @@ export class Welcome extends React.Component<
       default:
         return <SlackOutlined style={iconStyle} />;
     }
-  }
+  };
 
   public renderSuggestions(): JSX.Element | null {
     const { openFile } = this.props.state;
 
     if (this.props.state.suggestions?.length) {
       return (
-        <div className='Suggestions'>
+        <div className="Suggestions">
           <List
             itemLayout="horizontal"
             dataSource={this.props.state.suggestions || []}
@@ -151,19 +173,26 @@ export class Welcome extends React.Component<
               return (
                 <List.Item
                   actions={[
-                    <a key="list-delete" onClick={deleteItem}><DeleteOutlined style={{ marginRight: 8 }} />Delete</a>
+                    <a key="list-delete" onClick={deleteItem}>
+                      <DeleteOutlined style={{ marginRight: 8 }} />
+                      Delete
+                    </a>,
                   ]}
                   onClick={openItem}
                   style={{ padding: 12 }}
                 >
                   <List.Item.Meta
                     avatar={this.platformIcon(item.platform)}
-                    title={<a href="#" onClick={openItem}>{path.basename(item.filePath)}</a>}
+                    title={
+                      <a href="#" onClick={openItem}>
+                        {path.basename(item.filePath)}
+                      </a>
+                    }
                     description={this.logFileDescription(item)}
                   />
                 </List.Item>
-              )}
-            }
+              );
+            }}
           />
           {this.renderDeleteAll()}
         </div>
@@ -209,42 +238,49 @@ export class Welcome extends React.Component<
       marginBottom: 24,
       overflowY: 'auto',
       minWidth: 480,
-      width: '60%'
+      width: '60%',
     };
 
     const suggestions = this.renderSuggestions();
 
     return (
-      <div className='Welcome' style={{ justifyContent: suggestions ? undefined : 'end' }}>
+      <div
+        className="Welcome"
+        style={{ justifyContent: suggestions ? undefined : 'end' }}
+      >
         <div>
           <h1 className="Title">
             <span className="Emoji">{sleuth}</span>
             <span>Sleuth</span>
           </h1>
-          <Typography.Title level={4}>Drop a logs zip file or folder anywhere on this window to open it.</Typography.Title>
+          <Typography.Title level={4}>
+            Drop a logs zip file or folder anywhere on this window to open it.
+          </Typography.Title>
         </div>
 
-        {
-          suggestions ? (
-            <>
-              <Typography.Title level={5}>From your Downloads folder, may we suggest:</Typography.Title>
-              <div style={scrollStyle}>
-                <div style={{ textAlign: 'initial' }}>
-                  {suggestions}
-                </div>
-              </div>
-            </>
-          ) : this.props.state.suggestionsLoaded ? (
-            <Result
-              subTitle="You have no logs in your Downloads folder"
-              style={{ marginTop: 48 }}
-            />
-          ) : (
-            <Spin className="loading-indicator" tip="Loading Suggestions" size="large">
-              <div style={{ padding: 100 }} />
-            </Spin>
-          )
-        }
+        {suggestions ? (
+          <>
+            <Typography.Title level={5}>
+              From your Downloads folder, may we suggest:
+            </Typography.Title>
+            <div style={scrollStyle}>
+              <div style={{ textAlign: 'initial' }}>{suggestions}</div>
+            </div>
+          </>
+        ) : this.props.state.suggestionsLoaded ? (
+          <Result
+            subTitle="You have no logs in your Downloads folder"
+            style={{ marginTop: 48 }}
+          />
+        ) : (
+          <Spin
+            className="loading-indicator"
+            tip="Loading Suggestions"
+            size="large"
+          >
+            <div style={{ padding: 100 }} />
+          </Spin>
+        )}
       </div>
     );
   }

@@ -14,10 +14,11 @@ jest.mock('electron');
 
 describe('Welcome', () => {
   beforeAll(() => {
-    window.matchMedia = () => ({
-      addListener: () => void 0,
-      removeListener: () => void 0,
-    }) as any;
+    window.matchMedia = () =>
+      ({
+        addListener: () => void 0,
+        removeListener: () => void 0,
+      }) as any;
   });
 
   beforeEach(() => {
@@ -49,31 +50,37 @@ describe('Welcome', () => {
       const suggestions = within(list).getAllByRole('listitem');
       // 1 item, 1 listitem in the "delete" action menu
       expect(suggestions).toHaveLength(2);
-      expect(suggestions[0].textContent).toContain('logs-21-11-02_12-36-26.zip');
+      expect(suggestions[0].textContent).toContain(
+        'logs-21-11-02_12-36-26.zip',
+      );
       expect(suggestions[0].textContent).toContain('7 days old');
 
       expect(suggestions[1].textContent).toContain('Delete');
     });
 
     it('triggers a message box when', async () => {
-        const state = {
-          suggestions: [
-            {
-              filePath: '/Users/ezhao/Downloads/logs-21-11-02_12-36-26.zip',
-              age: '7 days',
-            }
-          ],
-          getSuggestions: jest.fn()
-        };
-        render(<Welcome state={state as unknown as SleuthState} />);
-        const list = screen.getAllByRole('list')[0];
-        const suggestions = within(list).getAllByRole('listitem');
-        const btn = within(suggestions[0]).getByLabelText('delete');
-        (ipcRenderer.invoke as jest.Mock).mockResolvedValue({
-          response: true
-        });
-        fireEvent.click(btn);
-        await waitFor(() => expect(shell.trashItem).toHaveBeenCalledWith('/Users/ezhao/Downloads/logs-21-11-02_12-36-26.zip'));
+      const state = {
+        suggestions: [
+          {
+            filePath: '/Users/ezhao/Downloads/logs-21-11-02_12-36-26.zip',
+            age: '7 days',
+          },
+        ],
+        getSuggestions: jest.fn(),
+      };
+      render(<Welcome state={state as unknown as SleuthState} />);
+      const list = screen.getAllByRole('list')[0];
+      const suggestions = within(list).getAllByRole('listitem');
+      const btn = within(suggestions[0]).getByLabelText('delete');
+      (ipcRenderer.invoke as jest.Mock).mockResolvedValue({
+        response: true,
+      });
+      fireEvent.click(btn);
+      await waitFor(() =>
+        expect(shell.trashItem).toHaveBeenCalledWith(
+          '/Users/ezhao/Downloads/logs-21-11-02_12-36-26.zip',
+        ),
+      );
     });
   });
 
