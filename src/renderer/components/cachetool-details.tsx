@@ -4,13 +4,21 @@ import * as path from 'path';
 import classNames from 'classnames';
 import fs from 'fs-extra';
 import autoBind from 'react-autobind';
-import { Card, Elevation, Tabs, Tab, Callout, Intent, Button, ButtonGroup } from '@blueprintjs/core';
+import {
+  Card,
+  Elevation,
+  Tabs,
+  Tab,
+  Callout,
+  Intent,
+  Button,
+  ButtonGroup,
+} from '@blueprintjs/core';
 import { autorun, IReactionDisposer } from 'mobx';
 
 import { SleuthState } from '../state/sleuth';
 import { tmpdir } from 'os';
 import { showSaveDialog } from '../ipc';
-
 
 export interface CachetoolDetailsProps {
   state: SleuthState;
@@ -22,7 +30,10 @@ export interface CachetoolDetailsState {
 }
 
 @observer
-export class CachetoolDetails extends React.Component<CachetoolDetailsProps, CachetoolDetailsState> {
+export class CachetoolDetails extends React.Component<
+  CachetoolDetailsProps,
+  CachetoolDetailsState
+> {
   private headerAutorunDispose: IReactionDisposer;
   private dataAutorunDispose: IReactionDisposer;
   private tmpdir: string;
@@ -37,7 +48,7 @@ export class CachetoolDetails extends React.Component<CachetoolDetailsProps, Cac
       const cachePath = this.props.state.cachePath;
 
       this.setState({
-        headers: await this.getHeaders(cachePath, selectedCacheKey)
+        headers: await this.getHeaders(cachePath, selectedCacheKey),
       });
     });
 
@@ -46,7 +57,7 @@ export class CachetoolDetails extends React.Component<CachetoolDetailsProps, Cac
       const cachePath = this.props.state.cachePath;
 
       this.setState({
-        dataPath: await this.getData(cachePath, selectedCacheKey)
+        dataPath: await this.getData(cachePath, selectedCacheKey),
       });
     });
   }
@@ -71,9 +82,9 @@ export class CachetoolDetails extends React.Component<CachetoolDetailsProps, Cac
    */
   public renderEntry(key: string): JSX.Element | null {
     return (
-      <div className='Details-LogEntry'>
+      <div className="Details-LogEntry">
         <Card
-          className='Message Monospace'
+          className="Message Monospace"
           elevation={Elevation.THREE}
           style={{ overflowWrap: 'break-word' }}
         >
@@ -82,13 +93,17 @@ export class CachetoolDetails extends React.Component<CachetoolDetailsProps, Cac
         <Card elevation={Elevation.TWO}>
           <div style={{ float: 'right' }}>
             <ButtonGroup>
-              <Button icon='download' onClick={this.download} text='Save File'  />
-              <Button icon='cross' onClick={this.toggle} text='Close' />
+              <Button
+                icon="download"
+                onClick={this.download}
+                text="Save File"
+              />
+              <Button icon="cross" onClick={this.toggle} text="Close" />
             </ButtonGroup>
           </div>
           <Tabs>
-            <Tab id='headers' title='Headers' panel={this.renderHeaders()} />
-            <Tab id='content' title='Content' panel={this.renderContent()} />
+            <Tab id="headers" title="Headers" panel={this.renderHeaders()} />
+            <Tab id="content" title="Content" panel={this.renderContent()} />
           </Tabs>
         </Card>
       </div>
@@ -112,8 +127,9 @@ export class CachetoolDetails extends React.Component<CachetoolDetailsProps, Cac
         <br />
         <Callout intent={Intent.WARNING}>
           <p>
-            We&apos;re blindly hoping that we&apos;re dealing with an image. If we&apos;re not, you
-            might be able to open the file yourself with another program.
+            We&apos;re blindly hoping that we&apos;re dealing with an image. If
+            we&apos;re not, you might be able to open the file yourself with
+            another program.
           </p>
         </Callout>
       </>
@@ -127,13 +143,11 @@ export class CachetoolDetails extends React.Component<CachetoolDetailsProps, Cac
     if (!isDetailsVisible) return null;
 
     const className = classNames('Details', { IsVisible: isDetailsVisible });
-    const logEntryInfo = selectedCacheKey ? this.renderEntry(selectedCacheKey) : null;
+    const logEntryInfo = selectedCacheKey
+      ? this.renderEntry(selectedCacheKey)
+      : null;
 
-    return (
-      <div className={className}>
-        {logEntryInfo}
-      </div>
-    );
+    return <div className={className}>{logEntryInfo}</div>;
   }
 
   public async download() {
@@ -165,7 +179,8 @@ export class CachetoolDetails extends React.Component<CachetoolDetailsProps, Cac
   }
 
   public async getData(
-    cachePath?: string, key?: string
+    cachePath?: string,
+    key?: string,
   ): Promise<string | undefined> {
     if (!cachePath || !key) return '';
 
@@ -174,7 +189,7 @@ export class CachetoolDetails extends React.Component<CachetoolDetailsProps, Cac
       const data = await getStream({
         cachePath,
         key,
-        index: 1
+        index: 1,
       });
 
       if (!this.tmpdir || !fs.existsSync(this.tmpdir)) {
@@ -194,4 +209,3 @@ export class CachetoolDetails extends React.Component<CachetoolDetailsProps, Cac
     }
   }
 }
-

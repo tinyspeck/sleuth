@@ -27,7 +27,7 @@ import {
   LogType,
   KnownLogType,
   Suggestion,
-  SelectableLogType
+  SelectableLogType,
 } from '../../interfaces';
 import { getInitialTimeViewRange, getTimeBuckedLogMetrics } from './time-view';
 import { rehydrateBookmarks, importBookmarks } from './bookmarks';
@@ -71,7 +71,7 @@ export class SleuthState {
     debug: false,
     error: false,
     info: false,
-    warn: false
+    warn: false,
   };
   @observable public searchIndex = 0;
   @observable public search = '';
@@ -87,21 +87,51 @@ export class SleuthState {
   @observable public isSidebarOpen = true;
   @observable public isSpotlightOpen = false;
   @observable.shallow public bookmarks: Array<Bookmark> = [];
-  @observable public serializedBookmarks: Record<string, Array<SerializedBookmark>>
-    = this.retrieve<Record<string, Array<SerializedBookmark>>>('serializedBookmarks', { parse: true, fallback: {} });
+  @observable public serializedBookmarks: Record<
+    string,
+    Array<SerializedBookmark>
+  > = this.retrieve<Record<string, Array<SerializedBookmark>>>(
+    'serializedBookmarks',
+    { parse: true, fallback: {} },
+  );
   // ** Profiler **
   @observable public rendererThreads: Array<RendererDescription> | undefined;
 
   // ** Settings **
-  @observable public isDarkMode = !!this.retrieve<boolean>('isDarkMode', { parse: true, fallback: true });
-  @observable public isOpenMostRecent = !!this.retrieve<boolean>('isOpenMostRecent', { parse: true, fallback: false });
-  @observable public dateTimeFormat_v3: string
-    = testDateTimeFormat(this.retrieve<string>('dateTimeFormat_v3', {parse: false, fallback: 'HH:mm:ss (dd/MM)'}), 'HH:mm:ss (dd/MM)');
-  @observable public font: string = this.retrieve<string>('font', { parse: false, fallback: process.platform === 'darwin' ? 'San Francisco' : 'Segoe UI'});
-  @observable public defaultEditor: string = this.retrieve<string>('defaultEditor', { parse: false, fallback: 'code --goto {filepath}:{line}'});
-  @observable public defaultSort: SORT_DIRECTION = this.retrieve<SORT_DIRECTION>('defaultSort', { parse: false, fallback: SORT_DIRECTION.DESC});
-  @observable public isMarkIcon = !!this.retrieve<boolean>('isMarkIcon', { parse: true });
-  @observable public isSmartCopy = !!this.retrieve<boolean>('isSmartCopy', { parse: true });
+  @observable public isDarkMode = !!this.retrieve<boolean>('isDarkMode', {
+    parse: true,
+    fallback: true,
+  });
+  @observable public isOpenMostRecent = !!this.retrieve<boolean>(
+    'isOpenMostRecent',
+    { parse: true, fallback: false },
+  );
+  @observable public dateTimeFormat_v3: string = testDateTimeFormat(
+    this.retrieve<string>('dateTimeFormat_v3', {
+      parse: false,
+      fallback: 'HH:mm:ss (dd/MM)',
+    }),
+    'HH:mm:ss (dd/MM)',
+  );
+  @observable public font: string = this.retrieve<string>('font', {
+    parse: false,
+    fallback: process.platform === 'darwin' ? 'San Francisco' : 'Segoe UI',
+  });
+  @observable public defaultEditor: string = this.retrieve<string>(
+    'defaultEditor',
+    { parse: false, fallback: 'code --goto {filepath}:{line}' },
+  );
+  @observable public defaultSort: SORT_DIRECTION =
+    this.retrieve<SORT_DIRECTION>('defaultSort', {
+      parse: false,
+      fallback: SORT_DIRECTION.DESC,
+    });
+  @observable public isMarkIcon = !!this.retrieve<boolean>('isMarkIcon', {
+    parse: true,
+  });
+  @observable public isSmartCopy = !!this.retrieve<boolean>('isSmartCopy', {
+    parse: true,
+  });
 
   // ** Giant non-observable arrays **
   public mergedLogFiles?: MergedLogFiles;
@@ -112,7 +142,7 @@ export class SleuthState {
 
   constructor(
     public readonly openFile: (file: string) => void,
-    public readonly resetApp: () => void
+    public readonly resetApp: () => void,
   ) {
     this.getSuggestions();
 
@@ -173,7 +203,9 @@ export class SleuthState {
     setupTouchBarAutoruns(this);
     ipcRenderer.on(IpcEvents.TOGGLE_SIDEBAR, this.toggleSidebar);
     ipcRenderer.on(IpcEvents.TOGGLE_SPOTLIGHT, this.toggleSpotlight);
-    ipcRenderer.on(IpcEvents.OPEN_BOOKMARKS, (_event, data) => importBookmarks(this, data));
+    ipcRenderer.on(IpcEvents.OPEN_BOOKMARKS, (_event, data) =>
+      importBookmarks(this, data),
+    );
     ipcRenderer.on(IpcEvents.COPY, () => copy(this));
     ipcRenderer.on(IpcEvents.RESET, () => this.reset(true));
     ipcRenderer.on(IpcEvents.TOGGLE_DARKMODE, () => this.toggleDarkMode());
@@ -199,14 +231,14 @@ export class SleuthState {
    */
   @computed
   public get selectedFileName(): string {
-    return this.selectedLogFile
-      ? getFileName(this.selectedLogFile)
-      : '';
+    return this.selectedLogFile ? getFileName(this.selectedLogFile) : '';
   }
 
   @computed
   public get initialTimeViewRange(): number {
-    return this.selectedLogFile ? getInitialTimeViewRange(this.selectedLogFile) : 0;
+    return this.selectedLogFile
+      ? getInitialTimeViewRange(this.selectedLogFile)
+      : 0;
   }
 
   @computed
@@ -298,7 +330,10 @@ export class SleuthState {
    * mostly because we might need to create a merged file on-the-fly.
    */
   @action
-  public selectLogFile(logFile: ProcessedLogFile | UnzippedFile | null, logType?: SelectableLogType | Tool): void {
+  public selectLogFile(
+    logFile: ProcessedLogFile | UnzippedFile | null,
+    logType?: SelectableLogType | Tool,
+  ): void {
     this.selectedEntry = undefined;
     this.selectedRangeEntries = undefined;
     this.selectedRangeIndex = undefined;
@@ -313,11 +348,15 @@ export class SleuthState {
       d(`Selecting log file ${name}`);
 
       this.selectedLogFile = logFile;
-    } else if (logType && Object.values(LogType).includes(logType as LogType) && this.mergedLogFiles) {
+    } else if (
+      logType &&
+      Object.values(LogType).includes(logType as LogType) &&
+      this.mergedLogFiles
+    ) {
       d(`Selecting log type ${logType}`);
       this.selectedLogFile = this.mergedLogFiles[logType as KnownLogType];
     } else if (logType && Object.values(Tool).includes(logType as Tool)) {
-      this.selectedLogFile = (logType as Tool);
+      this.selectedLogFile = logType as Tool;
     }
   }
 
@@ -330,7 +369,7 @@ export class SleuthState {
   @action
   public onFilterToggle(level: LogLevel) {
     if (this.levelFilter[level] !== undefined) {
-      const filter = {...this.levelFilter};
+      const filter = { ...this.levelFilter };
       filter[level] = !filter[level];
 
       this.levelFilter = filter;
@@ -343,7 +382,7 @@ export class SleuthState {
    * @param {MergedLogFile} mergedFile
    */
   public setMergedFile(mergedFile: MergedLogFile) {
-    const newMergedLogFiles = { ...this.mergedLogFiles as MergedLogFiles };
+    const newMergedLogFiles = { ...(this.mergedLogFiles as MergedLogFiles) };
 
     d(`Merged log file for ${mergedFile.logType} now created!`);
     newMergedLogFiles[mergedFile.logType] = mergedFile;
@@ -361,9 +400,8 @@ export class SleuthState {
    */
   private save(key: string, value?: string | number | object | null | boolean) {
     if (value !== undefined) {
-      const _value = typeof value === 'object'
-        ? JSON.stringify(value)
-        : value.toString();
+      const _value =
+        typeof value === 'object' ? JSON.stringify(value) : value.toString();
 
       localStorage.setItem(key, _value);
     } else {
@@ -377,15 +415,17 @@ export class SleuthState {
    * Fetch data from localStorage.
    */
   private retrieve<T>(
-    key: keyof SleuthState, options: { parse: boolean, fallback: T }): T;
-  private retrieve<T>(
-    key: keyof SleuthState, options: { parse: boolean }): T;
+    key: keyof SleuthState,
+    options: { parse: boolean; fallback: T },
+  ): T;
+  private retrieve<T>(key: keyof SleuthState, options: { parse: boolean }): T;
   private retrieve(key: keyof SleuthState, options: never): string | null;
   private retrieve<T>(
     key: keyof SleuthState,
     options: Partial<{
-      parse: boolean, fallback: T
-    }>
+      parse: boolean;
+      fallback: T;
+    }>,
   ): T | string | null {
     const localStorageValue: string | null = localStorage.getItem(key);
 

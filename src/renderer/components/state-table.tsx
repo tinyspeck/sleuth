@@ -34,18 +34,20 @@ export enum StateType {
   'installation',
   'environment',
   'localSettings',
-  'unknown'
+  'unknown',
 }
 
 export type StateData = {
-  [T in StateType]:
-    T extends StateType.notifs | StateType.installation
+  [T in StateType]: T extends StateType.notifs | StateType.installation
     ? string[]
-    : Record<string, unknown>
-}
+    : Record<string, unknown>;
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export class StateTable extends React.Component<StateTableProps, StateTableState<any>> {
+export class StateTable extends React.Component<
+  StateTableProps,
+  StateTableState<any>
+> {
   constructor(props: StateTableProps) {
     super(props);
 
@@ -74,21 +76,25 @@ export class StateTable extends React.Component<StateTableProps, StateTableState
 
     const info = this.renderInfo();
     const type = this.getFileType();
-    const onIFrameLoad = function(this: HTMLIFrameElement) {
+    const onIFrameLoad = function (this: HTMLIFrameElement) {
       if (this?.contentWindow) {
         const { document: idoc } = this.contentWindow;
         this.height = `${idoc.body.scrollHeight}px`;
       }
     };
 
-    const content = (!data && path)
-      ? <iframe sandbox='' onLoad={onIFrameLoad} src={path} />
-      : type === StateType.installation ? null : <JSONView data={data} raw={raw} state={this.props.state} />;
-    const contentCard =  type === StateType.installation ? <div/> : <Card> {content} </Card>;
+    const content =
+      !data && path ? (
+        <iframe sandbox="" onLoad={onIFrameLoad} src={path} />
+      ) : type === StateType.installation ? null : (
+        <JSONView data={data} raw={raw} state={this.props.state} />
+      );
+    const contentCard =
+      type === StateType.installation ? <div /> : <Card> {content} </Card>;
 
     return (
-      <div className='StateTable' style={{ fontFamily: getFontForCSS(font) }}>
-        <div className='StateTable-Content'>
+      <div className="StateTable" style={{ fontFamily: getFontForCSS(font) }}>
+        <div className="StateTable-Content">
           {info}
           {contentCard}
         </div>
@@ -124,7 +130,8 @@ export class StateTable extends React.Component<StateTableProps, StateTableState
     }
 
     const nameMatch = selectedLogFile.fileName.match(/slack-(\w*)/);
-    const type = nameMatch && nameMatch.length > 1 ? nameMatch[1] : StateType.unknown;
+    const type =
+      nameMatch && nameMatch.length > 1 ? nameMatch[1] : StateType.unknown;
 
     return type as unknown as StateType;
   }
@@ -141,7 +148,7 @@ export class StateTable extends React.Component<StateTableProps, StateTableState
     } else if (this.isInstallationFile(file)) {
       try {
         const content = await fs.readFile(file.fullPath, 'utf8');
-        this.setState({ data: [ content ], path: undefined });
+        this.setState({ data: [content], path: undefined });
       } catch (error) {
         d(error);
       }
@@ -153,15 +160,16 @@ export class StateTable extends React.Component<StateTableProps, StateTableState
         d(error);
       }
     }
-
   }
 
   private renderSettingsInfo(): JSX.Element | null {
     return (
-        <Card className='StateTable-Info' elevation={Elevation.ONE}>
-          {...getSettingsInfo((this.state as StateTableState<StateType.settings>).data || {})}
-        </Card>
-      );
+      <Card className="StateTable-Info" elevation={Elevation.ONE}>
+        {...getSettingsInfo(
+          (this.state as StateTableState<StateType.settings>).data || {},
+        )}
+      </Card>
+    );
   }
 
   private renderNotifsInfo(): JSX.Element | null {
@@ -169,14 +177,14 @@ export class StateTable extends React.Component<StateTableProps, StateTableState
 
     if (!Array.isArray(data) || data.length === 0) {
       return (
-        <Card className='StateTable-Info'>
+        <Card className="StateTable-Info">
           No notification warnings were found!
         </Card>
       );
     }
 
     return (
-      <Card className='StateTable-Info'>
+      <Card className="StateTable-Info">
         {...getNotifWarningsInfo(data || {})}
       </Card>
     );
@@ -190,22 +198,19 @@ export class StateTable extends React.Component<StateTableProps, StateTableState
       const href = getSentryHref(id);
 
       return (
-        <Card className='StateTable-Info'>
-          See exceptions in Sentry: <a onClick={() => shell.openExternal(href)}>{id}</a>
+        <Card className="StateTable-Info">
+          See exceptions in Sentry:{' '}
+          <a onClick={() => shell.openExternal(href)}>{id}</a>
         </Card>
       );
     }
 
-    return (
-      <Card className='StateTable-Info'>
-        No installation id found.
-      </Card>
-    );
+    return <Card className="StateTable-Info">No installation id found.</Card>;
   }
 
   private renderEnvironmentInfo(): JSX.Element | null {
     return (
-      <Card className='StateTable-Info' elevation={Elevation.ONE}>
+      <Card className="StateTable-Info" elevation={Elevation.ONE}>
         {...getEnvInfo(this.state.data || {})}
       </Card>
     );
@@ -213,7 +218,7 @@ export class StateTable extends React.Component<StateTableProps, StateTableState
 
   private renderLocalSettings(): JSX.Element | null {
     return (
-      <Card className='StateTable-Info' elevation={Elevation.ONE}>
+      <Card className="StateTable-Info" elevation={Elevation.ONE}>
         {...getLocalSettingsInfo(this.state.data || {})}
       </Card>
     );

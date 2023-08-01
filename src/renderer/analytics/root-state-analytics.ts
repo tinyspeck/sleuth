@@ -10,9 +10,14 @@ export function getRootStateWarnings(file: UnzippedFile): Array<string> {
   }
 
   if (data.settings) {
-    const { settings } = (data as RootState);
-    if (settings?.releaseChannelOverride && settings.releaseChannelOverride !== 'prod') {
-      result.push(`Release channel is set to ${settings.releaseChannelOverride}`);
+    const { settings } = data as RootState;
+    if (
+      settings?.releaseChannelOverride &&
+      settings.releaseChannelOverride !== 'prod'
+    ) {
+      result.push(
+        `Release channel is set to ${settings.releaseChannelOverride}`,
+      );
     }
   }
 

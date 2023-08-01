@@ -18,23 +18,25 @@ export async function getItemsInSuggestionFolders(): Promise<Array<Suggestion>> 
   try {
     try {
       const downloadsDir = await getPath('downloads');
-      const downloads = (await fs.readdir(downloadsDir))
-        .map((file) => path.join(downloadsDir, file));
-      suggestionsArr.push(...await getSuggestions(downloads));
+      const downloads = (await fs.readdir(downloadsDir)).map((file) =>
+        path.join(downloadsDir, file),
+      );
+      suggestionsArr.push(...(await getSuggestions(downloads)));
     } catch (e) {
       d(e);
     }
 
     try {
       const desktopDir = await getPath('desktop');
-      const desktop = (await fs.readdir(desktopDir))
-        .map((file) => path.join(desktopDir, file));
-      suggestionsArr.push(...await getSuggestions(desktop));
+      const desktop = (await fs.readdir(desktopDir)).map((file) =>
+        path.join(desktopDir, file),
+      );
+      suggestionsArr.push(...(await getSuggestions(desktop)));
     } catch (e) {
       d(e);
     }
 
-    const sortedSuggestions  = suggestionsArr.sort((a, b) => {
+    const sortedSuggestions = suggestionsArr.sort((a, b) => {
       return b.mtimeMs - a.mtimeMs;
     });
 
@@ -46,16 +48,14 @@ export async function getItemsInSuggestionFolders(): Promise<Array<Suggestion>> 
 }
 
 export async function deleteSuggestion(filePath: string) {
-  const trashName = process.platform === 'darwin'
-    ? 'trash'
-    : 'recycle bin';
+  const trashName = process.platform === 'darwin' ? 'trash' : 'recycle bin';
 
   const { response } = await showMessageBox({
     title: 'Delete File?',
     message: `Do you want to move ${filePath} to the ${trashName}?`,
     type: 'question',
-    buttons: [ 'Cancel', `Move to ${trashName}` ],
-    cancelId: 0
+    buttons: ['Cancel', `Move to ${trashName}`],
+    cancelId: 0,
   });
 
   if (response) {
@@ -66,16 +66,14 @@ export async function deleteSuggestion(filePath: string) {
 }
 
 export async function deleteSuggestions(filePaths: Array<string>) {
-  const trashName = process.platform === 'darwin'
-    ? 'trash'
-    : 'recycle bin';
+  const trashName = process.platform === 'darwin' ? 'trash' : 'recycle bin';
 
   const { response } = await showMessageBox({
     title: 'Delete Files?',
     message: `Do you want to move all log files older than 48 hours to the ${trashName}?`,
     type: 'question',
-    buttons: [ 'Cancel', `Move to ${trashName}` ],
-    cancelId: 0
+    buttons: ['Cancel', `Move to ${trashName}`],
+    cancelId: 0,
   });
 
   if (response) {
@@ -167,7 +165,9 @@ async function getSuggestionInfo(path: string) {
  * @param {Array<string>} input
  * @returns {Promise<StringMap<Suggestion>>}
  */
-async function getSuggestions(input: Array<string>): Promise<Array<Suggestion>> {
+async function getSuggestions(
+  input: Array<string>,
+): Promise<Array<Suggestion>> {
   const suggestions: Array<Suggestion> = [];
 
   for (const file of input) {
@@ -180,8 +180,8 @@ async function getSuggestions(input: Array<string>): Promise<Array<Suggestion>> 
     // have named it T8KJ1FXTL_U8KCVGGLR_1580765146766674.txt
     const serverFormat = /\w{9,}_\w{9,}_\d{13,}(?:_\d)?\.(zip|txt)/;
     const logsFormat = /.*logs.*\.zip/;
-    const iosLogsFormat = /(utf-8'')?Default_(.){0,14}(\.txt$)/;
-    const androidLogsFormat = /attachment?.{0,5}.txt/;
+    const iosLogsFormat = /(utf-8'')?Default_(.){0,20}(\.txt$)/;
+    const androidLogsFormat = /attachment?.{0,20}.txt/;
     const chromeLogsFormat = /app\.slack\.com-\d{13,}\.log/;
     const firefoxLogsFormat = /console(-export)?[\d\-_]{0,22}\.(txt|log)/;
 

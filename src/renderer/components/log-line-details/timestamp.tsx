@@ -12,7 +12,7 @@ export interface TimestampProps {
 export function Timestamp(props: TimestampProps) {
   const { momentValues, timestamps } = props;
   const datetime = getDateTime(momentValues, timestamps);
-  const [ label, setLabel ] = useState(datetime);
+  const [label, setLabel] = useState(datetime);
 
   // On click, we'll write to the clipboard and update
   // the timestamp
@@ -24,10 +24,16 @@ export function Timestamp(props: TimestampProps) {
 
   useEffect(() => {
     setLabel(datetime);
-  }, [ momentValues, timestamps ]);
+  }, [momentValues, timestamps]);
 
   return (
-    <Tag fill={true} large={true} icon='calendar' interactive={true} onClick={onClick}>
+    <Tag
+      fill={true}
+      large={true}
+      icon="calendar"
+      interactive={true}
+      onClick={onClick}
+    >
       {label}
     </Tag>
   );

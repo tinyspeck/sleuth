@@ -11,11 +11,8 @@ export type RepeatedCounts = Record<string, number>;
 export enum LogType {
   ALL = 'all',
   BROWSER = 'browser',
-  RENDERER = 'renderer',
-  PRELOAD = 'preload',
   WEBAPP = 'webapp',
   STATE = 'state',
-  CALL = 'call',
   NETLOG = 'netlog',
   TRACE = 'trace',
   INSTALLER = 'installer',
@@ -29,20 +26,21 @@ export type SelectableLogType = Exclude<LogType, LogType.UNKNOWN>;
 
 export const LOG_TYPES_TO_PROCESS = [
   LogType.BROWSER,
-  LogType.RENDERER,
   LogType.WEBAPP,
-  LogType.PRELOAD,
-  LogType.CALL,
   LogType.INSTALLER,
   LogType.MOBILE,
-  LogType.CHROMIUM
+  LogType.CHROMIUM,
 ] as const;
 
 export type ProcessableLogType = (typeof LOG_TYPES_TO_PROCESS)[number];
 
 export type RawLogType = Exclude<KnownLogType, ProcessableLogType>;
 
-export type ProcessedLogFiles = Record<ProcessableLogType, Array<ProcessedLogFile>> & Record<RawLogType, Array<UnzippedFile>>;
+export type ProcessedLogFiles = Record<
+  ProcessableLogType,
+  Array<ProcessedLogFile>
+> &
+  Record<RawLogType, Array<UnzippedFile>>;
 export type SortedUnzippedFiles = Record<KnownLogType, Array<UnzippedFile>>;
 
 export interface Bookmark {
@@ -62,7 +60,7 @@ export interface SerializedBookmark {
 }
 
 // [ logEntry.line, logEntry.index, logFile.id, logFile.type ]
-export type CompressedBookmark = [ number, number, string, number ];
+export type CompressedBookmark = [number, number, string, number];
 
 export interface ProcessorPerformanceInfo {
   name: string;
@@ -111,7 +109,7 @@ export interface UnzippedFile extends BaseFile {
   type: 'UnzippedFile';
 }
 
-export type UnzippedFiles = Array<UnzippedFile>
+export type UnzippedFiles = Array<UnzippedFile>;
 
 export type MergedLogFiles = Record<SelectableLogType, MergedLogFile>;
 
@@ -134,10 +132,7 @@ export interface MergedLogFile extends BaseFile {
 export interface MergedFilesLoadStatus {
   all: boolean;
   browser: boolean;
-  renderer: boolean;
-  preload: boolean;
   webapp: boolean;
-  call: boolean;
   mobile: boolean;
 }
 
@@ -154,7 +149,7 @@ export enum LogLevel {
   debug = 'debug',
   info = 'info',
   warn = 'warn',
-  error = 'error'
+  error = 'error',
 }
 
 export type LevelFilter = Record<LogLevel, boolean>;
@@ -167,11 +162,11 @@ export interface TouchBarLogFileUpdate {
 }
 
 export enum Tool {
-  cache = 'cache'
+  cache = 'cache',
 }
 
 export interface RootState {
   settings?: {
     releaseChannelOverride: string;
-  }
+  };
 }

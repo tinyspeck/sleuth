@@ -7,16 +7,20 @@ import {
   matchLineWebApp,
   mergeLogFiles,
   processLogFile,
-  readFile
+  readFile,
 } from '../../src/renderer/processor';
-import { mockBrowserFile1, mockBrowserFile2 } from '../__mocks__/processed-log-file';
+import {
+  mockBrowserFile1,
+  mockBrowserFile2,
+} from '../__mocks__/processed-log-file';
 
 import dirtyJSON from 'jsonic';
 import path from 'path';
 
 describe('matchLineWebApp', () => {
   it('should match a classic webapp line', () => {
-    const line = 'info: 2017/2/22 16:02:37.178 didStartLoading TSSSB.timeout_tim set for ms:60000';
+    const line =
+      'info: 2017/2/22 16:02:37.178 didStartLoading TSSSB.timeout_tim set for ms:60000';
     const result = matchLineWebApp(line);
 
     expect(result).toMatchObject({
@@ -47,7 +51,7 @@ describe('readFile', () => {
       id: '123',
       fullPath: path.join(__dirname, '../static/browser.log'),
       fileName: 'browser.log',
-      size: 1713
+      size: 1713,
     };
 
     return readFile(file, LogType.BROWSER).then(({ entries }) => {
@@ -73,7 +77,7 @@ describe('readFile', () => {
       id: '123',
       fullPath: path.join(__dirname, '../static/webapp.log'),
       fileName: 'webapp.log',
-      size: 1713
+      size: 1713,
     };
 
     return readFile(file, LogType.WEBAPP).then(({ entries }) => {
@@ -89,13 +93,13 @@ describe('makeLogEntry', () => {
       level: 'info',
       meta: '{}',
       toParseHead: '{',
-      momentValue: 1
+      momentValue: 1,
     };
 
     const result = makeLogEntry(options, 'browser', 1, 'test-file');
     expect(result).toMatchObject({
       message: '',
-      timestamp: '1'
+      timestamp: '1',
     });
   });
 });
@@ -107,18 +111,20 @@ describe('processLogFile', () => {
       id: '123',
       fullPath: path.join(__dirname, '../static/browser.log'),
       fileName: 'browser.log',
-      size: 1713
+      size: 1713,
     };
 
     return processLogFile(file).then((result) => {
       expect(result).toMatchObject({
-        logEntries: expect.arrayContaining([expect.objectContaining({
-          timestamp: '02/22/17, 16:02:32:675',
-          level: 'info',
-          momentValue: expect.any(Number),
-          logType: LogType.BROWSER,
-          index: 0,
-        })])
+        logEntries: expect.arrayContaining([
+          expect.objectContaining({
+            timestamp: '02/22/17, 16:02:32:675',
+            level: 'info',
+            momentValue: expect.any(Number),
+            logType: LogType.BROWSER,
+            index: 0,
+          }),
+        ]),
       });
     });
   });
@@ -126,45 +132,37 @@ describe('processLogFile', () => {
 
 describe('getTypesForFiles', () => {
   it('should read an array of log files and return a sorting', () => {
-    const files = [{
-      fileName: 'browser.log',
-      fullPath: '_',
-      size: 0
-    }, {
-      fileName: 'renderer-1.log',
-      fullPath: '_',
-      size: 0
-    }, {
-      fileName: 'renderer-2.log',
-      fullPath: '_',
-      size: 0
-    }, {
-      fileName: 'webapp.log',
-      fullPath: '_',
-      size: 0
-    }, {
-      fileName: 'renderer-webapp-123-preload.log',
-      fullPath: '_',
-      size: 0
-    }, {
-      fileName: 'slack-teams.log',
-      fullPath: '_',
-      size: 0
-    }, {
-      fileName: 'gpu-log.html',
-      fullPath: '_',
-      size: 0
-    }, {
-      fileName: 'notification-warnings.json',
-      fullPath: '_',
-      size: 0
-    }];
+    const files = [
+      {
+        fileName: 'browser.log',
+        fullPath: '_',
+        size: 0,
+      },
+      {
+        fileName: 'webapp.log',
+        fullPath: '_',
+        size: 0,
+      },
+      {
+        fileName: 'slack-teams.log',
+        fullPath: '_',
+        size: 0,
+      },
+      {
+        fileName: 'gpu-log.html',
+        fullPath: '_',
+        size: 0,
+      },
+      {
+        fileName: 'notification-warnings.json',
+        fullPath: '_',
+        size: 0,
+      },
+    ];
 
     const result = getTypesForFiles(files as UnzippedFiles);
     expect(result.browser).toHaveLength(1);
-    expect(result.renderer).toHaveLength(2);
     expect(result.webapp).toHaveLength(1);
-    expect(result.preload).toHaveLength(1);
     expect(result.state).toHaveLength(3);
   });
 });
@@ -175,25 +173,31 @@ describe('getTypeForFile', () => {
     id: '123',
   };
   it('should get the type for browser log files', () => {
-    expect(getTypeForFile({ ...base, fileName: 'browser.log', fullPath: '_', size: 0 })).toEqual('browser');
-  });
-
-  it('should get the type for renderer log files', () => {
-    expect(getTypeForFile({ ...base, fileName: 'renderer-12.log', fullPath: '_', size: 0 })).toEqual('renderer');
+    expect(
+      getTypeForFile({
+        ...base,
+        fileName: 'browser.log',
+        fullPath: '_',
+        size: 0,
+      }),
+    ).toEqual('browser');
   });
 
   it('should get the type for webapp log files', () => {
-    expect(getTypeForFile({ ...base, fileName: 'webapp-4.log', fullPath: '_', size: 0 })).toEqual('webapp');
-  });
-
-  it('should get the type for preload log files', () => {
-    expect(getTypeForFile({ ...base, fileName: 'renderer-webapp-44-preload.log', fullPath: '_', size: 0 })).toEqual('preload');
+    expect(
+      getTypeForFile({
+        ...base,
+        fileName: 'webapp-4.log',
+        fullPath: '_',
+        size: 0,
+      }),
+    ).toEqual('webapp');
   });
 });
 
 describe('mergeLogFiles', () => {
   it('should merge two logfiles together', () => {
-    const files = [ mockBrowserFile1, mockBrowserFile2 ];
+    const files = [mockBrowserFile1, mockBrowserFile2];
 
     return mergeLogFiles(files, LogType.BROWSER).then((result) => {
       expect(result.type).toBe('MergedLogFile');

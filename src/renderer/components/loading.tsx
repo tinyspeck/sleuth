@@ -21,7 +21,7 @@ export const Loading = (props: LoadingProps) => {
   }
 
   return (
-    <div className='Loading'>
+    <div className="Loading">
       <ProgressBar animate={!!animate} value={(percentage ?? 0) / 100} />
       <br />
       <p>{message}</p>

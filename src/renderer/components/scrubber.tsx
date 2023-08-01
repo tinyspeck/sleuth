@@ -32,7 +32,7 @@ export class Scrubber extends React.Component<ScrubberProps, ScrubberState> {
 
     this.setState({
       startY: e.clientY,
-      startHeight: parseInt(window.getComputedStyle(resizeTarget).height, 10)
+      startHeight: parseInt(window.getComputedStyle(resizeTarget).height, 10),
     });
 
     document.addEventListener('mousemove', this.mouseMoveHandler, false);
@@ -45,8 +45,6 @@ export class Scrubber extends React.Component<ScrubberProps, ScrubberState> {
   }
 
   public render() {
-    return (
-      <div className='Scrubber' onMouseDown={this.mouseDownHandler} />
-    );
+    return <div className="Scrubber" onMouseDown={this.mouseDownHandler} />;
   }
 }

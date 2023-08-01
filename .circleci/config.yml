@@ -8,7 +8,7 @@ anchors:
 parameters:
   build_image_tag_ubuntu:
     type: string
-    default: slack-desktop-docker.jfrog.io/desktop-base-ubuntu-bionic:99d1b3fe-344
+    default: slack-desktop-docker.jfrog.io/desktop-base-ubuntu-bionic:7041ce1e-376
 
 executors:
   ubuntu:
@@ -19,7 +19,7 @@ executors:
           password: $JFROG_DOCKER_PASSWD
   macos:
     macos:
-      xcode: 12.5.1
+      xcode: 14.0.1
 
 commands:
   checkout_sleuth:
@@ -48,15 +48,15 @@ commands:
           # This is a necessary hack to persist environment variables across multiple CircleCI steps
           name: Load CloudHSM environment variables
           command: |
-              New-Item $Profile.CurrentUserAllHosts -Force
-              Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:CERT_THUMBPRINT = Get-Childitem -path cert:\LocalMachine\my | select-object -expandproperty thumbprint'
-              Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:n3fips_password = [System.Environment]::GetEnvironmentVariable("n3fips_password","Machine")'
-      
+            New-Item $Profile.CurrentUserAllHosts -Force
+            Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:CERT_THUMBPRINT = Get-Childitem -path cert:\LocalMachine\my | select-object -expandproperty thumbprint'
+            Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:n3fips_password = [System.Environment]::GetEnvironmentVariable("n3fips_password","Machine")'
+
   build_sleuth:
     parameters:
       make_flags:
         type: string
-        default: ""
+        default: ''
     steps:
       - checkout_sleuth
       - install_deps
@@ -90,7 +90,7 @@ jobs:
     parameters:
       arch:
         type: enum
-        enum: ["x64", "arm64"]
+        enum: ['x64', 'arm64', 'universal']
     executor: macos
     steps:
       - build_sleuth:
@@ -114,16 +114,16 @@ jobs:
     parameters:
       arch:
         type: enum
-        enum: ["x64", "arm64"]
+        enum: ['x64', 'arm64', 'universal']
       prod_name:
         type: string
-        default: "Sleuth"
+        default: 'Sleuth'
       artifact_dir:
         type: string
-        default: "/tmp/circleci-workspace/artifacts"
+        default: '/tmp/circleci-workspace/artifacts'
       darwin_platform:
         type: enum
-        enum: ["macos", "mas"]
+        enum: ['macos', 'mas']
         default: macos
     steps:
       - run:
@@ -154,11 +154,13 @@ jobs:
       - persist_to_workspace:
           root: << parameters.artifact_dir >>
           paths:
-            - "*"
+            - '*'
   publish:
     executor: ubuntu
     steps:
       - checkout_sleuth
+      - run: |
+          curl -X POST "$SLACK_SECRETS_SERVICE_ENDPOINT?format=shell" -H "TSAuth-Token: $SLACK_SECRETS_SERVICE_AUTHZ_TOKEN" -H "Content-Type: application/json" -d '{"token":"'$CIRCLE_OIDC_TOKEN'"}' >> $BASH_ENV
       - install_deps
       - run: mkdir -p out
       - attach_workspace:
@@ -181,6 +183,11 @@ workflows:
       - build-macos:
           name: build-macos-arm64
           arch: arm64
+          filters:
+            <<: *job_filter_releases
+      - build-macos:
+          name: build-macos-universal
+          arch: universal
           filters:
             <<: *job_filter_releases
       - build-windows:
@@ -209,6 +216,15 @@ workflows:
             branches:
               only: main
             <<: *job_filter_releases
+      - code-sign-macos:
+          name: code-sign-macos-universal
+          requires:
+            - build-macos-universal
+          arch: universal
+          filters:
+            branches:
+              only: main
+            <<: *job_filter_releases
       - publish:
           requires:
             - build-windows
@@ -220,4 +236,4 @@ workflows:
               ignore: /.*/
             <<: *job_filter_releases
           context:
-            - slack-gh-release
+            - sleuth-release

@@ -1,6 +1,6 @@
 /*
-* @jest-environment node
-*/
+ * @jest-environment node
+ */
 
 import { Unzipper } from '../../src/renderer/unzip';
 import path from 'path';
@@ -10,7 +10,8 @@ describe('Unzipper', () => {
     const simple = path.join(__dirname, '../static/simple.zip');
     const unzipper = new Unzipper(simple);
 
-    return unzipper.open()
+    return unzipper
+      .open()
       .then(() => unzipper.unzip())
       .then((files) => {
         expect(files).toHaveLength(2);
@@ -22,7 +23,8 @@ describe('Unzipper', () => {
     const simple = path.join(__dirname, '../static/simple-with-folders.zip');
     const unzipper = new Unzipper(simple);
 
-    return unzipper.open()
+    return unzipper
+      .open()
       .then(() => unzipper.unzip())
       .then((files) => {
         expect(files).toHaveLength(3);

@@ -43,7 +43,7 @@ export class Unzipper {
         tmp.setGracefulCleanup();
         const dir = promisify(tmp.dir);
         //@ts-expect-error promisify doesn't recognize the ZipFileOptions parameter
-        dir({ unsafeCleanup: true }).then(res => {
+        dir({ unsafeCleanup: true }).then((res) => {
           this.output = res;
           this.zipfile.on('end', () => resolve(this.files));
           this.zipfile.readEntry();
@@ -71,16 +71,23 @@ export class Unzipper {
     const dir = path.dirname(targetPath);
     await fs.mkdirp(dir);
 
-    const readStream = await new Promise<NodeJS.ReadableStream>((resolve, reject) => {
-      this.zipfile.openReadStream(entry, async (error: Error, zipStream: NodeJS.ReadableStream) => {
-        if (error) {
-          d(`Encountered error while trying to read stream for ${entry.fileName}`);
-          return reject(error);
-        }
+    const readStream = await new Promise<NodeJS.ReadableStream>(
+      (resolve, reject) => {
+        this.zipfile.openReadStream(
+          entry,
+          async (error: Error, zipStream: NodeJS.ReadableStream) => {
+            if (error) {
+              d(
+                `Encountered error while trying to read stream for ${entry.fileName}`,
+              );
+              return reject(error);
+            }
 
-        resolve(zipStream);
-      });
-    });
+            resolve(zipStream);
+          },
+        );
+      },
+    );
 
     await pipeline(readStream, fs.createWriteStream(targetPath));
 
@@ -89,7 +96,7 @@ export class Unzipper {
       size: entry.uncompressedSize || 0,
       fullPath: targetPath,
       id: targetPath,
-      type: 'UnzippedFile'
+      type: 'UnzippedFile',
     });
 
     d(`Successfully unzipped ${entry.fileName} to ${targetPath}`);

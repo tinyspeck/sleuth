@@ -13,11 +13,13 @@ export class SettingsFileManager {
   constructor() {
     this.getSettings = this.getSettings.bind(this);
 
-    this.saveSettings = throttle(this._saveSettings.bind(this), 1000, { trailing: true });
+    this.saveSettings = throttle(this._saveSettings.bind(this), 1000, {
+      trailing: true,
+    });
   }
 
   public async getItem(key: string) {
-    return (this.getSettings())[key];
+    return this.getSettings()[key];
   }
 
   /**
@@ -48,11 +50,11 @@ export class SettingsFileManager {
 
     console.log(`Settings: Loaded`, {
       filePath: this.settingsFilePath,
-      settings
+      settings,
     });
 
     this._lastSaveSettings = { ...settings };
-    return this._settings = { ...settings };
+    return (this._settings = { ...settings });
   }
 
   private async _saveSettings(): Promise<void> {
@@ -68,7 +70,7 @@ export class SettingsFileManager {
 
     console.log(`Settings: Saving`, {
       filePath: this.settingsFilePath,
-      settings
+      settings,
     });
 
     await fs.writeFile(this.settingsFilePath, after);

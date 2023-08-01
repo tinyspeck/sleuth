@@ -8,28 +8,35 @@ export interface MenuTemplateOptions {
 }
 
 export function getMenuTemplate(options: MenuTemplateOptions) {
-  const template: Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> = [
+  const template: Array<
+    Electron.MenuItemConstructorOptions | Electron.MenuItem
+  > = [
     {
       label: 'Edit',
       submenu: [
         {
           role: 'cut',
-        }, {
-          role: 'copy'
-        }, {
-          role: 'paste'
-        }, {
-          role: 'selectAll'
-        }, {
-          type: 'separator'
-        }, {
+        },
+        {
+          role: 'copy',
+        },
+        {
+          role: 'paste',
+        },
+        {
+          role: 'selectAll',
+        },
+        {
+          type: 'separator',
+        },
+        {
           label: 'Find',
           accelerator: 'CmdOrCtrl+F',
           click(_item: Electron.MenuItem, browserWindow: BrowserWindow) {
             browserWindow.webContents.send(IpcEvents.FIND);
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       label: 'View',
@@ -38,68 +45,63 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
           label: 'Reload',
           accelerator: 'CmdOrCtrl+R',
           click(_item: MenuItem, focusedWindow: BrowserWindow) {
-            if (focusedWindow)
-              focusedWindow.reload();
-          }
+            if (focusedWindow) focusedWindow.reload();
+          },
         },
         {
           label: 'Toggle Full Screen',
           accelerator: (function () {
-            if (process.platform === 'darwin')
-              return 'Ctrl+Command+F';
-            else
-              return 'F11';
+            if (process.platform === 'darwin') return 'Ctrl+Command+F';
+            else return 'F11';
           })(),
           click(_item: MenuItem, focusedWindow: BrowserWindow) {
             if (focusedWindow)
               focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
-          }
+          },
         },
         {
           label: 'Toggle Developer Tools',
           accelerator: (function () {
-            if (process.platform === 'darwin')
-              return 'Option+Command+I';
-            else
-              return 'Ctrl+Shift+I';
+            if (process.platform === 'darwin') return 'Option+Command+I';
+            else return 'Ctrl+Shift+I';
           })(),
           click(_item: MenuItem, focusedWindow: BrowserWindow) {
             if (focusedWindow) {
               focusedWindow.webContents.toggleDevTools();
             }
-          }
+          },
         },
         {
-          type: 'separator'
+          type: 'separator',
         },
         {
           role: 'zoomIn',
-          accelerator: 'CmdOrCtrl+Plus'
+          accelerator: 'CmdOrCtrl+Plus',
         },
         {
           role: 'zoomIn',
           accelerator: 'CmdOrCtrl+=',
           acceleratorWorksWhenHidden: true,
-          visible: false
+          visible: false,
         },
         {
           role: 'zoomOut',
-          accelerator: 'CmdOrCtrl+-'
+          accelerator: 'CmdOrCtrl+-',
         },
         {
-          role: 'resetZoom'
+          role: 'resetZoom',
         },
         {
-          type: 'separator'
+          type: 'separator',
         },
         {
           label: 'Show Omnibar',
           accelerator: 'CmdOrCtrl+K',
           click(_item: Electron.MenuItem, browserWindow: BrowserWindow) {
             browserWindow.webContents.send(IpcEvents.TOGGLE_SPOTLIGHT);
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       label: 'Window',
@@ -108,14 +110,14 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
         {
           label: 'Minimize',
           accelerator: 'CmdOrCtrl+M',
-          role: 'minimize'
+          role: 'minimize',
         },
         {
           label: 'Close',
           accelerator: 'CmdOrCtrl+W',
-          role: 'close'
+          role: 'close',
         },
-      ]
+      ],
     },
     {
       label: 'Utilities',
@@ -124,11 +126,11 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
           label: 'Open Sentry',
           click(_item: Electron.MenuItem, browserWindow: BrowserWindow) {
             browserWindow.webContents.send(IpcEvents.OPEN_SENTRY);
-          }
+          },
         },
         { type: 'separator' },
-        ...options.pruneItems
-      ]
+        ...options.pruneItems,
+      ],
     },
     {
       label: 'Help',
@@ -137,23 +139,27 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
         {
           label: 'Slack Channel',
           click() {
-            shell.openExternal('https://slack-pde.slack.com/archives/C8EH27UDT');
-          }
-        }, {
+            shell.openExternal(
+              'https://slack-pde.slack.com/archives/C8EH27UDT',
+            );
+          },
+        },
+        {
           label: 'FAQ',
           click() {
             shell.openExternal('https://corp.quip.com/feaLAxYxU4st/Sleuth-FAQ');
-          }
+          },
         },
         {
-          type: 'separator'
-        }, {
+          type: 'separator',
+        },
+        {
           label: 'GitHub Repository',
           click() {
             shell.openExternal('https://github.com/tinyspeck/sleuth');
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
   ];
 
@@ -163,19 +169,19 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
     click: async () => {
       const { webContents } = await getCurrentWindow();
       webContents.send(IpcEvents.PREFERENCES_SHOW);
-    }
+    },
   };
 
   const newWindowItem = {
     label: 'New Window',
     accelerator: 'CmdOrCtrl+N',
-    click: () => createWindow()
+    click: () => createWindow(),
   };
 
   const newAndOpenItems: Array<Electron.MenuItemConstructorOptions> = [
     newWindowItem,
     { type: 'separator' },
-    ...options.openItems
+    ...options.openItems,
   ];
 
   if (process.platform === 'darwin') {
@@ -187,52 +193,56 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
         submenu: [
           {
             label: 'About ' + name,
-            role: 'about'
+            role: 'about',
           },
           preferencesItem,
           {
-            type: 'separator'
+            type: 'separator',
           },
           {
             label: 'Services',
             role: 'services',
-            submenu: []
+            submenu: [],
           },
           {
-            type: 'separator'
+            type: 'separator',
           },
           {
             label: 'Hide ' + name,
             accelerator: 'Command+H',
-            role: 'hide'
+            role: 'hide',
           },
           {
             label: 'Hide Others',
             accelerator: 'Command+Shift+H',
-            role: 'hideOthers'
+            role: 'hideOthers',
           },
           {
             label: 'Show All',
-            role: 'unhide'
+            role: 'unhide',
           },
           {
-            type: 'separator'
+            type: 'separator',
           },
           {
             label: 'Quit',
             accelerator: 'Command+Q',
-            click() { app.quit(); }
+            click() {
+              app.quit();
+            },
           },
-        ]
-      }, {
-      label: 'File',
-      submenu: newAndOpenItems
-    });
+        ],
+      },
+      {
+        label: 'File',
+        submenu: newAndOpenItems,
+      },
+    );
   } else {
     const windowsLinuxSubmenu: Array<Electron.MenuItemConstructorOptions> = [
       ...newAndOpenItems,
       { type: 'separator' },
-      preferencesItem
+      preferencesItem,
     ];
 
     template.unshift({ label: 'File', submenu: windowsLinuxSubmenu });

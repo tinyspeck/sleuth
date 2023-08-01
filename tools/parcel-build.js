@@ -8,7 +8,7 @@ async function compileParcel(options = {}) {
     path.join(__dirname, '../static/index.html'),
     path.join(__dirname, '../src/main/index.ts'),
     path.join(__dirname, '../node_modules/source-map/lib/mappings.wasm'),
-  ]
+  ];
 
   if (options.production) {
     process.env.NODE_ENV = 'production';
@@ -35,7 +35,7 @@ async function compileParcel(options = {}) {
     sourceMaps: true, // Enable or disable sourcemaps, defaults to enabled (minified builds currently always create sourcemaps)
     hmrHostname: '', // A hostname for hot module reload, default to ''
     detailedReport: false, // Prints a detailed report of the bundles, assets, filesizes and times, defaults to false, reports are only printed if watch is disabled,
-    ...options
+    ...options,
   };
 
   const bundler = new Bundler(entryFiles, bundlerOptions);
@@ -46,7 +46,7 @@ async function compileParcel(options = {}) {
 }
 
 module.exports = {
-  compileParcel
-}
+  compileParcel,
+};
 
 if (require.main === module) compileParcel();

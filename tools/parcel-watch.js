@@ -1,11 +1,11 @@
 const { compileParcel } = require('./parcel-build');
 
 async function watchParcel() {
-  return compileParcel({ watch: true })
+  return compileParcel({ watch: true });
 }
 
 module.exports = {
-  watchParcel
-}
+  watchParcel,
+};
 
 if (require.main === module) watchParcel();

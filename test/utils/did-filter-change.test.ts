@@ -6,14 +6,14 @@ describe('didFilterChange', () => {
       debug: true,
       error: true,
       warn: true,
-      info: true
+      info: true,
     };
 
     const b = {
       debug: true,
       error: true,
       warn: true,
-      info: false
+      info: false,
     };
 
     expect(didFilterChange(a, b)).toBe(true);
@@ -24,14 +24,14 @@ describe('didFilterChange', () => {
       debug: true,
       error: true,
       warn: true,
-      info: true
+      info: true,
     };
 
     const b = {
       debug: true,
       error: true,
       warn: true,
-      info: true
+      info: true,
     };
 
     expect(didFilterChange(a, b)).toBe(false);

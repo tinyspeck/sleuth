@@ -1,7 +1,23 @@
 import os from 'os';
 
-export function getSleuth(platform: string = process.platform, release: string = os.release()) {
-  let sleuths = ['🕵', '🕵️‍♀️', '🕵🏻', '🕵🏼', '🕵🏽', '🕵🏾', '🕵🏿', '🕵🏻‍♀️', '🕵🏼‍♀️', '🕵🏽‍♀️', '🕵🏾‍♀️', '🕵🏿‍♀️'];
+export function getSleuth(
+  platform: string = process.platform,
+  release: string = os.release(),
+) {
+  let sleuths = [
+    '🕵',
+    '🕵️‍♀️',
+    '🕵🏻',
+    '🕵🏼',
+    '🕵🏽',
+    '🕵🏾',
+    '🕵🏿',
+    '🕵🏻‍♀️',
+    '🕵🏼‍♀️',
+    '🕵🏽‍♀️',
+    '🕵🏾‍♀️',
+    '🕵🏿‍♀️',
+  ];
 
   if (platform === 'darwin') {
     return sleuths[Math.floor(Math.random() * 11) + 1];

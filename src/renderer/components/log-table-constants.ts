@@ -1,4 +1,10 @@
-import { LevelFilter, ProcessedLogFile, MergedLogFile, LogEntry, DateRange } from '../../interfaces';
+import {
+  LevelFilter,
+  ProcessedLogFile,
+  MergedLogFile,
+  LogEntry,
+  DateRange,
+} from '../../interfaces';
 import { SleuthState } from '../state/sleuth';
 
 export enum SORT_DIRECTION {
@@ -24,6 +30,7 @@ export interface LogTableProps {
   searchIndex: number;
   dateRange?: DateRange;
   selectedEntry?: LogEntry;
+  resultFunction: (results: number) => void;
 }
 
 export interface LogTableState {

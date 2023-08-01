@@ -13,11 +13,15 @@ export class MacTitlebar extends React.Component<TitlebarProps> {
   }
 
   private handleDoubleClick = () => {
-      sendDoubleClick();
-  }
+    sendDoubleClick();
+  };
 
-  render () {
+  render() {
     const { source } = this.props.state;
-    return <div className='MacTitlebar' onDoubleClick={this.handleDoubleClick}><span>{getWindowTitle(source)}</span></div>;
+    return (
+      <div className="MacTitlebar" onDoubleClick={this.handleDoubleClick}>
+        <span>{getWindowTitle(source)}</span>
+      </div>
+    );
   }
 }

@@ -23,11 +23,5 @@ export function secureApp() {
         event.preventDefault();
       }
     });
-
-    // Disallow new-window
-    webContents.on('new-window', (event, url) => {
-      console.warn(`Prevented new-window for ${url}`);
-      event.preventDefault();
-    });
   });
 }

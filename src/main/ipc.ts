@@ -1,4 +1,12 @@
-import { shell, BrowserWindow, app, ipcMain, dialog, systemPreferences, IpcMainEvent } from 'electron';
+import {
+  shell,
+  BrowserWindow,
+  app,
+  ipcMain,
+  dialog,
+  systemPreferences,
+  IpcMainEvent,
+} from 'electron';
 import * as path from 'path';
 
 import { settingsFileManager } from './settings';
@@ -31,7 +39,6 @@ export class IpcManager {
     if (window) {
       return window;
     } else {
-
       const windows = BrowserWindow.getAllWindows();
 
       if (windows.length > 0) {
@@ -78,42 +85,58 @@ export class IpcManager {
 
   // On macOS, set up titlebar click handler
   private setupTitleBarClickMac() {
-    if (process.platform !== 'darwin'){
+    if (process.platform !== 'darwin') {
       return;
     }
 
     ipcMain.on(IpcEvents.CLICK_TITLEBAR_MAC, (event: IpcMainEvent) => {
-      try{
-      const doubleClickAction = systemPreferences.getUserDefault(
-        'AppleActionOnDoubleClick',
-        'string'
-      );
-      const win = BrowserWindow.fromWebContents(event.sender);
-      if (win) {
-        if (doubleClickAction === 'Minimize') {
-          win.minimize();
-        } else if (doubleClickAction === 'Maximize') {
-          if (!win.isMaximized()){
-            win.maximize();
-          } else {
-            win.unmaximize();
+      try {
+        const doubleClickAction = systemPreferences.getUserDefault(
+          'AppleActionOnDoubleClick',
+          'string',
+        );
+        const win = BrowserWindow.fromWebContents(event.sender);
+        if (win) {
+          if (doubleClickAction === 'Minimize') {
+            win.minimize();
+          } else if (doubleClickAction === 'Maximize') {
+            if (!win.isMaximized()) {
+              win.maximize();
+            } else {
+              win.unmaximize();
+            }
           }
         }
-      }
-      } catch (error){
+      } catch (error) {
         console.error('Couldnt minimize or maximize', error);
       }
     });
   }
 
   private setupMessageBoxHandler() {
-    ipcMain.handle(IpcEvents.MESSAGE_BOX, async (_event, options: Electron.MessageBoxOptions) => {
-      return dialog.showMessageBox(options);
-    });
+    ipcMain.handle(
+      IpcEvents.MESSAGE_BOX,
+      async (_event, options: Electron.MessageBoxOptions) => {
+        return dialog.showMessageBox(options);
+      },
+    );
   }
 
   private setupGetPath() {
-    type name = 'home' | 'appData' | 'userData' | 'cache' | 'temp' | 'exe' | 'module' | 'desktop' | 'documents' | 'downloads' | 'music' | 'pictures' | 'videos' | 'logs';
+    type name =
+      | 'home'
+      | 'appData'
+      | 'userData'
+      | 'temp'
+      | 'exe'
+      | 'module'
+      | 'desktop'
+      | 'documents'
+      | 'downloads'
+      | 'music'
+      | 'pictures'
+      | 'videos'
+      | 'logs';
 
     ipcMain.handle(IpcEvents.GET_PATH, (_event, pathName: name) => {
       return app.getPath(pathName);
@@ -127,38 +150,47 @@ export class IpcManager {
   }
 
   private setupSettings() {
-    ipcMain.handle(IpcEvents.SET_SETTINGS, (_event, key: string, value: any) => settingsFileManager.setItem(key, value));
-    ipcMain.handle(IpcEvents.CHANGE_ICON, (_event, iconName: ICON_NAMES) => changeIcon(iconName));
+    ipcMain.handle(IpcEvents.SET_SETTINGS, (_event, key: string, value: any) =>
+      settingsFileManager.setItem(key, value),
+    );
+    ipcMain.handle(IpcEvents.CHANGE_ICON, (_event, iconName: ICON_NAMES) =>
+      changeIcon(iconName),
+    );
   }
 
   private setupOpenDialog() {
     ipcMain.handle(IpcEvents.SHOW_OPEN_DIALOG, async (event) => {
       const window = BrowserWindow.fromWebContents(event.sender);
 
-      if (!window) return {
-        filePaths: []
-      };
+      if (!window)
+        return {
+          filePaths: [],
+        };
 
       return dialog.showOpenDialog(window, {
         defaultPath: app.getPath('downloads'),
-        properties: [ 'openDirectory' ]
+        properties: ['openDirectory'],
       });
     });
   }
 
   private setupSaveDialog() {
-    ipcMain.handle(IpcEvents.SHOW_SAVE_DIALOG, async (event, filename: string) => {
-      const window = BrowserWindow.fromWebContents(event.sender);
+    ipcMain.handle(
+      IpcEvents.SHOW_SAVE_DIALOG,
+      async (event, filename: string) => {
+        const window = BrowserWindow.fromWebContents(event.sender);
 
-      if (!window) return {
-        filePaths: []
-      };
+        if (!window)
+          return {
+            filePaths: [],
+          };
 
-      return dialog.showSaveDialog(window, {
-        defaultPath: path.join(app.getPath('downloads'), filename),
-        properties: ['createDirectory']
-      });
-    });
+        return dialog.showSaveDialog(window, {
+          defaultPath: path.join(app.getPath('downloads'), filename),
+          properties: ['createDirectory'],
+        });
+      },
+    );
   }
 
   private setupQuit() {

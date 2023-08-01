@@ -11,8 +11,13 @@ import { SleuthState } from '../state/sleuth';
 import { isBefore } from 'date-fns';
 import { Suggestion } from '../../interfaces';
 
+import fs from 'fs-extra';
+import { getPath } from '../ipc';
+import { FSWatcher } from 'fs';
+
 export interface WelcomeState {
   sleuth: string;
+  watcher?: FSWatcher;
 }
 
 export interface WelcomeProps {
@@ -25,13 +30,31 @@ const iconStyle = {
 };
 
 @observer
-export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>> {
+export class Welcome extends React.Component<
+  WelcomeProps,
+  Partial<WelcomeState>
+> {
   constructor(props: WelcomeProps) {
     super(props);
 
     this.state = {
       sleuth: props.sleuth || getSleuth(),
+      watcher: undefined,
     };
+  }
+
+  public async componentDidMount(): Promise<void> {
+    const downloadsDir = await getPath('downloads');
+    this.setState({
+      watcher: fs.watch(downloadsDir, async () => {
+        await this.props.state.getSuggestions();
+      }),
+    });
+  }
+
+  public componentWillUnmount(): void {
+    this.state.watcher?.close();
+    this.setState({ watcher: undefined });
   }
 
   public async deleteSuggestion(filePath: string) {
@@ -194,8 +217,8 @@ export class Welcome extends React.Component<WelcomeProps, Partial<WelcomeState>
     return (
       <div className='Welcome' style={{ justifyContent: suggestions ? undefined : 'end' }}>
         <div>
-          <h1 className='Title'>
-            <span className='Emoji'>{sleuth}</span>
+          <h1 className="Title">
+            <span className="Emoji">{sleuth}</span>
             <span>Sleuth</span>
           </h1>
           <Typography.Title level={4}>Drop a logs zip file or folder anywhere on this window to open it.</Typography.Title>

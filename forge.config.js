@@ -1,21 +1,21 @@
 /* eslint-disable */
 //@ts-check
-const fs = require("fs-extra");
-const os = require("os");
-const path = require("path");
+const fs = require('fs-extra');
+const os = require('os');
+const path = require('path');
 
-const iconDir = path.join(__dirname, "static/img");
-const version = require("./package.json").version;
+const iconDir = path.join(__dirname, 'static/img');
+const version = require('./package.json').version;
 
-const http = require("http");
-const httpProxy = require("http-proxy");
+const http = require('http');
+const httpProxy = require('http-proxy');
 
 let server;
 const PORT = 37492;
 
 const options = {
   hooks: {
-    generateAssets: require("./tools/generateAssets"),
+    generateAssets: require('./tools/generateAssets'),
     preMake: async () => {
       let dir = null;
       try {
@@ -23,7 +23,7 @@ const options = {
 
         server = http.createServer((req, res) => {
           return timestampProxiedProxy.web(req, res, {
-            target: "http://timestamp.digicert.com",
+            target: 'http://timestamp.digicert.com',
           });
         });
 
@@ -35,7 +35,7 @@ const options = {
         });
 
         dir = await fs.mkdtemp(
-          path.resolve(os.tmpdir(), "slack-builder-folder-")
+          path.resolve(os.tmpdir(), 'slack-builder-folder-'),
         );
       } finally {
         if (dir) await fs.remove(dir);
@@ -47,13 +47,13 @@ const options = {
     },
   },
   packagerConfig: {
-    name: "Sleuth",
-    executableName: process.platform === "linux" ? "sleuth" : "Sleuth",
-    icon: "./static/img/sleuth-icon",
-    appBundleId: "com.felixrieseberg.sleuth",
-    appCategoryType: "public.app-category.developer-tools",
+    name: 'Sleuth',
+    executableName: process.platform === 'linux' ? 'sleuth' : 'Sleuth',
+    icon: './static/img/sleuth-icon',
+    appBundleId: 'com.felixrieseberg.sleuth',
+    appCategoryType: 'public.app-category.developer-tools',
     asar: {
-      unpackDir: "**/cachetool",
+      unpackDir: '**/cachetool',
     },
     ignore: [
       /^\/\.vscode/,
@@ -69,51 +69,56 @@ const options = {
       /package-lock.json/,
       /react.development.js/,
     ],
-    extendInfo: "./static/extend.plist",
+    extendInfo: './static/extend.plist',
     win32metadata: {
-      ProductName: "Sleuth",
-      CompanyName: "Slack Technologies, Inc.",
+      ProductName: 'Sleuth',
+      CompanyName: 'Slack Technologies, Inc.',
     },
   },
   makers: [
     {
-      name: "@electron-forge/maker-squirrel",
-      platforms: ["win32"],
+      name: '@electron-forge/maker-squirrel',
+      platforms: ['win32'],
       config: (arch) => {
         const certThumbPrint = process.env.CERT_THUMBPRINT;
-        const intermediateCert = path.resolve(__dirname, 'tools', 'certs', 'DigiCertCA2.cer');
+        const intermediateCert = path.resolve(
+          __dirname,
+          'tools',
+          'certs',
+          'DigiCertCA2.cer',
+        );
 
         return {
-          name: "sleuth",
-          authors: "Slack Technologies, Inc.",
-          exe: "sleuth.exe",
+          name: 'sleuth',
+          authors: 'Slack Technologies, Inc.',
+          exe: 'sleuth.exe',
           noMsi: true,
           setupExe: `sleuth-${version}-${arch}-setup.exe`,
-          setupIcon: path.resolve(iconDir, "sleuth-icon.ico"),
+          setupIcon: path.resolve(iconDir, 'sleuth-icon.ico'),
           signWithParams: `/v /debug /a /sm /fd sha256 /sha1 ${certThumbPrint} /tr http://localhost:${PORT} /td sha256 /ac ${intermediateCert}`,
         };
       },
     },
     {
-      name: "@electron-forge/maker-zip",
-      platforms: ["darwin"],
+      name: '@electron-forge/maker-zip',
+      platforms: ['darwin'],
     },
     {
-      name: "@electron-forge/maker-deb",
-      platforms: ["linux"],
+      name: '@electron-forge/maker-deb',
+      platforms: ['linux'],
     },
     {
-      name: "@electron-forge/maker-rpm",
-      platforms: ["linux"],
+      name: '@electron-forge/maker-rpm',
+      platforms: ['linux'],
     },
   ],
   publishers: [
     {
-      name: "@electron-forge/publisher-github",
+      name: '@electron-forge/publisher-github',
       config: {
         repository: {
-          owner: "tinyspeck",
-          name: "sleuth",
+          owner: 'tinyspeck',
+          name: 'sleuth',
         },
         prerelease: false,
         draft: true,
@@ -121,7 +126,7 @@ const options = {
       },
     },
   ],
-  plugins: [["@electron-forge/plugin-auto-unpack-natives"]],
+  plugins: [{ name: '@electron-forge/plugin-auto-unpack-natives', config: {} }],
 };
 
 module.exports = options;
