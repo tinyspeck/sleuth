@@ -259,7 +259,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     const isSelected = selectedLogFileName === file.fileName;
 
     let label;
-    if (file.fileName.endsWith('gpu-log.html')) {
+    if (file.fileName.endsWith('gpu-info.json')) {
       label = 'GPU';
     } else if (file.fileName.endsWith('notification-warnings.json')) {
       label = 'Notification Warnings';
@@ -269,9 +269,18 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
       label = 'Local Settings';
     } else if (file.fileName.endsWith('.trace')) {
       label = 'Performance Profile';
+    } else if (file.fileName.endsWith('root-state.json')) {
+      label = 'Root State';
+    } else if (file.fileName.endsWith('external-config.json')) {
+      label = 'External Config';
+    } else if (file.fileName.endsWith('logfiles-shipping-manifest.json')) {
+      label = 'Log Manifest';
+    } else if (file.fileName.endsWith('log-context.json')) {
+      label = 'Log Context';
+    } else if (file.fileName.endsWith('installation')) {
+      label = 'Installation';
     } else {
-      const nameMatch = file.fileName.match(/slack-(\w*)/);
-      label = nameMatch && nameMatch.length > 1 ? nameMatch[1] : file.fileName;
+      label = file.fileName;
     }
 
     const options: Partial<ITreeNode> = {
