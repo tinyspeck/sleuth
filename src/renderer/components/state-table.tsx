@@ -29,7 +29,6 @@ export interface StateTableState<T extends keyof StateData> {
 
 export enum StateType {
   'settings',
-  'html',
   'notifs',
   'installation',
   'environment',
@@ -109,10 +108,6 @@ export class StateTable extends React.Component<
       throw new Error('StateTable: No file');
     }
 
-    if (this.isHtmlFile(selectedLogFile)) {
-      return StateType.html;
-    }
-
     if (this.isNotifsFile(selectedLogFile)) {
       return StateType.notifs;
     }
@@ -129,11 +124,7 @@ export class StateTable extends React.Component<
       return StateType.localSettings;
     }
 
-    const nameMatch = selectedLogFile.fileName.match(/slack-(\w*)/);
-    const type =
-      nameMatch && nameMatch.length > 1 ? nameMatch[1] : StateType.unknown;
-
-    return type as unknown as StateType;
+    return StateType.unknown;
   }
 
   private async parse(file: UnzippedFile) {
@@ -143,9 +134,7 @@ export class StateTable extends React.Component<
 
     d(`Reading ${file.fullPath}`);
 
-    if (this.isHtmlFile(file)) {
-      this.setState({ data: undefined, path: file.fullPath });
-    } else if (this.isInstallationFile(file)) {
+    if (this.isInstallationFile(file)) {
       try {
         const content = await fs.readFile(file.fullPath, 'utf8');
         this.setState({ data: [content], path: undefined });
@@ -245,10 +234,6 @@ export class StateTable extends React.Component<
   private isStateFile(file?: SelectableLogFile): file is UnzippedFile {
     const _file = file as UnzippedFile;
     return !!_file.fullPath;
-  }
-
-  private isHtmlFile(file: UnzippedFile) {
-    return file.fullPath.endsWith('.html');
   }
 
   private isNotifsFile(file: UnzippedFile) {
