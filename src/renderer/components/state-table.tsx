@@ -2,7 +2,6 @@ import React from 'react';
 import fs from 'fs-extra';
 import { shell } from 'electron';
 import { Card, Elevation } from '@blueprintjs/core';
-
 import debug from 'debug';
 
 import { SelectableLogFile, UnzippedFile } from '../../interfaces';
@@ -122,18 +121,18 @@ export class StateTable extends React.Component<
       !data && path ? (
         <iframe sandbox="" onLoad={onIFrameLoad} src={path} />
       ) : type === StateType.installation ||
-        type === StateType.externalConfig || type === StateType.rootState ? null : (
+        type === StateType.externalConfig ||
+        type === StateType.rootState ? null : (
         <JSONView data={data} raw={raw} state={this.props.state} />
       );
     const contentCard =
-      type === StateType.installation || type === StateType.externalConfig || type == StateType.rootState ? (
+      type === StateType.installation ||
+      type === StateType.externalConfig ||
+      type == StateType.rootState ? (
         <div />
       ) : (
         <Card> {content} </Card>
       );
-
-      console.log(contentCard)
-
     return (
       <div className="StateTable" style={{ fontFamily: getFontForCSS(font) }}>
         <div className="StateTable-Content">
@@ -291,13 +290,19 @@ export class StateTable extends React.Component<
   }
 
   private renderRootState(): JSX.Element | null {
-    const content = <JSONView data={this.state.rootStateData} raw={this.state.rawRootState} state={this.props.state} />
+    const content = (
+      <JSONView
+        data={this.state.rootStateData}
+        raw={this.state.rawRootState}
+        state={this.props.state}
+      />
+    );
 
     return (
-      <Card className='StateTable-Content' elevation={Elevation.ONE}>
+      <Card className="StateTable-Content" elevation={Elevation.ONE}>
         {content}
       </Card>
-    )
+    );
   }
 
   private renderLocalSettings(): JSX.Element | null {
@@ -380,13 +385,35 @@ export class StateTable extends React.Component<
             </div>
           </div>
           <p style={{ textAlign: 'center', margin: '0px', marginTop: '1rem' }}>
-            {compareDefaults && comparePolicies === true
-              ? <p><span style={{color: 'lightgreen'}}>No problems detected</span>, both files match</p>
-              : compareDefaults === false && comparePolicies == true
-              ? <p><span style={{color: 'red', fontWeight: 'bold'}}>Problems detected</span>, differences in Defaults only'</p>
-              : comparePolicies === true && compareDefaults === false
-              ? <p><span style={{color: 'red', fontWeight: 'bold'}}>Problems detected</span>, differences in Policies only'</p>
-              : <p><span style={{color: 'red', fontWeight: 'bold'}}>Problems detected</span>, differences in both Policies and Defaults</p>}{' '}
+            {compareDefaults && comparePolicies === true ? (
+              <p>
+                <span style={{ color: 'lightgreen' }}>
+                  No problems detected
+                </span>
+                , both files match
+              </p>
+            ) : compareDefaults === false && comparePolicies == true ? (
+              <p>
+                <span style={{ color: 'red', fontWeight: 'bold' }}>
+                  Problems detected
+                </span>
+                , differences in Defaults only
+              </p>
+            ) : comparePolicies === true && compareDefaults === false ? (
+              <p>
+                <span style={{ color: 'red', fontWeight: 'bold' }}>
+                  Problems detected
+                </span>
+                , differences in Policies only
+              </p>
+            ) : (
+              <p>
+                <span style={{ color: 'red', fontWeight: 'bold' }}>
+                  Problems detected
+                </span>
+                , differences in both Policies and Defaults
+              </p>
+            )}{' '}
           </p>
         </Card>
       );
