@@ -13,10 +13,19 @@ import { ipcRenderer, shell } from 'electron';
 jest.mock('electron');
 
 describe('Welcome', () => {
+  beforeAll(() => {
+    window.matchMedia = () =>
+      ({
+        addListener: () => void 0,
+        removeListener: () => void 0,
+      }) as any;
+  });
+
   beforeEach(() => {
     // fake getPath("downloads") for the Watcher
     (ipcRenderer.invoke as jest.Mock).mockResolvedValue(process.cwd());
   });
+
   it('renders the Sleuth title', () => {
     const state: Partial<SleuthState> = {
       suggestions: [],
@@ -37,18 +46,19 @@ describe('Welcome', () => {
         ],
       };
       render(<Welcome state={state as SleuthState} />);
-      const list = screen.getByRole('list');
+      const list = screen.getAllByRole('list')[0];
       const suggestions = within(list).getAllByRole('listitem');
-      expect(suggestions).toHaveLength(1);
+      // 1 item, 1 listitem in the "delete" action menu
+      expect(suggestions).toHaveLength(2);
       expect(suggestions[0].textContent).toContain(
         'logs-21-11-02_12-36-26.zip',
       );
+      expect(suggestions[0].textContent).toContain('7 days old');
 
-      const ageLabel = within(suggestions[0]).getByRole('textbox');
-      expect(ageLabel).toHaveValue('7 days old');
+      expect(suggestions[1].textContent).toContain('Delete');
     });
 
-    it('triggers a message box when attempting to delete a log bundle', async () => {
+    it('triggers a message box when', async () => {
       const state = {
         suggestions: [
           {
@@ -59,11 +69,9 @@ describe('Welcome', () => {
         getSuggestions: jest.fn(),
       };
       render(<Welcome state={state as unknown as SleuthState} />);
-      const list = screen.getByRole('list');
+      const list = screen.getAllByRole('list')[0];
       const suggestions = within(list).getAllByRole('listitem');
-      const btn = within(suggestions[0]).getByRole('button', {
-        name: 'trash',
-      });
+      const btn = within(suggestions[0]).getByLabelText('delete');
       (ipcRenderer.invoke as jest.Mock).mockResolvedValue({
         response: true,
       });

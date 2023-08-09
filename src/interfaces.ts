@@ -140,6 +140,9 @@ export interface Suggestion extends fs.Stats {
   age: string;
   filePath: string;
   birthtimeMs: number;
+  platform: string;
+  appVersion: string;
+  instanceUuid: string;
 }
 
 export enum LogLevel {
