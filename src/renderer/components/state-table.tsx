@@ -81,12 +81,12 @@ export class StateTable extends React.Component<
     const searchExternalConfig = 'external-config.json';
     if (files) {
       const foundExternalFile = files.find((file) =>
-        file.fileName.toLowerCase().endsWith(searchExternalConfig.toLowerCase()),
-      );
-      const foundRootFile = files.find((file) =>
         file.fileName
           .toLowerCase()
-          .endsWith(searchRootState.toLowerCase()),
+          .endsWith(searchExternalConfig.toLowerCase()),
+      );
+      const foundRootFile = files.find((file) =>
+        file.fileName.toLowerCase().endsWith(searchRootState.toLowerCase()),
       );
       if (foundExternalFile) {
         this.parse(foundExternalFile);
