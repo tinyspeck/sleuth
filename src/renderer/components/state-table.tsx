@@ -75,17 +75,18 @@ export class StateTable extends React.Component<
       this.parse(selectedLogFile);
     }
 
+    // Need to find root-state and external-config files when mounted to store data in state
     const files = this.props.state.processedLogFiles?.state;
     const searchRootState = 'root-state.json';
     const searchExternalConfig = 'external-config.json';
     if (files) {
       const foundExternalFile = files.find((file) =>
-        file.fileName.toLowerCase().endsWith(searchRootState.toLowerCase()),
+        file.fileName.toLowerCase().endsWith(searchExternalConfig.toLowerCase()),
       );
       const foundRootFile = files.find((file) =>
         file.fileName
           .toLowerCase()
-          .endsWith(searchExternalConfig.toLowerCase()),
+          .endsWith(searchRootState.toLowerCase()),
       );
       if (foundExternalFile) {
         this.parse(foundExternalFile);
@@ -216,9 +217,7 @@ export class StateTable extends React.Component<
       try {
         const raw = await fs.readFile(file.fullPath, 'utf8');
         this.setState({
-          data: parseJSON(raw),
           path: undefined,
-          raw,
           rawExternal: raw,
           externalData: parseJSON(raw),
         });
@@ -330,7 +329,6 @@ export class StateTable extends React.Component<
           state={this.props.state}
         />
       );
-
       const rootData = this.getPoliciesAndDefaultsRoot();
       const rootDefaultJSON = (
         <JSONView
@@ -356,65 +354,41 @@ export class StateTable extends React.Component<
         externalConfigData.policies,
       );
 
+      const message = this.getMessage(compareDefaults, comparePolicies);
+
       return (
         <Card className="StateTable-Info" elevation={Elevation.ONE}>
           <div
             style={{
               display: 'flex',
               justifyContent: 'space-evenly',
-              alignItems: 'center',
+              alignItems: 'start',
             }}
           >
-            <div>
-              <p
-                style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}
-              >
-                Root-State Policies + Defaults
-              </p>
-              <p style={{ textAlign: 'center' }}>{rootDefaultJSON}</p>
-              <p style={{ textAlign: 'center' }}>{rootPoliciesJSON}</p>
+            <div className="fileDisplay">
+              <p className="fileHeaderStyle">Root-State Policies + Defaults</p>
+              <div>
+                <p style={{ textAlign: 'center' }}>{rootDefaultJSON}</p>
+                <p style={{ textAlign: 'center' }}>{rootPoliciesJSON}</p>
+              </div>
             </div>
-            <div>
-              <p
-                style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}
-              >
+            <div id="matchDisplay">
+              <div style={{ textAlign: 'center' }}>{message}</div>
+            </div>
+            <div className="fileDisplay">
+              <p className="fileHeaderStyle">
                 External Config Policies + Defaults
               </p>
-              <p style={{ textAlign: 'center' }}>{externalConfigDefaultJSON}</p>
-              <p style={{ textAlign: 'center' }}>{externalConfigPolicyJSON}</p>
+              <div>
+                <p style={{ textAlign: 'center' }}>
+                  {externalConfigDefaultJSON}
+                </p>
+                <p style={{ textAlign: 'center' }}>
+                  {externalConfigPolicyJSON}
+                </p>
+              </div>
             </div>
           </div>
-          <p style={{ textAlign: 'center', margin: '0px', marginTop: '1rem' }}>
-            {compareDefaults && comparePolicies === true ? (
-              <p>
-                <span style={{ color: 'lightgreen' }}>
-                  No problems detected
-                </span>
-                , both files match
-              </p>
-            ) : compareDefaults === false && comparePolicies == true ? (
-              <p>
-                <span style={{ color: 'red', fontWeight: 'bold' }}>
-                  Problems detected
-                </span>
-                , differences in Defaults only
-              </p>
-            ) : comparePolicies === true && compareDefaults === false ? (
-              <p>
-                <span style={{ color: 'red', fontWeight: 'bold' }}>
-                  Problems detected
-                </span>
-                , differences in Policies only
-              </p>
-            ) : (
-              <p>
-                <span style={{ color: 'red', fontWeight: 'bold' }}>
-                  Problems detected
-                </span>
-                , differences in both Policies and Defaults
-              </p>
-            )}{' '}
-          </p>
         </Card>
       );
     } else {
@@ -466,6 +440,41 @@ export class StateTable extends React.Component<
     };
 
     return data;
+  }
+
+  private getMessage(
+    defaultMatch: boolean,
+    policiesMatch: boolean,
+  ): JSX.Element | null {
+    if (defaultMatch && policiesMatch) {
+      return (
+        <div>
+          <p className="matchMessage">No problems detected</p>
+          <p>Both files match</p>
+        </div>
+      );
+    } else if (!defaultMatch && policiesMatch) {
+      return (
+        <div>
+          <p className="errorMessage">Problems detected</p>
+          <p>Files do not match, Defaults differ</p>
+        </div>
+      );
+    } else if (defaultMatch && !policiesMatch) {
+      return (
+        <div>
+          <p className="errorMessage">Problems detected</p>
+          <p>Files do not match, Policies differ</p>
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <p className="errorMessage">Problems detected</p>
+          <p>Files do not match, Policies and Defaults differ</p>
+        </div>
+      );
+    }
   }
 
   private renderInfo(): JSX.Element | null {

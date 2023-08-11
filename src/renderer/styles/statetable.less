@@ -5,6 +5,7 @@
   overflow-x: hidden;
 
   .StateTable-Content {
+
     ul li,
     li span,
     li label {
@@ -47,11 +48,46 @@
     content: ' and ';
   }
 
-  ul li:nth-last-child(3) ~ li:nth-last-child(2):after {
+  ul li:nth-last-child(3)~li:nth-last-child(2):after {
     content: ', and ';
   }
 }
 
 .StateTable-Warning-Info {
   padding-right: 5rem;
+}
+
+.fileDisplay {
+  height: 100%;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#matchDisplay {
+  height: 100%;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.fileHeaderStyle {
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.errorMessage {
+  color: red;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.matchMessage {
+  color: lightgreen;
+  font-weight: bold;
+  font-size: 18px;
 }
