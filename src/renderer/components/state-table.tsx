@@ -357,39 +357,59 @@ export class StateTable extends React.Component<
       const message = this.getMessage(compareDefaults, comparePolicies);
 
       return (
-        <Card className="StateTable-Info" elevation={Elevation.ONE}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-evenly',
-              alignItems: 'start',
-            }}
+        <div>
+          <Card
+            className="StateTable-Info"
+            elevation={Elevation.ONE}
+            style={{ paddingRight: '0' }}
           >
-            <div className="fileDisplay">
-              <p className="fileHeaderStyle">Root-State Policies + Defaults</p>
-              <div>
-                <p style={{ textAlign: 'center' }}>{rootDefaultJSON}</p>
-                <p style={{ textAlign: 'center' }}>{rootPoliciesJSON}</p>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-evenly',
+                alignItems: 'start',
+              }}
+            >
+              <div className="fileDisplay">
+                <p className="fileHeaderStyle">
+                  Root-State Policies + Defaults
+                </p>
+                <div>
+                  <p style={{ textAlign: 'center' }}>{rootDefaultJSON}</p>
+                  <p style={{ textAlign: 'center' }}>{rootPoliciesJSON}</p>
+                </div>
+              </div>
+              <div id="matchDisplay">
+                <div style={{ textAlign: 'center' }}>{message}</div>
+              </div>
+              <div className="fileDisplay">
+                <p className="fileHeaderStyle">
+                  External Config Policies + Defaults
+                </p>
+                <div>
+                  <p style={{ textAlign: 'center' }}>
+                    {externalConfigDefaultJSON}
+                  </p>
+                  <p style={{ textAlign: 'center' }}>
+                    {externalConfigPolicyJSON}
+                  </p>
+                </div>
               </div>
             </div>
-            <div id="matchDisplay">
-              <div style={{ textAlign: 'center' }}>{message}</div>
-            </div>
-            <div className="fileDisplay">
-              <p className="fileHeaderStyle">
-                External Config Policies + Defaults
-              </p>
-              <div>
-                <p style={{ textAlign: 'center' }}>
-                  {externalConfigDefaultJSON}
-                </p>
-                <p style={{ textAlign: 'center' }}>
-                  {externalConfigPolicyJSON}
-                </p>
-              </div>
-            </div>
+          </Card>
+          <div id="descriptionExternalConfig">
+            <p style={{ width: '100%', textAlign: 'center' }}>
+              {' '}
+              <code>External-Config.json</code> is created during the collection
+              of logs to see what defaults and policies are set.{' '}
+              <code>Root-State.json</code> is created through more codepaths,
+              and also contains the defaults and policies that are set.
+            </p>
+            <p style={{ textAlign: 'center' }}>
+              In case of a bug, comparing the two may be useful.
+            </p>
           </div>
-        </Card>
+        </div>
       );
     } else {
       return null;
