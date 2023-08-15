@@ -58,7 +58,7 @@
 
 .fileDisplay {
   height: 100%;
-  min-height: 120px;
+  min-height: 8rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -66,28 +66,30 @@
 
 #matchDisplay {
   height: 100%;
-  min-height: 120px;
+  min-height: 8rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  text-align: center;
 }
 
 .fileHeaderStyle {
-  font-size: 18px;
+  font-size: 1.2rem;
   font-weight: bold;
+  text-align: center;
   margin: 0;
 }
 
 .errorMessage {
   color: red;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 1.2rem;
 }
 
 .matchMessage {
   color: rgb(127, 207, 127);
   font-weight: bold;
-  font-size: 18px;
+  font-size: 1.2rem;
 }
 
 #descriptionExternalConfig {
@@ -98,6 +100,41 @@
 }
 
 #descriptionExternalConfig p {
-  font-size: 12px;
+  font-size: 0.75rem;
   opacity: 80%;
+  width: 100%;
+  text-align: center;
+}
+
+#externalConfigContainer {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: start;
+}
+
+#externalConfigContainerTwo {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+#comparisons {
+  grid-column: span 5 / span 5;
+}
+
+#comparisons .StateTable-Info {
+  padding-right: 1.2rem;
+}
+
+#resultContainer {
+  grid-column: span 2 / span 2;
+}
+
+#resultContainer .StateTable-Info {
+  padding-right: 1.2rem;
+}
+
+.jsonContainer {
+  text-align: center;
 }

@@ -25,8 +25,6 @@ export interface StateTableProps {
 export interface RootData {
   default: object | undefined;
   policies: object | undefined;
-  defaultRaw: string;
-  policiesRaw: string;
 }
 
 export interface StateTableState<T extends keyof StateData> {
@@ -34,9 +32,7 @@ export interface StateTableState<T extends keyof StateData> {
   path?: string;
   raw?: string;
   rootStateData?: StateData[T];
-  rawRootState?: string;
   externalData?: StateData[T];
-  rawExternal?: string;
 }
 
 export enum StateType {
@@ -77,22 +73,18 @@ export class StateTable extends React.Component<
 
     // Need to find root-state and external-config files when mounted to store data in state
     const files = this.props.state.processedLogFiles?.state;
-    const searchRootState = 'root-state.json';
-    const searchExternalConfig = 'external-config.json';
     if (files) {
-      const foundExternalFile = files.find((file) =>
-        file.fileName
-          .toLowerCase()
-          .endsWith(searchExternalConfig.toLowerCase()),
+      const foundExternalConfigFile = files.find((file) =>
+        this.isExternalConfigFile(file),
       );
-      const foundRootFile = files.find((file) =>
-        file.fileName.toLowerCase().endsWith(searchRootState.toLowerCase()),
+      const foundRootStateFile = files.find((file) =>
+        this.isRootStateFile(file),
       );
-      if (foundExternalFile) {
-        this.parse(foundExternalFile);
+      if (foundExternalConfigFile) {
+        this.parse(foundExternalConfigFile);
       }
-      if (foundRootFile) {
-        this.parse(foundRootFile);
+      if (foundRootStateFile) {
+        this.parse(foundRootStateFile);
       }
     }
   }
@@ -208,7 +200,6 @@ export class StateTable extends React.Component<
         this.setState({
           rootStateData: parseJSON(rawRootState),
           path: undefined,
-          rawRootState,
         });
       } catch (error) {
         d(error);
@@ -217,9 +208,8 @@ export class StateTable extends React.Component<
       try {
         const raw = await fs.readFile(file.fullPath, 'utf8');
         this.setState({
-          path: undefined,
-          rawExternal: raw,
           externalData: parseJSON(raw),
+          path: undefined,
         });
       } catch (error) {
         d(error);
@@ -290,11 +280,7 @@ export class StateTable extends React.Component<
 
   private renderRootState(): JSX.Element | null {
     const content = (
-      <JSONView
-        data={this.state.rootStateData}
-        raw={this.state.rawRootState}
-        state={this.props.state}
-      />
+      <JSONView data={this.state.rootStateData} state={this.props.state} />
     );
 
     return (
@@ -316,33 +302,17 @@ export class StateTable extends React.Component<
     if (this.state.externalData && this.state.rootStateData) {
       const externalConfigData = this.getPoliciesAndDefaultsExternalConfig();
       const externalConfigDefaultJSON = (
-        <JSONView
-          data={externalConfigData.default}
-          raw={'defaults: ' + externalConfigData.defaultRaw}
-          state={this.props.state}
-        />
+        <JSONView data={externalConfigData.default} state={this.props.state} />
       );
       const externalConfigPolicyJSON = (
-        <JSONView
-          data={externalConfigData.policies}
-          raw={'policies: ' + externalConfigData.policiesRaw}
-          state={this.props.state}
-        />
+        <JSONView data={externalConfigData.policies} state={this.props.state} />
       );
       const rootData = this.getPoliciesAndDefaultsRoot();
       const rootDefaultJSON = (
-        <JSONView
-          data={rootData.default}
-          raw={'defaults: ' + rootData.defaultRaw}
-          state={this.props.state}
-        />
+        <JSONView data={rootData.default} state={this.props.state} />
       );
       const rootPoliciesJSON = (
-        <JSONView
-          data={rootData.policies}
-          raw={'policies: ' + rootData.policiesRaw}
-          state={this.props.state}
-        />
+        <JSONView data={rootData.policies} state={this.props.state} />
       );
 
       const compareDefaults = isEqual(
@@ -358,55 +328,48 @@ export class StateTable extends React.Component<
 
       return (
         <div>
-          <Card
-            className="StateTable-Info"
-            elevation={Elevation.ONE}
-            style={{ paddingRight: '0' }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-evenly',
-                alignItems: 'start',
-              }}
-            >
-              <div className="fileDisplay">
-                <p className="fileHeaderStyle">
-                  Root-State Policies + Defaults
-                </p>
-                <div>
-                  <p style={{ textAlign: 'center' }}>{rootDefaultJSON}</p>
-                  <p style={{ textAlign: 'center' }}>{rootPoliciesJSON}</p>
+          <div id="externalConfigContainerTwo">
+            <div id="comparisons">
+              <Card className="StateTable-Info" elevation={Elevation.ONE}>
+                <div id="externalConfigContainer">
+                  <div className="fileDisplay">
+                    <p className="fileHeaderStyle">
+                      Root-State Policies + Defaults
+                    </p>
+                    <div className="jsonContainer">
+                      <p>{rootDefaultJSON}</p>
+                      <p>{rootPoliciesJSON}</p>
+                    </div>
+                  </div>
+                  <div className="fileDisplay">
+                    <p className="fileHeaderStyle">
+                      External Config Policies + Defaults
+                    </p>
+                    <div className="jsonContainer">
+                      <p>{externalConfigDefaultJSON}</p>
+                      <p>{externalConfigPolicyJSON}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div id="matchDisplay">
-                <div style={{ textAlign: 'center' }}>{message}</div>
-              </div>
-              <div className="fileDisplay">
-                <p className="fileHeaderStyle">
-                  External Config Policies + Defaults
-                </p>
-                <div>
-                  <p style={{ textAlign: 'center' }}>
-                    {externalConfigDefaultJSON}
-                  </p>
-                  <p style={{ textAlign: 'center' }}>
-                    {externalConfigPolicyJSON}
-                  </p>
-                </div>
-              </div>
+              </Card>
             </div>
-          </Card>
+            <div id="resultContainer">
+              <Card className="StateTable-Info" elevation={Elevation.ONE}>
+                <div id="matchDisplay">{message}</div>
+              </Card>
+            </div>
+          </div>
           <div id="descriptionExternalConfig">
-            <p style={{ width: '100%', textAlign: 'center' }}>
+            <p>
               {' '}
-              <code>External-Config.json</code> is created during the collection
-              of logs to see what defaults and policies are set.{' '}
-              <code>Root-State.json</code> is created through more codepaths,
-              and also contains the defaults and policies that are set.
+              <code>external-config.json</code> is created during the collection
+              of logs to see what defaults and policies are set. The data
+              contained in <code>root-state.json</code> should be the same, but
+              can be modified by more codepaths.
             </p>
-            <p style={{ textAlign: 'center' }}>
-              In case of a bug, comparing the two may be useful.
+            <p>
+              If there is a bug with External Config policies, comparing
+              discrepancies between the two may be useful.
             </p>
           </div>
         </div>
@@ -421,14 +384,9 @@ export class StateTable extends React.Component<
     const { itDefaults } = settings;
     const { itPolicy } = settings;
 
-    const defaultRaw = itDefaults !== undefined ? itDefaults.toString() : '{}';
-    const policyRaw = itPolicy !== undefined ? itPolicy.toString() : '{}';
-
     const data: RootData = {
       default: { defaults: itDefaults },
       policies: { policies: itPolicy },
-      defaultRaw: defaultRaw,
-      policiesRaw: policyRaw,
     };
 
     return data;
@@ -436,27 +394,10 @@ export class StateTable extends React.Component<
 
   private getPoliciesAndDefaultsExternalConfig(): RootData {
     const { defaults, ...policies } = this.state.externalData;
-    let defaultRaw, policyRaw;
-
-    if (typeof defaultRaw === 'object') {
-      defaultRaw =
-        Object.keys(defaults).length !== 0 ? defaults.toString() : '{}';
-    } else {
-      defaultRaw = '{}';
-    }
-
-    if (typeof policyRaw === 'object') {
-      policyRaw =
-        Object.keys(policies).length !== 0 ? policies.toString() : '{}';
-    } else {
-      policyRaw = '{}';
-    }
 
     const data: RootData = {
       default: { defaults: defaults },
       policies: { policies: policies },
-      defaultRaw: defaultRaw,
-      policiesRaw: policyRaw,
     };
 
     return data;
@@ -477,21 +418,28 @@ export class StateTable extends React.Component<
       return (
         <div>
           <p className="errorMessage">Problems detected</p>
-          <p>Files do not match, Defaults differ</p>
+          <p>
+            Files do not match: <strong>defaults</strong> differ
+          </p>
         </div>
       );
     } else if (defaultMatch && !policiesMatch) {
       return (
         <div>
           <p className="errorMessage">Problems detected</p>
-          <p>Files do not match, Policies differ</p>
+          <p>
+            Files do not match: <strong>policies</strong> differ
+          </p>
         </div>
       );
     } else {
       return (
         <div>
           <p className="errorMessage">Problems detected</p>
-          <p>Files do not match, Policies and Defaults differ</p>
+          <p>
+            Files do not match: <strong>policies</strong> and{' '}
+            <strong>defaults</strong> differ
+          </p>
         </div>
       );
     }
