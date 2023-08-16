@@ -68,23 +68,6 @@ export class StateTable extends React.Component<
     if (this.isStateFile(selectedLogFile)) {
       this.parse(selectedLogFile);
     }
-
-    // Need to find root-state and external-config files when mounted to store data in state
-    const files = this.props.state.processedLogFiles?.state;
-    if (files) {
-      const foundExternalConfigFile = files.find((file) =>
-        this.isExternalConfigFile(file),
-      );
-      const foundRootStateFile = files.find((file) =>
-        this.isRootStateFile(file),
-      );
-      if (foundExternalConfigFile) {
-        this.parse(foundExternalConfigFile);
-      }
-      if (foundRootStateFile) {
-        this.parse(foundRootStateFile);
-      }
-    }
   }
 
   public UNSAFE_componentWillReceiveProps(nextProps: StateTableProps) {
