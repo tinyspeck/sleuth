@@ -117,8 +117,7 @@ export class StateTable extends React.Component<
       );
     const contentCard =
       type === StateType.installation ||
-      type === StateType.externalConfig ||
-      type == StateType.rootState ? (
+      type === StateType.externalConfig ? (
         <div />
       ) : (
         <Card> {content} </Card>
@@ -290,17 +289,11 @@ export class StateTable extends React.Component<
         this.state.data.rootState,
       );
 
-      const externalConfigDefaultJSON = (
-        <JSONView data={externalConfigData.defaults} state={this.props.state} />
+      const externalConfigJSON = (
+        <JSONView data={externalConfigData} state={this.props.state} />
       );
-      const externalConfigPolicyJSON = (
-        <JSONView data={externalConfigData.policies} state={this.props.state} />
-      );
-      const rootDefaultJSON = (
-        <JSONView data={rootStateData.defaults} state={this.props.state} />
-      );
-      const rootPoliciesJSON = (
-        <JSONView data={rootStateData.policies} state={this.props.state} />
+      const rootStateJSON = (
+        <JSONView data={rootStateData} state={this.props.state} />
       );
 
       const message = getMessage(rootStateData, externalConfigData);
@@ -316,8 +309,7 @@ export class StateTable extends React.Component<
                       Root-State Policies + Defaults
                     </p>
                     <div className="jsonContainer">
-                      <p>{rootDefaultJSON}</p>
-                      <p>{rootPoliciesJSON}</p>
+                      <p>{rootStateJSON}</p>
                     </div>
                   </div>
                   <div className="fileDisplay">
@@ -325,8 +317,7 @@ export class StateTable extends React.Component<
                       External Config Policies + Defaults
                     </p>
                     <div className="jsonContainer">
-                      <p>{externalConfigDefaultJSON}</p>
-                      <p>{externalConfigPolicyJSON}</p>
+                      <p>{externalConfigJSON}</p>
                     </div>
                   </div>
                 </div>
