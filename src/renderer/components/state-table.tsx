@@ -99,8 +99,7 @@ export class StateTable extends React.Component<
         <JSONView data={data} raw={raw} state={this.props.state} />
       );
     const contentCard =
-      type === StateType.installation ||
-      type === StateType.externalConfig ? (
+      type === StateType.installation || type === StateType.externalConfig ? (
         <div />
       ) : (
         <Card> {content} </Card>
