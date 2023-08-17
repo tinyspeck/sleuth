@@ -14,7 +14,12 @@ import { JSONView } from './json-view';
 import { parseJSON } from '../../utils/parse-json';
 import { getFontForCSS } from './preferences-font';
 import { getSentryHref, convertInstallation } from '../sentry';
-import isEqual from 'lodash.isequal';
+import path from 'path';
+import {
+  getMessage,
+  getPoliciesAndDefaultsExternalConfig,
+  getPoliciesAndDefaultsRootState,
+} from '../analytics/external-config-analytics';
 
 const d = debug('sleuth:statetable');
 
@@ -22,17 +27,10 @@ export interface StateTableProps {
   state: SleuthState;
 }
 
-export interface RootData {
-  default: object | undefined;
-  policies: object | undefined;
-}
-
 export interface StateTableState<T extends keyof StateData> {
   data?: StateData[T];
   path?: string;
   raw?: string;
-  rootStateData?: StateData[T];
-  externalData?: StateData[T];
 }
 
 export enum StateType {
@@ -70,23 +68,6 @@ export class StateTable extends React.Component<
     if (this.isStateFile(selectedLogFile)) {
       this.parse(selectedLogFile);
     }
-
-    // Need to find root-state and external-config files when mounted to store data in state
-    const files = this.props.state.processedLogFiles?.state;
-    if (files) {
-      const foundExternalConfigFile = files.find((file) =>
-        this.isExternalConfigFile(file),
-      );
-      const foundRootStateFile = files.find((file) =>
-        this.isRootStateFile(file),
-      );
-      if (foundExternalConfigFile) {
-        this.parse(foundExternalConfigFile);
-      }
-      if (foundRootStateFile) {
-        this.parse(foundRootStateFile);
-      }
-    }
   }
 
   public UNSAFE_componentWillReceiveProps(nextProps: StateTableProps) {
@@ -114,14 +95,11 @@ export class StateTable extends React.Component<
       !data && path ? (
         <iframe sandbox="" onLoad={onIFrameLoad} src={path} />
       ) : type === StateType.installation ||
-        type === StateType.externalConfig ||
-        type === StateType.rootState ? null : (
+        type === StateType.externalConfig ? null : (
         <JSONView data={data} raw={raw} state={this.props.state} />
       );
     const contentCard =
-      type === StateType.installation ||
-      type === StateType.externalConfig ||
-      type == StateType.rootState ? (
+      type === StateType.installation || type === StateType.externalConfig ? (
         <div />
       ) : (
         <Card> {content} </Card>
@@ -194,21 +172,19 @@ export class StateTable extends React.Component<
       } catch (error) {
         d(error);
       }
-    } else if (this.isRootStateFile(file)) {
-      try {
-        const rawRootState = await fs.readFile(file.fullPath, 'utf8');
-        this.setState({
-          rootStateData: parseJSON(rawRootState),
-          path: undefined,
-        });
-      } catch (error) {
-        d(error);
-      }
     } else if (this.isExternalConfigFile(file)) {
       try {
         const raw = await fs.readFile(file.fullPath, 'utf8');
+        const rootStatePath = path.resolve(
+          path.dirname(file.fullPath),
+          'root-state.json',
+        );
+        const rootStateRaw = await fs.readFile(rootStatePath, 'utf8');
         this.setState({
-          externalData: parseJSON(raw),
+          data: {
+            externalConfig: parseJSON(raw),
+            rootState: parseJSON(rootStateRaw),
+          },
           path: undefined,
         });
       } catch (error) {
@@ -278,18 +254,6 @@ export class StateTable extends React.Component<
     );
   }
 
-  private renderRootState(): JSX.Element | null {
-    const content = (
-      <JSONView data={this.state.rootStateData} state={this.props.state} />
-    );
-
-    return (
-      <Card className="StateTable-Content" elevation={Elevation.ONE}>
-        {content}
-      </Card>
-    );
-  }
-
   private renderLocalSettings(): JSX.Element | null {
     return (
       <Card className="StateTable-Info" elevation={Elevation.ONE}>
@@ -299,32 +263,22 @@ export class StateTable extends React.Component<
   }
 
   private renderExternalConfig(): JSX.Element | null {
-    if (this.state.externalData && this.state.rootStateData) {
-      const externalConfigData = this.getPoliciesAndDefaultsExternalConfig();
-      const externalConfigDefaultJSON = (
-        <JSONView data={externalConfigData.default} state={this.props.state} />
+    if (this.state?.data?.externalConfig && this.state?.data?.rootState) {
+      const externalConfigData = getPoliciesAndDefaultsExternalConfig(
+        this.state.data.externalConfig,
       );
-      const externalConfigPolicyJSON = (
-        <JSONView data={externalConfigData.policies} state={this.props.state} />
-      );
-      const rootData = this.getPoliciesAndDefaultsRoot();
-      const rootDefaultJSON = (
-        <JSONView data={rootData.default} state={this.props.state} />
-      );
-      const rootPoliciesJSON = (
-        <JSONView data={rootData.policies} state={this.props.state} />
+      const rootStateData = getPoliciesAndDefaultsRootState(
+        this.state.data.rootState,
       );
 
-      const compareDefaults = isEqual(
-        rootData.default,
-        externalConfigData.default,
+      const externalConfigJSON = (
+        <JSONView data={externalConfigData} state={this.props.state} />
       );
-      const comparePolicies = isEqual(
-        rootData.policies,
-        externalConfigData.policies,
+      const rootStateJSON = (
+        <JSONView data={rootStateData} state={this.props.state} />
       );
 
-      const message = this.getMessage(compareDefaults, comparePolicies);
+      const message = getMessage(rootStateData, externalConfigData);
 
       return (
         <div>
@@ -337,8 +291,7 @@ export class StateTable extends React.Component<
                       Root-State Policies + Defaults
                     </p>
                     <div className="jsonContainer">
-                      <p>{rootDefaultJSON}</p>
-                      <p>{rootPoliciesJSON}</p>
+                      <p>{rootStateJSON}</p>
                     </div>
                   </div>
                   <div className="fileDisplay">
@@ -346,8 +299,7 @@ export class StateTable extends React.Component<
                       External Config Policies + Defaults
                     </p>
                     <div className="jsonContainer">
-                      <p>{externalConfigDefaultJSON}</p>
-                      <p>{externalConfigPolicyJSON}</p>
+                      <p>{externalConfigJSON}</p>
                     </div>
                   </div>
                 </div>
@@ -379,72 +331,6 @@ export class StateTable extends React.Component<
     }
   }
 
-  private getPoliciesAndDefaultsRoot(): RootData {
-    const { settings } = this.state.rootStateData;
-    const { itDefaults } = settings;
-    const { itPolicy } = settings;
-
-    const data: RootData = {
-      default: { defaults: itDefaults },
-      policies: { policies: itPolicy },
-    };
-
-    return data;
-  }
-
-  private getPoliciesAndDefaultsExternalConfig(): RootData {
-    const { defaults, ...policies } = this.state.externalData;
-
-    const data: RootData = {
-      default: { defaults: defaults },
-      policies: { policies: policies },
-    };
-
-    return data;
-  }
-
-  private getMessage(
-    defaultMatch: boolean,
-    policiesMatch: boolean,
-  ): JSX.Element | null {
-    if (defaultMatch && policiesMatch) {
-      return (
-        <div>
-          <p className="matchMessage">No problems detected</p>
-          <p>Both files match</p>
-        </div>
-      );
-    } else if (!defaultMatch && policiesMatch) {
-      return (
-        <div>
-          <p className="errorMessage">Problems detected</p>
-          <p>
-            Files do not match: <strong>defaults</strong> differ
-          </p>
-        </div>
-      );
-    } else if (defaultMatch && !policiesMatch) {
-      return (
-        <div>
-          <p className="errorMessage">Problems detected</p>
-          <p>
-            Files do not match: <strong>policies</strong> differ
-          </p>
-        </div>
-      );
-    } else {
-      return (
-        <div>
-          <p className="errorMessage">Problems detected</p>
-          <p>
-            Files do not match: <strong>policies</strong> and{' '}
-            <strong>defaults</strong> differ
-          </p>
-        </div>
-      );
-    }
-  }
-
   private renderInfo(): JSX.Element | null {
     const type = this.getFileType();
 
@@ -460,8 +346,6 @@ export class StateTable extends React.Component<
       return this.renderLocalSettings();
     } else if (type === StateType.externalConfig) {
       return this.renderExternalConfig();
-    } else if (type === StateType.rootState) {
-      return this.renderRootState();
     } else {
       return null;
     }
