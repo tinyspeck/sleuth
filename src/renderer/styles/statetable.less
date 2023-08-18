@@ -34,24 +34,91 @@
     display: inline;
     user-select: initial;
   }
-
-  ul li:after {
-    content: ', ';
-  }
-
-  ul li:last-child:after {
-    content: '';
-  }
-
-  ul li:nth-last-child(2):after {
-    content: ' and ';
-  }
-
-  ul li:nth-last-child(3) ~ li:nth-last-child(2):after {
-    content: ', and ';
-  }
 }
 
 .StateTable-Warning-Info {
   padding-right: 5rem;
+}
+
+.fileDisplay {
+  height: 100%;
+  min-height: 8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#matchDisplay {
+  height: 100%;
+  min-height: 8rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.fileHeaderStyle {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 0;
+}
+
+.errorMessage {
+  color: red;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.matchMessage {
+  color: rgb(127, 207, 127);
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+#descriptionExternalConfig {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#descriptionExternalConfig p {
+  font-size: 0.75rem;
+  opacity: 80%;
+  width: 100%;
+  text-align: center;
+}
+
+#externalConfigContainer {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: start;
+}
+
+#externalConfigContainerTwo {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+#comparisons {
+  grid-column: span 5 / span 5;
+}
+
+#comparisons .StateTable-Info {
+  padding-right: 1.2rem;
+}
+
+#resultContainer {
+  grid-column: span 2 / span 2;
+}
+
+#resultContainer .StateTable-Info {
+  padding-right: 1.2rem;
+}
+
+.jsonContainer {
+  text-align: center;
 }

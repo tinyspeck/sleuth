@@ -14,6 +14,12 @@ import { JSONView } from './json-view';
 import { parseJSON } from '../../utils/parse-json';
 import { getFontForCSS } from './preferences-font';
 import { getSentryHref, convertInstallation } from '../sentry';
+import path from 'path';
+import {
+  getMessage,
+  getPoliciesAndDefaultsExternalConfig,
+  getPoliciesAndDefaultsRootState,
+} from '../analytics/external-config-analytics';
 
 const d = debug('sleuth:statetable');
 
@@ -33,6 +39,8 @@ export enum StateType {
   'installation',
   'environment',
   'localSettings',
+  'rootState',
+  'externalConfig',
   'unknown',
 }
 
@@ -85,12 +93,16 @@ export class StateTable extends React.Component<
     const content =
       !data && path ? (
         <iframe sandbox="" onLoad={onIFrameLoad} src={path} />
-      ) : type === StateType.installation ? null : (
+      ) : type === StateType.installation ||
+        type === StateType.externalConfig ? null : (
         <JSONView data={data} raw={raw} state={this.props.state} />
       );
     const contentCard =
-      type === StateType.installation ? <div /> : <Card> {content} </Card>;
-
+      type === StateType.installation || type === StateType.externalConfig ? (
+        <div />
+      ) : (
+        <Card> {content} </Card>
+      );
     return (
       <div className="StateTable" style={{ fontFamily: getFontForCSS(font) }}>
         <div className="StateTable-Content">
@@ -116,6 +128,14 @@ export class StateTable extends React.Component<
       return StateType.installation;
     }
 
+    if (this.isRootStateFile(selectedLogFile)) {
+      return StateType.rootState;
+    }
+
+    if (this.isExternalConfigFile(selectedLogFile)) {
+      return StateType.externalConfig;
+    }
+
     if (selectedLogFile.fileName === 'environment.json') {
       return StateType.environment;
     }
@@ -138,6 +158,24 @@ export class StateTable extends React.Component<
       try {
         const content = await fs.readFile(file.fullPath, 'utf8');
         this.setState({ data: [content], path: undefined });
+      } catch (error) {
+        d(error);
+      }
+    } else if (this.isExternalConfigFile(file)) {
+      try {
+        const raw = await fs.readFile(file.fullPath, 'utf8');
+        const rootStatePath = path.resolve(
+          path.dirname(file.fullPath),
+          'root-state.json',
+        );
+        const rootStateRaw = await fs.readFile(rootStatePath, 'utf8');
+        this.setState({
+          data: {
+            externalConfig: parseJSON(raw),
+            rootState: parseJSON(rootStateRaw),
+          },
+          path: undefined,
+        });
       } catch (error) {
         d(error);
       }
@@ -213,6 +251,75 @@ export class StateTable extends React.Component<
     );
   }
 
+  private renderExternalConfig(): JSX.Element | null {
+    if (this.state?.data?.externalConfig && this.state?.data?.rootState) {
+      const externalConfigData = getPoliciesAndDefaultsExternalConfig(
+        this.state.data.externalConfig,
+      );
+      const rootStateData = getPoliciesAndDefaultsRootState(
+        this.state.data.rootState,
+      );
+
+      const externalConfigJSON = (
+        <JSONView data={externalConfigData} state={this.props.state} />
+      );
+      const rootStateJSON = (
+        <JSONView data={rootStateData} state={this.props.state} />
+      );
+
+      const message = getMessage(rootStateData, externalConfigData);
+
+      return (
+        <div>
+          <div id="externalConfigContainerTwo">
+            <div id="comparisons">
+              <Card className="StateTable-Info" elevation={Elevation.ONE}>
+                <div id="externalConfigContainer">
+                  <div className="fileDisplay">
+                    <p className="fileHeaderStyle">
+                      Root-State Policies + Defaults
+                    </p>
+                    <div className="jsonContainer">
+                      <p>{rootStateJSON}</p>
+                    </div>
+                  </div>
+                  <div className="fileDisplay">
+                    <p className="fileHeaderStyle">
+                      External Config Policies + Defaults
+                    </p>
+                    <div className="jsonContainer">
+                      <p>{externalConfigJSON}</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+            <div id="resultContainer">
+              <Card className="StateTable-Info" elevation={Elevation.ONE}>
+                <div id="matchDisplay">{message}</div>
+              </Card>
+            </div>
+          </div>
+          <div id="descriptionExternalConfig">
+            <p>
+              {' '}
+              <code>external-config.json</code> is created during the collection
+              of logs to see what defaults and policies are set. The data
+              contained in <code>root-state.json</code> should be the same, but
+              can be modified by more codepaths.
+            </p>
+            <p>
+              If there is a bug with External Config policies, comparing
+              discrepancies between the two may be useful.
+            </p>
+          </div>
+        </div>
+      );
+    } else {
+      return null;
+    }
+  }
+
   private renderInfo(): JSX.Element | null {
     const type = this.getFileType();
 
@@ -226,9 +333,11 @@ export class StateTable extends React.Component<
       return this.renderEnvironmentInfo();
     } else if (type === StateType.localSettings) {
       return this.renderLocalSettings();
+    } else if (type === StateType.externalConfig) {
+      return this.renderExternalConfig();
+    } else {
+      return null;
     }
-
-    return null;
   }
 
   private isStateFile(file?: SelectableLogFile): file is UnzippedFile {
@@ -242,5 +351,13 @@ export class StateTable extends React.Component<
 
   private isInstallationFile(file: UnzippedFile) {
     return file.fullPath.endsWith('installation');
+  }
+
+  private isExternalConfigFile(file: UnzippedFile) {
+    return file.fullPath.endsWith('external-config.json');
+  }
+
+  private isRootStateFile(file: UnzippedFile) {
+    return file.fullPath.endsWith('root-state.json');
   }
 }
