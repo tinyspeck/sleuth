@@ -418,24 +418,20 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     search: string,
     list: Array<LogEntry>,
   ): Array<LogEntry> {
-    const options = {
+    const options: Fuse.IFuseOptions<LogEntry> = {
       keys: ['message'],
-      includeScore: true,
       includeMatches: true,
+      threshold: 0.2,
+      shouldSort: false,
+      ignoreLocation: true
     };
 
     const fuse = new Fuse(list, options);
     const result = fuse.search(search);
 
-    // Although Fuse has a threshold option, it for some reason does not work so doing it manually with .filter here
-    const resultsThresholdFiltered = result.filter((result) =>
-      result.score ? result.score < 0.67 : false,
-    );
+    const res = highlight(result);
 
-    const res = highlight(resultsThresholdFiltered);
-
-    // results displays descending so reverse to show closest match first
-    return res.reverse();
+    return res;
   }
 
   /**
