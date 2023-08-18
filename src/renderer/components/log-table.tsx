@@ -423,7 +423,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       includeMatches: true,
       threshold: 0.2,
       shouldSort: false,
-      ignoreLocation: true
+      ignoreLocation: true,
     };
 
     const fuse = new Fuse(list, options);
