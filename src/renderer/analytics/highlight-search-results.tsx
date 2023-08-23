@@ -2,10 +2,10 @@ import React from 'react';
 import Fuse from 'fuse.js';
 import { LogEntry } from 'src/interfaces';
 
-export function highlight(fuseSearchResult: any) {
+export function highlight(fuseSearchResult: Fuse.FuseResult<LogEntry>[]) {
   const highlightMatches = (
     inputText: string,
-    regions: [number, number][] = [],
+    regions: readonly [number, number][] = [],
   ) => {
     const children: React.ReactNode[] = [];
     let nextUnhighlightedRegionStartingIndex = 0;
@@ -46,11 +46,12 @@ export function highlight(fuseSearchResult: any) {
       const highlightedItem = { ...item };
 
       if (matches) {
-        matches.forEach((match: any) => {
-          highlightedItem.highlightMessage = highlightMatches(
-            match.value,
-            match.indices,
-          );
+        matches.forEach((match: Fuse.FuseResultMatch) => {
+          if (match.value && match.indices)
+            highlightedItem.highlightMessage = highlightMatches(
+              match.value,
+              match.indices,
+            );
         });
       }
       return highlightedItem;
