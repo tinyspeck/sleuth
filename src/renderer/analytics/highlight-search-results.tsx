@@ -1,7 +1,8 @@
 import React from 'react';
+import Fuse from 'fuse.js';
+import { LogEntry } from 'src/interfaces';
 
 export function highlight(fuseSearchResult: any) {
-
   const highlightMatches = (
     inputText: string,
     regions: [number, number][] = [],
@@ -38,15 +39,20 @@ export function highlight(fuseSearchResult: any) {
   };
 
   return fuseSearchResult
-    .filter(({ matches }: any) => matches && matches.length)
-    .map(({ item, matches }: any) => {
+    .filter(
+      ({ matches }: Fuse.FuseResult<LogEntry>) => matches && matches.length,
+    )
+    .map(({ item, matches }: Fuse.FuseResult<LogEntry>) => {
       const highlightedItem = { ...item };
-      // Need to store originalText due to item.message being replaced with JSX element for styling highlights, this cannot be used for is-redux-action function in messageCellRenderer
-      highlightedItem.originalText = item.message;
 
-      matches.forEach((match: any) => {
-        highlightedItem.message = highlightMatches(match.value, match.indices)
-      });
+      if (matches) {
+        matches.forEach((match: any) => {
+          highlightedItem.highlightMessage = highlightMatches(
+            match.value,
+            match.indices,
+          );
+        });
+      }
       return highlightedItem;
     });
 }
