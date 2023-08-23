@@ -1,16 +1,6 @@
 import React from 'react';
 
 export function highlight(fuseSearchResult: any) {
-  const set = (obj: any, path: string, value: JSX.Element) => {
-    const pathValue = path.split('.');
-    let i;
-
-    for (i = 0; i < pathValue.length - 1; i++) {
-      obj = obj[pathValue[i]];
-    }
-
-    obj[pathValue[i]] = value;
-  };
 
   const highlightMatches = (
     inputText: string,
@@ -55,13 +45,8 @@ export function highlight(fuseSearchResult: any) {
       highlightedItem.originalText = item.message;
 
       matches.forEach((match: any) => {
-        set(
-          highlightedItem,
-          match.key,
-          highlightMatches(match.value, match.indices),
-        );
+        highlightedItem.message = highlightMatches(match.value, match.indices)
       });
-
       return highlightedItem;
     });
 }
