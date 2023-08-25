@@ -1,20 +1,11 @@
 import React from 'react';
+import Fuse from 'fuse.js';
+import { LogEntry } from 'src/interfaces';
 
-export function highlight(fuseSearchResult: any) {
-  const set = (obj: any, path: string, value: JSX.Element) => {
-    const pathValue = path.split('.');
-    let i;
-
-    for (i = 0; i < pathValue.length - 1; i++) {
-      obj = obj[pathValue[i]];
-    }
-
-    obj[pathValue[i]] = value;
-  };
-
+export function highlight(fuseSearchResult: Fuse.FuseResult<LogEntry>[]) {
   const highlightMatches = (
     inputText: string,
-    regions: [number, number][] = [],
+    regions: readonly [number, number][] = [],
   ) => {
     const children: React.ReactNode[] = [];
     let nextUnhighlightedRegionStartingIndex = 0;
@@ -48,20 +39,19 @@ export function highlight(fuseSearchResult: any) {
   };
 
   return fuseSearchResult
-    .filter(({ matches }: any) => matches && matches.length)
-    .map(({ item, matches }: any) => {
+    .filter(({ matches }: Fuse.FuseResult<LogEntry>) => Array.isArray(matches))
+    .map(({ item, matches }: Fuse.FuseResult<LogEntry>) => {
       const highlightedItem = { ...item };
-      // Need to store originalText due to item.message being replaced with JSX element for styling highlights, this cannot be used for is-redux-action function in messageCellRenderer
-      highlightedItem.originalText = item.message;
 
-      matches.forEach((match: any) => {
-        set(
-          highlightedItem,
-          match.key,
-          highlightMatches(match.value, match.indices),
-        );
-      });
-
+      if (matches) {
+        matches.forEach((match: Fuse.FuseResultMatch) => {
+          if (match.value && match.indices)
+            highlightedItem.highlightMessage = highlightMatches(
+              match.value,
+              match.indices,
+            );
+        });
+      }
       return highlightedItem;
     });
 }
