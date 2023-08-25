@@ -39,9 +39,7 @@ export function highlight(fuseSearchResult: Fuse.FuseResult<LogEntry>[]) {
   };
 
   return fuseSearchResult
-    .filter(
-      ({ matches }: Fuse.FuseResult<LogEntry>) => matches && matches.length,
-    )
+    .filter(({ matches }: Fuse.FuseResult<LogEntry>) => Array.isArray(matches))
     .map(({ item, matches }: Fuse.FuseResult<LogEntry>) => {
       const highlightedItem = { ...item };
 

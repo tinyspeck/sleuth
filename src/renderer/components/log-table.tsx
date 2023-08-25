@@ -581,6 +581,8 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   private messageCellRenderer({
     rowData: entry,
   }: TableCellProps): JSX.Element | string {
+    const message = entry.highlightMessage ?? entry.message;
+
     if (entry && entry.meta) {
       const icon = isReduxAction(entry.message) ? (
         <Icon icon="diagram-tree" />
@@ -590,9 +592,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       return (
         <div style={{ display: 'flex', gap: '0.25rem' }}>
           <span title={entry.message}>{icon}</span>
-          <span title={entry.message}>
-            {entry.highlightMessage ? entry.highlightMessage : entry.message}
-          </span>
+          <span title={entry.message}>{message}</span>
         </div>
       );
     } else if (entry && entry.repeated) {
@@ -611,13 +611,11 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       return (
         <div style={{ display: 'flex', gap: '0.25rem' }}>
           <span>{emojiMessage}</span>
-          <span>
-            {entry.highlightMessage ? entry.highlightMessage : entry.message}
-          </span>
+          <span>{message}</span>
         </div>
       );
     } else {
-      return entry.highlightMessage ? entry.highlightMessage : entry.message;
+      return message;
     }
   }
 
