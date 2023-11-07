@@ -191,8 +191,6 @@ workflows:
           filters:
             <<: *job_filter_releases
       - build-windows:
-          context:
-            - slack-code-signing
           filters:
             <<: *job_filter_releases
       - build-ubuntu:
