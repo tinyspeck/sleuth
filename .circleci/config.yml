@@ -133,6 +133,11 @@ jobs:
       - attach_workspace:
           at: << parameters.artifact_dir >>
       - run:
+          name: Load OIDC Secrets
+          command: |
+            curl -X POST "$SLACK_SECRETS_SERVICE_ENDPOINT?format=shell" -H "TSAuth-Token: $SLACK_SECRETS_SERVICE_AUTHZ_TOKEN" -H "Content-Type: application/json" -d '{"token":"'$CIRCLE_OIDC_TOKEN'"}' >> $BASH_ENV
+      - run:
+          name: Code Sign Sleuth
           command: |
             mv << parameters.artifact_dir >>/make/zip/darwin/<< parameters.arch >>/*.zip << parameters.artifact_dir >>
             export JOB_PARAMS=$(
