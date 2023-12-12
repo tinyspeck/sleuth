@@ -207,8 +207,8 @@ workflows:
             - build-macos-x64
           arch: x64
           filters:
-            # branches:
-            #   only: main
+            branches:
+              only: main
             <<: *job_filter_releases
       - code-sign-macos:
           name: code-sign-macos-arm64
@@ -216,8 +216,8 @@ workflows:
             - build-macos-arm64
           arch: arm64
           filters:
-            # branches:
-            #   only: main
+            branches:
+              only: main
             <<: *job_filter_releases
       - code-sign-macos:
           name: code-sign-macos-universal
@@ -225,8 +225,8 @@ workflows:
             - build-macos-universal
           arch: universal
           filters:
-            # branches:
-            #   only: main
+            branches:
+              only: main
             <<: *job_filter_releases
       - publish:
           requires:
