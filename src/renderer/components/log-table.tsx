@@ -15,10 +15,12 @@ import {
 } from 'react-virtualized';
 import { Icon } from '@blueprintjs/core';
 import debug from 'debug';
+import Fuse from 'fuse.js';
 
 import { LevelFilter, LogEntry, DateRange } from '../../interfaces';
 import { didFilterChange } from '../../utils/did-filter-change';
 import { isReduxAction } from '../../utils/is-redux-action';
+import { highlight } from '../analytics/highlight-search-results';
 import {
   LogTableProps,
   LogTableState,
@@ -416,28 +418,20 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     search: string,
     list: Array<LogEntry>,
   ): Array<LogEntry> {
-    let searchRegex = getRegExpMaybeSafe(search || '');
+    const options: Fuse.IFuseOptions<LogEntry> = {
+      keys: ['message'],
+      includeMatches: true,
+      threshold: 0.2,
+      shouldSort: false,
+      ignoreLocation: true,
+    };
 
-    function doSearch(a: LogEntry) {
-      return !search || searchRegex.test(a.message);
-    }
-    function doExclude(a: LogEntry) {
-      return !search || !searchRegex.test(a.message);
-    }
-    const searchParams = search.split(' ');
+    const fuse = new Fuse(list, options);
+    const result = fuse.search(search);
 
-    searchParams.forEach((param) => {
-      if (param.startsWith('!') && param.length > 1) {
-        d(`Filter-Excluding ${param.slice(1)}`);
-        searchRegex = getRegExpMaybeSafe(param.slice(1) || '');
-        list = list.filter(doExclude);
-      } else {
-        d(`Filter-Searching for ${param}`);
-        list = list.filter(doSearch);
-      }
-    });
+    const res = highlight(result);
 
-    return list;
+    return res;
   }
 
   /**
@@ -587,17 +581,19 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   private messageCellRenderer({
     rowData: entry,
   }: TableCellProps): JSX.Element | string {
+    const message = entry.highlightMessage ?? entry.message;
+
     if (entry && entry.meta) {
       const icon = isReduxAction(entry.message) ? (
         <Icon icon="diagram-tree" />
       ) : (
         <Icon icon="paperclip" />
       );
-
       return (
-        <span title={entry.message}>
-          {icon} {entry.message}
-        </span>
+        <div style={{ display: 'flex', gap: '0.25rem' }}>
+          <span title={entry.message}>{icon}</span>
+          <span title={entry.message}>{message}</span>
+        </div>
       );
     } else if (entry && entry.repeated) {
       const count = entry.repeated.length;
@@ -611,9 +607,15 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         emoji = '🔥 ';
       }
 
-      return `(${emoji}Repeated ${entry.repeated.length} times) ${entry.message}`;
+      const emojiMessage = `(${emoji}Repeated ${entry.repeated.length} times)`;
+      return (
+        <div style={{ display: 'flex', gap: '0.25rem' }}>
+          <span>{emojiMessage}</span>
+          <span>{message}</span>
+        </div>
+      );
     } else {
-      return entry.message;
+      return message;
     }
   }
 

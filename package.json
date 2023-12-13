@@ -1,7 +1,7 @@
 {
   "name": "sleuth",
   "productName": "Sleuth",
-  "version": "3.4.0",
+  "version": "3.5.1",
   "description": "Slack Log Viewer",
   "main": "./dist/src/main/index.js",
   "scripts": {
@@ -44,6 +44,7 @@
     "electron-window-state": "5.0.3",
     "eslint-config-prettier": "^8.8.0",
     "fs-extra": "9.0.1",
+    "fuse.js": "^6.6.2",
     "jsonic": "1.0.1",
     "lodash.isequal": "^4.5.0",
     "lodash.throttle": "^4.1.1",
