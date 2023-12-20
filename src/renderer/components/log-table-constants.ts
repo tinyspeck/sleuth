@@ -28,6 +28,7 @@ export interface LogTableProps {
   state: SleuthState;
   showOnlySearchResults: boolean | undefined;
   searchIndex: number;
+  searchList: Array<number>;
   dateRange?: DateRange;
   selectedEntry?: LogEntry;
   resultFunction: (results: number) => void;
@@ -35,7 +36,6 @@ export interface LogTableProps {
 
 export interface LogTableState {
   sortedList: Array<LogEntry>;
-  searchList: Array<number>;
   selectedEntry?: LogEntry;
   selectedIndex?: number;
   /**

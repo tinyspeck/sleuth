@@ -55,7 +55,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sortedList: [],
       sortBy: 'index',
       sortDirection: props.state.defaultSort || SORT_DIRECTION.DESC,
-      searchList: [],
       ignoreSearchIndex: false,
     };
 
@@ -73,13 +72,12 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     nextProps: LogTableProps,
     nextState: LogTableState,
   ): boolean {
-    const { dateTimeFormat, levelFilter, logFile, searchIndex, dateRange } =
+    const { dateTimeFormat, levelFilter, logFile, searchIndex, searchList, dateRange } =
       this.props;
     const {
       sortBy,
       sortDirection,
       sortedList,
-      searchList,
       selectedIndex,
       selectedRangeIndex,
     } = this.state;
@@ -118,7 +116,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     // Search changed
     if (
-      searchList !== nextState.searchList ||
+      searchList !== nextProps.searchList ||
       searchIndex !== nextProps.searchIndex
     )
       return true;
@@ -188,12 +186,12 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         dateRange: nextRange,
       };
       const sortedList = this.sortFilterList(sortOptions);
-      let searchList: Array<number> = [];
 
       // Should we create a search list?
       if (!nextShowOnlySearchResults && nextSearch) {
         d(`showOnlySearchResults is false, making search list`);
-        searchList = this.doSearchIndex(nextSearch, sortedList);
+        const searchList = this.doSearchIndex(nextSearch, sortedList);
+        this.props.state.searchList = searchList;
       }
 
       // Get correct selected index
@@ -201,7 +199,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
       this.setState({
         sortedList,
-        searchList,
         selectedIndex,
         scrollToSelection: !!selectedIndex,
       });
@@ -346,12 +343,12 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     if (newSort) {
       const sortedList = this.sortFilterList({ sortBy, sortDirection });
-      let searchList: Array<number> = [];
 
       // Should we create a search list?
       if (!this.props.state.showOnlySearchResults) {
         d(`showOnlySearchResults is false, making search list`);
-        searchList = this.doSearchIndex(this.props.state.search, sortedList);
+        const searchList = this.doSearchIndex(this.props.state.search, sortedList);
+        this.props.state.searchList = searchList;
       }
 
       // Get correct selected index
@@ -361,7 +358,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         sortBy,
         sortDirection,
         sortedList,
-        searchList,
         selectedIndex,
       });
     }
@@ -701,11 +697,10 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     const {
       sortedList,
       selectedIndex,
-      searchList,
       ignoreSearchIndex,
       scrollToSelection,
     } = this.state;
-    const { searchIndex, resultFunction } = this.props;
+    const { searchIndex, searchList, resultFunction } = this.props;
 
     if (Array.isArray(sortedList)) {
       resultFunction(sortedList.length);
@@ -764,7 +759,8 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    */
   private rowClassNameGetter(input: { index: number }): string {
     const { index } = input;
-    const { searchList, selectedIndex, selectedRangeIndex, ignoreSearchIndex } =
+    const { searchList } = this.props;
+    const { selectedIndex, selectedRangeIndex, ignoreSearchIndex } =
       this.state;
     const isSearchIndex =
       !ignoreSearchIndex &&

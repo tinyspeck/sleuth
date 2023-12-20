@@ -60,6 +60,7 @@ export class LogContent extends React.Component<
       font,
       showOnlySearchResults,
       searchIndex,
+      searchList,
       dateRange,
       selectedEntry,
     } = this.props.state;
@@ -88,8 +89,9 @@ export class LogContent extends React.Component<
               logFile={selectedLogFile as ProcessedLogFile}
               levelFilter={levelFilter}
               search={search}
-              showOnlySearchResults={showOnlySearchResults}
               searchIndex={searchIndex}
+              searchList={searchList}
+              showOnlySearchResults={showOnlySearchResults}
               dateRange={dateRange}
               selectedEntry={selectedEntry}
               resultFunction={this.updateNumberResults}
