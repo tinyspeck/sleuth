@@ -70,13 +70,6 @@
     }
   }
 
-  .ActiveRow,
-  .HighlightRow {
-    .fixedDataTableCellGroupLayout_cellGroup:hover {
-      background-color: @gray3;
-    }
-  }
-
   .fuse-highlight {
     padding: 0 1px;
     border-radius: 2px;
@@ -88,6 +81,10 @@
 .bp3-dark {
   .ReactVirtualized__Table__row {
     border-bottom: 1px solid rgba(137, 191, 226, 0.05);
+  }
+
+  .ReactVirtualized__Table__row:hover {
+    background-color: rgba(255, 255, 255, 0.05);
   }
 
   .ActiveRow,
