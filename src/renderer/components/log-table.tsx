@@ -2,7 +2,7 @@ import debounce from 'debounce';
 import React from 'react';
 import classNames from 'classnames';
 import { format } from 'date-fns';
-import { default as keydown, Keys } from 'react-keydown';
+import { default as keydown } from 'react-keydown';
 import autoBind from 'react-autobind';
 import {
   Table,
@@ -34,7 +34,10 @@ import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
 
 const d = debug('sleuth:logtable');
-const { DOWN } = Keys;
+
+// TODO: make search indexes work for re-sorts
+// TODO: make search index also selected
+// TODO: re-enable REGEX mode
 
 /**
  * Welcome! This is the biggest class in this application - it's the table that displays logging
@@ -246,7 +249,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   @keydown('down', 'up')
   public onKeyboardNavigate(e: React.KeyboardEvent) {
     e.preventDefault();
-    this.changeSelection(e.which === DOWN ? 1 : -1);
+    this.changeSelection(e.key === 'ArrowDown' ? 1 : -1);
   }
 
   /**
@@ -308,13 +311,13 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       );
     } else {
       selectedIndex = index;
+      const currentIndex = this.props.state.selectedIndex;
+      this.changeSelection(selectedIndex - (currentIndex ?? 0));
     }
 
-    const selectedEntry = sortedList[selectedIndex] || null;
-
     this.props.state.selectedRangeEntries = selectedRange;
-    this.props.state.selectedEntry = selectedEntry;
     this.props.state.selectedIndex = selectedIndex;
+    this.props.state.selectedEntry = sortedList[selectedIndex];
     this.props.state.selectedRangeIndex = selectedRangeIndex;
     this.props.state.isDetailsVisible = true;
 
@@ -322,16 +325,13 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       selectedIndex,
       selectedRangeIndex,
       ignoreSearchIndex: true,
-      scrollToSelection: false,
+      scrollToSelection: true,
     });
   }
 
   /**
    * Handles the change of sorting direction. This method is passed to the LogTableHeaderCell
    * components, who call it once the user changes sorting.
-   *
-   * @param {string} sortBy
-   * @param {string} sortDirection
    */
   private onSortChange({
     sortBy,
@@ -346,10 +346,24 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       currentState.sortDirection !== sortDirection;
 
     if (newSort) {
+      const sortedList = this.sortFilterList({ sortBy, sortDirection });
+      let searchList: Array<number> = [];
+
+      // Should we create a search list?
+      if (!this.props.state.showOnlySearchResults) {
+        d(`showOnlySearchResults is false, making search list`);
+        searchList = this.doSearchIndex(this.props.state.search, sortedList);
+      }
+
+      // Get correct selected index
+      const selectedIndex = this.findIndexForSelectedEntry(sortedList);
+
       this.setState({
         sortBy,
         sortDirection,
-        sortedList: this.sortFilterList({ sortBy, sortDirection }),
+        sortedList,
+        searchList,
+        selectedIndex,
       });
     }
   }
@@ -362,7 +376,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   private changeSelection(change: number) {
     const { selectedIndex } = this.state;
 
-    if (selectedIndex || selectedIndex === 0) {
+    if (typeof selectedIndex === 'number') {
       const nextIndex = selectedIndex + change;
       const nextEntry = this.state.sortedList[nextIndex] || null;
 
@@ -467,6 +481,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       }
     });
 
+    this.props.state.erick = foundIndices;
     return foundIndices;
   }
 
@@ -600,14 +615,14 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       let emoji = '';
 
       if (count > RepeatedLevels.NOTIFY) {
-        emoji = '🛑 ';
+        emoji = '🛑';
       } else if (count > RepeatedLevels.WARNING) {
-        emoji = '🌶 ';
+        emoji = '🌶';
       } else if (count > RepeatedLevels.ERROR) {
-        emoji = '🔥 ';
+        emoji = '🔥';
       }
 
-      const emojiMessage = `(${emoji}Repeated ${entry.repeated.length} times)`;
+      const emojiMessage = `(${emoji} Repeated ${entry.repeated.length} times)`;
       return (
         <div style={{ display: 'flex', gap: '0.25rem' }}>
           <span>{emojiMessage}</span>
@@ -710,9 +725,9 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sortDirection: this.state.sortDirection,
     };
 
+    if (scrollToSelection) tableOptions.scrollToIndex = selectedIndex || 0;
     if (!ignoreSearchIndex)
       tableOptions.scrollToIndex = searchList[searchIndex] || 0;
-    if (scrollToSelection) tableOptions.scrollToIndex = selectedIndex || 0;
 
     return (
       <Table {...tableOptions}>
@@ -746,10 +761,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   /**
    * Used by the table to get the className for a given row.
    * Called for each row.
-   *
    * @private
-   * @param {number} rowIndex
-   * @returns {string}
    */
   private rowClassNameGetter(input: { index: number }): string {
     const { index } = input;
@@ -763,12 +775,14 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       selectedRangeIndex !== undefined &&
       between(index, selectedIndex, selectedRangeIndex);
 
+    const classes: string[] = [];
+
     if (isSearchIndex || selectedIndex === index || isRangeActive) {
-      return 'ActiveRow';
+      classes.push('ActiveRow');
     }
 
     if (searchList && searchList.includes(index)) {
-      return 'HighlightRow';
+      classes.push('HighlightRow');
     }
 
     const row = this.rowGetter(input);
@@ -776,14 +790,14 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       row?.level === 'error' ||
       (row?.repeated?.length || 0) > RepeatedLevels.ERROR
     ) {
-      return 'ErrorRow';
+      classes.push('ErrorRow');
     } else if (
       row?.level === 'warn' ||
       (row?.repeated?.length || 0) > RepeatedLevels.WARNING
     ) {
-      return 'WarnRow';
+      classes.push('WarnRow');
     }
 
-    return '';
+    return classNames(...classes);
   }
 }

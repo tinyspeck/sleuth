@@ -227,6 +227,7 @@ export class App extends React.Component<object, Partial<AppState>> {
             colorPrimary: '#137cbd',
             colorBgBase: this.sleuthState.isDarkMode ? '#182026' : '#ffffff',
           },
+          cssVar: true,
         }}
       >
         <div className={className}>

@@ -74,6 +74,7 @@ export class SleuthState {
     warn: false,
   };
   @observable public searchIndex = 0;
+  @observable public erick: number[] = [];
   @observable public search = '';
   @observable public showOnlySearchResults: boolean | undefined;
 

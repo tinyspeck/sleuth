@@ -2,22 +2,29 @@ import { observer } from 'mobx-react';
 import React from 'react';
 import debounce from 'debounce';
 import {
-  Button,
-  Classes,
   NavbarDivider,
   NavbarGroup,
-  ButtonGroup,
-  InputGroup,
   Popover,
   Menu,
   Position,
 } from '@blueprintjs/core';
 import dayjs, { Dayjs } from 'dayjs';
-import { DatePicker } from 'antd';
+import { Button, DatePicker, Input, InputRef, Space } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
 import { IpcEvents } from '../../ipc-events';
 import { LogLevel } from '../../interfaces';
+import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
+  EyeInvisibleOutlined,
+  EyeOutlined,
+  FilterOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
+import debug from 'debug';
+
+const d = debug('sleuth:header:filter');
 
 export interface FilterProps {
   state: SleuthState;
@@ -25,7 +32,7 @@ export interface FilterProps {
 
 @observer
 export class Filter extends React.Component<FilterProps, object> {
-  private searchRef = React.createRef<HTMLInputElement>();
+  private searchRef = React.createRef<InputRef>();
 
   constructor(props: FilterProps) {
     super(props);
@@ -34,8 +41,12 @@ export class Filter extends React.Component<FilterProps, object> {
       this.props.state.onFilterToggle.bind(this);
     this.toggleSearchResultVisibility =
       this.toggleSearchResultVisibility.bind(this);
-    this.onSearchChange = debounce(this.onSearchChange.bind(this), 700);
-    this.onChange = this.onChange.bind(this);
+    this.handleSearchQueryChange = debounce(
+      this.handleSearchQueryChange.bind(this),
+      500,
+    );
+    this.handleSearchIndexChange = this.handleSearchIndexChange.bind(this);
+    this.handleDateRangeChange = this.handleDateRangeChange.bind(this);
     this.renderFilter = this.renderFilter.bind(this);
     this.focus = this.focus.bind(this);
   }
@@ -52,19 +63,28 @@ export class Filter extends React.Component<FilterProps, object> {
     ipcRenderer.off(IpcEvents.FIND, this.focus);
   }
 
-  public onSearchChange(value: string) {
-    if (this.props.state.showOnlySearchResults === undefined) {
-      this.props.state.showOnlySearchResults = true;
-    }
-
+  public handleSearchQueryChange(value: string) {
     this.props.state.search = value;
   }
 
-  public onSearchIndexChange(change: number) {
-    this.props.state.searchIndex = this.props.state.searchIndex + change;
+  public handleSearchIndexChange(change: number) {
+    const { erick, searchIndex } = this.props.state;
+    const numSearchResults = erick.length;
+    let newSearchIndex = searchIndex + change;
+
+    if (newSearchIndex >= numSearchResults) {
+      newSearchIndex = 0;
+    } else if (newSearchIndex < 0) {
+      newSearchIndex = numSearchResults - 1;
+    }
+
+    this.props.state.searchIndex = newSearchIndex;
   }
 
-  public onChange(values: [Dayjs, Dayjs], dateStrings: [string, string]) {
+  public handleDateRangeChange(
+    values: [Dayjs, Dayjs],
+    dateStrings: [string, string],
+  ) {
     this.props.state.dateRange = {
       from: values && values[0] ? new Date(dateStrings[0]) : null,
       to: values && values[1] ? new Date(dateStrings[1]) : null,
@@ -114,20 +134,20 @@ export class Filter extends React.Component<FilterProps, object> {
 
     return (
       <Popover content={menu} position={Position.BOTTOM}>
-        <Button icon="filter-list" text="Filter" />
+        <Button icon={<FilterOutlined />} />
       </Popover>
     );
   }
 
   public render() {
-    const { showOnlySearchResults } = this.props.state;
+    const { showOnlySearchResults, searchIndex, erick } = this.props.state;
 
     const showOnlySearchResultsButton = (
       <Button
-        active={showOnlySearchResults}
         onClick={this.toggleSearchResultVisibility}
-        className={Classes.MINIMAL}
-        icon={showOnlySearchResults ? 'eye-off' : 'eye-open'}
+        icon={
+          showOnlySearchResults ? <EyeInvisibleOutlined /> : <EyeOutlined />
+        }
       />
     );
 
@@ -145,30 +165,36 @@ export class Filter extends React.Component<FilterProps, object> {
                 dayjs('23:59:59', 'HH:mm:ss'),
               ],
             }}
-            onChange={this.onChange}
+            onChange={this.handleDateRangeChange}
             allowEmpty={[true, true]}
           />
           <NavbarDivider />
-          <InputGroup
-            leftIcon="search"
-            inputRef={this.searchRef}
-            placeholder="Search"
-            rightElement={showOnlySearchResultsButton}
-            onChange={(e: React.FormEvent) =>
-              this.onSearchChange((e.target as HTMLInputElement).value)
-            }
-          />
-          <NavbarDivider />
-          <ButtonGroup>
-            <Button
-              icon="arrow-left"
-              onClick={() => this.onSearchIndexChange(-1)}
+          <Space.Compact>
+            <Input
+              placeholder="Search"
+              prefix={<SearchOutlined />}
+              onChange={(e) => this.handleSearchQueryChange(e.target.value)}
+              ref={this.searchRef}
+              count={{
+                show: erick.length > 0,
+                strategy: () => {
+                  return searchIndex + 1; // result number is 1-indexed
+                },
+                max: erick.length,
+              }}
             />
-            <Button
-              icon="arrow-right"
-              onClick={() => this.onSearchIndexChange(1)}
-            />
-          </ButtonGroup>
+            <Button.Group>
+              {showOnlySearchResultsButton}
+              <Button
+                icon={<ArrowUpOutlined />}
+                onClick={() => this.handleSearchIndexChange(-1)}
+              />
+              <Button
+                icon={<ArrowDownOutlined />}
+                onClick={() => this.handleSearchIndexChange(1)}
+              />
+            </Button.Group>
+          </Space.Compact>
         </NavbarGroup>
       </>
     );

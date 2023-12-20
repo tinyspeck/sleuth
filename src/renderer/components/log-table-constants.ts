@@ -38,7 +38,9 @@ export interface LogTableState {
   searchList: Array<number>;
   selectedEntry?: LogEntry;
   selectedIndex?: number;
-  // If not undefined, the user selected a range
+  /**
+   * If not undefined, the user selected a range of log lines.
+   */
   selectedRangeIndex?: number;
   sortBy?: string;
   sortDirection?: SORT_DIRECTION;
