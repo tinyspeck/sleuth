@@ -35,7 +35,6 @@ import { RepeatedLevels } from '../../shared-constants';
 
 const d = debug('sleuth:logtable');
 
-// TODO: make search indexes work for re-sorts
 // TODO: make search index also selected
 // TODO: re-enable REGEX mode
 
@@ -481,7 +480,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       }
     });
 
-    this.props.state.erick = foundIndices;
+    this.props.state.searchList = foundIndices;
     return foundIndices;
   }
 

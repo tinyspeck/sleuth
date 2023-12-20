@@ -68,8 +68,8 @@ export class Filter extends React.Component<FilterProps, object> {
   }
 
   public handleSearchIndexChange(change: number) {
-    const { erick, searchIndex } = this.props.state;
-    const numSearchResults = erick.length;
+    const { searchList, searchIndex } = this.props.state;
+    const numSearchResults = searchList.length;
     let newSearchIndex = searchIndex + change;
 
     if (newSearchIndex >= numSearchResults) {
@@ -140,7 +140,7 @@ export class Filter extends React.Component<FilterProps, object> {
   }
 
   public render() {
-    const { showOnlySearchResults, searchIndex, erick } = this.props.state;
+    const { showOnlySearchResults, searchIndex, searchList } = this.props.state;
 
     const showOnlySearchResultsButton = (
       <Button
@@ -176,11 +176,11 @@ export class Filter extends React.Component<FilterProps, object> {
               onChange={(e) => this.handleSearchQueryChange(e.target.value)}
               ref={this.searchRef}
               count={{
-                show: erick.length > 0,
+                show: searchList.length > 0,
                 strategy: () => {
                   return searchIndex + 1; // result number is 1-indexed
                 },
-                max: erick.length,
+                max: searchList.length,
               }}
             />
             <Button.Group>
