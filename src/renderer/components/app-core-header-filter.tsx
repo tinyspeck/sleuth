@@ -17,7 +17,6 @@ import { LogLevel } from '../../interfaces';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
-  CloseOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
   FilterOutlined,
@@ -44,7 +43,6 @@ export class Filter extends React.Component<FilterProps, object> {
       500,
     );
     this.handleSearchIndexChange = this.handleSearchIndexChange.bind(this);
-    this.handleSearchClear = this.handleSearchClear.bind(this);
     this.handleDateRangeChange = this.handleDateRangeChange.bind(this);
     this.renderFilter = this.renderFilter.bind(this);
     this.focus = this.focus.bind(this);
@@ -78,16 +76,6 @@ export class Filter extends React.Component<FilterProps, object> {
     }
 
     this.props.state.searchIndex = newSearchIndex;
-  }
-
-  public handleSearchClear() {
-    this.props.state.searchIndex = -1;
-    this.props.state.search = '';
-    this.props.state.searchList = [];
-
-    if (this.searchRef.current?.input) {
-      this.searchRef.current.input.value = '';
-    }
   }
 
   public handleDateRangeChange(
@@ -161,7 +149,6 @@ export class Filter extends React.Component<FilterProps, object> {
     );
 
     const { RangePicker } = DatePicker;
-
     return (
       <>
         <NavbarGroup className="FilterGroup">
@@ -187,6 +174,7 @@ export class Filter extends React.Component<FilterProps, object> {
               prefix={<SearchOutlined />}
               onChange={(e) => this.handleSearchQueryChange(e.target.value)}
               ref={this.searchRef}
+              allowClear={true}
               count={{
                 show: searchList.length > 0,
                 strategy: () => {
@@ -213,10 +201,6 @@ export class Filter extends React.Component<FilterProps, object> {
               <Button
                 icon={<ArrowDownOutlined />}
                 onClick={() => this.handleSearchIndexChange(1)}
-              />
-              <Button
-                icon={<CloseOutlined />}
-                onClick={this.handleSearchClear}
               />
             </Button.Group>
           </Space.Compact>

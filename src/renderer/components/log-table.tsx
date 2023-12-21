@@ -152,7 +152,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       showOnlySearchResults,
       searchIndex,
       dateRange,
-      searchMethod,
     } = this.props;
 
     // Next props
@@ -588,7 +587,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     }
 
     // Search
-    if (search) {
+    if (typeof search === 'string') {
       const [sortedList2, searchList] =
         this.props.state.searchMethod === 'fuzzy'
           ? this.doFuzzySearch(sortedList, options)
