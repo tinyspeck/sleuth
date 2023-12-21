@@ -24,11 +24,12 @@ export interface LogTableProps {
   logFile: ProcessedLogFile | MergedLogFile;
   levelFilter: LevelFilter;
   search?: string;
+  searchIndex: number;
+  searchList: Array<number>;
+  searchMethod: 'regex' | 'fuzzy';
   dateTimeFormat: string;
   state: SleuthState;
   showOnlySearchResults: boolean | undefined;
-  searchIndex: number;
-  searchList: Array<number>;
   dateRange?: DateRange;
   selectedEntry?: LogEntry;
   resultFunction: (results: number) => void;

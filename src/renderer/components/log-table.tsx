@@ -44,7 +44,10 @@ const d = debug('sleuth:logtable');
  * here!
  */
 export class LogTable extends React.Component<LogTableProps, LogTableState> {
-  private changeSelectedEntry:
+  /**
+   * Debounce wrapper for changing the selected log entry.
+   */
+  private _changeSelectedEntry:
     | ((() => void) & { clear(): void } & { flush(): void })
     | null = null;
 
@@ -72,8 +75,15 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     nextProps: LogTableProps,
     nextState: LogTableState,
   ): boolean {
-    const { dateTimeFormat, levelFilter, logFile, searchIndex, searchList, dateRange } =
-      this.props;
+    const {
+      dateTimeFormat,
+      levelFilter,
+      logFile,
+      searchIndex,
+      searchList,
+      searchMethod,
+      dateRange,
+    } = this.props;
     const {
       sortBy,
       sortDirection,
@@ -121,6 +131,11 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     )
       return true;
 
+    // Search method changed
+    if (searchMethod !== nextProps.searchMethod) {
+      return true;
+    }
+
     return false;
   }
 
@@ -137,6 +152,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       showOnlySearchResults,
       searchIndex,
       dateRange,
+      searchMethod,
     } = this.props;
 
     // Next props
@@ -145,6 +161,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     const nextLevelFilter = nextProps.levelFilter;
     const nextSearch = nextProps.search;
     const nextEntry = nextProps.selectedEntry;
+    const nextSearchMethod = nextProps.searchMethod;
 
     // Filter or search changed
     const entryChanged = nextEntry !== this.state.selectedEntry;
@@ -158,6 +175,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         nextFile &&
         logFile.logEntries.length !== nextFile.logEntries.length) ||
       (logFile && nextFile && logFile.logType !== nextFile.logType);
+    const searchMethodChanged = nextSearchMethod !== this.props.searchMethod;
 
     // Date range changed
     const rangeChanged = dateRange !== nextProps.dateRange;
@@ -176,7 +194,8 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       searchChanged ||
       fileChanged ||
       rangeChanged ||
-      entryChanged
+      entryChanged ||
+      searchMethodChanged
     ) {
       const sortOptions: SortFilterListOptions = {
         showOnlySearchResults: nextShowOnlySearchResults,
@@ -185,14 +204,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         logFile: nextFile,
         dateRange: nextRange,
       };
-      const sortedList = this.sortFilterList(sortOptions);
-
-      // Should we create a search list?
-      if (!nextShowOnlySearchResults && nextSearch) {
-        d(`showOnlySearchResults is false, making search list`);
-        const searchList = this.doSearchIndex(nextSearch, sortedList);
-        this.props.state.searchList = searchList;
-      }
+      const sortedList = this.sortAndFilterList(sortOptions);
 
       // Get correct selected index
       const selectedIndex = this.findIndexForSelectedEntry(sortedList);
@@ -221,7 +233,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    * React's componentDidMount
    */
   public componentDidMount() {
-    const sortedList = this.sortFilterList();
+    const sortedList = this.sortAndFilterList();
     const { selectedEntry, selectedIndex } = this.props.state;
     const update: Pick<
       LogTableState,
@@ -342,14 +354,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       currentState.sortDirection !== sortDirection;
 
     if (newSort) {
-      const sortedList = this.sortFilterList({ sortBy, sortDirection });
-
-      // Should we create a search list?
-      if (!this.props.state.showOnlySearchResults) {
-        d(`showOnlySearchResults is false, making search list`);
-        const searchList = this.doSearchIndex(this.props.state.search, sortedList);
-        this.props.state.searchList = searchList;
-      }
+      const sortedList = this.sortAndFilterList({ sortBy, sortDirection });
 
       // Get correct selected index
       const selectedIndex = this.findIndexForSelectedEntry(sortedList);
@@ -379,14 +384,14 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         // Schedule an app-state update. This ensures
         // that we don't update the selection at a high
         // frequency
-        if (this.changeSelectedEntry) {
-          this.changeSelectedEntry.clear();
+        if (this._changeSelectedEntry) {
+          this._changeSelectedEntry.clear();
         }
-        this.changeSelectedEntry = debounce(() => {
+        this._changeSelectedEntry = debounce(() => {
           this.props.state.selectedEntry = nextEntry;
           this.props.state.selectedIndex = nextIndex;
         }, 100);
-        this.changeSelectedEntry();
+        this._changeSelectedEntry();
 
         this.setState({
           selectedIndex: nextIndex,
@@ -418,66 +423,76 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
   /**
    * Performs a search operation
-   *
-   * @param {string} search
-   * @param {Array<LogEntry>} list
-   * @returns Array<LogEntry>
    */
-  private doSearchFilter(
-    search: string,
+  private doFuzzySearch(
     list: Array<LogEntry>,
-  ): Array<LogEntry> {
+    searchOptions: SortFilterListOptions,
+  ): [Array<LogEntry>, Array<number>] {
     const options: Fuse.IFuseOptions<LogEntry> = {
       keys: ['message'],
       includeMatches: true,
       threshold: 0.2,
       shouldSort: false,
       ignoreLocation: true,
+      useExtendedSearch: true,
     };
 
-    const fuse = new Fuse(list, options);
-    const result = fuse.search(search);
+    let rowsToDisplay = list;
+    let foundIndices: Array<number> = [];
 
-    const res = highlight(result);
+    if (searchOptions.search) {
+      const fuse = new Fuse(list, options);
+      const searchResult = fuse.search(searchOptions.search);
+      const highlightedResult = highlight(searchResult);
+      rowsToDisplay = highlightedResult;
 
-    return res;
+      if (searchOptions.showOnlySearchResults) {
+        foundIndices = Array.from(rowsToDisplay.keys());
+      } else {
+        // We use an internal Fuse.js API here to grab all records from the index
+        // before the filtering even happens
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        rowsToDisplay = (fuse as any)._docs;
+
+        highlightedResult.forEach((entry) => {
+          const substitutionIndex = rowsToDisplay.findIndex(
+            (row) => row.index === entry.index,
+          );
+          rowsToDisplay[substitutionIndex] = entry;
+          foundIndices.push(substitutionIndex);
+        });
+      }
+    }
+
+    return [rowsToDisplay, foundIndices];
   }
 
   /**
    * Performs a search operation
-   *
-   * @param {string} search
-   * @param {Array<LogEntry>} list
-   * @returns Array<number>
    */
-  private doSearchIndex(search: string, list: Array<LogEntry>): Array<number> {
-    let searchRegex = getRegExpMaybeSafe(search);
+  private doRegexSearch(
+    list: Array<LogEntry>,
+    searchOptions: SortFilterListOptions,
+  ): [Array<LogEntry>, Array<number>] {
+    const searchRegex = getRegExpMaybeSafe(searchOptions.search);
 
-    const foundIndices: Array<number> = [];
+    let rowsToDisplay = list;
+    let foundIndices: Array<number> = [];
 
-    function doSearch(a: LogEntry, i: number) {
-      if (!search || searchRegex.test(a.message)) foundIndices.push(i);
+    if (searchOptions.showOnlySearchResults) {
+      rowsToDisplay = list.filter(
+        (entry) => !searchOptions.search || searchRegex.test(entry.message),
+      );
+      foundIndices = Array.from(rowsToDisplay.keys());
+    } else {
+      list.forEach((entry, index) => {
+        if (!searchOptions || searchRegex.test(entry.message)) {
+          foundIndices.push(index);
+        }
+      });
     }
 
-    function doExclude(a: LogEntry, i: number) {
-      if (!search || !searchRegex.test(a.message)) foundIndices.push(i);
-    }
-
-    const searchParams = search.split(' ');
-
-    searchParams.forEach((param) => {
-      if (param.startsWith('!') && param.length > 1) {
-        d(`Index-Excluding ${param.slice(1)}`);
-        searchRegex = getRegExpMaybeSafe(param.slice(1));
-        list.forEach(doExclude);
-      } else {
-        d(`Index-Searching for ${param}`);
-        list.forEach(doSearch);
-      }
-    });
-
-    this.props.state.searchList = foundIndices;
-    return foundIndices;
+    return [rowsToDisplay, foundIndices];
   }
 
   private doRangeFilter(
@@ -500,17 +515,15 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   /**
    * Sorts the list
    */
-  private sortFilterList(options: SortFilterListOptions = {}): Array<LogEntry> {
+  private sortAndFilterList(
+    options: SortFilterListOptions = {},
+  ): Array<LogEntry> {
     const logFile = options.logFile || this.props.logFile;
     const filter = options.filter || this.props.levelFilter;
     const search =
       options.search !== undefined ? options.search : this.props.search;
     const sortBy = options.sortBy || this.state.sortBy;
     const dateRange = options.dateRange || this.props.dateRange;
-    const showOnlySearchResults =
-      options.showOnlySearchResults !== undefined
-        ? options.showOnlySearchResults
-        : this.props.showOnlySearchResults;
     const sortDirection = options.sortDirection || this.state.sortDirection;
 
     d(`Starting filter`);
@@ -549,11 +562,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sortedList = sortedList.filter(doFilter);
     }
 
-    // Search
-    if (search && showOnlySearchResults) {
-      sortedList = this.doSearchFilter(search, sortedList);
-    }
-
     // DateRange
     if (dateRange) {
       d(
@@ -577,6 +585,17 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     if (sortDirection === SORT_DIRECTION.DESC) {
       d('Reversing');
       sortedList.reverse();
+    }
+
+    // Search
+    if (search) {
+      const [sortedList2, searchList] =
+        this.props.state.searchMethod === 'fuzzy'
+          ? this.doFuzzySearch(sortedList, options)
+          : this.doRegexSearch(sortedList, options);
+
+      sortedList = sortedList2;
+      this.props.state.searchList = searchList;
     }
 
     return sortedList;
@@ -688,18 +707,10 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
   /**
    * Renders the table
-   *
-   * @param {*} options
-   * @param {Array<LogEntry>} sortedList
-   * @returns {JSX.Element}
    */
   private renderTable(options: Size): JSX.Element {
-    const {
-      sortedList,
-      selectedIndex,
-      ignoreSearchIndex,
-      scrollToSelection,
-    } = this.state;
+    const { sortedList, selectedIndex, ignoreSearchIndex, scrollToSelection } =
+      this.state;
     const { searchIndex, searchList, resultFunction } = this.props;
 
     if (Array.isArray(sortedList)) {
@@ -717,10 +728,11 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sort: this.onSortChange,
       sortBy: this.state.sortBy,
       sortDirection: this.state.sortDirection,
+      scrollToAlignment: 'center',
     };
 
-    if (scrollToSelection) tableOptions.scrollToIndex = selectedIndex || 0;
-    if (!ignoreSearchIndex)
+    if (scrollToSelection) tableOptions.scrollToIndex = selectedIndex || 0 + 5;
+    if (!ignoreSearchIndex && searchList.length > 0)
       tableOptions.scrollToIndex = searchList[searchIndex] || 0;
 
     return (
@@ -760,11 +772,11 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   private rowClassNameGetter(input: { index: number }): string {
     const { index } = input;
     const { searchList } = this.props;
-    const { selectedIndex, selectedRangeIndex, ignoreSearchIndex } =
-      this.state;
+    const { selectedIndex, selectedRangeIndex, ignoreSearchIndex } = this.state;
     const isSearchIndex =
       !ignoreSearchIndex &&
-      index === (searchList || [])[this.props.searchIndex];
+      searchList.length > 0 &&
+      index === searchList[this.props.searchIndex];
     const isRangeActive =
       selectedIndex !== undefined &&
       selectedRangeIndex !== undefined &&
@@ -776,7 +788,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       classes.push('ActiveRow');
     }
 
-    if (searchList && searchList.includes(index)) {
+    if (Array.isArray(searchList) && searchList.includes(index)) {
       classes.push('HighlightRow');
     }
 

@@ -17,14 +17,12 @@ import { LogLevel } from '../../interfaces';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
+  CloseOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
   FilterOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import debug from 'debug';
-
-const d = debug('sleuth:header:filter');
 
 export interface FilterProps {
   state: SleuthState;
@@ -46,6 +44,7 @@ export class Filter extends React.Component<FilterProps, object> {
       500,
     );
     this.handleSearchIndexChange = this.handleSearchIndexChange.bind(this);
+    this.handleSearchClear = this.handleSearchClear.bind(this);
     this.handleDateRangeChange = this.handleDateRangeChange.bind(this);
     this.renderFilter = this.renderFilter.bind(this);
     this.focus = this.focus.bind(this);
@@ -79,6 +78,16 @@ export class Filter extends React.Component<FilterProps, object> {
     }
 
     this.props.state.searchIndex = newSearchIndex;
+  }
+
+  public handleSearchClear() {
+    this.props.state.searchIndex = -1;
+    this.props.state.search = '';
+    this.props.state.searchList = [];
+
+    if (this.searchRef.current?.input) {
+      this.searchRef.current.input.value = '';
+    }
   }
 
   public handleDateRangeChange(
@@ -155,7 +164,10 @@ export class Filter extends React.Component<FilterProps, object> {
 
     return (
       <>
-        <NavbarGroup className="FilterGroup">{this.renderFilter()}</NavbarGroup>
+        <NavbarGroup className="FilterGroup">
+          {this.renderFilter()}
+          {showOnlySearchResultsButton}
+        </NavbarGroup>
         <NavbarGroup className="SearchGroup">
           <NavbarDivider />
           <RangePicker
@@ -184,7 +196,16 @@ export class Filter extends React.Component<FilterProps, object> {
               }}
             />
             <Button.Group>
-              {showOnlySearchResultsButton}
+              <Button
+                onClick={() =>
+                  (this.props.state.searchMethod =
+                    this.props.state.searchMethod === 'regex'
+                      ? 'fuzzy'
+                      : 'regex')
+                }
+              >
+                {this.props.state.searchMethod}
+              </Button>
               <Button
                 icon={<ArrowUpOutlined />}
                 onClick={() => this.handleSearchIndexChange(-1)}
@@ -192,6 +213,10 @@ export class Filter extends React.Component<FilterProps, object> {
               <Button
                 icon={<ArrowDownOutlined />}
                 onClick={() => this.handleSearchIndexChange(1)}
+              />
+              <Button
+                icon={<CloseOutlined />}
+                onClick={this.handleSearchClear}
               />
             </Button.Group>
           </Space.Compact>
