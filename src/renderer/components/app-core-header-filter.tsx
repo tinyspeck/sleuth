@@ -168,7 +168,7 @@ export class Filter extends React.Component<FilterProps, object> {
             allowEmpty={[true, true]}
           />
           <NavbarDivider />
-          <Space.Compact>
+          <Space.Compact className="SearchInputGroup">
             <Input
               placeholder="Search"
               prefix={<SearchOutlined />}

@@ -473,6 +473,10 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     list: Array<LogEntry>,
     searchOptions: SortFilterListOptions,
   ): [Array<LogEntry>, Array<number>] {
+    if (searchOptions.search?.length === 0) {
+      return [list, []];
+    }
+
     const searchRegex = getRegExpMaybeSafe(searchOptions.search);
 
     let rowsToDisplay = list;
