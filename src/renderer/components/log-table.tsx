@@ -20,7 +20,6 @@ import Fuse from 'fuse.js';
 import { LevelFilter, LogEntry, DateRange } from '../../interfaces';
 import { didFilterChange } from '../../utils/did-filter-change';
 import { isReduxAction } from '../../utils/is-redux-action';
-import { highlight } from '../analytics/highlight-search-results';
 import {
   LogTableProps,
   LogTableState,
@@ -427,13 +426,14 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     list: Array<LogEntry>,
     searchOptions: SortFilterListOptions,
   ): [Array<LogEntry>, Array<number>] {
+    // TODO: make these configurable?
     const options: Fuse.IFuseOptions<LogEntry> = {
       keys: ['message'],
-      includeMatches: true,
-      threshold: 0.2,
+      threshold: 0.3,
       shouldSort: false,
       ignoreLocation: true,
       useExtendedSearch: true,
+      minMatchCharLength: 3,
     };
 
     let rowsToDisplay = list;
@@ -442,24 +442,18 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     if (searchOptions.search) {
       const fuse = new Fuse(list, options);
       const searchResult = fuse.search(searchOptions.search);
-      const highlightedResult = highlight(searchResult);
-      rowsToDisplay = highlightedResult;
 
       if (searchOptions.showOnlySearchResults) {
+        rowsToDisplay = searchResult.map((result) => result.item);
         foundIndices = Array.from(rowsToDisplay.keys());
       } else {
         // We use an internal Fuse.js API here to grab all records from the index
         // before the filtering even happens
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         rowsToDisplay = (fuse as any)._docs;
-
-        highlightedResult.forEach((entry) => {
-          const substitutionIndex = rowsToDisplay.findIndex(
-            (row) => row.index === entry.index,
-          );
-          rowsToDisplay[substitutionIndex] = entry;
-          foundIndices.push(substitutionIndex);
-        });
+        foundIndices = searchResult.map((result) =>
+          list.findIndex((row) => row.index === result.item.index),
+        );
       }
     }
 

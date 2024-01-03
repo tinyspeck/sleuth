@@ -81,7 +81,6 @@ export interface LogEntry {
   message: string;
   level: LogLevel;
   logType: LogType;
-  highlightMessage?: JSX.Element | undefined;
   line: number;
   sourceFile: string;
   meta?: string | LogEntry;
