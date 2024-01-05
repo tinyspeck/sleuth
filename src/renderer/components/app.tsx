@@ -40,7 +40,7 @@ export class App extends React.Component<object, Partial<AppState>> {
       unzippedFiles: [],
     };
 
-    localStorage.debug = 'sleuth:logtable*';
+    localStorage.debug = 'sleuth:*';
 
     this.openFile = this.openFile.bind(this);
     this.openDirectory = this.openDirectory.bind(this);

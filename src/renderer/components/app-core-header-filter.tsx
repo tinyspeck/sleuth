@@ -22,6 +22,7 @@ import {
   FilterOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
+import assert from 'assert';
 
 export interface FilterProps {
   state: SleuthState;
@@ -64,15 +65,41 @@ export class Filter extends React.Component<FilterProps, object> {
     this.props.state.search = value;
   }
 
+  /**
+   * Handles an increment or decrement of the selected index in the
+   * searchList array. Essentially goes back and forth between search
+   * results.
+   * @param change 1 or -1, normally
+   */
   public handleSearchIndexChange(change: number) {
-    const { searchList, searchIndex } = this.props.state;
-    const numSearchResults = searchList.length;
-    let newSearchIndex = searchIndex + change;
+    const { searchList, searchIndex, selectedIndex } = this.props.state;
+    // noop if we have no search results at the moment
+    if (searchList.length === 0 || selectedIndex === undefined) {
+      return;
+    }
+    let newSearchIndex = 0;
 
-    if (newSearchIndex >= numSearchResults) {
-      newSearchIndex = 0;
-    } else if (newSearchIndex < 0) {
-      newSearchIndex = numSearchResults - 1;
+    if (selectedIndex === searchList[searchIndex]) {
+      const numSearchResults = searchList.length;
+      newSearchIndex = searchIndex + change;
+      if (newSearchIndex >= numSearchResults) {
+        newSearchIndex = 0;
+      } else if (newSearchIndex < 0) {
+        newSearchIndex = numSearchResults - 1;
+      }
+    } else {
+      // if we're currently selecting a row that isn't in the search result list,
+      // we want the arrow keys to point us back to the nearest search result in that
+      // direction. This is kind of what VSCode does for its search arrows.
+      // For positive change, we just want the next largest search index but for negative
+      // change, we want the previous one so we offset by -1 indices.
+      const offset = change > 0 ? 0 : -1;
+      for (const [index, searchIndex] of searchList.entries()) {
+        if (searchIndex > selectedIndex) {
+          newSearchIndex = index + offset;
+          break;
+        }
+      }
     }
 
     this.props.state.searchIndex = newSearchIndex;

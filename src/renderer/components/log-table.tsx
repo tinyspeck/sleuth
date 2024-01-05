@@ -31,11 +31,9 @@ import { getRegExpMaybeSafe } from '../../utils/regexp';
 import { between } from '../../utils/is-between';
 import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
+import { reaction } from 'mobx';
 
 const d = debug('sleuth:logtable');
-
-// TODO: make search index also selected
-// TODO: re-enable REGEX mode
 
 /**
  * Welcome! This is the biggest class in this application - it's the table that displays logging
@@ -61,6 +59,23 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     };
 
     autoBind(this);
+    this.selectSearchIndex();
+  }
+
+  /**
+   * If we update the `searchIndex` variable by any means, we should
+   * select the appropriate searchIndex.
+   */
+  private selectSearchIndex() {
+    reaction(
+      () => this.props.state.searchIndex,
+      (searchIndex) => {
+        this.props.state.selectedIndex =
+          this.props.state.searchList[searchIndex];
+        this.props.state.selectedEntry =
+          this.state.sortedList[this.props.state.selectedIndex];
+      },
+    );
   }
 
   /**
@@ -136,6 +151,16 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     }
 
     return false;
+  }
+
+  public componentDidUpdate() {
+    const { selectedIndex } = this.state;
+    if (
+      this.props.state.searchList.length > 0 &&
+      (typeof selectedIndex === 'undefined' || selectedIndex < 0)
+    ) {
+      this.changeSelection(this.props.state.searchList[0]);
+    }
   }
 
   /**
@@ -255,7 +280,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   @keydown('down', 'up')
   public onKeyboardNavigate(e: React.KeyboardEvent) {
     e.preventDefault();
-    this.changeSelection(e.key === 'ArrowDown' ? 1 : -1);
+    this.incrementSelection(e.key === 'ArrowDown' ? 1 : -1);
   }
 
   /**
@@ -317,8 +342,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       );
     } else {
       selectedIndex = index;
-      const currentIndex = this.props.state.selectedIndex;
-      this.changeSelection(selectedIndex - (currentIndex ?? 0));
+      this.changeSelection(selectedIndex);
     }
 
     this.props.state.selectedRangeEntries = selectedRange;
@@ -367,36 +391,45 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   }
 
   /**
-   * Changes the current selection in the table
+   * Changes the current selection in the table to the target index
    *
-   * @param {number} change
+   * @param {number} newIndex
    */
-  private changeSelection(change: number) {
+  private changeSelection(newIndex: number) {
+    const nextIndex = newIndex;
+    const nextEntry = this.state.sortedList[nextIndex] || null;
+
+    if (nextEntry) {
+      // Schedule an app-state update. This ensures
+      // that we don't update the selection at a high
+      // frequency
+      if (this._changeSelectedEntry) {
+        this._changeSelectedEntry.clear();
+      }
+      this._changeSelectedEntry = debounce(() => {
+        this.props.state.selectedEntry = nextEntry;
+        this.props.state.selectedIndex = nextIndex;
+
+        if (!this.props.state.isDetailsVisible) {
+          this.props.state.isDetailsVisible = true;
+        }
+      }, 100);
+      this._changeSelectedEntry();
+
+      this.setState({
+        selectedIndex: nextIndex,
+        ignoreSearchIndex: false,
+        scrollToSelection: true,
+      });
+    }
+  }
+
+  private incrementSelection(count: number) {
     const { selectedIndex } = this.state;
 
     if (typeof selectedIndex === 'number') {
-      const nextIndex = selectedIndex + change;
-      const nextEntry = this.state.sortedList[nextIndex] || null;
-
-      if (nextEntry) {
-        // Schedule an app-state update. This ensures
-        // that we don't update the selection at a high
-        // frequency
-        if (this._changeSelectedEntry) {
-          this._changeSelectedEntry.clear();
-        }
-        this._changeSelectedEntry = debounce(() => {
-          this.props.state.selectedEntry = nextEntry;
-          this.props.state.selectedIndex = nextIndex;
-        }, 100);
-        this._changeSelectedEntry();
-
-        this.setState({
-          selectedIndex: nextIndex,
-          ignoreSearchIndex: false,
-          scrollToSelection: true,
-        });
-      }
+      const nextIndex = selectedIndex + count;
+      this.changeSelection(nextIndex);
     }
   }
 
@@ -510,7 +543,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   }
 
   /**
-   * Sorts the list
+   * Sorts the list and filters it by log level and search query
    */
   private sortAndFilterList(
     options: SortFilterListOptions = {},
@@ -708,11 +741,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   private renderTable(options: Size): JSX.Element {
     const { sortedList, selectedIndex, ignoreSearchIndex, scrollToSelection } =
       this.state;
-    const { searchIndex, searchList, resultFunction } = this.props;
-
-    if (Array.isArray(sortedList)) {
-      resultFunction(sortedList.length);
-    }
+    const { searchIndex, searchList } = this.props;
 
     const tableOptions: TableProps = {
       ...options,

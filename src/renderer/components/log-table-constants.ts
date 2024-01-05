@@ -32,7 +32,6 @@ export interface LogTableProps {
   showOnlySearchResults: boolean | undefined;
   dateRange?: DateRange;
   selectedEntry?: LogEntry;
-  resultFunction: (results: number) => void;
 }
 
 export interface LogTableState {
