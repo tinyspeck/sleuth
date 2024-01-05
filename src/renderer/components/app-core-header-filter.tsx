@@ -9,7 +9,7 @@ import {
   Position,
 } from '@blueprintjs/core';
 import dayjs, { Dayjs } from 'dayjs';
-import { Button, DatePicker, Input, InputRef, Space } from 'antd';
+import { Button, DatePicker, Input, InputRef, Select, Space } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
 import { IpcEvents } from '../../ipc-events';
@@ -22,6 +22,8 @@ import {
   FilterOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
+
+const { Option } = Select;
 
 export interface FilterProps {
   state: SleuthState;
@@ -208,25 +210,28 @@ export class Filter extends React.Component<FilterProps, object> {
                 },
                 max: searchList.length,
               }}
+              addonBefore={
+                <Select
+                  defaultValue="fuzzy"
+                  onSelect={(value) =>
+                    (this.props.state.searchMethod = value as 'fuzzy' | 'regex')
+                  }
+                >
+                  <Option value="fuzzy">Fuzzy</Option>
+                  <Option value="regex">Regex</Option>
+                </Select>
+              }
             />
             <Button.Group>
               <Button
-                onClick={() =>
-                  (this.props.state.searchMethod =
-                    this.props.state.searchMethod === 'regex'
-                      ? 'fuzzy'
-                      : 'regex')
-                }
-              >
-                {this.props.state.searchMethod}
-              </Button>
-              <Button
                 icon={<ArrowUpOutlined />}
                 onClick={() => this.handleSearchIndexChange(-1)}
+                disabled={this.props.state.searchList.length === 0}
               />
               <Button
                 icon={<ArrowDownOutlined />}
                 onClick={() => this.handleSearchIndexChange(1)}
+                disabled={this.props.state.searchList.length === 0}
               />
             </Button.Group>
           </Space.Compact>
