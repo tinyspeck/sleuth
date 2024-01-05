@@ -466,7 +466,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       shouldSort: false,
       ignoreLocation: true,
       useExtendedSearch: true,
-      minMatchCharLength: 3,
     };
 
     let rowsToDisplay = list;
