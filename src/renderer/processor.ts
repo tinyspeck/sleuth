@@ -1058,7 +1058,7 @@ export function getMatchFunction(
   } else if (logType === LogType.MOBILE) {
     if (logFile.fileName.startsWith('attachment')) {
       return matchLineAndroid;
-    } else if (/(utf-8'')?Default_(.){0,14}(\.txt$)/.test(logFile.fileName)) {
+    } else if (/(utf-8'')?Default_(.){0,20}(\.txt$)/.test(logFile.fileName)) {
       return matchLineIOS;
     } else {
       return matchLineMobile;
