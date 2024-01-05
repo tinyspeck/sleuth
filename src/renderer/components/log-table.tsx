@@ -555,6 +555,15 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     const dateRange = options.dateRange || this.props.dateRange;
     const sortDirection = options.sortDirection || this.state.sortDirection;
 
+    const derivedOptions: SortFilterListOptions = {
+      logFile,
+      filter,
+      search,
+      sortBy,
+      dateRange,
+      sortDirection,
+    };
+
     d(`Starting filter`);
     if (!logFile) return [];
 
@@ -618,12 +627,12 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     // Search
     if (typeof search === 'string') {
-      const [sortedList2, searchList] =
+      const [rowsToDisplay, searchList] =
         this.props.state.searchMethod === 'fuzzy'
-          ? this.doFuzzySearch(sortedList, options)
-          : this.doRegexSearch(sortedList, options);
+          ? this.doFuzzySearch(sortedList, derivedOptions)
+          : this.doRegexSearch(sortedList, derivedOptions);
 
-      sortedList = sortedList2;
+      sortedList = rowsToDisplay;
       this.props.state.searchList = searchList;
     }
 
@@ -636,7 +645,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    * @param {any} { cellData, columnData, dataKey, rowData, rowIndex }
    * @returns {(JSX.Element | string)}
    */
-  private messageCellRenderer({
+  private renderMessageCell({
     rowData: entry,
   }: TableCellProps): JSX.Element | string {
     const message = entry.highlightMessage ?? entry.message;
@@ -683,7 +692,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    * @param {any} { cellData, columnData, dataKey, rowData, rowIndex }
    * @returns {JSX.Element}
    */
-  private timestampCellRenderer({
+  private renderTimestampCell({
     rowData: entry,
   }: TableCellProps): JSX.Element | string {
     const { dateTimeFormat } = this.props;
@@ -772,7 +781,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         <Column label="Line" dataKey="line" width={100} />
         <Column
           label="Timestamp"
-          cellRenderer={this.timestampCellRenderer}
+          cellRenderer={this.renderTimestampCell}
           dataKey="momentValue"
           width={200}
           flexGrow={2}
@@ -781,7 +790,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         <Column
           label="Message"
           dataKey="message"
-          cellRenderer={this.messageCellRenderer}
+          cellRenderer={this.renderMessageCell}
           width={options.width - 300}
           flexGrow={2}
         />

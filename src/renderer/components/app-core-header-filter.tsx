@@ -22,7 +22,6 @@ import {
   FilterOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import assert from 'assert';
 
 export interface FilterProps {
   state: SleuthState;
