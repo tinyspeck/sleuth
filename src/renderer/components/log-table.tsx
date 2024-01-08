@@ -483,9 +483,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         // before the filtering even happens
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         rowsToDisplay = (fuse as any)._docs;
-        foundIndices = searchResult.map((result) =>
-          list.findIndex((row) => row.index === result.item.index),
-        );
+        foundIndices = searchResult.map((result) => result.refIndex);
       }
     }
 
