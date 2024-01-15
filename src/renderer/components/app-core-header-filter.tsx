@@ -179,12 +179,7 @@ export class Filter extends React.Component<FilterProps, object> {
     const { RangePicker } = DatePicker;
     return (
       <>
-        <NavbarGroup className="FilterGroup">
-          {this.renderFilter()}
-          {showOnlySearchResultsButton}
-        </NavbarGroup>
         <NavbarGroup className="SearchGroup">
-          <NavbarDivider />
           <RangePicker
             showTime={{
               defaultValue: [
@@ -195,6 +190,11 @@ export class Filter extends React.Component<FilterProps, object> {
             onChange={this.handleDateRangeChange}
             allowEmpty={[true, true]}
           />
+          <NavbarDivider />
+          <NavbarGroup className="FilterGroup">
+            {this.renderFilter()}
+            {showOnlySearchResultsButton}
+          </NavbarGroup>
           <NavbarDivider />
           <Space.Compact className="SearchInputGroup">
             <Input
