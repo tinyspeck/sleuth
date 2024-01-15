@@ -151,7 +151,7 @@ jobs:
                     --arg pn << parameters.prod_name >> \
                     --arg ct "" \
                     --arg cs "$CIRCLE_SHA1" \
-                    --arg rc << parameters.code_signer >>
+                    --arg rc << parameters.code_signer >> \
                     '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, DARWIN_PLATFORM: $mas, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs, RESOURCE_CLASS: $rc}'
             )
             if [ -n "${CIRCLE_TAG}" ]; then export GIT_REF=$CIRCLE_TAG; else export GIT_REF=$CIRCLE_BRANCH; fi
