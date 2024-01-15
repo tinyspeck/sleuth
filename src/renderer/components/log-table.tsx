@@ -762,10 +762,9 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sort: this.onSortChange,
       sortBy: this.state.sortBy,
       sortDirection: this.state.sortDirection,
-      scrollToAlignment: 'center',
     };
 
-    if (scrollToSelection) tableOptions.scrollToIndex = selectedIndex || 0 + 5;
+    if (scrollToSelection) tableOptions.scrollToIndex = selectedIndex;
     if (!ignoreSearchIndex && searchList.length > 0)
       tableOptions.scrollToIndex = searchList[searchIndex] || 0;
 
