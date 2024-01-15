@@ -125,6 +125,9 @@ jobs:
         type: enum
         enum: ['macos', 'mas']
         default: macos
+      code_signer:
+        type: string
+        default: 'tinyspeck/aws-ansible-code-signer-prod'
     steps:
       - run:
           command: |
@@ -148,7 +151,8 @@ jobs:
                     --arg pn << parameters.prod_name >> \
                     --arg ct "" \
                     --arg cs "$CIRCLE_SHA1" \
-                    '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, DARWIN_PLATFORM: $mas, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs}'
+                    --arg rc << parameters.code_signer >>
+                    '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, DARWIN_PLATFORM: $mas, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs, RESOURCE_CLASS: $rc}'
             )
             if [ -n "${CIRCLE_TAG}" ]; then export GIT_REF=$CIRCLE_TAG; else export GIT_REF=$CIRCLE_BRANCH; fi
             sudo /Library/circleci/runner-entrypoint.sh master "$JOB_PARAMS"
