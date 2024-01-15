@@ -552,6 +552,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     const sortBy = options.sortBy || this.state.sortBy;
     const dateRange = options.dateRange || this.props.dateRange;
     const sortDirection = options.sortDirection || this.state.sortDirection;
+    const showOnlySearchResults = options.showOnlySearchResults;
 
     const derivedOptions: SortFilterListOptions = {
       logFile,
@@ -560,6 +561,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sortBy,
       dateRange,
       sortDirection,
+      showOnlySearchResults,
     };
 
     d(`Starting filter`);
