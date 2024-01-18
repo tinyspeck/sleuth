@@ -110,6 +110,24 @@ export class Preferences extends React.Component<
           <Divider />
           <FormGroup
             inline={true}
+            label="Color mode"
+            helperText="Choose if Sleuth should be in light or dark mode"
+          >
+            <RadioGroup
+              onChange={(event) =>
+                (this.props.state.isDarkMode =
+                  event.currentTarget.value === 'dark')
+              }
+              selectedValue={this.props.state.isDarkMode ? 'dark' : 'light'}
+              inline={true}
+            >
+              <Radio label="Light" value={'light'} />
+              <Radio label="Dark" value={'dark'} />
+            </RadioGroup>
+          </FormGroup>
+          <Divider />
+          <FormGroup
+            inline={true}
             label="Date time format"
             helperText="Choose a custom format for dates to override how timestamps will be displayed"
           >
