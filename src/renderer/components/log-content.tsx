@@ -55,7 +55,6 @@ export class LogContent extends React.Component<
       searchList,
       dateRange,
       selectedEntry,
-      searchMethod,
     } = this.props.state;
 
     if (!selectedLogFile) return null;
@@ -84,7 +83,6 @@ export class LogContent extends React.Component<
               searchIndex={searchIndex}
               searchList={searchList}
               showOnlySearchResults={showOnlySearchResults}
-              searchMethod={searchMethod}
               dateRange={dateRange}
               selectedEntry={selectedEntry}
             />

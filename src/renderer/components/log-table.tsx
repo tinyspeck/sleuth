@@ -95,7 +95,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       logFile,
       searchIndex,
       searchList,
-      searchMethod,
       dateRange,
     } = this.props;
     const {
@@ -145,11 +144,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     )
       return true;
 
-    // Search method changed
-    if (searchMethod !== nextProps.searchMethod) {
-      return true;
-    }
-
     return false;
   }
 
@@ -184,7 +178,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     const nextLevelFilter = nextProps.levelFilter;
     const nextSearch = nextProps.search;
     const nextEntry = nextProps.selectedEntry;
-    const nextSearchMethod = nextProps.searchMethod;
 
     // Filter or search changed
     const entryChanged = nextEntry !== this.state.selectedEntry;
@@ -198,7 +191,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         nextFile &&
         logFile.logEntries.length !== nextFile.logEntries.length) ||
       (logFile && nextFile && logFile.logType !== nextFile.logType);
-    const searchMethodChanged = nextSearchMethod !== this.props.searchMethod;
 
     // Date range changed
     const rangeChanged = dateRange !== nextProps.dateRange;
@@ -217,8 +209,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       searchChanged ||
       fileChanged ||
       rangeChanged ||
-      entryChanged ||
-      searchMethodChanged
+      entryChanged
     ) {
       const sortOptions: SortFilterListOptions = {
         showOnlySearchResults: nextShowOnlySearchResults,
@@ -455,44 +446,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   /**
    * Performs a search operation
    */
-  private doFuzzySearch(
-    list: Array<LogEntry>,
-    searchOptions: SortFilterListOptions,
-  ): [Array<LogEntry>, Array<number>] {
-    // TODO: make these configurable?
-    const options: Fuse.IFuseOptions<LogEntry> = {
-      keys: ['message'],
-      threshold: 0.3,
-      shouldSort: false,
-      ignoreLocation: true,
-      useExtendedSearch: true,
-    };
-
-    let rowsToDisplay = list;
-    let foundIndices: Array<number> = [];
-
-    if (searchOptions.search) {
-      const fuse = new Fuse(list, options);
-      const searchResult = fuse.search(searchOptions.search);
-
-      if (searchOptions.showOnlySearchResults) {
-        rowsToDisplay = searchResult.map((result) => result.item);
-        foundIndices = Array.from(rowsToDisplay.keys());
-      } else {
-        // We use an internal Fuse.js API here to grab all records from the index
-        // before the filtering even happens
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        rowsToDisplay = (fuse as any)._docs;
-        foundIndices = searchResult.map((result) => result.refIndex);
-      }
-    }
-
-    return [rowsToDisplay, foundIndices];
-  }
-
-  /**
-   * Performs a search operation
-   */
   private doRegexSearch(
     list: Array<LogEntry>,
     searchOptions: SortFilterListOptions,
@@ -627,10 +580,10 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     // Search
     if (typeof search === 'string') {
-      const [rowsToDisplay, searchList] =
-        this.props.state.searchMethod === 'fuzzy'
-          ? this.doFuzzySearch(sortedList, derivedOptions)
-          : this.doRegexSearch(sortedList, derivedOptions);
+      const [rowsToDisplay, searchList] = this.doRegexSearch(
+        sortedList,
+        derivedOptions,
+      );
 
       sortedList = rowsToDisplay;
       this.props.state.searchList = searchList;

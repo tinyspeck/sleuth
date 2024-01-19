@@ -75,7 +75,6 @@ export class SleuthState {
   };
   @observable public searchIndex = 0;
   @observable public searchList: number[] = [];
-  @observable public searchMethod: 'fuzzy' | 'regex' = 'fuzzy';
   @observable public search = '';
   @observable public showOnlySearchResults: boolean | undefined;
 

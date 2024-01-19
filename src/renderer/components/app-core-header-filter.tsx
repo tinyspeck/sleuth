@@ -210,17 +210,6 @@ export class Filter extends React.Component<FilterProps, object> {
                 },
                 max: searchList.length,
               }}
-              addonBefore={
-                <Select
-                  defaultValue="fuzzy"
-                  onSelect={(value) =>
-                    (this.props.state.searchMethod = value as 'fuzzy' | 'regex')
-                  }
-                >
-                  <Option value="fuzzy">Fuzzy</Option>
-                  <Option value="regex">Regex</Option>
-                </Select>
-              }
             />
             <Button.Group>
               <Button

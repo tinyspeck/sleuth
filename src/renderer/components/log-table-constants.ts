@@ -26,7 +26,6 @@ export interface LogTableProps {
   search?: string;
   searchIndex: number;
   searchList: Array<number>;
-  searchMethod: 'regex' | 'fuzzy';
   dateTimeFormat: string;
   state: SleuthState;
   showOnlySearchResults: boolean | undefined;
