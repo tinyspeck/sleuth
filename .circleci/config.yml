@@ -109,6 +109,7 @@ jobs:
           make_flags: --targets @electron-forge/maker-deb
   code-sign-macos:
     machine: true
+    resource_class: << parameters.code_signer >>
     working_directory: /tmp/circleci-workspace/mac-code-sign
     parameters:
       arch:
