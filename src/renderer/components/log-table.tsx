@@ -15,7 +15,6 @@ import {
 } from 'react-virtualized';
 import { Icon } from '@blueprintjs/core';
 import debug from 'debug';
-import Fuse from 'fuse.js';
 
 import { LevelFilter, LogEntry, DateRange } from '../../interfaces';
 import { didFilterChange } from '../../utils/did-filter-change';
