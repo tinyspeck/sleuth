@@ -9,7 +9,7 @@ import {
   Position,
 } from '@blueprintjs/core';
 import dayjs, { Dayjs } from 'dayjs';
-import { Button, DatePicker, Input, InputRef, Select, Space } from 'antd';
+import { Button, DatePicker, Input, InputRef, Space } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
 import { IpcEvents } from '../../ipc-events';
@@ -22,8 +22,6 @@ import {
   FilterOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-
-const { Option } = Select;
 
 export interface FilterProps {
   state: SleuthState;

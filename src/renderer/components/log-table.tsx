@@ -445,7 +445,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   /**
    * Performs a search operation
    */
-  private doRegexSearch(
+  private doSearch(
     list: Array<LogEntry>,
     searchOptions: SortFilterListOptions,
   ): [Array<LogEntry>, Array<number>] {
@@ -453,20 +453,41 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       return [list, []];
     }
 
-    const searchRegex = getRegExpMaybeSafe(searchOptions.search);
+    const searchParams = searchOptions.search?.split(' ') ?? [];
+    let searchRegex = getRegExpMaybeSafe(searchOptions.search);
+
+    function _match(a: LogEntry) {
+      return !searchRegex || searchRegex.test(a.message);
+    }
+    function _exclude(a: LogEntry) {
+      return !searchRegex || !searchRegex.test(a.message);
+    }
 
     let rowsToDisplay = list;
     let foundIndices: Array<number> = [];
 
     if (searchOptions.showOnlySearchResults) {
-      rowsToDisplay = list.filter(
-        (entry) => !searchOptions.search || searchRegex.test(entry.message),
-      );
+      searchParams.forEach((param) => {
+        if (param.startsWith('!') && param.length > 1) {
+          d(`Filter-Excluding ${param.slice(1)}`);
+          searchRegex = new RegExp(param.slice(1) || '', 'i');
+          rowsToDisplay = rowsToDisplay.filter(_exclude);
+        } else {
+          d(`Filter-Searching for ${param}`);
+          rowsToDisplay = list.filter(_match);
+        }
+      });
       foundIndices = Array.from(rowsToDisplay.keys());
     } else {
-      list.forEach((entry, index) => {
-        if (!searchOptions || searchRegex.test(entry.message)) {
-          foundIndices.push(index);
+      foundIndices = Array.from(Array(list.length).keys());
+      searchParams.forEach((param) => {
+        if (param.startsWith('!') && param.length > 1) {
+          d(`Filter-Excluding ${param.slice(1)}`);
+          searchRegex = new RegExp(param.slice(1) || '', 'i');
+          foundIndices = foundIndices.filter((idx) => _exclude(list[idx]));
+        } else {
+          d(`Filter-Searching for ${param}`);
+          foundIndices = foundIndices.filter((idx) => _match(list[idx]));
         }
       });
     }
@@ -579,7 +600,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     // Search
     if (typeof search === 'string') {
-      const [rowsToDisplay, searchList] = this.doRegexSearch(
+      const [rowsToDisplay, searchList] = this.doSearch(
         sortedList,
         derivedOptions,
       );
