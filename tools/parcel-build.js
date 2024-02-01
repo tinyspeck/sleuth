@@ -30,8 +30,7 @@ async function compileParcel(options = {}) {
     //   key: './ssl/k.key' // path to custom key
     // },
     logLevel: 3, // 3 = log everything, 2 = log warnings & errors, 1 = log errors
-    hmr: true, //Enable or disable HMR while watching
-    hmrPort: 0, // The port the HMR socket runs on, defaults to a random free port (0 in node.js resolves to a random free port)
+    hmr: false, //Enable or disable HMR while watching
     sourceMaps: true, // Enable or disable sourcemaps, defaults to enabled (minified builds currently always create sourcemaps)
     hmrHostname: '', // A hostname for hot module reload, default to ''
     detailedReport: false, // Prints a detailed report of the bundles, assets, filesizes and times, defaults to false, reports are only printed if watch is disabled,
