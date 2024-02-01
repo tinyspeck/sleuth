@@ -26,6 +26,7 @@
     "forge": "./forge.config.js"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.3.0",
     "@blueprintjs/core": "^3.36.0",
     "@blueprintjs/datetime": "^3.20.0",
     "@blueprintjs/select": "^3.15.0",
@@ -42,7 +43,6 @@
     "electron-devtools-installer": "3.2.0",
     "electron-squirrel-startup": "1.0.0",
     "electron-window-state": "5.0.3",
-    "eslint-config-prettier": "^8.8.0",
     "fs-extra": "9.0.1",
     "jsonic": "1.0.1",
     "lodash.isequal": "^4.5.0",
@@ -65,7 +65,6 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
-    "@ant-design/icons": "^5.1.4",
     "@electron-forge/cli": "7.2.0",
     "@electron-forge/maker-deb": "7.2.0",
     "@electron-forge/maker-rpm": "7.2.0",
@@ -100,6 +99,7 @@
     "babel-preset-react": "^6.24.1",
     "electron": "25.2.0",
     "eslint": "^8.43.0",
+    "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-react": "^7.32.2",
     "http-proxy": "^1.18.1",
     "jest": "^29.6.0",
