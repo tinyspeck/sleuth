@@ -39,69 +39,52 @@
   }
 
   .ReactVirtualized__Table__row:hover {
-    background-color: @light-gray4;
+    background-color: rgba(0, 0, 0, 0.05);
   }
 
   .HighlightRow {
-    background-color: @gray5;
-  }
-
-  .ErrorRow {
-    background-color: #ffdbdb;
-  }
-
-  .WarnRow {
-    background-color: #fffddb;
+    background-color: rgba(0, 0, 0, 0.1);
   }
 
   .ActiveRow {
-    background-color: @gray5;
     font-weight: 700;
+    background-color: rgba(0, 0, 0, 0.3);
   }
 
-  .ActiveRow,
-  .HighlightRow {
-    .fixedDataTableCellGroupLayout_cellGroup:hover {
-      background-color: @gray3;
+  .ErrorRow {
+    background-color: rgba(255, 0, 0, 0.2);
+
+    &.HighlightRow,
+    &.ActiveRow {
+      background-color: rgba(255, 0, 0, 0.3);
+    }
+  }
+
+  .WarnRow {
+    background-color: rgba(255, 200, 0, 0.1);
+
+    &.HighlightRow,
+    &.ActiveRow {
+      background-color: rgba(255, 200, 0, 0.2);
     }
   }
 }
 
+// Dark mode
 .bp3-dark {
   .ReactVirtualized__Table__row {
     border-bottom: 1px solid rgba(137, 191, 226, 0.05);
   }
 
   .ReactVirtualized__Table__row:hover {
-    background-color: @dark-gray4;
+    background-color: rgba(255, 255, 255, 0.05);
   }
 
-  .ActiveRow,
   .HighlightRow {
-    background-color: @dark-gray5;
-
-    .ReactVirtualized__Table__row:hover {
-      background-color: @gray1;
-    }
+    background-color: rgba(255, 255, 255, 0.1);
   }
 
-  .ErrorRow {
-    background-color: #562929;
-  }
-
-  .WarnRow {
-    background-color: #564f29;
-  }
-}
-
-.fuse-highlight {
-  padding: 0 1px;
-  border-radius: 2px;
-  background-color: @gray5;
-}
-
-.bp3-dark {
-  .fuse-highlight {
-    background-color: #3f576c;
+  .ActiveRow {
+    background-color: rgba(255, 255, 255, 0.2);
   }
 }

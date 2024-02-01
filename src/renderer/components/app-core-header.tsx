@@ -5,6 +5,7 @@ import {
   Alignment,
   Button,
   ButtonGroup,
+  Divider,
   Navbar,
   NavbarGroup,
 } from '@blueprintjs/core';
@@ -49,6 +50,7 @@ export class AppCoreHeader extends React.Component<AppCoreHeaderProps, object> {
             />
           </ButtonGroup>
         </NavbarGroup>
+        <Divider />
         <Filter state={this.props.state} />
       </Navbar>
     );

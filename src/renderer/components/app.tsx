@@ -40,7 +40,7 @@ export class App extends React.Component<object, Partial<AppState>> {
       unzippedFiles: [],
     };
 
-    localStorage.debug = 'sleuth*';
+    localStorage.debug = 'sleuth:*';
 
     this.openFile = this.openFile.bind(this);
     this.openDirectory = this.openDirectory.bind(this);
@@ -227,6 +227,7 @@ export class App extends React.Component<object, Partial<AppState>> {
             colorPrimary: '#137cbd',
             colorBgBase: this.sleuthState.isDarkMode ? '#182026' : '#ffffff',
           },
+          cssVar: true,
         }}
       >
         <div className={className}>

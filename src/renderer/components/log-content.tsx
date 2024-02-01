@@ -14,7 +14,6 @@ import { NetLogView } from './net-log-view';
 import { ToolView } from './tool-view';
 import { LogTimeView } from './log-time-view';
 import { DevtoolsView } from './devtools-view';
-import NumberResults from './number-results';
 
 export interface LogContentProps {
   state: SleuthState;
@@ -22,7 +21,6 @@ export interface LogContentProps {
 
 export interface LogContentState {
   tableHeight?: number;
-  numberResults: number;
 }
 
 @observer
@@ -35,16 +33,10 @@ export class LogContent extends React.Component<
 
     this.state = {
       tableHeight: 600,
-      numberResults: 0,
     };
 
     this.resizeHandler = this.resizeHandler.bind(this);
   }
-
-  // function to lift state up from logtable (where sortedlist is located) and take the length of list of logs and update this state's numberResults to display
-  public updateNumberResults = (results: number): void => {
-    this.setState({ numberResults: results });
-  };
 
   public resizeHandler(height: number) {
     if (height < 100 || height > window.innerHeight - 100) return;
@@ -60,6 +52,7 @@ export class LogContent extends React.Component<
       font,
       showOnlySearchResults,
       searchIndex,
+      searchList,
       dateRange,
       selectedEntry,
     } = this.props.state;
@@ -77,7 +70,6 @@ export class LogContent extends React.Component<
     if (isLog) {
       return (
         <div className="LogContent" style={{ fontFamily: getFontForCSS(font) }}>
-          <NumberResults numberOfResults={this.state.numberResults} />
           <div
             id="LogTableContainer"
             style={{ height: this.state.tableHeight }}
@@ -88,11 +80,11 @@ export class LogContent extends React.Component<
               logFile={selectedLogFile as ProcessedLogFile}
               levelFilter={levelFilter}
               search={search}
-              showOnlySearchResults={showOnlySearchResults}
               searchIndex={searchIndex}
+              searchList={searchList}
+              showOnlySearchResults={showOnlySearchResults}
               dateRange={dateRange}
               selectedEntry={selectedEntry}
-              resultFunction={this.updateNumberResults}
             />
           </div>
           {scrubber}

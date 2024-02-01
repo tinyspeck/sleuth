@@ -24,21 +24,22 @@ export interface LogTableProps {
   logFile: ProcessedLogFile | MergedLogFile;
   levelFilter: LevelFilter;
   search?: string;
+  searchIndex: number;
+  searchList: Array<number>;
   dateTimeFormat: string;
   state: SleuthState;
   showOnlySearchResults: boolean | undefined;
-  searchIndex: number;
   dateRange?: DateRange;
   selectedEntry?: LogEntry;
-  resultFunction: (results: number) => void;
 }
 
 export interface LogTableState {
   sortedList: Array<LogEntry>;
-  searchList: Array<number>;
   selectedEntry?: LogEntry;
   selectedIndex?: number;
-  // If not undefined, the user selected a range
+  /**
+   * If not undefined, the user selected a range of log lines.
+   */
   selectedRangeIndex?: number;
   sortBy?: string;
   sortDirection?: SORT_DIRECTION;
