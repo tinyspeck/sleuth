@@ -238,6 +238,7 @@ workflows:
             - build-ubuntu
             - code-sign-macos-x64
             - code-sign-macos-arm64
+            - code-sign-macos-universal
           filters:
             branches:
               ignore: /.*/
