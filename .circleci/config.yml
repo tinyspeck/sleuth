@@ -138,7 +138,7 @@ jobs:
       - run:
           name: Load OIDC Secrets
           command: |
-            curl -X POST "$SLACK_SECRETS_SERVICE_ENDPOINT?format=shell" -H "TSAuth-Token: $SLACK_SECRETS_SERVICE_AUTHZ_TOKEN" -H "Content-Type: application/json" -d '{"token":"'$CIRCLE_OIDC_TOKEN'"}' >> $BASH_ENV
+            curl -X POST "$SLACK_SECRETS_SERVICE_ENDPOINT?format=shell" -H "TSAuth-Token: $SLACK_SECRETS_SERVICE_AUTHZ_TOKEN" -H "Content-Type: application/json" -d '{"token":"'$CIRCLE_OIDC_TOKEN'"}' --fail >> $BASH_ENV
       - run:
           name: Code Sign Sleuth
           command: |
