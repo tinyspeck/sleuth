@@ -195,21 +195,18 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     const rangeChanged = dateRange !== nextProps.dateRange;
     const nextRange = nextProps.dateRange;
 
-    // This should only happen if a bookmark was activated
     if (entryChanged) {
+      const selectedIndex = this.findIndexForSelectedEntry(
+        this.state.sortedList,
+      );
       this.setState({
         selectedEntry: this.props.state.selectedEntry,
+        selectedIndex,
         scrollToSelection: true,
       });
     }
 
-    if (
-      filterChanged ||
-      searchChanged ||
-      fileChanged ||
-      rangeChanged ||
-      entryChanged
-    ) {
+    if (filterChanged || searchChanged || fileChanged || rangeChanged) {
       const sortOptions: SortFilterListOptions = {
         showOnlySearchResults: nextShowOnlySearchResults,
         filter: nextLevelFilter,
