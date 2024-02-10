@@ -77,80 +77,11 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     );
   }
 
-  /**
-   * Attempts at being smart about updates
-   *
-   * @param {LogTableProps} nextProps
-   * @param {LogTableState} nextState
-   * @returns {boolean}
-   */
-  public shouldComponentUpdate(
-    nextProps: LogTableProps,
-    nextState: LogTableState,
-  ): boolean {
-    const {
-      dateTimeFormat,
-      levelFilter,
-      logFile,
-      searchIndex,
-      searchList,
-      dateRange,
-    } = this.props;
-    const {
-      sortBy,
-      sortDirection,
-      sortedList,
-      selectedIndex,
-      selectedRangeIndex,
-    } = this.state;
-
-    // Selected row changed
-    if (selectedIndex !== nextState.selectedIndex) return true;
-    if (selectedRangeIndex !== nextState.selectedRangeIndex) return true;
-
-    // DateTimeFormat changed
-    if (dateTimeFormat !== nextProps.dateTimeFormat) return true;
-
-    // Sort direction changed
-    const newSort =
-      nextState.sortBy !== sortBy || nextState.sortDirection !== sortDirection;
-    if (newSort) return true;
-
-    // File changed - and update is in order
-    const nextFile = nextProps.logFile;
-    const newFile =
-      (!nextFile && logFile) ||
-      (nextFile && logFile && nextFile.logType !== logFile.logType);
-    const newEntries =
-      nextFile &&
-      logFile &&
-      nextFile.logEntries.length !== logFile.logEntries.length;
-    const newResults =
-      (!sortedList && nextState.sortedList) ||
-      (sortedList && nextState.sortedList.length !== sortedList.length);
-    if (newFile || newEntries || newResults) return true;
-
-    // Filter changed
-    if (didFilterChange(levelFilter, nextProps.levelFilter)) return true;
-
-    // DateRange changed
-    if (dateRange !== nextProps.dateRange) return true;
-
-    // Search changed
-    if (
-      searchList !== nextProps.searchList ||
-      searchIndex !== nextProps.searchIndex
-    )
-      return true;
-
-    return false;
-  }
-
   public componentDidUpdate() {
-    const { selectedIndex } = this.state;
     if (
       this.props.state.searchList.length > 0 &&
-      (typeof selectedIndex === 'undefined' || selectedIndex < 0)
+      (typeof this.props.state.selectedIndex === 'undefined' ||
+        this.props.state.selectedIndex < 0)
     ) {
       this.changeSelection(this.props.state.searchList[0]);
     }
@@ -179,7 +110,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     const nextEntry = nextProps.selectedEntry;
 
     // Filter or search changed
-    const entryChanged = nextEntry !== this.state.selectedEntry;
+    const entryChanged = nextEntry !== this.props.state.selectedEntry;
     const filterChanged = didFilterChange(levelFilter, nextLevelFilter);
     const searchChanged =
       search !== nextProps.search ||
@@ -198,7 +129,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     // This should only happen if a bookmark was activated
     if (entryChanged) {
       this.setState({
-        selectedEntry: this.props.state.selectedEntry,
         scrollToSelection: true,
       });
     }
@@ -220,12 +150,11 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       const sortedList = this.sortAndFilterList(sortOptions);
 
       // Get correct selected index
-      const selectedIndex = this.findIndexForSelectedEntry(sortedList);
+      this.props.state.selectedIndex =
+        this.findIndexForSelectedEntry(sortedList);
 
       this.setState({
         sortedList,
-        selectedIndex,
-        scrollToSelection: !!selectedIndex,
       });
     }
 
@@ -247,17 +176,12 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    */
   public componentDidMount() {
     const sortedList = this.sortAndFilterList();
-    const { selectedEntry, selectedIndex } = this.props.state;
-    const update: Pick<
-      LogTableState,
-      'sortedList' | 'selectedIndex' | 'selectedEntry' | 'scrollToSelection'
-    > = {
+    const { selectedEntry } = this.props.state;
+    const update: Pick<LogTableState, 'sortedList' | 'scrollToSelection'> = {
       sortedList,
     };
 
     if (selectedEntry) {
-      update.selectedIndex = selectedIndex;
-      update.selectedEntry = selectedEntry;
       update.scrollToSelection = true;
     }
 
@@ -273,12 +197,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     this.incrementSelection(e.key === 'ArrowDown' ? 1 : -1);
   }
 
-  /**
-   * The main render method
-   *
-   * @returns {(JSX.Element | null)}
-   * @memberof LogTable
-   */
   public render(): JSX.Element | null {
     const { logFile } = this.props;
 
@@ -342,7 +260,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     this.props.state.isDetailsVisible = true;
 
     this.setState({
-      selectedIndex,
       selectedRangeIndex,
       ignoreSearchIndex: true,
       scrollToSelection: true,
@@ -369,13 +286,13 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       const sortedList = this.sortAndFilterList({ sortBy, sortDirection });
 
       // Get correct selected index
-      const selectedIndex = this.findIndexForSelectedEntry(sortedList);
+      this.props.state.selectedIndex =
+        this.findIndexForSelectedEntry(sortedList);
 
       this.setState({
         sortBy,
         sortDirection,
         sortedList,
-        selectedIndex,
       });
     }
   }
@@ -407,7 +324,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       this._changeSelectedEntry();
 
       this.setState({
-        selectedIndex: nextIndex,
         ignoreSearchIndex: false,
         scrollToSelection: true,
       });
@@ -415,7 +331,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   }
 
   private incrementSelection(count: number) {
-    const { selectedIndex } = this.state;
+    const { selectedIndex } = this.props.state;
 
     if (typeof selectedIndex === 'number') {
       const nextIndex = selectedIndex + count;
@@ -720,8 +636,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    * Renders the table
    */
   private renderTable(options: Size): JSX.Element {
-    const { sortedList, selectedIndex, ignoreSearchIndex, scrollToSelection } =
-      this.state;
+    const { sortedList, ignoreSearchIndex, scrollToSelection } = this.state;
     const { searchIndex, searchList } = this.props;
 
     const tableOptions: TableProps = {
@@ -737,7 +652,8 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sortDirection: this.state.sortDirection,
     };
 
-    if (scrollToSelection) tableOptions.scrollToIndex = selectedIndex;
+    if (scrollToSelection)
+      tableOptions.scrollToIndex = this.props.state.selectedIndex;
     if (!ignoreSearchIndex && searchList.length > 0)
       tableOptions.scrollToIndex = searchList[searchIndex] || 0;
 
@@ -778,19 +694,23 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   private rowClassNameGetter(input: { index: number }): string {
     const { index } = input;
     const { searchList } = this.props;
-    const { selectedIndex, selectedRangeIndex, ignoreSearchIndex } = this.state;
+    const { selectedRangeIndex, ignoreSearchIndex } = this.state;
     const isSearchIndex =
       !ignoreSearchIndex &&
       searchList.length > 0 &&
       index === searchList[this.props.searchIndex];
     const isRangeActive =
-      selectedIndex !== undefined &&
+      this.props.state.selectedIndex !== undefined &&
       selectedRangeIndex !== undefined &&
-      between(index, selectedIndex, selectedRangeIndex);
+      between(index, this.props.state.selectedIndex, selectedRangeIndex);
 
     const classes: string[] = [];
 
-    if (isSearchIndex || selectedIndex === index || isRangeActive) {
+    if (
+      isSearchIndex ||
+      this.props.state.selectedIndex === index ||
+      isRangeActive
+    ) {
       classes.push('ActiveRow');
     }
 
