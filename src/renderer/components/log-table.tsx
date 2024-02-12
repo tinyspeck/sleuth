@@ -1,4 +1,3 @@
-import debounce from 'debounce';
 import React from 'react';
 import classNames from 'classnames';
 import { format } from 'date-fns';
@@ -38,6 +37,7 @@ import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
 import { reaction } from 'mobx';
 import { Tag } from 'antd';
+import { observer } from 'mobx-react';
 
 const d = debug('sleuth:logtable');
 
@@ -46,14 +46,8 @@ const d = debug('sleuth:logtable');
  * information. This is also the class that could most easily destroy performance, so be careful
  * here!
  */
+@observer
 export class LogTable extends React.Component<LogTableProps, LogTableState> {
-  /**
-   * Debounce wrapper for changing the selected log entry.
-   */
-  private _changeSelectedEntry:
-    | ((() => void) & { clear(): void } & { flush(): void })
-    | null = null;
-
   constructor(props: LogTableProps) {
     super(props);
 
@@ -201,6 +195,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   @keydown('down', 'up')
   public onKeyboardNavigate(e: React.KeyboardEvent) {
     e.preventDefault();
+    console.log('erick' + Date.now(), e.key);
     this.incrementSelection(e.key === 'ArrowDown' ? 1 : -1);
   }
 
@@ -314,21 +309,12 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     const nextEntry = this.state.sortedList[nextIndex] || null;
 
     if (nextEntry) {
-      // Schedule an app-state update. This ensures
-      // that we don't update the selection at a high
-      // frequency
-      if (this._changeSelectedEntry) {
-        this._changeSelectedEntry.clear();
-      }
-      this._changeSelectedEntry = debounce(() => {
-        this.props.state.selectedEntry = nextEntry;
-        this.props.state.selectedIndex = nextIndex;
+      this.props.state.selectedEntry = nextEntry;
+      this.props.state.selectedIndex = nextIndex;
 
-        if (!this.props.state.isDetailsVisible) {
-          this.props.state.isDetailsVisible = true;
-        }
-      }, 100);
-      this._changeSelectedEntry();
+      if (!this.props.state.isDetailsVisible) {
+        this.props.state.isDetailsVisible = true;
+      }
 
       this.setState({
         ignoreSearchIndex: false,
@@ -342,6 +328,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     if (typeof selectedIndex === 'number') {
       const nextIndex = selectedIndex + count;
+      console.log({ nextIndex });
       this.changeSelection(nextIndex);
     }
   }
