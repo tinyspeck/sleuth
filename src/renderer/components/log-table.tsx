@@ -16,7 +16,13 @@ import {
 import { Icon } from '@blueprintjs/core';
 import debug from 'debug';
 
-import { LevelFilter, LogEntry, DateRange } from '../../interfaces';
+import {
+  LevelFilter,
+  LogEntry,
+  DateRange,
+  LogType,
+  ProcessableLogType,
+} from '../../interfaces';
 import { didFilterChange } from '../../utils/did-filter-change';
 import { isReduxAction } from '../../utils/is-redux-action';
 import {
@@ -31,6 +37,7 @@ import { between } from '../../utils/is-between';
 import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
 import { reaction } from 'mobx';
+import { Tag } from 'antd';
 
 const d = debug('sleuth:logtable');
 
@@ -637,7 +644,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
    */
   private renderTable(options: Size): JSX.Element {
     const { sortedList, ignoreSearchIndex, scrollToSelection } = this.state;
-    const { searchIndex, searchList } = this.props;
+    const { logFile, searchIndex, searchList } = this.props;
 
     const tableOptions: TableProps = {
       ...options,
@@ -652,8 +659,17 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sortDirection: this.state.sortDirection,
     };
 
+    const colorMap: Record<ProcessableLogType, string> = {
+      [LogType.BROWSER]: 'cyan',
+      [LogType.WEBAPP]: 'magenta',
+      [LogType.INSTALLER]: 'green',
+      [LogType.CHROMIUM]: 'geekblue',
+      [LogType.MOBILE]: 'lime',
+    };
+
     if (scrollToSelection)
       tableOptions.scrollToIndex = this.props.state.selectedIndex;
+
     if (!ignoreSearchIndex && searchList.length > 0)
       tableOptions.scrollToIndex = searchList[searchIndex] || 0;
 
@@ -675,6 +691,20 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
           flexGrow={2}
         />
         <Column label="Level" dataKey="level" width={100} />
+        {logFile.logType === LogType.ALL ? (
+          <Column
+            label="Process"
+            dataKey="logType"
+            width={120}
+            cellRenderer={({ cellData }: TableCellProps) => (
+              <Tag
+                color={colorMap[cellData as ProcessableLogType] ?? 'default'}
+              >
+                {cellData}
+              </Tag>
+            )}
+          />
+        ) : null}
         <Column
           label="Message"
           dataKey="message"
