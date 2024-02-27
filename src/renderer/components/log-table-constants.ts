@@ -35,8 +35,6 @@ export interface LogTableProps {
 
 export interface LogTableState {
   sortedList: Array<LogEntry>;
-  selectedEntry?: LogEntry;
-  selectedIndex?: number;
   /**
    * If not undefined, the user selected a range of log lines.
    */
@@ -45,8 +43,6 @@ export interface LogTableState {
   sortDirection?: SORT_DIRECTION;
   ignoreSearchIndex?: boolean;
   scrollToSelection?: boolean;
-  columnWidths?: LogTableColumnWidths;
-  columnOrder?: Array<string>;
 }
 
 export interface SortFilterListOptions {
