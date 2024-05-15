@@ -12,8 +12,9 @@ import type {
 } from './interfaces';
 
 const d = debug('sleuth:trace-processor');
-export interface RendererDescription {
+export interface TraceThreadDescription {
   title?: string;
+  type: 'browser' | 'renderer';
   isClient: boolean;
   processId: number;
 }
@@ -131,6 +132,7 @@ export class TraceProcessor {
       ) as Array<ThreadNameEvent>;
       const browser = await this.getBrowserThread(threads);
       const renderers = await this.getRendererThreads(events, threads);
+      console.trace(`***getThreadInfo`, ({ browser, renderers }));
       return { browser, renderers };
     }
     return { renderers: [] };
@@ -153,18 +155,28 @@ export class TraceProcessor {
     return trace?.traceEvents;
   }
 
-  async getRendererProcesses(): Promise<
-    Array<RendererDescription> | undefined
+  async getProcesses(): Promise<
+    Array<TraceThreadDescription> | undefined
   > {
-    const { renderers } = await this.getThreadInfo();
-    return renderers.map(({ data, isClient, title }) => {
-      const { processId } = data;
-      return {
+    const { browser, renderers } = await this.getThreadInfo();
+    const threads: Array<TraceThreadDescription> = [];
+    if (browser) {
+      threads.push({
+        title: 'Main process',
+        type: 'browser',
+        isClient: false,
+        processId: browser.pid
+      });
+    }
+    for (const { data, isClient, title } of renderers) {
+      threads.push({
         title,
+        type: 'renderer',
         isClient,
-        processId,
-      };
-    });
+        processId: data.processId,
+      })
+    }
+    return threads;
   }
 
   async makeInitialEntry(
