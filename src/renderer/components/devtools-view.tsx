@@ -16,6 +16,7 @@ export interface DevtoolsViewProps {
 
 export interface DevtoolsViewState {
   profilePid?: number;
+  profileType?: TraceThreadDescription['type'];
 }
 
 const d = debug('sleuth:devtoolsview');
@@ -43,7 +44,7 @@ export class DevtoolsView extends React.Component<
     }
   }
 
-  private rowRenderer({ title, processId, isClient }: TraceThreadDescription) {
+  private rowRenderer({ title, type, processId, isClient }: TraceThreadDescription) {
     return (
       <tr>
         <td>
@@ -53,7 +54,7 @@ export class DevtoolsView extends React.Component<
         <td>
           <ButtonGroup fill={true}>
             <Button
-              onClick={() => this.setState({ profilePid: processId })}
+              onClick={() => this.setState({ profilePid: processId, profileType: type })}
               icon={'document-open'}
             >
               Open

@@ -6,9 +6,9 @@ import type {
   ChromiumTrace,
   ChromiumTraceEvent,
   ThreadNameEvent,
+  ThreadInfo,
   BrowserThread,
   RendererThread,
-  ThreadInfo,
 } from './interfaces';
 
 const d = debug('sleuth:trace-processor');
@@ -41,6 +41,7 @@ export class TraceProcessor {
       const raw = fs.readFileSync(this.file.fullPath, 'utf8');
       const json = JSON.parse(raw);
       if (json.traceEvents) {
+        console.log('***getTrace', json);
         return json;
       }
     } catch (e) {
@@ -55,9 +56,11 @@ export class TraceProcessor {
     for (const thread of threads) {
       if (thread.args?.name === 'CrBrowserMain') {
         return {
+          title: 'Main process',
           pid: thread.pid,
           tid: thread.tid,
           ts: await this.getEarliestTimestamp(),
+          isClient: false,
         };
       }
     }
@@ -132,7 +135,6 @@ export class TraceProcessor {
       ) as Array<ThreadNameEvent>;
       const browser = await this.getBrowserThread(threads);
       const renderers = await this.getRendererThreads(events, threads);
-      console.trace(`***getThreadInfo`, ({ browser, renderers }));
       return { browser, renderers };
     }
     return { renderers: [] };
@@ -162,43 +164,43 @@ export class TraceProcessor {
     return trace?.traceEvents;
   }
 
-  async getProcesses(): Promise<
-    Array<TraceThreadDescription> | undefined
-  > {
+  async getProcesses(): Promise<Array<TraceThreadDescription> | undefined> {
     const { browser, renderers } = await this.getThreadInfo();
     const threads: Array<TraceThreadDescription> = [];
     if (browser) {
       threads.push({
-        title: 'Main process',
         type: 'browser',
-        isClient: false,
-        processId: browser.pid
+        processId: browser.pid,
+        ...browser,
       });
     }
-    for (const { data, isClient, title } of renderers) {
+    for (const renderer of renderers) {
       threads.push({
-        title,
         type: 'renderer',
-        isClient,
-        processId: data.processId,
-      })
+        processId: renderer.data.processId,
+        ...renderer,
+      });
     }
     return threads;
   }
 
-  async makeInitialEntry(
+  /**
+   * Creates an initial event entry which provides a more friendly thread name.
+   */
+  async makeInitialRendererEntry(
     pid?: number,
   ): Promise<ChromiumTraceEvent | undefined> {
     const { browser, renderers } = await this.getThreadInfo();
     const rendererThread = renderers.find(
       (thread) => thread.data.processId === pid,
     );
+    if (!rendererThread) return;
 
     return {
       args: {
         data: {
           persistentIds: true,
-          frames: rendererThread ? [rendererThread.data] : [],
+          frames: [rendererThread.data],
         },
       },
       cat: 'disabled-by-default-devtools.timeline',
@@ -209,12 +211,18 @@ export class TraceProcessor {
   }
 
   public async getRendererProfile(
-    pid: number,
+    pid?: number,
   ): Promise<Array<ChromiumTraceEvent>> {
-    const initialEntry = await this.makeInitialEntry(pid);
+    const initialEntry = await this.makeInitialRendererEntry(pid);
     const events = await this.getTraceEvents();
     if (events) {
-      return initialEntry ? [initialEntry, ...events] : events;
+      if (initialEntry) {
+        return [initialEntry, ...events];
+      } else if (pid) {
+        return events.filter(e => e.pid === pid);
+      } else {
+        return events;
+      }
     }
     return [];
   }
