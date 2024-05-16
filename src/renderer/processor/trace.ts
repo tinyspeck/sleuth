@@ -41,7 +41,6 @@ export class TraceProcessor {
       const raw = fs.readFileSync(this.file.fullPath, 'utf8');
       const json = JSON.parse(raw);
       if (json.traceEvents) {
-        console.log('***getTrace', json);
         return json;
       }
     } catch (e) {
