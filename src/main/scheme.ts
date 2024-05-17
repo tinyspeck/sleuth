@@ -1,4 +1,5 @@
 import { normalize, join, relative } from 'path';
+import { pathToFileURL } from 'url';
 import { net, protocol } from 'electron';
 
 export function registerSchemePrivilege() {
@@ -28,7 +29,7 @@ export function registerScheme() {
       // request appears to be try to be navigating outside of dist
       return new Response(null, { status: 400 });
     } else {
-      return net.fetch(`file://${path}`);
+      return net.fetch(pathToFileURL(path).href);
     }
   });
 }
