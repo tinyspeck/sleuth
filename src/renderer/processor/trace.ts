@@ -141,8 +141,15 @@ export class TraceProcessor {
     if (trace) {
       const { traceEvents: events } = trace;
       return events.reduce<number>((earliest, entry) => {
-        const { ts } = entry;
-        return ts > 0 && ts < earliest ? ts : earliest;
+        const { ts, cat } = entry;
+
+        // Blink events include the time that the app started. If a trace is
+        // performed at a later time, it creates a skewed timeline with blank
+        // space at the beginning.
+        const isBlinkEvent = cat?.startsWith('blink');
+        const isEarlier = ts > 0 && ts < earliest;
+
+        return isEarlier && !isBlinkEvent ? ts : earliest;
       }, Number.MAX_SAFE_INTEGER);
     }
     return 0;
