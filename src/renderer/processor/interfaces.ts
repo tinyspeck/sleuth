@@ -21,6 +21,7 @@ export interface ChromiumTrace {
 
 export interface ThreadNameEvent {
   name: 'thread_name';
+  cat?: string;
   args?: {
     name?: string;
   };

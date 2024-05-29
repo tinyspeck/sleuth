@@ -1,9 +1,10 @@
 import { normalize, join, relative } from 'path';
-import { protocol } from 'electron';
+import { pathToFileURL } from 'url';
+import { net, protocol } from 'electron';
 
 export function registerSchemePrivilege() {
   protocol.registerSchemesAsPrivileged([
-    { scheme: 'oop', privileges: { standard: true } },
+    { scheme: 'oop', privileges: { standard: true, supportFetchAPI: true } },
   ]);
 }
 
@@ -13,11 +14,11 @@ export function registerSchemePrivilege() {
  * protecting against Sleuth freezes
  */
 export function registerScheme() {
-  protocol.registerFileProtocol('oop', (request, callback) => {
+  protocol.handle('oop', (request) => {
     const url = new URL(request.url);
     if (url.host !== 'oop') {
       // request did not match known path, cowardly refusing
-      callback('Not found');
+      return new Response(null, { status: 400 });
     }
 
     const dist = normalize(`${__dirname}/../..`);
@@ -26,9 +27,9 @@ export function registerScheme() {
     const relation = relative(dist, path);
     if (relation.includes('..')) {
       // request appears to be try to be navigating outside of dist
-      callback('Not found');
+      return new Response(null, { status: 400 });
     } else {
-      callback({ path });
+      return net.fetch(pathToFileURL(path).href);
     }
   });
 }
