@@ -218,7 +218,7 @@ export class TraceProcessor {
       if (initialEntry) {
         return [initialEntry, ...events];
       } else if (pid) {
-        return events.filter(e => e.pid === pid);
+        return events.filter((e) => e.pid === pid);
       } else {
         return events;
       }
