@@ -214,6 +214,8 @@ workflows:
             branches:
               only: main
             <<: *job_filter_releases
+          context:
+            - sleuth-code-signing
       - code-sign-macos:
           name: code-sign-macos-arm64
           requires:
@@ -223,6 +225,8 @@ workflows:
             branches:
               only: main
             <<: *job_filter_releases
+          context:
+            - sleuth-code-signing
       - code-sign-macos:
           name: code-sign-macos-universal
           requires:
@@ -232,6 +236,8 @@ workflows:
             branches:
               only: main
             <<: *job_filter_releases
+          context:
+            - sleuth-code-signing
       - publish:
           requires:
             - build-windows
