@@ -222,8 +222,8 @@ workflows:
             - build-macos-arm64
           arch: arm64
           filters:
-            branches:
-              only: main
+            # branches:
+            #   only: main
             <<: *job_filter_releases
           context:
             - sleuth-code-signing
