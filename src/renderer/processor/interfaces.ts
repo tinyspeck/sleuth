@@ -30,17 +30,20 @@ export interface ThreadNameEvent {
   ts: number;
 }
 
-export interface RendererThread {
+export interface TraceThread {
+  isClient: boolean;
+  title?: string;
+}
+
+export interface RendererThread extends TraceThread {
   data: {
     frame: string;
     url: string;
     processId: number;
   };
-  isClient: boolean;
-  title?: string;
 }
 
-export interface BrowserThread {
+export interface BrowserThread extends TraceThread {
   pid: number;
   tid: number;
   ts: number;

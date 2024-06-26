@@ -36,7 +36,7 @@ import { changeIcon } from '../ipc';
 import { ICON_NAMES } from '../../shared-constants';
 import { IpcEvents } from '../../ipc-events';
 import { setupTouchBarAutoruns } from './touchbar';
-import { RendererDescription } from '../processor/trace';
+import { TraceThreadDescription } from '../processor/trace';
 
 const d = debug('sleuth:state');
 
@@ -96,7 +96,7 @@ export class SleuthState {
     { parse: true, fallback: {} },
   );
   // ** Profiler **
-  @observable public rendererThreads: Array<RendererDescription> | undefined;
+  @observable public traceThreads?: Array<TraceThreadDescription>;
 
   // ** Settings **
   @observable public isDarkMode = !!this.retrieve<boolean>('isDarkMode', {
@@ -319,7 +319,7 @@ export class SleuthState {
     this.cachePath = undefined;
     this.selectedCacheKey = undefined;
     this.isLoadingCacheKeys = false;
-    this.rendererThreads = undefined;
+    this.traceThreads = undefined;
 
     if (goBackToHome) {
       this.resetApp();
