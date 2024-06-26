@@ -25,6 +25,7 @@ import { countExcessiveRepeats } from '../../utils/count-excessive-repeats';
 import { plural } from '../../utils/pluralize';
 import { getRootStateWarnings } from '../analytics/root-state-analytics';
 import { getTraceWarnings } from '../analytics/trace-analytics';
+import { getEnvironmentWarnings } from '../analytics/environment-analytics';
 
 export interface SidebarProps {
   selectedLogFileName: string;
@@ -390,6 +391,23 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     if (file.fileName.endsWith('.trace')) {
       const warnings = getTraceWarnings(file);
       if (warnings && warnings.length > 0) {
+        const content = warnings.join('\n');
+        return (
+          <Tooltip
+            content={content}
+            position={Position.RIGHT}
+            boundary="viewport"
+          >
+            <Icon icon="error" intent={Intent.WARNING} />
+          </Tooltip>
+        );
+      }
+    }
+
+    // TODO: refactor this rendering code probably
+    if (file.fileName.endsWith('environment.json')) {
+      const warnings = getEnvironmentWarnings(file);
+      if (warnings.length > 0) {
         const content = warnings.join('\n');
         return (
           <Tooltip
