@@ -5,7 +5,7 @@ import { HTMLTable, Button, Card, Icon, ButtonGroup } from '@blueprintjs/core';
 import { SleuthState } from '../state/sleuth';
 import { autorun, IReactionDisposer } from 'mobx';
 import { UnzippedFile } from '../../interfaces';
-import { RendererDescription, TraceProcessor } from '../processor/trace';
+import { TraceThreadDescription, TraceProcessor } from '../processor/trace';
 import autoBind from 'react-autobind';
 import debug from 'debug';
 
@@ -16,6 +16,7 @@ export interface DevtoolsViewProps {
 
 export interface DevtoolsViewState {
   profilePid?: number;
+  profileType?: TraceThreadDescription['type'];
 }
 
 const d = debug('sleuth:devtoolsview');
@@ -38,12 +39,17 @@ export class DevtoolsView extends React.Component<
 
   async prepare() {
     const { state } = this.props;
-    if (!state.rendererThreads) {
-      state.rendererThreads = await this.processor.getRendererProcesses();
+    if (!state.traceThreads) {
+      state.traceThreads = await this.processor.getProcesses();
     }
   }
 
-  private rowRenderer({ title, processId, isClient }: RendererDescription) {
+  private rowRenderer({
+    title,
+    type,
+    processId,
+    isClient,
+  }: TraceThreadDescription) {
     return (
       <tr>
         <td>
@@ -53,7 +59,9 @@ export class DevtoolsView extends React.Component<
         <td>
           <ButtonGroup fill={true}>
             <Button
-              onClick={() => this.setState({ profilePid: processId })}
+              onClick={() =>
+                this.setState({ profilePid: processId, profileType: type })
+              }
               icon={'document-open'}
             >
               Open
@@ -61,6 +69,57 @@ export class DevtoolsView extends React.Component<
           </ButtonGroup>
         </td>
       </tr>
+    );
+  }
+
+  private renderThreads() {
+    const { traceThreads } = this.props.state;
+    const hasThreads = !!traceThreads?.length;
+    const isLoading = !traceThreads;
+    const startTime = parseInt(
+      this.props.file.fileName.split('.')[0]?.split('_')[4] || '0',
+      10,
+    );
+    const endTime = parseInt(
+      this.props.file.fileName.split('.')[0]?.split('_')[0] || '0',
+      10,
+    );
+    const duration = endTime - startTime;
+
+    return (
+      <Card>
+        <h1>Threads</h1>
+        <h4>
+          Duration:{' '}
+          {duration ? Math.floor(duration / 1000).toString() : 'unknown'}{' '}
+          seconds | Trace started:{' '}
+          {startTime ? new Date(startTime).toLocaleString() : 'unknown'} | Trace
+          ended: {endTime ? new Date(endTime).toLocaleString() : 'unknown'}
+        </h4>
+        <h5>* Start & end times displayed in your local time</h5>
+        <HTMLTable>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>PID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {hasThreads &&
+              traceThreads?.map((thread) => this.rowRenderer(thread))}
+            {!hasThreads && (
+              <tr>
+                <td colSpan={3}>No renderer threads found</td>
+              </tr>
+            )}
+            {isLoading && (
+              <tr>
+                <td colSpan={3}>Loading...</td>
+              </tr>
+            )}
+          </tbody>
+        </HTMLTable>
+      </Card>
     );
   }
 
@@ -77,58 +136,7 @@ export class DevtoolsView extends React.Component<
       );
     }
 
-    const { rendererThreads } = this.props.state;
-    const hasThreads = !!rendererThreads?.length;
-    const missingThreads = rendererThreads?.length === 0;
-    const isLoading = !rendererThreads;
-    const startTime = parseInt(
-      this.props.file.fileName.split('.')[0]?.split('_')[4] || '0',
-      10,
-    );
-    const endTime = parseInt(
-      this.props.file.fileName.split('.')[0]?.split('_')[0] || '0',
-      10,
-    );
-    const duration = endTime - startTime;
-
-    return (
-      <div className="ProcessTable">
-        <Card>
-          <h1>Renderer Threads</h1>
-          <h4>
-            Duration:{' '}
-            {duration ? Math.floor(duration / 1000).toString() : 'unknown'}{' '}
-            seconds | Trace started:{' '}
-            {startTime ? new Date(startTime).toLocaleString() : 'unknown'} |
-            Trace ended:{' '}
-            {endTime ? new Date(endTime).toLocaleString() : 'unknown'}
-          </h4>
-          <h5>* Start & end times displayed in your local time</h5>
-          <HTMLTable>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>PID</th>
-              </tr>
-            </thead>
-            <tbody>
-              {hasThreads &&
-                rendererThreads?.map((thread) => this.rowRenderer(thread))}
-              {missingThreads && (
-                <tr>
-                  <td colSpan={3}>No renderer threads found</td>
-                </tr>
-              )}
-              {isLoading && (
-                <tr>
-                  <td colSpan={3}>Loading...</td>
-                </tr>
-              )}
-            </tbody>
-          </HTMLTable>
-        </Card>
-      </div>
-    );
+    return <div className="ProcessTable">{this.renderThreads()}</div>;
   }
 
   public componentWillUnmount() {
