@@ -9,13 +9,12 @@ import type {
   ThreadInfo,
   BrowserThread,
   RendererThread,
+  TraceThread,
 } from './interfaces';
 
 const d = debug('sleuth:trace-processor');
-export interface TraceThreadDescription {
-  title?: string;
+export interface TraceThreadDescription extends TraceThread {
   type: 'browser' | 'renderer';
-  isClient: boolean;
   processId: number;
 }
 

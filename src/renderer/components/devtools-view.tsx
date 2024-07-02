@@ -75,7 +75,6 @@ export class DevtoolsView extends React.Component<
   private renderThreads() {
     const { traceThreads } = this.props.state;
     const hasThreads = !!traceThreads?.length;
-    const missingThreads = traceThreads?.length === 0;
     const isLoading = !traceThreads;
     const startTime = parseInt(
       this.props.file.fileName.split('.')[0]?.split('_')[4] || '0',
@@ -108,7 +107,7 @@ export class DevtoolsView extends React.Component<
           <tbody>
             {hasThreads &&
               traceThreads?.map((thread) => this.rowRenderer(thread))}
-            {missingThreads && (
+            {!hasThreads && (
               <tr>
                 <td colSpan={3}>No renderer threads found</td>
               </tr>
