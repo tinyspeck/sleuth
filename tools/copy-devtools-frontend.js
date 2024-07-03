@@ -8,13 +8,6 @@ module.exports = {
       '../node_modules/devtools-frontend-prebuilt/front_end',
     );
 
-    // FIXME: devtools-frontend includes a large amount of test fixtures to remove
-    const deletePath = path.join(basePath, './panels/timeline/fixtures');
-
-    if (fs.existsSync(deletePath)) {
-      fs.rmSync(deletePath, { recursive: true });
-    }
-
     const copyOps = [
       {
         source: basePath,

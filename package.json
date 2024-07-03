@@ -96,7 +96,7 @@
     "@typescript-eslint/parser": "^5.60.1",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
-    "devtools-frontend-prebuilt": "1.2.0-beta1",
+    "devtools-frontend-prebuilt": "1.2.0-beta2",
     "electron": "31.1.0",
     "eslint": "^8.43.0",
     "eslint-config-prettier": "^8.8.0",
