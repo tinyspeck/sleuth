@@ -51,7 +51,7 @@ export class DevtoolsView extends React.Component<
     isClient,
   }: TraceThreadDescription) {
     return (
-      <tr>
+      <tr key={processId}>
         <td>
           {isClient && <Icon icon="chat" />} {title || 'Unknown'}
         </td>
@@ -128,6 +128,7 @@ export class DevtoolsView extends React.Component<
       return (
         <div className="Devtools">
           <iframe
+            title="DevTools embed"
             src={`oop://oop/static/devtools-frontend.html?panel=timeline`}
             onLoad={() => this.loadFile(this.state.profilePid)}
             frameBorder={0}
@@ -135,7 +136,6 @@ export class DevtoolsView extends React.Component<
         </div>
       );
     }
-
     return <div className="ProcessTable">{this.renderThreads()}</div>;
   }
 
