@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import { JSONView } from '../json-view';
 import { AnchorButton, Card, Elevation } from '@blueprintjs/core';
 import debug from 'debug';
@@ -36,7 +36,7 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, object> {
   public renderTable(raw: string): JSX.Element {
     const headerRgx = /^(\+|\|)-[+-]*-\+\s*$/;
     const contentRgx = /^\|.*\|$/;
-    let data = null;
+    let data: ReactElement;
 
     try {
       const splitRaw = raw.split(/\r?\n/).filter((l) => {
