@@ -2,6 +2,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "allowJs": true,
+    "resolveJsonModule": true,
     "experimentalDecorators": true,
     "removeComments": false,
     "preserveConstEnums": true,
