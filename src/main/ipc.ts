@@ -197,8 +197,7 @@ export class IpcManager {
 
   private setupContextMenus() {
     ipcMain.handle(IpcEvents.OPEN_LOG_CONTEXT_MENU, (event, type: LogType) => {
-      return new Promise((resolve) => {
-        console.log(type);
+      return new Promise((resolve) => {      
         const maybeShowInContext: MenuItemConstructorOptions[] =
           type === LogType.BROWSER || type === LogType.WEBAPP
             ? [
