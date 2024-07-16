@@ -230,7 +230,7 @@ export class AppMenu {
       },
     });
 
-    const result = [];
+    const result: { label: string; click: () => Promise<void> }[] = [];
 
     if (this.productionLogsExist) {
       result.push(getPruneItem('Slack Logs (Production)', this.productionLogs));
