@@ -13,13 +13,13 @@ import { Button, DatePicker, Input, InputRef, Space } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
 import { IpcEvents } from '../../ipc-events';
-import { LogLevel } from '../../interfaces';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
   FilterOutlined,
+  FilterTwoTone,
   SearchOutlined,
 } from '@ant-design/icons';
 
@@ -34,8 +34,6 @@ export class Filter extends React.Component<FilterProps, object> {
   constructor(props: FilterProps) {
     super(props);
 
-    this.props.state.onFilterToggle =
-      this.props.state.onFilterToggle.bind(this);
     this.toggleSearchResultVisibility =
       this.toggleSearchResultVisibility.bind(this);
     this.handleSearchQueryChange = debounce(
@@ -121,33 +119,56 @@ export class Filter extends React.Component<FilterProps, object> {
 
   public renderFilter() {
     const { error, warn, info, debug } = this.props.state.levelFilter;
+    const isDefaultState = !(debug || info || warn || error);
 
     const menu = (
       <Menu>
         <Menu.Item
+          active={false}
+          onClick={() => {
+            this.props.state.setFilterLogLevels({
+              debug: false,
+              info: false,
+              warn: false,
+              error: false,
+            });
+          }}
+          shouldDismissPopover={true}
+          text="Default levels"
+        />
+        <Menu.Divider />
+        <Menu.Item
           active={debug}
-          onClick={() => this.props.state.onFilterToggle(LogLevel.debug)}
+          onClick={() => {
+            this.props.state.setFilterLogLevels({ debug: !debug });
+          }}
           icon="code"
           shouldDismissPopover={false}
           text="Debug"
         />
         <Menu.Item
           active={info}
-          onClick={() => this.props.state.onFilterToggle(LogLevel.info)}
+          onClick={() => {
+            this.props.state.setFilterLogLevels({ info: !info });
+          }}
           icon="info-sign"
           shouldDismissPopover={false}
           text="Info"
         />
         <Menu.Item
           active={warn}
-          onClick={() => this.props.state.onFilterToggle(LogLevel.warn)}
+          onClick={() => {
+            this.props.state.setFilterLogLevels({ warn: !warn });
+          }}
           icon="warning-sign"
           shouldDismissPopover={false}
           text="Warning"
         />
         <Menu.Item
           active={error}
-          onClick={() => this.props.state.onFilterToggle(LogLevel.error)}
+          onClick={() => {
+            this.props.state.setFilterLogLevels({ error: !error });
+          }}
           icon="error"
           shouldDismissPopover={false}
           text="Error"
@@ -157,7 +178,9 @@ export class Filter extends React.Component<FilterProps, object> {
 
     return (
       <Popover content={menu} position={Position.BOTTOM}>
-        <Button icon={<FilterOutlined />} />
+        <Button
+          icon={isDefaultState ? <FilterOutlined /> : <FilterTwoTone />}
+        />
       </Popover>
     );
   }
