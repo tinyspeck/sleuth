@@ -10,6 +10,7 @@ import {
 } from '@blueprintjs/core';
 import dayjs, { Dayjs } from 'dayjs';
 import { Button, DatePicker, Input, InputRef, Space } from 'antd';
+import { blue } from '@ant-design/colors';
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
 import { IpcEvents } from '../../ipc-events';
@@ -19,6 +20,7 @@ import {
   EyeInvisibleOutlined,
   EyeOutlined,
   FilterOutlined,
+  FilterTwoTone,
   SearchOutlined,
 } from '@ant-design/icons';
 
@@ -118,6 +120,7 @@ export class Filter extends React.Component<FilterProps, object> {
 
   public renderFilter() {
     const { error, warn, info, debug } = this.props.state.levelFilter;
+    const isDefaultState = !(debug || info || warn || error);
 
     const menu = (
       <Menu>
@@ -185,7 +188,9 @@ export class Filter extends React.Component<FilterProps, object> {
 
     return (
       <Popover content={menu} position={Position.BOTTOM}>
-        <Button icon={<FilterOutlined />} />
+        <Button
+          icon={isDefaultState ? <FilterOutlined /> : <FilterTwoTone />}
+        />
       </Popover>
     );
   }
