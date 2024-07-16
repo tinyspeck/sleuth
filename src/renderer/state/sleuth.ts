@@ -211,7 +211,7 @@ export class SleuthState {
     ipcRenderer.on(IpcEvents.RESET, () => this.reset(true));
     ipcRenderer.on(IpcEvents.TOGGLE_DARKMODE, () => this.toggleDarkMode());
     ipcRenderer.on(IpcEvents.TOGGLE_FILTER, (_event, level: LogLevel) => {
-      this.setFilterLogLevels(level);
+      this.setFilterLogLevels({ [level]: !this.levelFilter[level] });
     });
 
     document.oncopy = (event) => {
@@ -365,8 +365,8 @@ export class SleuthState {
    * Handle the click of a single "filter toggle" button
    */
   @action
-  public setFilterLogLevels(levels: LevelFilter) {
-    this.levelFilter = levels;
+  public setFilterLogLevels(levels: Partial<LevelFilter>) {
+    this.levelFilter = { ...this.levelFilter, ...levels };
   }
 
   /**

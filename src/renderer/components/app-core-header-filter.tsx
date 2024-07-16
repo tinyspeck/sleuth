@@ -10,7 +10,6 @@ import {
 } from '@blueprintjs/core';
 import dayjs, { Dayjs } from 'dayjs';
 import { Button, DatePicker, Input, InputRef, Space } from 'antd';
-import { blue } from '@ant-design/colors';
 import { SleuthState } from '../state/sleuth';
 import { ipcRenderer } from 'electron';
 import { IpcEvents } from '../../ipc-events';
@@ -127,13 +126,12 @@ export class Filter extends React.Component<FilterProps, object> {
         <Menu.Item
           active={false}
           onClick={() => {
-            const f = {
+            this.props.state.setFilterLogLevels({
               debug: false,
               info: false,
               warn: false,
               error: false,
-            };
-            this.props.state.setFilterLogLevels(f);
+            });
           }}
           shouldDismissPopover={true}
           text="Default levels"
@@ -142,9 +140,7 @@ export class Filter extends React.Component<FilterProps, object> {
         <Menu.Item
           active={debug}
           onClick={() => {
-            const filterState = this.props.state.levelFilter;
-            const f = { ...filterState, debug: !debug };
-            this.props.state.setFilterLogLevels(f);
+            this.props.state.setFilterLogLevels({ debug: !debug });
           }}
           icon="code"
           shouldDismissPopover={false}
@@ -153,9 +149,7 @@ export class Filter extends React.Component<FilterProps, object> {
         <Menu.Item
           active={info}
           onClick={() => {
-            const filterState = this.props.state.levelFilter;
-            const f = { ...filterState, info: !info };
-            this.props.state.setFilterLogLevels(f);
+            this.props.state.setFilterLogLevels({ info: !info });
           }}
           icon="info-sign"
           shouldDismissPopover={false}
@@ -164,9 +158,7 @@ export class Filter extends React.Component<FilterProps, object> {
         <Menu.Item
           active={warn}
           onClick={() => {
-            const filterState = this.props.state.levelFilter;
-            const f = { ...filterState, warn: !warn };
-            this.props.state.setFilterLogLevels(f);
+            this.props.state.setFilterLogLevels({ warn: !warn });
           }}
           icon="warning-sign"
           shouldDismissPopover={false}
@@ -175,9 +167,7 @@ export class Filter extends React.Component<FilterProps, object> {
         <Menu.Item
           active={error}
           onClick={() => {
-            const filterState = this.props.state.levelFilter;
-            const f = { ...filterState, error: !error };
-            this.props.state.setFilterLogLevels(f);
+            this.props.state.setFilterLogLevels({ error: !error });
           }}
           icon="error"
           shouldDismissPopover={false}
