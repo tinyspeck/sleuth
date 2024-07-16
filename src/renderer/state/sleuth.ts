@@ -199,7 +199,7 @@ export class SleuthState {
     this.toggleSpotlight = this.toggleSpotlight.bind(this);
     this.selectLogFile = this.selectLogFile.bind(this);
     this.setMergedFile = this.setMergedFile.bind(this);
-    this.onFilterToggle = this.onFilterToggle.bind(this);
+    this.setFilterLogLevels = this.setFilterLogLevels.bind(this);
 
     setupTouchBarAutoruns(this);
     ipcRenderer.on(IpcEvents.TOGGLE_SIDEBAR, this.toggleSidebar);
@@ -211,7 +211,7 @@ export class SleuthState {
     ipcRenderer.on(IpcEvents.RESET, () => this.reset(true));
     ipcRenderer.on(IpcEvents.TOGGLE_DARKMODE, () => this.toggleDarkMode());
     ipcRenderer.on(IpcEvents.TOGGLE_FILTER, (_event, level: LogLevel) => {
-      this.onFilterToggle(level);
+      this.setFilterLogLevels(level);
     });
 
     document.oncopy = (event) => {
@@ -363,18 +363,10 @@ export class SleuthState {
 
   /**
    * Handle the click of a single "filter toggle" button
-   *
-   * @param {string} level
-   * @memberof SleuthState
    */
   @action
-  public onFilterToggle(level: LogLevel) {
-    if (this.levelFilter[level] !== undefined) {
-      const filter = { ...this.levelFilter };
-      filter[level] = !filter[level];
-
-      this.levelFilter = filter;
-    }
+  public setFilterLogLevels(levels: LevelFilter) {
+    this.levelFilter = levels;
   }
 
   /**
