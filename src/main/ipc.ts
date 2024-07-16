@@ -6,6 +6,8 @@ import {
   dialog,
   systemPreferences,
   IpcMainEvent,
+  Menu,
+  MenuItemConstructorOptions,
 } from 'electron';
 import * as path from 'path';
 
@@ -13,6 +15,7 @@ import { settingsFileManager } from './settings';
 import { changeIcon } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { IpcEvents } from '../ipc-events';
+import { LogLineContextMenuActions, LogType } from '../interfaces';
 
 export class IpcManager {
   constructor() {
@@ -27,6 +30,7 @@ export class IpcManager {
     this.setupQuit();
     this.setupOpenRecent();
     this.setupTitleBarClickMac();
+    this.setupContextMenus();
   }
 
   public openFile(pathName: string) {
@@ -123,24 +127,12 @@ export class IpcManager {
   }
 
   private setupGetPath() {
-    type name =
-      | 'home'
-      | 'appData'
-      | 'userData'
-      | 'temp'
-      | 'exe'
-      | 'module'
-      | 'desktop'
-      | 'documents'
-      | 'downloads'
-      | 'music'
-      | 'pictures'
-      | 'videos'
-      | 'logs';
-
-    ipcMain.handle(IpcEvents.GET_PATH, (_event, pathName: name) => {
-      return app.getPath(pathName);
-    });
+    ipcMain.handle(
+      IpcEvents.GET_PATH,
+      (_event, pathName: Parameters<typeof app.getPath>[0]) => {
+        return app.getPath(pathName);
+      },
+    );
   }
 
   private setupGetUserAgent() {
@@ -200,6 +192,50 @@ export class IpcManager {
   private setupOpenRecent() {
     ipcMain.on(IpcEvents.ADD_RECENT_FILE, (_event, filename) => {
       app.addRecentDocument(filename);
+    });
+  }
+
+  private setupContextMenus() {
+    ipcMain.handle(IpcEvents.OPEN_LOG_CONTEXT_MENU, (event, type: LogType) => {
+      return new Promise((resolve) => {
+        console.log(type);
+        const maybeShowInContext: MenuItemConstructorOptions[] =
+          type === LogType.BROWSER || type === LogType.WEBAPP
+            ? [
+                {
+                  type: 'separator',
+                },
+                {
+                  label: 'Show in "All Desktop Logs"',
+                  click: () => {
+                    resolve(LogLineContextMenuActions.SHOW_IN_CONTEXT);
+                  },
+                },
+              ]
+            : [];
+
+        const menu = Menu.buildFromTemplate([
+          {
+            label: 'Copy Line',
+            click: () => {
+              resolve(LogLineContextMenuActions.COPY_TO_CLIPBOARD);
+            },
+          },
+          {
+            label: 'Show Line in Source',
+            click: () => {
+              resolve(LogLineContextMenuActions.OPEN_SOURCE);
+            },
+          },
+          ...maybeShowInContext,
+        ]);
+        menu.popup({
+          window: BrowserWindow.fromWebContents(event.sender) || undefined,
+          callback: () => {
+            resolve(undefined);
+          },
+        });
+      });
     });
   }
 }

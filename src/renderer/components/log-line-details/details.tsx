@@ -1,19 +1,15 @@
 import { observer } from 'mobx-react';
-import { exec } from 'child_process';
 import { SleuthState } from '../../state/sleuth';
 import React from 'react';
 import classNames from 'classnames';
 import { Card, Button, ButtonGroup, Tag, Elevation } from '@blueprintjs/core';
-import debug from 'debug';
 
 import { LogEntry } from '../../../interfaces';
 import { LogLineData } from './data';
 import { Timestamp } from './timestamp';
-import { shell } from 'electron';
 import { getIsBookmark, toggleBookmark } from '../../state/bookmarks';
 import { capitalize } from '../../../utils/capitalize';
-
-const d = debug('sleuth:details');
+import { openLineInSource } from '../../../utils/open-line-in-source';
 
 export interface LogLineDetailsProps {
   state: SleuthState;
@@ -52,20 +48,9 @@ export class LogLineDetails extends React.Component<
     if (selectedEntry && selectedEntry.sourceFile) {
       const { sourceFile, line } = selectedEntry;
 
-      if (defaultEditor) {
-        const cmd = defaultEditor
-          .replace('{filepath}', `"${sourceFile}"`)
-          .replace('{line}', line.toString(10));
-
-        d(`Executing ${cmd}`);
-        exec(cmd, (error: Error) => {
-          if (!error) return;
-          d(`Tried to open source file, but failed`, error);
-          shell.showItemInFolder(sourceFile);
-        });
-      } else {
-        shell.showItemInFolder(sourceFile);
-      }
+      openLineInSource(line, sourceFile, {
+        defaultEditor,
+      });
     }
   }
 

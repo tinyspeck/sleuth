@@ -1,26 +1,14 @@
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, app } from 'electron';
 import { ICON_NAMES } from '../shared-constants';
 import { IpcEvents } from '../ipc-events';
+import { LogLineContextMenuActions, LogType } from '../interfaces';
 
 // This file handles sending IPC events. Other classes might
 // listen to IPC events.
 
-type name =
-  | 'home'
-  | 'appData'
-  | 'userData'
-  | 'cache'
-  | 'temp'
-  | 'exe'
-  | 'module'
-  | 'desktop'
-  | 'documents'
-  | 'downloads'
-  | 'music'
-  | 'pictures'
-  | 'videos'
-  | 'logs';
-export function getPath(path: name): Promise<string> {
+export function getPath(
+  path: Parameters<typeof app.getPath>[0],
+): Promise<string> {
   return ipcRenderer.invoke(IpcEvents.GET_PATH, path);
 }
 
@@ -54,4 +42,11 @@ export function showMessageBox(
 
 export function changeIcon(iconName: ICON_NAMES) {
   return ipcRenderer.invoke(IpcEvents.CHANGE_ICON, iconName);
+}
+
+export function showLogLineContextMenu(
+  type: LogType,
+): Promise<LogLineContextMenuActions> {
+  console.log({ type });
+  return ipcRenderer.invoke(IpcEvents.OPEN_LOG_CONTEXT_MENU, type);
 }
