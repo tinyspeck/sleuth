@@ -186,23 +186,33 @@ workflows:
       - lint-and-test
       - build-macos:
           name: build-macos-x64
+          requires:
+            - lint-and-test
           arch: x64
           filters:
             <<: *job_filter_releases
       - build-macos:
           name: build-macos-arm64
+          requires:
+            - lint-and-test
           arch: arm64
           filters:
             <<: *job_filter_releases
       - build-macos:
           name: build-macos-universal
+          requires:
+            - lint-and-test
           arch: universal
           filters:
             <<: *job_filter_releases
       - build-windows:
+          requires:
+            - lint-and-test
           filters:
             <<: *job_filter_releases
       - build-ubuntu:
+          requires:
+            - lint-and-test
           filters:
             <<: *job_filter_releases
       - code-sign-macos:
