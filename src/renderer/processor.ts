@@ -1081,13 +1081,7 @@ export function getMatchFunction(
       return matchLineShipItMac;
     }
   } else if (logType === LogType.MOBILE) {
-    if (logFile.fileName.startsWith('attachment')) {
-      return matchLineAndroid;
-    } else if (/(utf-8'')?Default_(.){0,20}(\.txt$)/.test(logFile.fileName)) {
-      return matchLineIOS;
-    } else {
-      return matchLineMobile;
-    }
+    return matchLineMobile;
   } else if (logType === LogType.CHROMIUM) {
     return matchLineChromium;
   } else {
