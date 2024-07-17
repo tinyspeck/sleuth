@@ -26,6 +26,9 @@ const WEBAPP_A_RGX = /^(\w*): (.{3}-\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 const WEBAPP_B_RGX =
   /^(\w*): (\d{4}\/\d{1,2}\/\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 
+const MOBILE_RGX =
+  /^\[([0-9]{4}-[0-9]{2}-[0-9]{2} )T([0-9]{2}:[0-9]{2}:[0-9]{2})(?:.[0-9]{6} -[0-9]{2}:[0-9]{2}\]\s)(.+)/;
+
 const IOS_RGX =
   /^\s*\[((?:[0-9]{1,4}(?:\/|-|\.|\. )?){3}(?:, | |\){0,2}))((?:上午|下午){0,1}(?:[0-9]{1,2}[:.][0-9]{2}[:.][0-9]{2}\s?(?:AM|PM)?))\] (-|.{0,2}[</[]\w+[>\]])(.+)$/;
 
@@ -189,6 +192,10 @@ export function getTypeForFile(
   } else if (
     fileName.startsWith('Default_') ||
     fileName.startsWith('attachment') ||
+    fileName.startsWith('MainAppLog') ||
+    fileName.startsWith('NotificationExtension') ||
+    fileName.startsWith('ShareExtension') ||
+    fileName.startsWith('WidgetLog') ||
     /\w{9,}_\w{9,}_\d{16,}\.txt/.test(fileName)
   ) {
     return LogType.MOBILE;
@@ -971,11 +978,33 @@ export function matchLineAndroid(line: string): MatchResult | undefined {
  * @returns  {(MatchResult | undefined)}
  */
 export function matchLineMobile(line: string): MatchResult | undefined {
-  let results = matchLineIOS(line);
-  if (!results) {
-    results = matchLineAndroid(line);
+  MOBILE_RGX.lastIndex = 0;
+  const results = MOBILE_RGX.exec(line);
+
+  if (results && results.length === 4) {
+    const newDate = results[1] + results[2];
+    let level = '';
+    if (results[3].includes('ERR')) {
+      level = 'error';
+    } else if (results[3].includes('DEBUG')) {
+      level = 'debug';
+    } else {
+      level = 'info';
+    }
+
+    return {
+      timestamp: new Date(newDate).toString(),
+      level,
+      message: results[3],
+      momentValue: new Date(newDate).valueOf(),
+    };
+  } else {
+    let old_results = matchLineIOS(line);
+    if (!old_results) {
+      old_results = matchLineAndroid(line);
+    }
+    return old_results;
   }
-  return results;
 }
 
 export function matchLineChromium(line: string): MatchResult | undefined {
@@ -1056,13 +1085,7 @@ export function getMatchFunction(
       return matchLineShipItMac;
     }
   } else if (logType === LogType.MOBILE) {
-    if (logFile.fileName.startsWith('attachment')) {
-      return matchLineAndroid;
-    } else if (/(utf-8'')?Default_(.){0,20}(\.txt$)/.test(logFile.fileName)) {
-      return matchLineIOS;
-    } else {
-      return matchLineMobile;
-    }
+    return matchLineMobile;
   } else if (logType === LogType.CHROMIUM) {
     return matchLineChromium;
   } else {
