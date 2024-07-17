@@ -192,6 +192,10 @@ export function getTypeForFile(
   } else if (
     fileName.startsWith('Default_') ||
     fileName.startsWith('attachment') ||
+    fileName.startsWith('MainAppLog') ||
+    fileName.startsWith('NotificationExtension') ||
+    fileName.startsWith('ShareExtension') ||
+    fileName.startsWith('WidgetLog') ||
     /\w{9,}_\w{9,}_\d{16,}\.txt/.test(fileName)
   ) {
     return LogType.MOBILE;
