@@ -3,12 +3,7 @@ import path from 'path';
 
 import { Button, List, Result, Spin, Tooltip, Typography } from 'antd';
 import {
-  WindowsOutlined,
-  AppleOutlined,
-  SlackOutlined,
   DeleteOutlined,
-  AndroidOutlined,
-  MobileOutlined,
   FolderOpenTwoTone,
   LinuxOutlined,
   WindowsFilled,
@@ -292,7 +287,7 @@ export class Welcome extends React.Component<
             />
           </div>
         ) : (
-          <Spin tip="Loading Suggestions" className="welcome__spinner" />
+          <Spin className="welcome__spinner" />
         )}
       </div>
     );
