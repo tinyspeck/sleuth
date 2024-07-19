@@ -272,6 +272,9 @@ export class Welcome extends React.Component<
 
         {suggestions ? (
           <div className="welcome__suggestion-container">
+            <div className="welcome__suggestion-drag-and-drop-reminder">
+              (or drag and drop logs)
+            </div>
             <div className="welcome__downloads-dir">
               <code>{this.state.downloadsDir}</code>
             </div>
