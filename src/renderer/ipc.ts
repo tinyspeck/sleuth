@@ -47,6 +47,5 @@ export function changeIcon(iconName: ICON_NAMES) {
 export function showLogLineContextMenu(
   type: LogType,
 ): Promise<LogLineContextMenuActions> {
-  console.log({ type });
   return ipcRenderer.invoke(IpcEvents.OPEN_LOG_CONTEXT_MENU, type);
 }
