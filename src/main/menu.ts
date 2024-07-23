@@ -251,9 +251,6 @@ export class AppMenu {
    * Actually creates the menu.
    */
   public setupMenu() {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    require('electron-context-menu')();
-
     this.menu = getMenuTemplate({
       openItems: this.getOpenItems(),
       pruneItems: this.getPruneItems(),

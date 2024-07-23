@@ -31,7 +31,7 @@ export function copy(state: SleuthState): boolean {
   return false;
 }
 
-function getCopyText(entry: LogEntry) {
+export function getCopyText(entry: LogEntry) {
   const { message, meta } = entry;
   let { timestamp } = entry;
 

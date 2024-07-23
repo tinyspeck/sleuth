@@ -24,4 +24,5 @@ export const enum IpcEvents {
   TOGGLE_FILTER = 'TOGGLE_FILTER',
   COPY = 'COPY',
   RESET = 'RESET',
+  OPEN_LOG_CONTEXT_MENU = 'OPEN_LOG_CONTEXT_MENU',
 }

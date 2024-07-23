@@ -21,6 +21,8 @@ import {
   DateRange,
   LogType,
   ProcessableLogType,
+  LogLineContextMenuActions,
+  LogFile,
 } from '../../interfaces';
 import { didFilterChange } from '../../utils/did-filter-change';
 import { isReduxAction } from '../../utils/is-redux-action';
@@ -38,6 +40,10 @@ import { RepeatedLevels } from '../../shared-constants';
 import { reaction } from 'mobx';
 import { Tag } from 'antd';
 import { observer } from 'mobx-react';
+import { showLogLineContextMenu } from '../ipc';
+import { clipboard } from 'electron';
+import { openLineInSource } from '../../utils/open-line-in-source';
+import { getCopyText } from '../state/copy';
 
 const d = debug('sleuth:logtable');
 
@@ -266,6 +272,40 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       ignoreSearchIndex: true,
       scrollToSelection: true,
     });
+  }
+
+  /**
+   * Show a context menu for the individual log lines in the table
+   */
+  private async onRowRightClick(params: RowMouseEventHandlerParams) {
+    const rowData: LogEntry = params.rowData;
+    // type assertion because this component should only appear when you have a LogFile showing
+    const logType = (this.props.state.selectedLogFile as LogFile).logType;
+    const response = await showLogLineContextMenu(logType);
+
+    switch (response) {
+      case LogLineContextMenuActions.COPY_TO_CLIPBOARD: {
+        const copyText = getCopyText(rowData);
+        clipboard.writeText(copyText);
+        break;
+      }
+      case LogLineContextMenuActions.OPEN_SOURCE: {
+        const { line, sourceFile } = rowData;
+        openLineInSource(line, sourceFile, {
+          defaultEditor: this.props.state.defaultEditor,
+        });
+        break;
+      }
+      case LogLineContextMenuActions.SHOW_IN_CONTEXT:
+        {
+          this.props.state.selectLogFile(null, LogType.ALL);
+          const matchingIndex = this.state.sortedList.findIndex(
+            (row) => row.momentValue === rowData.momentValue,
+          );
+          this.changeSelection(matchingIndex);
+        }
+        break;
+    }
   }
 
   /**
@@ -639,6 +679,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       rowGetter: this.rowGetter,
       rowCount: sortedList.length,
       onRowClick: this.onRowClick,
+      onRowRightClick: this.onRowRightClick,
       rowClassName: this.rowClassNameGetter,
       headerHeight: 30,
       sort: this.onSortChange,
