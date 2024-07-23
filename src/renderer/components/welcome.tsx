@@ -186,6 +186,8 @@ export class Welcome extends React.Component<
                 className="welcome__suggestion-list-item"
                 actions={[
                   <Button
+                    className="welcome__suggestion-delete-btn"
+                    type="primary"
                     danger={true}
                     key="list-delete"
                     onClick={deleteItem}
@@ -276,7 +278,7 @@ export class Welcome extends React.Component<
               (or drag and drop logs)
             </div>
             <div className="welcome__downloads-dir">
-              <code>{this.state.downloadsDir}</code>
+              Open from <code>{this.state.downloadsDir}</code>
             </div>
             {suggestions}
           </div>

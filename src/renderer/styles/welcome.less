@@ -92,7 +92,16 @@
 
     &:hover {
       background: rgba(200, 200, 200, 0.1);
+
+      .welcome__suggestion-delete-btn {
+        opacity: 100;
+      }
     }
+  }
+
+  &__suggestion-delete-btn {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
   }
 
   &__suggestion-icon {
