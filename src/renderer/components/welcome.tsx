@@ -3,20 +3,21 @@ import path from 'path';
 
 import { Button, List, Result, Spin, Tooltip, Typography } from 'antd';
 import {
-  WindowsOutlined,
-  AppleOutlined,
-  QqOutlined,
-  SlackOutlined,
   DeleteOutlined,
-  AndroidOutlined,
-  MobileOutlined,
+  FolderOpenTwoTone,
+  LinuxOutlined,
+  WindowsFilled,
+  AppleFilled,
+  MobileFilled,
+  AndroidFilled,
+  SlackCircleFilled,
 } from '@ant-design/icons';
 import { observer } from 'mobx-react';
 
 import { getSleuth } from '../sleuth';
 import { deleteSuggestion, deleteSuggestions } from '../suggestions';
 import { SleuthState } from '../state/sleuth';
-import { isBefore } from 'date-fns';
+import { isToday, isThisWeek } from 'date-fns';
 import { Suggestion } from '../../interfaces';
 
 import fs from 'fs-extra';
@@ -26,6 +27,7 @@ import { FSWatcher } from 'fs';
 export interface WelcomeState {
   sleuth: string;
   watcher?: FSWatcher;
+  downloadsDir?: string;
 }
 
 export interface WelcomeProps {
@@ -57,6 +59,7 @@ export class Welcome extends React.Component<
       watcher: fs.watch(downloadsDir, async () => {
         await this.props.state.getSuggestions();
       }),
+      downloadsDir,
     });
   }
 
@@ -85,14 +88,7 @@ export class Welcome extends React.Component<
     if (appVersionToUse !== item.appVersion) {
       appVersionElem = (
         <Tooltip title={`Slack@${item.appVersion}`}>
-          <span
-            style={{
-              textDecoration: 'underline',
-              textDecorationStyle: 'dotted',
-            }}
-          >
-            {appVersionElem}
-          </span>
+          <span className="welcome__suggestion-details">{appVersionElem}</span>
         </Tooltip>
       );
     }
@@ -137,64 +133,106 @@ export class Welcome extends React.Component<
   private platformIcon = (platform: string) => {
     switch (platform) {
       case 'win32':
-        return <WindowsOutlined style={iconStyle} />;
+        return <WindowsFilled style={iconStyle} />;
       case 'darwin':
-        return <AppleOutlined style={iconStyle} />;
+        return <AppleFilled style={iconStyle} />;
       case 'linux':
-        return <QqOutlined style={iconStyle} />;
+        return <LinuxOutlined style={iconStyle} />;
       case 'ios':
-        return <MobileOutlined style={iconStyle} />;
+        return <MobileFilled style={iconStyle} />;
       case 'android':
-        return <AndroidOutlined style={iconStyle} />;
+        return <AndroidFilled style={iconStyle} />;
       default:
-        return <SlackOutlined style={iconStyle} />;
+        return <SlackCircleFilled style={iconStyle} />;
     }
   };
 
   public renderSuggestions(): JSX.Element | null {
     const { openFile } = this.props.state;
 
-    if (this.props.state.suggestions?.length) {
-      return (
-        <div className="Suggestions">
-          <List
-            itemLayout="horizontal"
-            dataSource={this.props.state.suggestions || []}
-            renderItem={(item) => {
-              const openItem = (e: React.MouseEvent) => {
-                e.preventDefault();
-                openFile(item.filePath);
-              };
-              const deleteItem = (e: React.MouseEvent) => {
-                e.stopPropagation();
-                this.deleteSuggestion(item.filePath);
-              };
+    const today: Suggestion[] = [];
+    const thisWeek: Suggestion[] = [];
+    const stale: Suggestion[] = [];
 
-              return (
-                <List.Item
-                  actions={[
-                    <a key="list-delete" onClick={deleteItem}>
-                      <DeleteOutlined style={{ marginRight: 8 }} />
-                      Delete
-                    </a>,
-                  ]}
-                  onClick={openItem}
-                  style={{ padding: 12 }}
-                >
-                  <List.Item.Meta
-                    avatar={this.platformIcon(item.platform)}
-                    title={
-                      <a href="#" onClick={openItem}>
-                        {path.basename(item.filePath)}
-                      </a>
-                    }
-                    description={this.logFileDescription(item)}
-                  />
-                </List.Item>
-              );
-            }}
-          />
-          {this.renderDeleteAll()}
+    const { suggestions } = this.props.state;
+
+    for (const item of suggestions) {
+      if (isToday(item.mtimeMs)) {
+        today.push(item);
+      } else if (isThisWeek(item.mtimeMs)) {
+        thisWeek.push(item);
+      } else {
+        stale.push(item);
+      }
+    }
+
+    const list = (data: Suggestion[]) => {
+      return (
+        <List
+          itemLayout="horizontal"
+          dataSource={data}
+          renderItem={(item) => {
+            const openItem = (e: React.MouseEvent) => {
+              e.preventDefault();
+              openFile(item.filePath);
+            };
+            const deleteItem = (e: React.MouseEvent) => {
+              e.stopPropagation();
+              this.deleteSuggestion(item.filePath);
+            };
+
+            return (
+              <List.Item
+                className="welcome__suggestion-list-item"
+                actions={[
+                  <Button
+                    className="welcome__suggestion-delete-btn"
+                    type="primary"
+                    danger={true}
+                    key="list-delete"
+                    onClick={deleteItem}
+                    icon={<DeleteOutlined />}
+                  >
+                    Delete
+                  </Button>,
+                ]}
+                onClick={openItem}
+              >
+                <List.Item.Meta
+                  avatar={this.platformIcon(item.platform)}
+                  title={<span>{path.basename(item.filePath)}</span>}
+                  description={this.logFileDescription(item)}
+                />
+              </List.Item>
+            );
+          }}
+        />
+      );
+    };
+
+    if (suggestions.length > 0) {
+      return (
+        <div className="welcome__suggestion-list">
+          {today.length > 0 && (
+            <>
+              <p className="welcome__suggestion-span">Today</p>
+              {list(today)}
+            </>
+          )}
+          {thisWeek.length > 0 && (
+            <>
+              <p className="welcome__suggestion-span">Earlier this week</p>
+              {list(thisWeek)}
+            </>
+          )}
+
+          {stale.length > 0 && (
+            <>
+              <p className="welcome__suggestion-span">Stale</p>
+              {list(stale)}
+            </>
+          )}
+          {this.renderDeleteStale(stale)}
         </div>
       );
     }
@@ -202,30 +240,19 @@ export class Welcome extends React.Component<
     return null;
   }
 
-  public renderDeleteAll(): JSX.Element | null {
-    const suggestions = this.props.state.suggestions || [];
-
-    // Do we have any files older than 48 hours?
-    const twoDaysAgo = Date.now() - 172800000;
-    const toDeleteAll: Array<string> = [];
-
-    suggestions.forEach((item) => {
-      if (isBefore(item.mtimeMs, twoDaysAgo)) {
-        toDeleteAll.push(item.filePath);
-      }
-    });
-
-    if (toDeleteAll.length > 0) {
+  public renderDeleteStale(staleFiles: Suggestion[]): JSX.Element | null {
+    if (staleFiles.length > 0) {
+      const stalePaths = staleFiles.map((f) => f.filePath);
       return (
-        <div style={{ textAlign: 'center' }}>
-          <Button
-            type="primary"
-            icon={<DeleteOutlined />}
-            onClick={() => this.deleteSuggestions(toDeleteAll)}
-          >
-            Delete files older than 2 days
-          </Button>
-        </div>
+        <Button
+          className="welcome__delete-stale"
+          type="primary"
+          danger={true}
+          icon={<DeleteOutlined />}
+          onClick={() => this.deleteSuggestions(stalePaths)}
+        >
+          Delete stale logs
+        </Button>
       );
     }
 
@@ -234,52 +261,38 @@ export class Welcome extends React.Component<
 
   public render() {
     const { sleuth } = this.state;
-    const scrollStyle: React.CSSProperties = {
-      marginBottom: 24,
-      overflowY: 'auto',
-      minWidth: 480,
-      width: '60%',
-    };
 
     const suggestions = this.renderSuggestions();
 
     return (
-      <div
-        className="Welcome"
-        style={{ justifyContent: suggestions ? undefined : 'end' }}
-      >
+      <div className="welcome css-var-">
         <div>
-          <h1 className="Title">
-            <span className="Emoji">{sleuth}</span>
-            <span>Sleuth</span>
-          </h1>
-          <Typography.Title level={4}>
-            Drop a logs zip file or folder anywhere on this window to open it.
+          <Typography.Title level={1} className="welcome__title">
+            <span className="welcome__title-emoji">{sleuth}</span> Sleuth
           </Typography.Title>
         </div>
 
         {suggestions ? (
-          <>
-            <Typography.Title level={5}>
-              From your Downloads folder, may we suggest:
-            </Typography.Title>
-            <div style={scrollStyle}>
-              <div style={{ textAlign: 'initial' }}>{suggestions}</div>
+          <div className="welcome__suggestion-container">
+            <div className="welcome__suggestion-drag-and-drop-reminder">
+              (or drag and drop logs)
             </div>
-          </>
+            <div className="welcome__downloads-dir">
+              Open from <code>{this.state.downloadsDir}</code>
+            </div>
+            {suggestions}
+          </div>
         ) : this.props.state.suggestionsLoaded ? (
-          <Result
-            subTitle="You have no logs in your Downloads folder"
-            style={{ marginTop: 48 }}
-          />
+          <div className="welcome__drag-and-drop">
+            <Result
+              icon={<FolderOpenTwoTone />}
+              title="You have no log bundles in your Downloads folder"
+              subTitle="
+            Drag and drop a ZIP archive or folder anywhere on this window"
+            />
+          </div>
         ) : (
-          <Spin
-            className="loading-indicator"
-            tip="Loading Suggestions"
-            size="large"
-          >
-            <div style={{ padding: 100 }} />
-          </Spin>
+          <Spin className="welcome__spinner" />
         )}
       </div>
     );

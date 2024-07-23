@@ -84,23 +84,23 @@ describe('Welcome', () => {
     });
   });
 
-  describe('Delete All button', () => {
-    it('renders the delete button if we have files older than 2 days', () => {
+  describe('Delete Stale button', () => {
+    it('renders the delete button if we have files older than this week', () => {
       const state = {
         suggestions: [
           {
             filePath: '/path/to/file/',
             age: 'dummy age string',
-            mtimeMs: Date.now() - 1000 * 60 * 60 * 24 * 3, // 3 days old
+            mtimeMs: Date.now() - 1000 * 60 * 60 * 24 * 11, // 11 days old
           },
         ],
       };
       render(<Welcome state={state as SleuthState} />);
-      const btn = screen.getByText('Delete files older than 2 days');
+      const btn = screen.getByText('Delete stale logs');
       expect(btn).toBeInTheDocument();
     });
 
-    it('does not render the delete all button if all files are newer than 2 days', () => {
+    it('does not render the delete all button if all files are newer than 7 days', () => {
       const state = {
         suggestions: [
           {
@@ -111,7 +111,7 @@ describe('Welcome', () => {
         ],
       };
       render(<Welcome state={state as SleuthState} />);
-      const btn = screen.queryByText('Delete files older than 2 days');
+      const btn = screen.queryByText('Delete stale logs');
       expect(btn).not.toBeInTheDocument();
     });
   });
