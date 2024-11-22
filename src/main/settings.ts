@@ -2,7 +2,7 @@ import { app } from 'electron';
 
 import * as path from 'path';
 import fs from 'fs-extra';
-import throttle from 'lodash.throttle';
+import { throttle } from 'lodash';
 
 export class SettingsFileManager {
   private _settings: Record<string, unknown> = this.getSettings();
