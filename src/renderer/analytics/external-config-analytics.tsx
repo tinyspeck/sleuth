@@ -1,5 +1,5 @@
 import React from 'react';
-import isEqual from 'lodash.isequal';
+import { isEqual } from 'lodash';
 
 export interface RootData {
   defaults: object | undefined;
