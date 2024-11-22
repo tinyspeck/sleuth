@@ -252,9 +252,7 @@ export class Welcome extends React.Component<
     return null;
   }
 
-  public renderDeleteStale(
-    staleFiles: Suggestion[],
-  ): JSX.Element | null {
+  public renderDeleteStale(staleFiles: Suggestion[]): JSX.Element | null {
     if (staleFiles.length > 0) {
       const stalePaths = staleFiles.map((f) => f.filePath);
       return (
