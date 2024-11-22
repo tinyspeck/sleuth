@@ -150,7 +150,6 @@ async function getSuggestionInfo(path: string) {
         }
       });
       zipfile.on('error', (error: Error) => {
-        console.log('rejecting');
         reject(error);
       });
       zipfile.on('end', () => resolve());
