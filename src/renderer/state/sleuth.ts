@@ -79,7 +79,7 @@ export class SleuthState {
   @observable public showOnlySearchResults: boolean | undefined;
 
   // ** Various "what are we showing" properties **
-  @observable public suggestions: Array<Suggestion> = [];
+  @observable public suggestions: Suggestion[] = [];
   @observable public suggestionsLoaded = false;
   @observable public webAppLogsWarningDismissed = false;
   @observable public opened = 0;

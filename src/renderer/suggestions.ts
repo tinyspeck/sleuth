@@ -139,19 +139,19 @@ async function getSuggestionInfo(path: string) {
 
       zipfile.readEntry();
       zipfile.on('entry', (entry: Entry) => {
-        if (/\/$/.test(entry.fileName)) {
-          zipfile.readEntry();
+        if (
+          entry.fileName === 'installation' ||
+          entry.fileName === 'environment.json'
+        ) {
+          files[entry.fileName] = streamToString(zipfile, entry);
+          files[entry.fileName].then(() => zipfile.readEntry());
         } else {
-          if (
-            entry.fileName === 'installation' ||
-            entry.fileName === 'environment.json'
-          ) {
-            files[entry.fileName] = streamToString(zipfile, entry);
-            files[entry.fileName].then(() => zipfile.readEntry());
-          } else {
-            zipfile.readEntry();
-          }
+          zipfile.readEntry();
         }
+      });
+      zipfile.on('error', (error: Error) => {
+        console.log('rejecting');
+        reject(error);
       });
       zipfile.on('end', () => resolve());
     });
@@ -206,10 +206,9 @@ async function getSuggestions(
       isAndroidLog;
 
     if (shouldAdd) {
+      const stats = fs.statSync(file);
+      const age = formatDistanceToNow(stats.mtimeMs);
       try {
-        const stats = fs.statSync(file);
-        const age = formatDistanceToNow(stats.mtimeMs);
-
         suggestions.push({
           filePath: file,
           ...stats,
@@ -223,6 +222,12 @@ async function getSuggestions(
             : await getSuggestionInfo(file)),
         });
       } catch (error) {
+        suggestions.push({
+          filePath: file,
+          ...stats,
+          age,
+          error,
+        });
         d(`Tried to add ${file}, but failed: ${error}`);
       }
     }
