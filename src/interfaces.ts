@@ -136,13 +136,20 @@ export interface MergedFilesLoadStatus {
   mobile: boolean;
 }
 
-export interface Suggestion extends fs.Stats {
+export type Suggestion = ValidSuggestion | InvalidSuggestion;
+
+export interface ValidSuggestion extends fs.Stats {
   age: string;
   filePath: string;
   birthtimeMs: number;
   platform: string;
   appVersion: string;
   instanceUuid: string;
+}
+
+export interface InvalidSuggestion extends fs.Stats {
+  filePath: string;
+  error: Error;
 }
 
 export enum LogLevel {

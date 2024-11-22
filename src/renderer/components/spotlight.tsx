@@ -11,6 +11,7 @@ import {
   ProcessedLogFile,
   ProcessedLogFiles,
   UnzippedFile,
+  ValidSuggestion,
 } from '../../interfaces';
 import { isProcessedLogFile } from '../../utils/is-logfile';
 import { highlightText } from '../../utils/highlight-text';
@@ -96,18 +97,18 @@ export class Spotlight extends React.Component<
     const { suggestions } = this.props.state;
     const { processedLogFiles } = this.props.state;
 
-    const spotSuggestions: Array<SpotlightItem> = suggestions.map(
-      ({ filePath, age }) => ({
-        text: path.basename(filePath),
-        label: `${age} old`,
-        icon: filePath.endsWith('zip')
+    const spotSuggestions: Array<SpotlightItem> = suggestions
+      .filter((s) => !('error' in s))
+      .map((s: ValidSuggestion) => ({
+        text: path.basename(s.filePath),
+        label: `${s.age} old`,
+        icon: s.filePath.endsWith('zip')
           ? ('compressed' as const)
           : ('folder-open' as const),
         click: () => {
-          this.props.state.openFile(filePath);
+          this.props.state.openFile(s.filePath);
         },
-      }),
-    );
+      }));
 
     const logFileSuggestions: Array<SpotlightItem> = [];
 

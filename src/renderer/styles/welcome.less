@@ -84,11 +84,14 @@
     margin: 0.5rem 0;
   }
 
-  &__suggestion-list-item.ant-list-item {
+  &__suggestion-list-item {
     cursor: pointer;
-    padding: 1rem;
     border-radius: 4px;
     transition: background 0.5s ease-in-out;
+
+    &.ant-list-item {
+      padding: 1rem;
+    }
 
     &:hover {
       background: rgba(200, 200, 200, 0.1);
@@ -96,6 +99,11 @@
       .welcome__suggestion-delete-btn {
         opacity: 100;
       }
+    }
+
+    &--disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
     }
   }
 

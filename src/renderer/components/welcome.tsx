@@ -11,6 +11,7 @@ import {
   MobileFilled,
   AndroidFilled,
   SlackCircleFilled,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import { observer } from 'mobx-react';
 
@@ -18,11 +19,12 @@ import { getSleuth } from '../sleuth';
 import { deleteSuggestion, deleteSuggestions } from '../suggestions';
 import { SleuthState } from '../state/sleuth';
 import { isToday, isThisWeek } from 'date-fns';
-import { Suggestion } from '../../interfaces';
+import { Suggestion, ValidSuggestion } from '../../interfaces';
 
 import fs from 'fs-extra';
 import { getPath } from '../ipc';
 import { FSWatcher } from 'fs';
+import classNames from 'classnames';
 
 export interface WelcomeState {
   sleuth: string;
@@ -78,7 +80,7 @@ export class Welcome extends React.Component<
     await this.props.state.getSuggestions();
   }
 
-  private logFileDescription(item: Suggestion): React.ReactNode {
+  private logFileDescription(item: ValidSuggestion): React.ReactNode {
     let appVersionToUse = item.appVersion;
     if (item.platform === 'android') {
       appVersionToUse = appVersionToUse.split('.', 3).join('.');
@@ -183,7 +185,9 @@ export class Welcome extends React.Component<
 
             return (
               <List.Item
-                className="welcome__suggestion-list-item"
+                className={classNames('welcome__suggestion-list-item', {
+                  'welcome__suggestion-list-item--disabled': 'error' in item,
+                })}
                 actions={[
                   <Button
                     className="welcome__suggestion-delete-btn"
@@ -198,11 +202,19 @@ export class Welcome extends React.Component<
                 ]}
                 onClick={openItem}
               >
-                <List.Item.Meta
-                  avatar={this.platformIcon(item.platform)}
-                  title={<span>{path.basename(item.filePath)}</span>}
-                  description={this.logFileDescription(item)}
-                />
+                {'error' in item ? (
+                  <List.Item.Meta
+                    avatar={<ExclamationCircleOutlined style={iconStyle} />}
+                    title={<span>{path.basename(item.filePath)}</span>}
+                    description={`Failed to parse ZIP! ${item.error.message}`}
+                  />
+                ) : (
+                  <List.Item.Meta
+                    avatar={this.platformIcon(item.platform)}
+                    title={<span>{path.basename(item.filePath)}</span>}
+                    description={this.logFileDescription(item)}
+                  />
+                )}
               </List.Item>
             );
           }}
