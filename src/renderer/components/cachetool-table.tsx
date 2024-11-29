@@ -1,4 +1,4 @@
-import debounce from 'debounce';
+import { debounce } from 'lodash';
 import React from 'react';
 import classNames from 'classnames';
 import { default as keydown, Keys } from 'react-keydown';
@@ -54,13 +54,7 @@ export class CachetoolTable extends React.Component<
   CachetoolTableProps,
   CachetoolTableState
 > {
-  private changeSelectedEntry:
-    | ((() => void) & {
-        clear(): void;
-      } & {
-        flush(): void;
-      })
-    | null = null;
+  private changeSelectedEntry: ReturnType<typeof debounce> | null = null;
 
   constructor(props: CachetoolTableProps) {
     super(props);
@@ -269,7 +263,7 @@ export class CachetoolTable extends React.Component<
         // that we don't update the selection at a high
         // frequency
         if (this.changeSelectedEntry) {
-          this.changeSelectedEntry.clear();
+          this.changeSelectedEntry.cancel();
         }
         this.changeSelectedEntry = debounce(() => {
           this.props.state.selectedCacheKey = nextEntry;
