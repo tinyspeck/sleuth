@@ -121,7 +121,6 @@ export class Preferences extends React.Component<
           >
             <RadioGroup
               onChange={(event) => {
-                
                 this.props.state.colorTheme = event.currentTarget
                   .value as unknown as ColorTheme;
               }}

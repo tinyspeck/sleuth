@@ -25,19 +25,13 @@ export class TouchBarManager {
   public touchBar: Electron.TouchBar;
 
   public homeBtn = new TouchBarButton(this.getHomeBtnOptions());
-  public darkModeBtn = new TouchBarButton(this.getDarkModeBtnOptions());
   public spotlightBtn = new TouchBarButton(this.getSpotlightBtnOptions());
   public sidebarBtn = new TouchBarButton(this.getSidebarBtnOptions());
   public errorsLabel = new TouchBarLabel({ label: '' });
 
   public leftControls = new TouchBarGroup({
     items: new TouchBar({
-      items: [
-        this.homeBtn,
-        this.darkModeBtn,
-        this.sidebarBtn,
-        this.spotlightBtn,
-      ],
+      items: [this.homeBtn, this.sidebarBtn, this.spotlightBtn],
     }),
   });
 
@@ -79,7 +73,6 @@ export class TouchBarManager {
 
   constructor(public readonly browserWindow: BrowserWindow) {
     this.handleFilterUpdate = this.handleFilterUpdate.bind(this);
-    this.handleDarkModeUpdate = this.handleDarkModeUpdate.bind(this);
     this.handleLogFileUpdate = this.handleLogFileUpdate.bind(this);
     this.teardown = this.teardown.bind(this);
     this.setLogFileItems = this.setLogFileItems.bind(this);
@@ -102,13 +95,11 @@ export class TouchBarManager {
     // All these things are state-relevant and require that
     // we communicate with the window
     ipcMain.on(IpcEvents.LEVEL_FILTER_UPDATE, this.handleFilterUpdate);
-    ipcMain.on(IpcEvents.DARK_MODE_UPDATE, this.handleDarkModeUpdate);
     ipcMain.on(IpcEvents.LOG_FILE_UPDATE, this.handleLogFileUpdate);
   }
 
   public teardown() {
     ipcMain.off(IpcEvents.LEVEL_FILTER_UPDATE, this.handleFilterUpdate);
-    ipcMain.off(IpcEvents.DARK_MODE_UPDATE, this.handleDarkModeUpdate);
     ipcMain.off(IpcEvents.LOG_FILE_UPDATE, this.handleLogFileUpdate);
   }
 
@@ -187,18 +178,6 @@ export class TouchBarManager {
   }
 
   /**
-   * Creates a button wired up to switch the theme
-   *
-   * @returns {TouchBarButtonConstructorOptions}
-   */
-  public getDarkModeBtnOptions(): TouchBarButtonConstructorOptions {
-    return {
-      label: '🌙',
-      click: () => this.send(IpcEvents.TOGGLE_DARKMODE),
-    };
-  }
-
-  /**
    * Creates a button wired up to toggle spotlight
    *
    * @returns {TouchBarButtonConstructorOptions}
@@ -233,15 +212,6 @@ export class TouchBarManager {
         ? '#ffffff'
         : '#4d5a68';
     });
-  }
-
-  public handleDarkModeUpdate(
-    event: Electron.IpcMainEvent,
-    isDarkMode: boolean,
-  ) {
-    if (!this.isRightSender(event)) return;
-
-    this.darkModeBtn.label = isDarkMode ? '🌙' : '☀️';
   }
 
   public handleLogFileUpdate(

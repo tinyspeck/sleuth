@@ -96,6 +96,7 @@ export class SleuthState {
     'serializedBookmarks',
     { parse: true, fallback: {} },
   );
+  @observable public prefersDarkColors = false;
   // ** Profiler **
   @observable public traceThreads?: Array<TraceThreadDescription>;
 
@@ -147,6 +148,9 @@ export class SleuthState {
     public readonly resetApp: () => void,
   ) {
     this.getSuggestions();
+    ipcRenderer.on(IpcEvents.DARK_MODE_UPDATE, (_event, prefersDarkColors) => {
+      this.prefersDarkColors = prefersDarkColors;
+    });
 
     // Setup autoruns
     autorun(() => this.save('dateTimeFormat_v3', this.dateTimeFormat_v3));
@@ -158,7 +162,20 @@ export class SleuthState {
     autorun(() => this.save('serializedBookmarks', this.serializedBookmarks));
     autorun(async () => {
       this.save('colorTheme', this.colorTheme);
-      await ipcRenderer.invoke(IpcEvents.SET_COLOR_THEME, this.colorTheme);
+      const prefersDarkColors = await ipcRenderer.invoke(
+        IpcEvents.SET_COLOR_THEME,
+        this.colorTheme,
+      );
+      this.prefersDarkColors = prefersDarkColors;
+    });
+    autorun(async () => {
+      // handles BlueprintJS color theming
+      // antd theming is handled by querying `this.prefersDarkColors` within app.tsx
+      if (this.prefersDarkColors) {
+        document.body.classList.add('bp3-dark');
+      } else {
+        document.body.classList.remove('bp3-dark');
+      }
     });
     autorun(() => {
       if (this.isSidebarOpen) {
@@ -213,16 +230,6 @@ export class SleuthState {
         event.preventDefault();
       }
     };
-
-    window
-      .matchMedia('(prefers-color-scheme: dark)')
-      .addEventListener('change', ({ matches }) => {
-        if (matches) {
-          document.body.classList.add('bp3-dark');
-        } else {
-          document.body.classList.remove('bp3-dark');
-        }
-      });
   }
 
   @computed get isLogViewVisible() {

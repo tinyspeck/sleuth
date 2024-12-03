@@ -151,7 +151,8 @@ export class DevtoolsView extends React.Component<
    * @memberof NetLogView
    */
   public async loadFile(processId?: number) {
-    this.setDarkMode(this.props.state.isDarkMode);
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    this.setDarkMode(isDark);
 
     if (!processId) {
       return;
@@ -175,7 +176,8 @@ export class DevtoolsView extends React.Component<
     }
 
     this.disposeDarkModeAutorun = autorun(() => {
-      this.setDarkMode(this.props.state.isDarkMode);
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      this.setDarkMode(isDark);
     });
   }
 

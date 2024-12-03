@@ -20,14 +20,17 @@ export interface JSONViewState {
 export class JSONView extends React.Component<JSONViewProps, JSONViewState> {
   public render() {
     const data = this.props.data || parseJSON(this.props.raw || '');
+    const isDarkMode = window.matchMedia(
+      '(prefers-color-scheme: dark)',
+    ).matches;
 
     if (data && Object.keys(data).length > 0) {
-      const theme = getTheme(this.props.state.isDarkMode);
+      const theme = getTheme(isDarkMode);
 
       return (
         <div className="Monospace">
           <JSONTree
-            invertTheme={!this.props.state.isDarkMode}
+            invertTheme={isDarkMode}
             data={data}
             theme={theme}
             hideRoot={true}
