@@ -8,6 +8,7 @@ import {
   IpcMainEvent,
   Menu,
   MenuItemConstructorOptions,
+  nativeTheme,
 } from 'electron';
 import * as path from 'path';
 
@@ -16,6 +17,7 @@ import { changeIcon } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { IpcEvents } from '../ipc-events';
 import { LogLineContextMenuActions, LogType } from '../interfaces';
+import { ColorTheme } from '../renderer/components/preferences';
 
 export class IpcManager {
   constructor() {
@@ -31,6 +33,7 @@ export class IpcManager {
     this.setupOpenRecent();
     this.setupTitleBarClickMac();
     this.setupContextMenus();
+    this.setupNativeTheme();
   }
 
   public openFile(pathName: string) {
@@ -236,6 +239,17 @@ export class IpcManager {
         });
       });
     });
+  }
+  private setupNativeTheme() {
+    ipcMain.handle(
+      IpcEvents.SET_COLOR_THEME,
+      async (_, colorTheme: ColorTheme) => {
+        nativeTheme.themeSource = colorTheme;
+        return nativeTheme.shouldUseDarkColors
+          ? ColorTheme.Dark
+          : ColorTheme.Light;
+      },
+    );
   }
 }
 

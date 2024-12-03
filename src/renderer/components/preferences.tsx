@@ -44,6 +44,12 @@ const FontSelect = Select.ofType<string>();
 const DateTimeSelect = Select.ofType<string>();
 const EditorSelect = Select.ofType<Editor>();
 
+export enum ColorTheme {
+  Light = 'light',
+  Dark = 'dark',
+  System = 'system',
+}
+
 export interface PreferencesState {
   isOpen: boolean;
 }
@@ -114,15 +120,17 @@ export class Preferences extends React.Component<
             helperText="Choose if Sleuth should be in light or dark mode"
           >
             <RadioGroup
-              onChange={(event) =>
-                (this.props.state.isDarkMode =
-                  event.currentTarget.value === 'dark')
-              }
-              selectedValue={this.props.state.isDarkMode ? 'dark' : 'light'}
+              onChange={(event) => {
+                
+                this.props.state.colorTheme = event.currentTarget
+                  .value as unknown as ColorTheme;
+              }}
+              selectedValue={this.props.state.colorTheme}
               inline={true}
             >
-              <Radio label="Light" value={'light'} />
-              <Radio label="Dark" value={'dark'} />
+              <Radio label="🌕 Light" value={ColorTheme.Light} />
+              <Radio label="🌑 Dark" value={ColorTheme.Dark} />
+              <Radio label="🌗 System" value={ColorTheme.System} />
             </RadioGroup>
           </FormGroup>
           <Divider />

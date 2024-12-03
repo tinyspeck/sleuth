@@ -217,15 +217,15 @@ export class App extends React.Component<object, Partial<AppState>> {
         <Welcome state={this.sleuthState} />
       );
 
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
     return (
       <ConfigProvider
         theme={{
-          algorithm: this.sleuthState.isDarkMode
-            ? theme.darkAlgorithm
-            : theme.defaultAlgorithm,
+          algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
           token: {
             colorPrimary: '#137cbd',
-            colorBgBase: this.sleuthState.isDarkMode ? '#182026' : '#ffffff',
+            colorBgBase: isDark ? '#182026' : '#ffffff',
           },
           cssVar: true,
         }}
