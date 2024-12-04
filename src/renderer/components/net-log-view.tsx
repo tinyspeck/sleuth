@@ -68,8 +68,8 @@ export class NetLogView extends React.Component<NetLogViewProps, object> {
     }
 
     this.disposeDarkModeAutorun = autorun(() => {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      this.setDarkMode(isDark);
+      const isDarkMode = this.props.state.prefersDarkColors;
+      this.setDarkMode(isDarkMode);
     });
   }
 

@@ -20,9 +20,7 @@ export interface JSONViewState {
 export class JSONView extends React.Component<JSONViewProps, JSONViewState> {
   public render() {
     const data = this.props.data || parseJSON(this.props.raw || '');
-    const isDarkMode = window.matchMedia(
-      '(prefers-color-scheme: dark)',
-    ).matches;
+    const isDarkMode = this.props.state.prefersDarkColors;
 
     if (data && Object.keys(data).length > 0) {
       const theme = getTheme(isDarkMode);
