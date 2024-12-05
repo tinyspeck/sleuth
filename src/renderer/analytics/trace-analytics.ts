@@ -18,7 +18,7 @@ function _getTraceWarnings(file: UnzippedFile): Array<string> {
 
   if (!('sourcemapped' in data)) {
     result.push(
-      `This trace was not sourcemapped, to sourcemap locally use 'npx @tinyspeck/mappy slacktrace' or an older version of Sleuth`,
+      `This trace was not sourcemapped, to sourcemap locally use 'slack sourcemap slacktrace <path>'`,
     );
   } else if (!data.sourcemapped) {
     result.push(`Sourcemapping failed for this trace`);
