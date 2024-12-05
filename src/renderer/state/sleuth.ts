@@ -37,7 +37,6 @@ import { ICON_NAMES } from '../../shared-constants';
 import { IpcEvents } from '../../ipc-events';
 import { setupTouchBarAutoruns } from './touchbar';
 import { TraceThreadDescription } from '../processor/trace';
-import { ColorTheme } from '../components/preferences';
 
 const d = debug('sleuth:state');
 
@@ -96,14 +95,13 @@ export class SleuthState {
     'serializedBookmarks',
     { parse: true, fallback: {} },
   );
-  @observable public prefersDarkColors = false;
   // ** Profiler **
   @observable public traceThreads?: Array<TraceThreadDescription>;
 
   // ** Settings **
-  @observable public colorTheme = this.retrieve<ColorTheme>('colorTheme', {
-    parse: false,
-    fallback: ColorTheme.System,
+  @observable public isDarkMode = !!this.retrieve<boolean>('isDarkMode', {
+    parse: true,
+    fallback: true,
   });
   @observable public isOpenMostRecent = !!this.retrieve<boolean>(
     'isOpenMostRecent',
@@ -148,9 +146,6 @@ export class SleuthState {
     public readonly resetApp: () => void,
   ) {
     this.getSuggestions();
-    ipcRenderer.on(IpcEvents.DARK_MODE_UPDATE, (_event, prefersDarkColors) => {
-      this.prefersDarkColors = prefersDarkColors;
-    });
 
     // Setup autoruns
     autorun(() => this.save('dateTimeFormat_v3', this.dateTimeFormat_v3));
@@ -160,18 +155,10 @@ export class SleuthState {
     autorun(() => this.save('defaultEditor', this.defaultEditor));
     autorun(() => this.save('defaultSort', this.defaultSort));
     autorun(() => this.save('serializedBookmarks', this.serializedBookmarks));
-    autorun(async () => {
-      this.save('colorTheme', this.colorTheme);
-      const prefersDarkColors = await ipcRenderer.invoke(
-        IpcEvents.SET_COLOR_THEME,
-        this.colorTheme,
-      );
-      this.prefersDarkColors = prefersDarkColors;
-    });
-    autorun(async () => {
-      // handles BlueprintJS color theming
-      // antd theming is handled by querying `this.prefersDarkColors` within app.tsx
-      if (this.prefersDarkColors) {
+    autorun(() => {
+      this.save('isDarkMode', this.isDarkMode);
+
+      if (this.isDarkMode) {
         document.body.classList.add('bp3-dark');
       } else {
         document.body.classList.remove('bp3-dark');
@@ -207,6 +194,7 @@ export class SleuthState {
     });
 
     this.reset = this.reset.bind(this);
+    this.toggleDarkMode = this.toggleDarkMode.bind(this);
     this.toggleSidebar = this.toggleSidebar.bind(this);
     this.toggleSpotlight = this.toggleSpotlight.bind(this);
     this.selectLogFile = this.selectLogFile.bind(this);
@@ -221,6 +209,7 @@ export class SleuthState {
     );
     ipcRenderer.on(IpcEvents.COPY, () => copy(this));
     ipcRenderer.on(IpcEvents.RESET, () => this.reset(true));
+    ipcRenderer.on(IpcEvents.TOGGLE_DARKMODE, () => this.toggleDarkMode());
     ipcRenderer.on(IpcEvents.TOGGLE_FILTER, (_event, level: LogLevel) => {
       this.setFilterLogLevels({ [level]: !this.levelFilter[level] });
     });
@@ -264,6 +253,11 @@ export class SleuthState {
   @action
   public setSource(source: string) {
     this.source = source;
+  }
+
+  @action
+  public toggleDarkMode() {
+    this.isDarkMode = !this.isDarkMode;
   }
 
   @action

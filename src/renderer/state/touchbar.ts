@@ -12,6 +12,10 @@ export function setupTouchBarAutoruns(state: SleuthState) {
   });
 
   autorun(() => {
+    ipcRenderer.send(IpcEvents.DARK_MODE_UPDATE, toJS(state.isDarkMode));
+  });
+
+  autorun(() => {
     const levelCounts = isProcessedLogFile(state.selectedLogFile)
       ? state.selectedLogFile.levelCounts
       : {};

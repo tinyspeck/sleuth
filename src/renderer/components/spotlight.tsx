@@ -154,6 +154,13 @@ export class Spotlight extends React.Component<
         },
       },
       {
+        text: 'Toggle Dark Mode',
+        icon: 'moon' as const,
+        click: () => {
+          this.props.state.toggleDarkMode();
+        },
+      },
+      {
         text: 'Toggle Sidebar',
         icon: 'menu' as const,
         click: () => {

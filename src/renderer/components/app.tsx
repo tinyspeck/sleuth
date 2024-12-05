@@ -220,9 +220,13 @@ export class App extends React.Component<object, Partial<AppState>> {
     return (
       <ConfigProvider
         theme={{
-          algorithm: this.sleuthState.prefersDarkColors
+          algorithm: this.sleuthState.isDarkMode
             ? theme.darkAlgorithm
             : theme.defaultAlgorithm,
+          token: {
+            colorPrimary: '#137cbd',
+            colorBgBase: this.sleuthState.isDarkMode ? '#182026' : '#ffffff',
+          },
           cssVar: true,
         }}
       >
