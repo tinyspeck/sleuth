@@ -8,6 +8,7 @@ import {
   IpcMainEvent,
   Menu,
   MenuItemConstructorOptions,
+  nativeTheme,
 } from 'electron';
 import * as path from 'path';
 
@@ -16,6 +17,7 @@ import { changeIcon } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { IpcEvents } from '../ipc-events';
 import { LogLineContextMenuActions, LogType } from '../interfaces';
+import { ColorTheme } from '../renderer/components/preferences';
 
 export class IpcManager {
   constructor() {
@@ -31,6 +33,7 @@ export class IpcManager {
     this.setupOpenRecent();
     this.setupTitleBarClickMac();
     this.setupContextMenus();
+    this.setupNativeTheme();
   }
 
   public openFile(pathName: string) {
@@ -235,6 +238,41 @@ export class IpcManager {
           },
         });
       });
+    });
+  }
+
+  private setupNativeTheme() {
+    /**
+     * `nativeTheme.themeSource` can be one of `light`, `dark`, or `system`.
+     * Follow OS --> themeSource = 'system'
+     * Dark Mode --> themeSource = 'dark'
+     * Light Mode --> themeSource = 'light'
+     *
+     * This handler returns whether or not the UI should be in dark mode
+     * according to the user's settings.
+     */
+    ipcMain.handle(
+      IpcEvents.SET_COLOR_THEME,
+      async (_, colorTheme: ColorTheme) => {
+        nativeTheme.themeSource = colorTheme;
+        return nativeTheme.shouldUseDarkColors;
+      },
+    );
+
+    /**
+     * We also need to listen to changes to the dark mode settings that
+     * are coming from the OS. This listener will tell all renderers
+     * whether or not to set the UI to dark mode or not.
+     */
+    nativeTheme.on('updated', () => {
+      const wins = BrowserWindow.getAllWindows();
+
+      for (const win of wins) {
+        win.webContents.send(
+          IpcEvents.DARK_MODE_UPDATE,
+          nativeTheme.shouldUseDarkColors,
+        );
+      }
     });
   }
 }
