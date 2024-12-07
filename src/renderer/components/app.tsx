@@ -226,7 +226,9 @@ export class App extends React.Component<object, Partial<AppState>> {
           cssVar: true,
           token: {
             colorPrimary: '#137cbd',
-            colorBgBase: this.sleuthState.prefersDarkColors ? '#182026' : '#ffffff',
+            colorBgBase: this.sleuthState.prefersDarkColors
+              ? '#182026'
+              : '#ffffff',
           },
         }}
       >
