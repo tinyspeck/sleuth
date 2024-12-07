@@ -31,4 +31,7 @@ describe('Unzipper', () => {
         return unzipper.clean();
       });
   });
+
+  // TODO: this is easy to test but hard to generate a fixture with fake data
+  it.todo('can handle non-unique file names');
 });

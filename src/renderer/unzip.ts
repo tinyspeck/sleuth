@@ -18,6 +18,8 @@ export class Unzipper {
   public zipfile: ZipFile;
   public files: Array<UnzippedFile> = [];
 
+  public uniqueFileNameCount: Map<string, number> = new Map();
+
   constructor(url: string) {
     this.url = url;
     d(`Created new Unzipper with url ${url}`);
@@ -61,9 +63,21 @@ export class Unzipper {
   }
 
   public async handleFile(entry: Entry) {
-    const targetPath = path.join(this.output, entry.fileName);
+    let outputFileName = entry.fileName;
+    const incrementor = this.uniqueFileNameCount.get(entry.fileName);
 
-    d(`Found file: ${entry.fileName}, Size: ${entry.compressedSize}.`);
+    if (typeof incrementor === 'number') {
+      const ext = path.extname(outputFileName);
+      const name = path.basename(outputFileName, ext);
+      outputFileName = `${name}${incrementor}${ext}`;
+      this.uniqueFileNameCount.set(entry.fileName, incrementor + 1);
+    } else {
+      this.uniqueFileNameCount.set(entry.fileName, 1);
+    }
+
+    const targetPath = path.join(this.output, outputFileName);
+
+    d(`Found file: ${outputFileName}, Size: ${entry.compressedSize}.`);
 
     if (shouldIgnoreFile(entry.fileName)) return;
 
@@ -78,7 +92,7 @@ export class Unzipper {
           async (error: Error, zipStream: NodeJS.ReadableStream) => {
             if (error) {
               d(
-                `Encountered error while trying to read stream for ${entry.fileName}`,
+                `Encountered error while trying to read stream for ${outputFileName}`,
               );
               return reject(error);
             }
@@ -92,7 +106,7 @@ export class Unzipper {
     await pipeline(readStream, fs.createWriteStream(targetPath));
 
     this.files.push({
-      fileName: entry.fileName,
+      fileName: outputFileName,
       size: entry.uncompressedSize || 0,
       fullPath: targetPath,
       id: targetPath,

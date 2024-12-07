@@ -139,8 +139,6 @@ export class CoreApplication extends React.Component<
 
     this.addFilesToState(rawLogFiles);
 
-    console.log(this.state.processedLogFiles?.state);
-
     console.time('process-files');
     for (const type of LOG_TYPES_TO_PROCESS) {
       const preFiles = sortedUnzippedFiles[type];
