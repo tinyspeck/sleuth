@@ -1,6 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-import JSONTree from 'react-json-tree';
+import { JSONTree } from 'react-json-tree';
 
 import { SleuthState } from '../state/sleuth';
 import { getTheme } from './theme';
@@ -28,11 +28,11 @@ export class JSONView extends React.Component<JSONViewProps, JSONViewState> {
       return (
         <div className="Monospace">
           <JSONTree
-            invertTheme={isDarkMode}
+            invertTheme={!isDarkMode}
             data={data}
             theme={theme}
             hideRoot={true}
-            shouldExpandNode={() => true}
+            shouldExpandNodeInitially={() => true}
           />
         </div>
       );
