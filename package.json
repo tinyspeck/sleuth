@@ -18,7 +18,7 @@
     "catapult:update": "git submodule foreach git pull origin master",
     "postinstall": "patch-package",
     "lint:fix": "npm run tsc && eslint . --fix  --ignore-path .gitignore && prettier . --write",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "Felix Rieseberg <felix@felixrieseberg.com>",
