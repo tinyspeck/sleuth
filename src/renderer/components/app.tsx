@@ -224,6 +224,12 @@ export class App extends React.Component<object, Partial<AppState>> {
             ? theme.darkAlgorithm
             : theme.defaultAlgorithm,
           cssVar: true,
+          token: {
+            colorPrimary: '#137cbd',
+            colorBgBase: this.sleuthState.prefersDarkColors
+              ? '#182026'
+              : '#ffffff',
+          },
         }}
       >
         <div className={className}>
