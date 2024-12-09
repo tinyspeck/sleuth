@@ -120,6 +120,9 @@
     "node-abi": "^3.45.0"
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx}": " eslint --fix  --ignore-path .gitignore && prettier --write"
+    "*.{js,ts,jsx,tsx}": [
+      "eslint --fix  --ignore-path .gitignore",
+      "prettier --write"
+    ]
   }
 }
