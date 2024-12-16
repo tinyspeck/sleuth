@@ -97,7 +97,11 @@ export async function createWindow(): Promise<BrowserWindow> {
 
   // Open the DevTools.
   if (config.isDevMode) {
-    await installExtension(REACT_DEVELOPER_TOOLS);
+    await installExtension(REACT_DEVELOPER_TOOLS, {
+      loadExtensionOptions: {
+        allowFileAccess: true,
+      },
+    });
     mainWindow.webContents.openDevTools();
   }
 
