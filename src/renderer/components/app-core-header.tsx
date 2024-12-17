@@ -22,9 +22,7 @@ export class AppCoreHeader extends React.Component<AppCoreHeaderProps, object> {
   public render() {
     const {
       isSidebarOpen,
-      isDarkMode,
       isSpotlightOpen,
-      toggleDarkMode,
       toggleSidebar,
       toggleSpotlight,
       reset,
@@ -41,7 +39,6 @@ export class AppCoreHeader extends React.Component<AppCoreHeaderProps, object> {
               onClick={toggleSidebar}
               icon={sidebarIcon}
             />
-            <Button active={isDarkMode} onClick={toggleDarkMode} icon="moon" />
             <Bookmarks state={this.props.state} />
             <Button
               active={isSpotlightOpen}

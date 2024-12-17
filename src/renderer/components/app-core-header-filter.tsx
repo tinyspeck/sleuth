@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import React from 'react';
-import debounce from 'debounce';
+import { debounce } from 'lodash';
 import {
   NavbarDivider,
   NavbarGroup,
