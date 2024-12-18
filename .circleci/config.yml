@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  node: circleci/node@7.0.0
+
 anchors:
   job_filter_releases: &job_filter_releases
     tags:
@@ -93,6 +96,8 @@ jobs:
         enum: ['x64', 'arm64', 'universal']
     executor: macos
     steps:
+      - node/install:
+          node-version: "22.9.0"
       - build_sleuth:
           make_flags: --arch << parameters.arch >>
   build-windows:
