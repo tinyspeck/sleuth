@@ -4,6 +4,9 @@
   "version": "3.8.0",
   "description": "Slack Log Viewer",
   "main": "./dist/src/main/index.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "tsc": "tsc -p tsconfig.json --noEmit",
     "lint": "npm run tsc && eslint .  --ignore-path .gitignore && prettier --check .",
