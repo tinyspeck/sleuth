@@ -50,8 +50,6 @@ const options: ForgeConfig = {
     postMake: async () => {
       server.close();
       console.log(`server closing`);
-      // FIXME: we should be able to just void return the postMake hook upstream?
-      return undefined;
     },
   },
   packagerConfig: {
