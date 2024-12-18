@@ -112,7 +112,7 @@
   "resolutions": {
     "@types/react": "16.14.43",
     "mobx-react-lite": "2.2.0",
-    "node-abi": "^3.45.0"
+    "@electron/rebuild": "3.6.2"
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx}": [
