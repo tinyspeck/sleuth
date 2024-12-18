@@ -120,6 +120,9 @@
     "*.{js,ts,jsx,tsx}": [
       "eslint --fix  --ignore-path .gitignore",
       "prettier --write"
+    ],
+    "*.{yml,yaml}": [
+      "prettier --write"
     ]
   }
 }

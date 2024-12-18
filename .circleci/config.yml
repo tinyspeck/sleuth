@@ -97,7 +97,7 @@ jobs:
     executor: macos
     steps:
       - node/install:
-          node-version: "22.9.0"
+          node-version: '22.9.0'
       - build_sleuth:
           make_flags: --arch << parameters.arch >>
   build-windows:
