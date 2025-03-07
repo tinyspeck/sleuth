@@ -260,7 +260,10 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     const isSelected = selectedLogFileName === file.fileName;
 
     let label;
-    if (file.fileName.endsWith('gpu-info.json')) {
+    if (
+      file.fileName.endsWith('gpu-info.json') ||
+      file.fileName.endsWith('gpu-info.html')
+    ) {
       label = 'GPU';
     } else if (file.fileName.endsWith('notification-warnings.json')) {
       label = 'Notification Warnings';
