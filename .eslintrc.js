@@ -22,6 +22,27 @@ module.exports = {
         '@typescript-eslint/no-var-requires': 'off',
       },
     },
+    // Temporary override to detect usage of Node.js APIs in the renderer process
+    {
+      files: ['src/renderer/**/*.{js,ts,jsx,tsx}'],
+      env: {
+        browser: true,
+        node: false,
+      },
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          'fs',
+          'fs-extra',
+          'os',
+          'path',
+          'child_process',
+          'stream',
+          'util',
+        ],
+        'no-restricted-globals': ['error', 'process', 'require', '__dirname'],
+      },
+    },
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
