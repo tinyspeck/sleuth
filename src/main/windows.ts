@@ -8,8 +8,6 @@ import { settingsFileManager } from './settings';
 import { config } from '../config';
 import { getIconPath } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
-import { TouchBarManager } from './touch-bar-manager';
-// import { IpcEvents } from '../ipc-events';
 
 export let windows: Array<Electron.BrowserWindow> = [];
 
@@ -103,14 +101,6 @@ export async function createWindow(): Promise<BrowserWindow> {
       },
     });
     mainWindow.webContents.openDevTools();
-  }
-
-  // Add a TouchBarManager. It'll take care of the touch bar.
-  // We don't _really_ get to add things to the window, but
-  // I'm doing it anyway.
-  if (process.platform === 'darwin') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (mainWindow as any).touchBarManager = new TouchBarManager(mainWindow);
   }
 
   windows.push(mainWindow);

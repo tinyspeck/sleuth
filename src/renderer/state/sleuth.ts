@@ -35,7 +35,6 @@ import { copy } from './copy';
 import { changeIcon } from '../ipc';
 import { ICON_NAMES } from '../../shared-constants';
 import { IpcEvents } from '../../ipc-events';
-import { setupTouchBarAutoruns } from './touchbar';
 import { TraceThreadDescription } from '../processor/trace';
 import { ColorTheme } from '../components/preferences';
 
@@ -213,7 +212,6 @@ export class SleuthState {
     this.setMergedFile = this.setMergedFile.bind(this);
     this.setFilterLogLevels = this.setFilterLogLevels.bind(this);
 
-    setupTouchBarAutoruns(this);
     ipcRenderer.on(IpcEvents.TOGGLE_SIDEBAR, this.toggleSidebar);
     ipcRenderer.on(IpcEvents.TOGGLE_SPOTLIGHT, this.toggleSpotlight);
     ipcRenderer.on(IpcEvents.OPEN_BOOKMARKS, (_event, data) =>
