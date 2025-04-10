@@ -2,11 +2,11 @@
  * @jest-environment node
  */
 
-import { Unzipper } from '../../src/renderer/unzip';
+import { Unzipper } from '../../src/main/unzip';
 import path from 'path';
 
 describe('Unzipper', () => {
-  it('should read a simple zip file', () => {
+  it('should read a simple zip file', async () => {
     const simple = path.join(__dirname, '../static/simple.zip');
     const unzipper = new Unzipper(simple);
 
@@ -19,7 +19,7 @@ describe('Unzipper', () => {
       });
   });
 
-  it('should read a simple zip file with folders', () => {
+  it('should read a simple zip file with folders', async () => {
     const simple = path.join(__dirname, '../static/simple-with-folders.zip');
     const unzipper = new Unzipper(simple);
 

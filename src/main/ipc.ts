@@ -18,6 +18,7 @@ import { ICON_NAMES } from '../shared-constants';
 import { IpcEvents } from '../ipc-events';
 import { LogLineContextMenuActions, LogType } from '../interfaces';
 import { ColorTheme } from '../renderer/components/preferences';
+import { Unzipper } from './unzip';
 
 export class IpcManager {
   constructor() {
@@ -34,6 +35,7 @@ export class IpcManager {
     this.setupTitleBarClickMac();
     this.setupContextMenus();
     this.setupNativeTheme();
+    this.setupUnzipper();
   }
 
   public openFile(pathName: string) {
@@ -145,7 +147,7 @@ export class IpcManager {
   }
 
   private setupSettings() {
-    ipcMain.handle(IpcEvents.SET_SETTINGS, (_event, key: string, value: any) =>
+    ipcMain.handle(IpcEvents.SET_SETTINGS, (_event, key: string, value: unknown) =>
       settingsFileManager.setItem(key, value),
     );
     ipcMain.handle(IpcEvents.CHANGE_ICON, (_event, iconName: ICON_NAMES) =>
@@ -273,6 +275,18 @@ export class IpcManager {
           nativeTheme.shouldUseDarkColors,
         );
       }
+    });
+  }
+
+  /**
+   * Set up unzipping in the main process
+   */
+  private setupUnzipper() {
+    ipcMain.handle(IpcEvents.UNZIP, async (event, url: string) => {
+      const unzipper = new Unzipper(url);
+      await unzipper.open();
+
+      return await unzipper.unzip();
     });
   }
 }
