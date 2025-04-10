@@ -1,12 +1,12 @@
 import React from 'react';
 import { webUtils, ipcRenderer } from 'electron';
 import classNames from 'classnames';
+
 import fs from 'fs-extra';
 import path from 'path';
 import debug from 'debug';
 import { ConfigProvider, theme } from 'antd';
 
-import { Unzipper } from '../unzip';
 import { Welcome } from './welcome';
 import { CoreApplication } from './app-core';
 import { MacTitlebar } from './mac-titlebar';
@@ -171,10 +171,7 @@ export class App extends React.Component<object, Partial<AppState>> {
    * @param {string} url
    */
   public async openZip(url: string): Promise<void> {
-    const unzipper = new Unzipper(url);
-    await unzipper.open();
-
-    const unzippedFiles = await unzipper.unzip();
+    const unzippedFiles = await ipcRenderer.invoke(IpcEvents.UNZIP, url);
 
     this.sleuthState.setSource(url);
     this.setState({ unzippedFiles });
