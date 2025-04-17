@@ -1,5 +1,5 @@
 import React from 'react';
-import { ipcRenderer } from 'electron';
+import { webUtils, ipcRenderer } from 'electron';
 import classNames from 'classnames';
 import fs from 'fs-extra';
 import path from 'path';
@@ -257,7 +257,7 @@ export class App extends React.Component<object, Partial<AppState>> {
     document.ondragover = document.ondrop = (event) => event.preventDefault();
     document.body.ondrop = (event) => {
       if (event.dataTransfer && event.dataTransfer.files.length > 0) {
-        let url = event.dataTransfer.files[0].path;
+        let url = webUtils.getPathForFile(event.dataTransfer.files[0]);
         url = url.replace('file:///', '/');
         this.openFile(url);
       }
