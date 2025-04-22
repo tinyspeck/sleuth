@@ -36,6 +36,8 @@ const ANDROID_A_RGX =
   /^\s*([0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}:[0-9]{3}) (.+)$/;
 const ANDROID_B_RGX =
   /^(?:\u200B|[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})?\s*(.*)\s*([a-zA-Z]{3}-[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})\s(.*)/;
+const ANDROID_C_RGX =
+  /^([0-9]{4}-[0-9]{2}-[0-9]{2} )(T)([0-9]{2}:[0-9]{2}:[0-9]{2})(?:.[0-9]{6} -[0-9]{1,2}:[0-9]{2} )(.*)/;
 
 const CONSOLE_A_RGX =
   /(\S*:1)?(?:[\u200B\t ]?)([A-Za-z]{3}-[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}) (.+)/g;
@@ -918,9 +920,28 @@ export function matchLineAndroid(line: string): MatchResult | undefined {
     };
   }
 
+  // ANDROID_C_RGX expects lines that start with YYYY-MM-DD THH:MM:SS.SSSSSS
+  ANDROID_C_RGX.lastIndex = 0;
+  let results = ANDROID_C_RGX.exec(line);
+
+  if (results && results.length === 5 && results[2] === 'T') {
+    // We're gonna merge the date and time
+    const newTimestamp = new Date(results[1] + results[3]);
+
+    // Expected format: MM-DD HH:mm:ss:sss
+    const momentValue = newTimestamp.valueOf();
+
+    return {
+      timestamp: newTimestamp.toString(),
+      level: 'info',
+      message: results[4],
+      momentValue,
+    };
+  }
+
   // ANDROID_A_RGX expects lines that start with MM-DD HH:mm:ss:sss
   ANDROID_A_RGX.lastIndex = 0;
-  let results = ANDROID_A_RGX.exec(line);
+  results = ANDROID_A_RGX.exec(line);
 
   if (results && results.length === 3) {
     // Android timestamps have no year, so we gotta add one
