@@ -19,6 +19,7 @@ import { IpcEvents } from '../ipc-events';
 import { LogLineContextMenuActions, LogType } from '../interfaces';
 import { ColorTheme } from '../renderer/components/preferences';
 import { Unzipper } from './unzip';
+import { openFile } from './filesystem';
 
 export class IpcManager {
   constructor() {
@@ -36,6 +37,7 @@ export class IpcManager {
     this.setupContextMenus();
     this.setupNativeTheme();
     this.setupUnzipper();
+    this.setupOpenFile();
   }
 
   public openFile(pathName: string) {
@@ -147,8 +149,10 @@ export class IpcManager {
   }
 
   private setupSettings() {
-    ipcMain.handle(IpcEvents.SET_SETTINGS, (_event, key: string, value: unknown) =>
-      settingsFileManager.setItem(key, value),
+    ipcMain.handle(
+      IpcEvents.SET_SETTINGS,
+      (_event, key: string, value: unknown) =>
+        settingsFileManager.setItem(key, value),
     );
     ipcMain.handle(IpcEvents.CHANGE_ICON, (_event, iconName: ICON_NAMES) =>
       changeIcon(iconName),
@@ -282,11 +286,17 @@ export class IpcManager {
    * Set up unzipping in the main process
    */
   private setupUnzipper() {
-    ipcMain.handle(IpcEvents.UNZIP, async (event, url: string) => {
+    ipcMain.handle(IpcEvents.UNZIP, async (_event, url: string) => {
       const unzipper = new Unzipper(url);
       await unzipper.open();
 
       return await unzipper.unzip();
+    });
+  }
+
+  private setupOpenFile() {
+    ipcMain.handle(IpcEvents.OPEN_FILE, async (_event, filePath: string) => {
+      return openFile(filePath);
     });
   }
 }

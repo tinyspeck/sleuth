@@ -35,6 +35,7 @@ export interface WelcomeState {
 export interface WelcomeProps {
   sleuth?: string;
   state: SleuthState;
+  openFile: (filePath: string) => Promise<void>;
 }
 
 const iconStyle = {
@@ -150,8 +151,6 @@ export class Welcome extends React.Component<
   };
 
   public renderSuggestions(): JSX.Element | null {
-    const { openFile } = this.props.state;
-
     const today: Suggestion[] = [];
     const thisWeek: Suggestion[] = [];
     const stale: Suggestion[] = [];
@@ -176,7 +175,8 @@ export class Welcome extends React.Component<
           renderItem={(item) => {
             const openItem = (e: React.MouseEvent) => {
               e.preventDefault();
-              openFile(item.filePath);
+
+              this.props.openFile(item.filePath);
             };
             const deleteItem = (e: React.MouseEvent) => {
               e.stopPropagation();

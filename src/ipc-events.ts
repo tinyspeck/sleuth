@@ -26,4 +26,5 @@ export const enum IpcEvents {
   RESET = 'RESET',
   OPEN_LOG_CONTEXT_MENU = 'OPEN_LOG_CONTEXT_MENU',
   UNZIP = 'UNZIP',
+  OPEN_FILE = 'OPEN_FILE',
 }
