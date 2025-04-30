@@ -10,7 +10,8 @@ import {
   MenuItemConstructorOptions,
   nativeTheme,
 } from 'electron';
-import * as path from 'path';
+import path from 'node:path';
+import fs from 'node:fs';
 
 import { settingsFileManager } from './settings';
 import { changeIcon } from './app-icon';
@@ -19,7 +20,34 @@ import { IpcEvents } from '../ipc-events';
 import { LogLineContextMenuActions, LogType } from '../interfaces';
 import { ColorTheme } from '../renderer/components/preferences';
 import { Unzipper } from './unzip';
-import { openFile } from './filesystem';
+import { openFile } from './filesystem/open-file';
+import {
+  deleteSuggestion,
+  deleteSuggestions,
+  getItemsInSuggestionFolders,
+} from './filesystem/suggestions';
+
+fs.watch(app.getPath('downloads'), async () => {
+  // TODO(erickzhao): It would be more efficient to send the suggestions in this one IPC call
+  // instead of making another roundtrip from the renderer to update the suggestions.
+  getCurrentWindow().webContents.send(IpcEvents.SUGGESTIONS_UPDATED);
+});
+
+function getCurrentWindow(): Electron.BrowserWindow {
+  const window = BrowserWindow.getFocusedWindow();
+
+  if (window) {
+    return window;
+  } else {
+    const windows = BrowserWindow.getAllWindows();
+
+    if (windows.length > 0) {
+      return windows[0];
+    } else {
+      throw new Error('Could not find window!');
+    }
+  }
+}
 
 export class IpcManager {
   constructor() {
@@ -38,26 +66,11 @@ export class IpcManager {
     this.setupNativeTheme();
     this.setupUnzipper();
     this.setupOpenFile();
+    this.setupSuggestions();
   }
 
   public openFile(pathName: string) {
-    this.getCurrentWindow().webContents.send(IpcEvents.FILE_DROPPED, pathName);
-  }
-
-  private getCurrentWindow(): Electron.BrowserWindow {
-    const window = BrowserWindow.getFocusedWindow();
-
-    if (window) {
-      return window;
-    } else {
-      const windows = BrowserWindow.getAllWindows();
-
-      if (windows.length > 0) {
-        return windows[0];
-      } else {
-        throw new Error('Could not find window!');
-      }
-    }
+    getCurrentWindow().webContents.send(IpcEvents.FILE_DROPPED, pathName);
   }
 
   private setupFileDrop() {
@@ -298,6 +311,26 @@ export class IpcManager {
     ipcMain.handle(IpcEvents.OPEN_FILE, async (_event, filePath: string) => {
       return openFile(filePath);
     });
+  }
+
+  private setupSuggestions() {
+    ipcMain.handle(IpcEvents.GET_SUGGESTIONS, async (_event) => {
+      return getItemsInSuggestionFolders();
+    });
+
+    ipcMain.handle(
+      IpcEvents.DELETE_SUGGESTION,
+      async (_event, filePath: string) => {
+        return deleteSuggestion(filePath);
+      },
+    );
+
+    ipcMain.handle(
+      IpcEvents.DELETE_SUGGESTIONS,
+      async (_event, filePaths: string[]) => {
+        return deleteSuggestions(filePaths);
+      },
+    );
   }
 }
 

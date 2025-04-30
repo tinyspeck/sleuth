@@ -1,5 +1,4 @@
 import React from 'react';
-import path from 'path';
 
 import { Button, List, Result, Spin, Tooltip, Typography } from 'antd';
 import {
@@ -16,19 +15,16 @@ import {
 import { observer } from 'mobx-react';
 
 import { getSleuth } from '../sleuth';
-import { deleteSuggestion, deleteSuggestions } from '../suggestions';
 import { SleuthState } from '../state/sleuth';
 import { isToday, isThisWeek } from 'date-fns';
 import { Suggestion, ValidSuggestion } from '../../interfaces';
 
-import fs from 'fs-extra';
-import { getPath } from '../ipc';
-import { FSWatcher } from 'fs';
 import classNames from 'classnames';
+import { ipcRenderer } from 'electron';
+import { IpcEvents } from '../../ipc-events';
 
 export interface WelcomeState {
   sleuth: string;
-  watcher?: FSWatcher;
   downloadsDir?: string;
 }
 
@@ -52,32 +48,26 @@ export class Welcome extends React.Component<
 
     this.state = {
       sleuth: props.sleuth || getSleuth(),
-      watcher: undefined,
     };
   }
 
-  public async componentDidMount(): Promise<void> {
-    const downloadsDir = await getPath('downloads');
-    this.setState({
-      watcher: fs.watch(downloadsDir, async () => {
-        await this.props.state.getSuggestions();
-      }),
-      downloadsDir,
+  public componentDidMount(): void {
+    ipcRenderer.on(IpcEvents.SUGGESTIONS_UPDATED, async () => {
+      await this.props.state.getSuggestions();
     });
   }
 
   public componentWillUnmount(): void {
-    this.state.watcher?.close();
-    this.setState({ watcher: undefined });
+    ipcRenderer.removeAllListeners(IpcEvents.SUGGESTIONS_UPDATED);
   }
 
   public async deleteSuggestion(filePath: string) {
-    await deleteSuggestion(filePath);
+    await ipcRenderer.invoke(IpcEvents.DELETE_SUGGESTION, filePath);
     await this.props.state.getSuggestions();
   }
 
-  public async deleteSuggestions(filePaths: Array<string>) {
-    await deleteSuggestions(filePaths);
+  public async deleteSuggestions(filePaths: string[]) {
+    await ipcRenderer.invoke(IpcEvents.DELETE_SUGGESTIONS, filePaths);
     await this.props.state.getSuggestions();
   }
 
@@ -205,13 +195,13 @@ export class Welcome extends React.Component<
                 {'error' in item ? (
                   <List.Item.Meta
                     avatar={<ExclamationCircleOutlined style={iconStyle} />}
-                    title={<span>{path.basename(item.filePath)}</span>}
+                    title={<span>{item.filePath.split('/').pop()}</span>}
                     description={`Failed to parse ZIP! ${item.error.message}`}
                   />
                 ) : (
                   <List.Item.Meta
                     avatar={this.platformIcon(item.platform)}
-                    title={<span>{path.basename(item.filePath)}</span>}
+                    title={<span>{item.filePath.split('/').pop()}</span>}
                     description={this.logFileDescription(item)}
                   />
                 )}

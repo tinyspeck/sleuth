@@ -10,7 +10,6 @@ import { getIconPath } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { TouchBarManager } from './touch-bar-manager';
 import path from 'node:path';
-// import { IpcEvents } from '../ipc-events';
 
 export let windows: Array<Electron.BrowserWindow> = [];
 

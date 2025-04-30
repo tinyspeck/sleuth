@@ -2,7 +2,6 @@ import { observable, action, autorun, computed, toJS } from 'mobx';
 import { ipcRenderer } from 'electron';
 import debug from 'debug';
 
-import { getItemsInSuggestionFolders } from '../suggestions';
 import { testDateTimeFormat } from '../../utils/test-date-time';
 import { SORT_DIRECTION } from '../components/log-table-constants';
 import { setSetting } from '../settings';
@@ -279,7 +278,7 @@ export class SleuthState {
 
   @action
   public async getSuggestions() {
-    this.suggestions = await getItemsInSuggestionFolders();
+    this.suggestions = await ipcRenderer.invoke(IpcEvents.GET_SUGGESTIONS);
     this.suggestionsLoaded = true;
 
     // This is a side effect. There's probably a better

@@ -4,7 +4,10 @@ import fs from 'node:fs';
 
 const packageJSON = JSON.parse(
   fs
-    .readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8')
+    .readFileSync(
+      path.join(__dirname, '..', '..', '..', 'package.json'),
+      'utf8',
+    )
     .trim(),
 );
 
@@ -13,6 +16,9 @@ const packageJSON = JSON.parse(
  * is still enabled. This provides a familiar `window.Sleuth` interface to the global
  * scope of the app while being open to being replaced with a more secure contextBridge
  * implementation in the future.
+ *
+ * To get these global values available in the renderer process, duplicate the shape of
+ * this object in `src/global.d.ts`.
  */
 (window as any).Sleuth = {
   platform: process.platform,
