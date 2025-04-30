@@ -26,6 +26,7 @@ import {
   deleteSuggestions,
   getItemsInSuggestionFolders,
 } from './filesystem/suggestions';
+import { readLogFile } from './filesystem/read-file';
 
 fs.watch(app.getPath('downloads'), async () => {
   // TODO(erickzhao): It would be more efficient to send the suggestions in this one IPC call
@@ -67,6 +68,7 @@ export class IpcManager {
     this.setupUnzipper();
     this.setupOpenFile();
     this.setupSuggestions();
+    this.setupProcessor();
   }
 
   public openFile(pathName: string) {
@@ -331,6 +333,12 @@ export class IpcManager {
         return deleteSuggestions(filePaths);
       },
     );
+  }
+
+  private setupProcessor() {
+    ipcMain.handle(IpcEvents.READ_FILE, async (_event, files) => {
+      return readLogFile(files);
+    });
   }
 }
 

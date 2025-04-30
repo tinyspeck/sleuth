@@ -4,7 +4,6 @@ import classNames from 'classnames';
 
 import { getFirstLogFile } from '../../utils/get-first-logfile';
 import { SleuthState } from '../state/sleuth';
-import { getTypesForFiles, mergeLogFiles, processLogFiles } from '../processor';
 import {
   LevelFilter,
   MergedFilesLoadStatus,
@@ -24,6 +23,8 @@ import { flushLogPerformance } from '../processor/performance';
 import { Spotlight } from './spotlight';
 import { showMessageBox } from '../ipc';
 import { rehydrateBookmarks } from '../state/bookmarks';
+import { getTypesForFiles } from '../../utils/get-file-types';
+import { mergeLogFiles, processLogFiles } from '../processor';
 
 export interface CoreAppProps {
   state: SleuthState;
@@ -147,7 +148,7 @@ export class CoreApplication extends React.Component<
       });
       const delta: Partial<ProcessedLogFiles> = {};
 
-      delta[type] = files as Array<ProcessedLogFile>;
+      delta[type] = files as ProcessedLogFile[];
       this.addFilesToState(delta);
     }
     console.timeEnd('process-files');
@@ -163,17 +164,6 @@ export class CoreApplication extends React.Component<
     this.setState({ loadedLogFiles: true });
 
     // We're done processing the files, so let's get started on the merge files.
-    await this.processMergeFiles();
-
-    rehydrateBookmarks(this.props.state);
-    flushLogPerformance();
-  }
-
-  /**
-   * Kick off merging of all the log files
-   */
-  private async processMergeFiles() {
-    const { processedLogFiles } = this.state;
     const { setMergedFile } = this.props.state;
 
     if (processedLogFiles) {
@@ -189,6 +179,9 @@ export class CoreApplication extends React.Component<
 
       mergeLogFiles(toMerge, LogType.ALL).then((r) => setMergedFile(r));
     }
+
+    rehydrateBookmarks(this.props.state);
+    flushLogPerformance();
   }
 
   /**
