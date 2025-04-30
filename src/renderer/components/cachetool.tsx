@@ -143,7 +143,7 @@ export class Cachetool extends React.Component<
   }
 
   private renderPlatformWarning(): JSX.Element | null {
-    if (process.platform !== 'darwin') {
+    if (window.Sleuth.platform !== 'darwin') {
       return (
         <Callout
           intent={Intent.WARNING}

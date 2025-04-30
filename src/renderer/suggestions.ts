@@ -50,7 +50,8 @@ export async function getItemsInSuggestionFolders(): Promise<
 }
 
 export async function deleteSuggestion(filePath: string) {
-  const trashName = process.platform === 'darwin' ? 'trash' : 'recycle bin';
+  const trashName =
+    window.Sleuth.platform === 'darwin' ? 'trash' : 'recycle bin';
 
   const { response } = await showMessageBox({
     title: 'Delete File?',
@@ -68,7 +69,8 @@ export async function deleteSuggestion(filePath: string) {
 }
 
 export async function deleteSuggestions(filePaths: Array<string>) {
-  const trashName = process.platform === 'darwin' ? 'trash' : 'recycle bin';
+  const trashName =
+    window.Sleuth.platform === 'darwin' ? 'trash' : 'recycle bin';
 
   const { response } = await showMessageBox({
     title: 'Delete Files?',

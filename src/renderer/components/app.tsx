@@ -70,11 +70,11 @@ export class App extends React.Component<object, Partial<AppState>> {
     const { unzippedFiles, openEmpty } = this.state;
     const className = classNames('App', {
       // eslint-disable-next-line no-restricted-globals
-      Darwin: process.platform === 'darwin',
+      Darwin: window.Sleuth.platform === 'darwin',
     });
     const titleBar =
       // eslint-disable-next-line no-restricted-globals
-      process.platform === 'darwin' ? (
+      window.Sleuth.platform === 'darwin' ? (
         <MacTitlebar state={this.sleuthState} />
       ) : (
         ''

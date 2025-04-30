@@ -9,6 +9,7 @@ import { config } from '../config';
 import { getIconPath } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { TouchBarManager } from './touch-bar-manager';
+import path from 'node:path';
 // import { IpcEvents } from '../ipc-events';
 
 export let windows: Array<Electron.BrowserWindow> = [];
@@ -84,6 +85,7 @@ export async function createWindow(): Promise<BrowserWindow> {
       webviewTag: false,
       nodeIntegration: true,
       contextIsolation: false,
+      preload: path.join(__dirname, '..', 'preload', 'preload.js'),
     },
   };
   console.log(`Windows: Creating window with options`, options);

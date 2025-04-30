@@ -118,7 +118,8 @@ export class SleuthState {
   );
   @observable public font: string = this.retrieve<string>('font', {
     parse: false,
-    fallback: process.platform === 'darwin' ? 'San Francisco' : 'Segoe UI',
+    fallback:
+      window.Sleuth.platform === 'darwin' ? 'San Francisco' : 'Segoe UI',
   });
   @observable public defaultEditor: string = this.retrieve<string>(
     'defaultEditor',
@@ -189,7 +190,7 @@ export class SleuthState {
       changeIcon(this.isMarkIcon ? ICON_NAMES.mark : ICON_NAMES.default);
     });
     autorun(async () => {
-      if (process.platform === 'darwin') {
+      if (window.Sleuth.platform === 'darwin') {
         this.isLoadingCacheKeys = true;
         if (!this.cachePath) return;
 

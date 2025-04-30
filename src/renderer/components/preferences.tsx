@@ -37,9 +37,6 @@ import {
 import { SORT_DIRECTION } from './log-table-constants';
 import { IpcEvents } from '../../ipc-events';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const packageInfo = require('../../../package.json');
-
 const FontSelect = Select.ofType<string>();
 const DateTimeSelect = Select.ofType<string>();
 const EditorSelect = Select.ofType<Editor>();
@@ -92,9 +89,9 @@ export class Preferences extends React.Component<
         <div className={classes}>
           <h2>Preferences</h2>
           <Callout>
-            You&apos;re running Sleuth {packageInfo.version} {getSleuth()} with
-            Electron {process.versions.electron} and Chrome{' '}
-            {process.versions.chrome}.
+            You&apos;re running Sleuth {window.Sleuth.sleuthVersion} {getSleuth()} with
+            Electron {window.Sleuth.versions.electron} and Chrome{' '}
+            {window.Sleuth.versions.chrome}.
           </Callout>
           <Divider style={{ marginTop: '15px' }} />
           <FormGroup
