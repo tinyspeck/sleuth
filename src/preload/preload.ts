@@ -32,11 +32,8 @@ const packageJSON = JSON.parse(
  * is still enabled. This provides a familiar `window.Sleuth` interface to the global
  * scope of the app while being open to being replaced with a more secure contextBridge
  * implementation in the future.
- *
- * To get these global values available in the renderer process, duplicate the shape of
- * this object in `src/global.d.ts`.
  */
-(window as any).Sleuth = {
+export const SleuthAPI = {
   platform: process.platform,
   versions: process.versions,
   sleuthVersion: packageJSON.version,
@@ -94,7 +91,7 @@ const packageJSON = JSON.parse(
     cb: (
       event: Electron.IpcRendererEvent,
       suggestions: Suggestion[],
-    ) => () => void,
+    ) => Promise<void>,
   ) => {
     ipcRenderer.on(IpcEvents.SUGGESTIONS_UPDATED, cb);
     return () => ipcRenderer.off(IpcEvents.SUGGESTIONS_UPDATED, cb);
@@ -141,3 +138,5 @@ const packageJSON = JSON.parse(
     writeText: (text: string) => clipboard.writeText(text),
   },
 };
+
+(window as any).Sleuth = SleuthAPI;
