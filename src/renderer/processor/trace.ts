@@ -1,4 +1,3 @@
-import fs from 'fs-extra';
 import debug from 'debug';
 
 import type { UnzippedFile } from '../../interfaces';
@@ -11,6 +10,8 @@ import type {
   RendererThread,
   TraceThread,
 } from './interfaces';
+import { ipcRenderer } from 'electron';
+import { IpcEvents } from '../../ipc-events';
 
 const d = debug('sleuth:trace-processor');
 export interface TraceThreadDescription extends TraceThread {
@@ -37,7 +38,7 @@ export class TraceProcessor {
 
   async getTrace(): Promise<ChromiumTrace | undefined> {
     try {
-      const raw = fs.readFileSync(this.file.fullPath, 'utf8');
+      const raw = await ipcRenderer.invoke(IpcEvents.READ_ANY_FILE, this.file);
       const json = JSON.parse(raw);
       if (json.traceEvents) {
         return json;

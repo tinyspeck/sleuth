@@ -12,7 +12,6 @@ import { isTool, isUnzippedFile } from '../../utils/is-logfile';
 import { SleuthState } from './sleuth';
 
 import lzString from 'lz-string';
-import * as path from 'path';
 import { clipboard } from 'electron';
 import { showMessageBox } from '../ipc';
 import { plural } from '../../utils/pluralize';
@@ -335,7 +334,7 @@ export function decompressBookmark(
  * @param {SleuthState} state
  */
 export function exportBookmarks(state: SleuthState) {
-  const source = path.basename(state.source || '');
+  const source = state.source ? state.source.split(/[/\\]/).pop() || '' : '';
   const serialized = state.bookmarks
     .map(serializeBookmark)
     .map(compressBookmark);

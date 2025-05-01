@@ -8,7 +8,8 @@ import {
   within,
 } from '@testing-library/react';
 import { SleuthState } from '../../../src/renderer/state/sleuth';
-import { ipcRenderer, shell } from 'electron';
+import { ipcRenderer } from 'electron';
+import { IpcEvents } from '../../../src/ipc-events';
 
 jest.mock('electron');
 
@@ -19,11 +20,12 @@ describe('Welcome', () => {
         addListener: () => void 0,
         removeListener: () => void 0,
       }) as any;
+    (window as any).Sleuth = { platform: 'darwin' };
   });
 
   beforeEach(() => {
     // fake getPath("downloads") for the Watcher
-    (ipcRenderer.invoke as jest.Mock).mockResolvedValue(process.cwd());
+    jest.mocked(ipcRenderer.invoke).mockResolvedValue(process.cwd());
   });
 
   it('renders the Sleuth title', () => {
@@ -58,7 +60,7 @@ describe('Welcome', () => {
       expect(suggestions[1].textContent).toContain('Delete');
     });
 
-    it('triggers a message box when', async () => {
+    it('triggers a message box when the user clicks the delete button', async () => {
       const state = {
         suggestions: [
           {
@@ -72,12 +74,13 @@ describe('Welcome', () => {
       const list = screen.getAllByRole('list')[0];
       const suggestions = within(list).getAllByRole('listitem');
       const btn = within(suggestions[0]).getByLabelText('delete');
-      (ipcRenderer.invoke as jest.Mock).mockResolvedValue({
+      jest.mocked(ipcRenderer.invoke).mockResolvedValue({
         response: true,
       });
       fireEvent.click(btn);
       await waitFor(() =>
-        expect(shell.trashItem).toHaveBeenCalledWith(
+        expect(ipcRenderer.invoke).toHaveBeenCalledWith(
+          IpcEvents.DELETE_SUGGESTION,
           '/Users/ezhao/Downloads/logs-21-11-02_12-36-26.zip',
         ),
       );

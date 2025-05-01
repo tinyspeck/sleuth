@@ -85,7 +85,7 @@ export class App extends React.Component<object, Partial<AppState>> {
           unzippedFiles={unzippedFiles}
         />
       ) : (
-        <Welcome state={this.sleuthState} openFile={this.openFile} />
+        <Welcome state={this.sleuthState} />
       );
 
     return (

@@ -89,9 +89,9 @@ export class Preferences extends React.Component<
         <div className={classes}>
           <h2>Preferences</h2>
           <Callout>
-            You&apos;re running Sleuth {window.Sleuth.sleuthVersion} {getSleuth()} with
-            Electron {window.Sleuth.versions.electron} and Chrome{' '}
-            {window.Sleuth.versions.chrome}.
+            You&apos;re running Sleuth {window.Sleuth.sleuthVersion}{' '}
+            {getSleuth()} with Electron {window.Sleuth.versions.electron} and
+            Chrome {window.Sleuth.versions.chrome}.
           </Callout>
           <Divider style={{ marginTop: '15px' }} />
           <FormGroup

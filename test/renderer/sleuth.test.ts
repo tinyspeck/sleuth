@@ -16,16 +16,16 @@ const sleuths = [
 ];
 
 describe('getSleuth', () => {
+  beforeAll(() => {
+    (window as any).Sleuth = { platform: 'darwin' };
+  });
+
   it('should return a Sleuth 🕵', () => {
     expect(sleuths).toContain(getSleuth());
   });
 
-  it('should return a Sleuth 🕵 (win32, 8)', () => {
-    expect(sleuths).toContain(getSleuth('win32', '8'));
-  });
-
-  it('should return a Sleuth 🕵 (win32, 10)', () => {
-    expect(sleuths).toContain(getSleuth('win32', '10.0'));
+  it('should return a Sleuth 🕵 (win32)', () => {
+    expect(sleuths).toContain(getSleuth('win32'));
   });
 
   it('should return a Sleuth 🕵 (darwin)', () => {

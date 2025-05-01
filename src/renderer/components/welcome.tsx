@@ -31,7 +31,6 @@ export interface WelcomeState {
 export interface WelcomeProps {
   sleuth?: string;
   state: SleuthState;
-  openFile: (filePath: string) => Promise<void>;
 }
 
 const iconStyle = {
@@ -166,7 +165,7 @@ export class Welcome extends React.Component<
             const openItem = (e: React.MouseEvent) => {
               e.preventDefault();
 
-              this.props.openFile(item.filePath);
+              this.props.state.openFile(item.filePath);
             };
             const deleteItem = (e: React.MouseEvent) => {
               e.stopPropagation();

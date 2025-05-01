@@ -33,6 +33,7 @@ import {
 import { readLogFile, readStateFile } from './filesystem/read-file';
 import { getSentryHref } from '../renderer/sentry';
 import { convertInstallation } from '../renderer/sentry';
+import { download, getHeaders, getData } from './cachetool';
 
 fs.watch(app.getPath('downloads'), async () => {
   // TODO(erickzhao): It would be more efficient to send the suggestions in this one IPC call
@@ -76,6 +77,7 @@ export class IpcManager {
     this.setupSuggestions();
     this.setupProcessor();
     this.setupOpenSentry();
+    this.setupCachetool();
   }
 
   public openFile(pathName: string) {
@@ -352,6 +354,12 @@ export class IpcManager {
         return readStateFile(file);
       },
     );
+    ipcMain.handle(
+      IpcEvents.READ_ANY_FILE,
+      async (_event, file: UnzippedFile) => {
+        return fs.promises.readFile(file.fullPath, 'utf8');
+      },
+    );
   }
 
   private setupOpenSentry() {
@@ -376,6 +384,27 @@ export class IpcManager {
         if (id) {
           shell.openExternal(getSentryHref(id));
         }
+      },
+    );
+  }
+
+  private setupCachetool() {
+    ipcMain.handle(
+      IpcEvents.CACHETOOL_DOWNLOAD,
+      async (_event, dataPath: string) => {
+        return download(dataPath);
+      },
+    );
+    ipcMain.handle(
+      IpcEvents.CACHETOOL_GET_HEADERS,
+      async (_event, cachePath: string, key: string) => {
+        return getHeaders(cachePath, key);
+      },
+    );
+    ipcMain.handle(
+      IpcEvents.CACHETOOL_GET_DATA,
+      async (_event, cachePath: string, key: string) => {
+        return getData(cachePath, key);
       },
     );
   }

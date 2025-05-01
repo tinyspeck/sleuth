@@ -1,6 +1,4 @@
-export function getSleuth(
-  platform: string = window.Sleuth.platform
-) {
+export function getSleuth(platform: string = window.Sleuth.platform) {
   let sleuths = [
     '🕵',
     '🕵️‍♀️',
