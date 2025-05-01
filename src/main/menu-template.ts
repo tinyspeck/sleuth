@@ -1,8 +1,6 @@
-import { app, BrowserWindow, dialog, ipcMain, MenuItem, shell } from 'electron';
+import { app, BrowserWindow, MenuItem, shell } from 'electron';
 import { createWindow, getCurrentWindow } from './windows';
 import { IpcEvents } from '../ipc-events';
-import { getSentryHref } from 'src/renderer/sentry';
-import { convertInstallation } from 'src/renderer/sentry';
 
 export interface MenuTemplateOptions {
   pruneItems: Array<Electron.MenuItemConstructorOptions>;

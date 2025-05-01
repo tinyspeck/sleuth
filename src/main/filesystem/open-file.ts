@@ -77,9 +77,6 @@ async function openDirectory(url: string): Promise<UnzippedFiles> {
     }
   }
 
-  // this.sleuthState.setSource(url);
-  // this.setState({ unzippedFiles });
-
   console.groupEnd();
   return unzippedFiles;
 }
@@ -100,9 +97,6 @@ async function openSingleFile(url: string): Promise<UnzippedFiles> {
     id: url,
     type: 'UnzippedFile',
   };
-
-  // this.sleuthState.setSource(url);
-  // this.setState({ unzippedFiles: [file] });
 
   console.groupEnd();
   return [file];
