@@ -2,7 +2,6 @@ import React from 'react';
 import { getOSInfo, getVersionInfo } from '../../utils/settings-data-helper';
 import { getChannelInfo } from './settings-analytics';
 import { UnzippedFile } from '../../interfaces';
-import { readJsonFile } from '../../renderer/analytics/read-json-file';
 
 export function getEnvInfo(data: any): Array<JSX.Element> {
   const result: Array<JSX.Element> = [];
@@ -26,8 +25,7 @@ function getGPUComposition({ isGpuCompositionAvailable }: any): string {
  * via warnings. This function should be used in `src/components/sidebar.tsx`.
  * @param file
  */
-export function getEnvironmentWarnings(file: UnzippedFile) {
-  const data = readJsonFile(file);
+export function getEnvironmentWarnings(data: any) {
   const result: Array<string> = [];
 
   if (

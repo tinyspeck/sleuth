@@ -37,6 +37,7 @@ import { IpcEvents } from '../../ipc-events';
 import { setupTouchBarAutoruns } from './touchbar';
 import { TraceThreadDescription } from '../processor/trace';
 import { ColorTheme } from '../components/preferences';
+import { StateTableState } from '../components/state-table';
 
 const d = debug('sleuth:state');
 
@@ -139,6 +140,8 @@ export class SleuthState {
   // ** Giant non-observable arrays **
   public mergedLogFiles?: MergedLogFiles;
   public processedLogFiles?: ProcessedLogFiles;
+
+  public stateFiles: Record<string, StateTableState<any>> = {};
 
   // ** Internal settings **
   private didOpenMostRecent = false;

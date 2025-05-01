@@ -259,7 +259,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     const { selectedLogFileName } = props;
     const isSelected = selectedLogFileName === file.fileName;
 
-    let label;
+    let label: string;
     if (
       file.fileName.endsWith('gpu-info.json') ||
       file.fileName.endsWith('gpu-info.html')
@@ -288,7 +288,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     }
 
     const options: Partial<ITreeNode> = {
-      secondaryLabel: this.getStateFileHint(file),
+      secondaryLabel: this.getStateFileHint(file, props),
     };
 
     return Sidebar.getNode(label, { file }, isSelected, options);
@@ -373,9 +373,14 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    * @param {ProcessedLogFile} file
    * @returns {(JSX.Element | null)}
    */
-  public static getStateFileHint(file: UnzippedFile): JSX.Element | null {
+  public static getStateFileHint(
+    file: UnzippedFile,
+    props: SidebarProps,
+  ): JSX.Element | null {
     if (file.fileName.endsWith('root-state.json')) {
-      const warnings = getRootStateWarnings(file);
+      const warnings = getRootStateWarnings(
+        props.state.stateFiles[file.fileName].data,
+      );
 
       if (warnings && warnings.length > 0) {
         const content = warnings.join('\n');
@@ -392,7 +397,9 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     }
 
     if (file.fileName.endsWith('.trace')) {
-      const warnings = getTraceWarnings(file);
+      const warnings = getTraceWarnings(
+        props.state.stateFiles[file.fileName].data,
+      );
       if (warnings && warnings.length > 0) {
         const content = warnings.join('\n');
         return (
@@ -409,7 +416,9 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
 
     // TODO: refactor this rendering code probably
     if (file.fileName.endsWith('environment.json')) {
-      const warnings = getEnvironmentWarnings(file);
+      const warnings = getEnvironmentWarnings(
+        props.state.stateFiles[file.fileName].data,
+      );
       if (warnings.length > 0) {
         const content = warnings.join('\n');
         return (

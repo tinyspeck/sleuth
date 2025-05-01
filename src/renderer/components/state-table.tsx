@@ -1,5 +1,5 @@
 import React from 'react';
-import { ipcRenderer, shell } from 'electron';
+import { shell } from 'electron';
 import { Card, Elevation } from '@blueprintjs/core';
 
 import { SelectableLogFile, UnzippedFile } from '../../interfaces';
@@ -17,7 +17,6 @@ import {
   getPoliciesAndDefaultsExternalConfig,
   getPoliciesAndDefaultsRootState,
 } from '../analytics/external-config-analytics';
-import { IpcEvents } from '../../ipc-events';
 
 export interface StateTableProps {
   state: SleuthState;
@@ -62,10 +61,7 @@ export class StateTable extends React.Component<
     const { selectedLogFile } = this.props.state;
 
     if (this.isStateFile(selectedLogFile)) {
-      const state = await ipcRenderer.invoke(
-        IpcEvents.READ_STATE_FILE,
-        selectedLogFile,
-      );
+      const state = this.props.state.stateFiles[selectedLogFile.fileName];
       this.setState(state);
     }
   }
@@ -74,10 +70,7 @@ export class StateTable extends React.Component<
     const nextFile = nextProps.state.selectedLogFile;
 
     if (this.isStateFile(nextFile)) {
-      const state = await ipcRenderer.invoke(
-        IpcEvents.READ_STATE_FILE,
-        nextFile,
-      );
+      const state = this.props.state.stateFiles[nextFile.fileName];
       this.setState(state);
     }
   }
