@@ -74,7 +74,7 @@ export async function processLogFile(
 
   const timeStart = performance.now();
   const { entries, lines, levelCounts, repeatedCounts } =
-    await ipcRenderer.invoke(IpcEvents.READ_FILE, logFile, logType);
+    await ipcRenderer.invoke(IpcEvents.READ_LOG_FILE, logFile, logType);
   const result: ProcessedLogFile = {
     logFile,
     logEntries: entries,

@@ -9,7 +9,6 @@ import { CoreApplication } from './app-core';
 import { MacTitlebar } from './mac-titlebar';
 import { Preferences } from './preferences';
 import { sendWindowReady } from '../ipc';
-import { openSentry } from '../sentry';
 import { SleuthState } from '../state/sleuth';
 import { UnzippedFiles } from '../../interfaces';
 import { autorun } from 'mobx';
@@ -143,14 +142,13 @@ export class App extends React.Component<object, Partial<AppState>> {
   }
 
   private setupOpenSentry() {
-    ipcRenderer.on(IpcEvents.OPEN_SENTRY, () => {
+    ipcRenderer.on(IpcEvents.OPEN_SENTRY, (event) => {
       // Get the file path to the installation file. Only app-* classes know.
       const installationFile = this.state.unzippedFiles?.find((file) => {
         return file.fileName === 'installation';
       });
 
-      // Then, let the utility handle the details
-      openSentry(installationFile?.fullPath);
+      event.sender.send(IpcEvents.OPEN_SENTRY, installationFile?.fullPath);
     });
   }
 

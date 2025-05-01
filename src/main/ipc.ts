@@ -17,7 +17,11 @@ import { settingsFileManager } from './settings';
 import { changeIcon } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { IpcEvents } from '../ipc-events';
-import { LogLineContextMenuActions, LogType } from '../interfaces';
+import {
+  LogLineContextMenuActions,
+  LogType,
+  UnzippedFile,
+} from '../interfaces';
 import { ColorTheme } from '../renderer/components/preferences';
 import { Unzipper } from './unzip';
 import { openFile } from './filesystem/open-file';
@@ -26,7 +30,9 @@ import {
   deleteSuggestions,
   getItemsInSuggestionFolders,
 } from './filesystem/suggestions';
-import { readLogFile } from './filesystem/read-file';
+import { readLogFile, readStateFile } from './filesystem/read-file';
+import { getSentryHref } from '../renderer/sentry';
+import { convertInstallation } from '../renderer/sentry';
 
 fs.watch(app.getPath('downloads'), async () => {
   // TODO(erickzhao): It would be more efficient to send the suggestions in this one IPC call
@@ -69,6 +75,7 @@ export class IpcManager {
     this.setupOpenFile();
     this.setupSuggestions();
     this.setupProcessor();
+    this.setupOpenSentry();
   }
 
   public openFile(pathName: string) {
@@ -336,9 +343,41 @@ export class IpcManager {
   }
 
   private setupProcessor() {
-    ipcMain.handle(IpcEvents.READ_FILE, async (_event, files) => {
+    ipcMain.handle(IpcEvents.READ_LOG_FILE, async (_event, files) => {
       return readLogFile(files);
     });
+    ipcMain.handle(
+      IpcEvents.READ_STATE_FILE,
+      async (_event, file: UnzippedFile) => {
+        return readStateFile(file);
+      },
+    );
+  }
+
+  private setupOpenSentry() {
+    ipcMain.on(
+      IpcEvents.OPEN_SENTRY,
+      async (_event, installationFilePath: string) => {
+        // No file? Do nothing
+        if (!installationFilePath) {
+          await dialog.showMessageBox({
+            title: 'No installation id found',
+            message:
+              'We did not find an installation id in this set of logs and can therefore not look for crashes for this user.',
+          });
+
+          return;
+        }
+
+        // Read the data
+        const data = await fs.promises.readFile(installationFilePath, 'utf8');
+        const id = convertInstallation(data);
+
+        if (id) {
+          shell.openExternal(getSentryHref(id));
+        }
+      },
+    );
   }
 }
 

@@ -1,6 +1,8 @@
 import fs from 'fs-extra';
 import readline from 'readline';
 
+import { parseJSON } from '../../utils/parse-json';
+
 import {
   LogEntry,
   LogLevel,
@@ -9,6 +11,10 @@ import {
   UnzippedFile,
 } from '../../interfaces';
 import { getTypeForFile } from '../../utils/get-file-types';
+import debug from 'debug';
+import { StateTableState } from '../../renderer/components/state-table';
+
+const d = debug('sleuth:read-file');
 
 const DESKTOP_RGX = /^\s*\[([\d/,\s:]{22,24})\] ([A-Za-z]{0,20}):?(.*)$/g;
 
@@ -46,6 +52,63 @@ const SQUIRREL_RGX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})> (.*)$/;
 // [70491:0302/160742.806582:WARNING:gpu_process_host.cc(1303)] The GPU process has crashed 1 time(s)
 const CHROMIUM_RGX =
   /^\[(\d+:\d{4}\/\d{6}\.\d{3,6}:[a-zA-Z]+:.*\(\d+\))\] (.*)$/;
+
+function isHtmlFile(file: UnzippedFile) {
+  return file.fullPath.endsWith('.html');
+}
+
+function isInstallationFile(file: UnzippedFile) {
+  return file.fullPath.endsWith('installation');
+}
+
+function isExternalConfigFile(file: UnzippedFile) {
+  return file.fullPath.endsWith('external-config.json');
+}
+
+export async function readStateFile(
+  file: UnzippedFile,
+): Promise<StateTableState<any> | undefined> {
+  if (!file) {
+    return;
+  }
+
+  d(`Reading ${file.fullPath}`);
+
+  if (isHtmlFile(file)) {
+    return { data: undefined, path: file.fullPath };
+  } else if (isInstallationFile(file)) {
+    try {
+      const content = await fs.readFile(file.fullPath, 'utf8');
+      return { data: [content], path: undefined };
+    } catch (error) {
+      d(error);
+    }
+  } else if (isExternalConfigFile(file)) {
+    try {
+      const raw = await fs.readFile(file.fullPath, 'utf8');
+      const rootStateRaw = await fs.readFile(
+        file.fullPath.replace('external-config.json', 'root-state.json'),
+        'utf8',
+      );
+      return {
+        data: {
+          externalConfig: parseJSON(raw),
+          rootState: parseJSON(rootStateRaw),
+        },
+        path: undefined,
+      };
+    } catch (error) {
+      d(error);
+    }
+  } else {
+    try {
+      const raw = await fs.readFile(file.fullPath, 'utf8');
+      return { data: parseJSON(raw), path: undefined, raw };
+    } catch (error) {
+      d(error);
+    }
+  }
+}
 
 /**
  * Reads a log file line by line, creating logEntries in a somewhat smart way.
