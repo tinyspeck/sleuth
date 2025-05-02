@@ -2,7 +2,6 @@ import { observable, action, autorun, computed, toJS } from 'mobx';
 import { ipcRenderer } from 'electron';
 import debug from 'debug';
 
-import { getItemsInSuggestionFolders } from '../suggestions';
 import { testDateTimeFormat } from '../../utils/test-date-time';
 import { SORT_DIRECTION } from '../components/log-table-constants';
 import { setSetting } from '../settings';
@@ -38,6 +37,7 @@ import { IpcEvents } from '../../ipc-events';
 import { setupTouchBarAutoruns } from './touchbar';
 import { TraceThreadDescription } from '../processor/trace';
 import { ColorTheme } from '../components/preferences';
+import { StateTableState } from '../components/state-table';
 
 const d = debug('sleuth:state');
 
@@ -118,7 +118,8 @@ export class SleuthState {
   );
   @observable public font: string = this.retrieve<string>('font', {
     parse: false,
-    fallback: process.platform === 'darwin' ? 'San Francisco' : 'Segoe UI',
+    fallback:
+      window.Sleuth.platform === 'darwin' ? 'San Francisco' : 'Segoe UI',
   });
   @observable public defaultEditor: string = this.retrieve<string>(
     'defaultEditor',
@@ -139,6 +140,8 @@ export class SleuthState {
   // ** Giant non-observable arrays **
   public mergedLogFiles?: MergedLogFiles;
   public processedLogFiles?: ProcessedLogFiles;
+
+  public stateFiles: Record<string, StateTableState<any>> = {};
 
   // ** Internal settings **
   private didOpenMostRecent = false;
@@ -189,7 +192,7 @@ export class SleuthState {
       changeIcon(this.isMarkIcon ? ICON_NAMES.mark : ICON_NAMES.default);
     });
     autorun(async () => {
-      if (process.platform === 'darwin') {
+      if (window.Sleuth.platform === 'darwin') {
         this.isLoadingCacheKeys = true;
         if (!this.cachePath) return;
 
@@ -278,7 +281,7 @@ export class SleuthState {
 
   @action
   public async getSuggestions() {
-    this.suggestions = await getItemsInSuggestionFolders();
+    this.suggestions = await ipcRenderer.invoke(IpcEvents.GET_SUGGESTIONS);
     this.suggestionsLoaded = true;
 
     // This is a side effect. There's probably a better

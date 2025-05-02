@@ -10,14 +10,52 @@ import {
   MenuItemConstructorOptions,
   nativeTheme,
 } from 'electron';
-import * as path from 'path';
+import path from 'node:path';
+import fs from 'node:fs';
 
 import { settingsFileManager } from './settings';
 import { changeIcon } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { IpcEvents } from '../ipc-events';
-import { LogLineContextMenuActions, LogType } from '../interfaces';
+import {
+  LogLineContextMenuActions,
+  LogType,
+  UnzippedFile,
+} from '../interfaces';
 import { ColorTheme } from '../renderer/components/preferences';
+import { Unzipper } from './unzip';
+import { openFile } from './filesystem/open-file';
+import {
+  deleteSuggestion,
+  deleteSuggestions,
+  getItemsInSuggestionFolders,
+} from './filesystem/suggestions';
+import { readLogFile, readStateFile } from './filesystem/read-file';
+import { getSentryHref } from '../renderer/sentry';
+import { convertInstallation } from '../renderer/sentry';
+import { download, getHeaders, getData } from './cachetool';
+
+fs.watch(app.getPath('downloads'), async () => {
+  // TODO(erickzhao): It would be more efficient to send the suggestions in this one IPC call
+  // instead of making another roundtrip from the renderer to update the suggestions.
+  getCurrentWindow().webContents.send(IpcEvents.SUGGESTIONS_UPDATED);
+});
+
+function getCurrentWindow(): Electron.BrowserWindow {
+  const window = BrowserWindow.getFocusedWindow();
+
+  if (window) {
+    return window;
+  } else {
+    const windows = BrowserWindow.getAllWindows();
+
+    if (windows.length > 0) {
+      return windows[0];
+    } else {
+      throw new Error('Could not find window!');
+    }
+  }
+}
 
 export class IpcManager {
   constructor() {
@@ -34,26 +72,16 @@ export class IpcManager {
     this.setupTitleBarClickMac();
     this.setupContextMenus();
     this.setupNativeTheme();
+    this.setupUnzipper();
+    this.setupOpenFile();
+    this.setupSuggestions();
+    this.setupProcessor();
+    this.setupOpenSentry();
+    this.setupCachetool();
   }
 
   public openFile(pathName: string) {
-    this.getCurrentWindow().webContents.send(IpcEvents.FILE_DROPPED, pathName);
-  }
-
-  private getCurrentWindow(): Electron.BrowserWindow {
-    const window = BrowserWindow.getFocusedWindow();
-
-    if (window) {
-      return window;
-    } else {
-      const windows = BrowserWindow.getAllWindows();
-
-      if (windows.length > 0) {
-        return windows[0];
-      } else {
-        throw new Error('Could not find window!');
-      }
-    }
+    getCurrentWindow().webContents.send(IpcEvents.FILE_DROPPED, pathName);
   }
 
   private setupFileDrop() {
@@ -145,8 +173,10 @@ export class IpcManager {
   }
 
   private setupSettings() {
-    ipcMain.handle(IpcEvents.SET_SETTINGS, (_event, key: string, value: any) =>
-      settingsFileManager.setItem(key, value),
+    ipcMain.handle(
+      IpcEvents.SET_SETTINGS,
+      (_event, key: string, value: unknown) =>
+        settingsFileManager.setItem(key, value),
     );
     ipcMain.handle(IpcEvents.CHANGE_ICON, (_event, iconName: ICON_NAMES) =>
       changeIcon(iconName),
@@ -274,6 +304,109 @@ export class IpcManager {
         );
       }
     });
+  }
+
+  /**
+   * Set up unzipping in the main process
+   */
+  private setupUnzipper() {
+    ipcMain.handle(IpcEvents.UNZIP, async (_event, url: string) => {
+      const unzipper = new Unzipper(url);
+      await unzipper.open();
+
+      return await unzipper.unzip();
+    });
+  }
+
+  private setupOpenFile() {
+    ipcMain.handle(IpcEvents.OPEN_FILE, async (_event, filePath: string) => {
+      return openFile(filePath);
+    });
+  }
+
+  private setupSuggestions() {
+    ipcMain.handle(IpcEvents.GET_SUGGESTIONS, async (_event) => {
+      return getItemsInSuggestionFolders();
+    });
+
+    ipcMain.handle(
+      IpcEvents.DELETE_SUGGESTION,
+      async (_event, filePath: string) => {
+        return deleteSuggestion(filePath);
+      },
+    );
+
+    ipcMain.handle(
+      IpcEvents.DELETE_SUGGESTIONS,
+      async (_event, filePaths: string[]) => {
+        return deleteSuggestions(filePaths);
+      },
+    );
+  }
+
+  private setupProcessor() {
+    ipcMain.handle(IpcEvents.READ_LOG_FILE, async (_event, files) => {
+      return readLogFile(files);
+    });
+    ipcMain.handle(
+      IpcEvents.READ_STATE_FILE,
+      async (_event, file: UnzippedFile) => {
+        return readStateFile(file);
+      },
+    );
+    ipcMain.handle(
+      IpcEvents.READ_ANY_FILE,
+      async (_event, file: UnzippedFile) => {
+        return fs.promises.readFile(file.fullPath, 'utf8');
+      },
+    );
+  }
+
+  private setupOpenSentry() {
+    ipcMain.on(
+      IpcEvents.OPEN_SENTRY,
+      async (_event, installationFilePath: string) => {
+        // No file? Do nothing
+        if (!installationFilePath) {
+          await dialog.showMessageBox({
+            title: 'No installation id found',
+            message:
+              'We did not find an installation id in this set of logs and can therefore not look for crashes for this user.',
+          });
+
+          return;
+        }
+
+        // Read the data
+        const data = await fs.promises.readFile(installationFilePath, 'utf8');
+        const id = convertInstallation(data);
+
+        if (id) {
+          shell.openExternal(getSentryHref(id));
+        }
+      },
+    );
+  }
+
+  private setupCachetool() {
+    ipcMain.handle(
+      IpcEvents.CACHETOOL_DOWNLOAD,
+      async (_event, dataPath: string) => {
+        return download(dataPath);
+      },
+    );
+    ipcMain.handle(
+      IpcEvents.CACHETOOL_GET_HEADERS,
+      async (_event, cachePath: string, key: string) => {
+        return getHeaders(cachePath, key);
+      },
+    );
+    ipcMain.handle(
+      IpcEvents.CACHETOOL_GET_DATA,
+      async (_event, cachePath: string, key: string) => {
+        return getData(cachePath, key);
+      },
+    );
   }
 }
 

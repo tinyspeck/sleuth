@@ -1,8 +1,6 @@
 import { RootState, UnzippedFile } from '../../interfaces';
-import { readJsonFile } from './read-json-file';
 
-export function getRootStateWarnings(file: UnzippedFile): Array<string> {
-  const data = readJsonFile(file);
+export function getRootStateWarnings(data: any): Array<string> {
   const result: Array<string> = [];
 
   if (!data) {

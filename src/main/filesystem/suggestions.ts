@@ -1,25 +1,22 @@
-import { shell } from 'electron';
+import { app, dialog, shell } from 'electron';
 import fs from 'fs-extra';
 import path from 'path';
 import { formatDistanceToNow } from 'date-fns';
 import debug from 'debug';
 import yauzl, { Entry, ZipFile } from 'yauzl';
 
-import { Suggestion } from '../interfaces';
-import { getPath, showMessageBox } from './ipc';
+import { Suggestion } from '../../interfaces';
 
 const d = debug('sleuth:suggestions');
 
-export async function getItemsInSuggestionFolders(): Promise<
-  Array<Suggestion>
-> {
+export async function getItemsInSuggestionFolders(): Promise<Suggestion[]> {
   const suggestionsArr: Suggestion[] = [];
 
   // We'll get suggestions from the downloads folder and
   // the desktop
   try {
     try {
-      const downloadsDir = await getPath('downloads');
+      const downloadsDir = app.getPath('downloads');
       const downloads = (await fs.readdir(downloadsDir)).map((file) =>
         path.join(downloadsDir, file),
       );
@@ -29,7 +26,7 @@ export async function getItemsInSuggestionFolders(): Promise<
     }
 
     try {
-      const desktopDir = await getPath('desktop');
+      const desktopDir = app.getPath('desktop');
       const desktop = (await fs.readdir(desktopDir)).map((file) =>
         path.join(desktopDir, file),
       );
@@ -52,7 +49,7 @@ export async function getItemsInSuggestionFolders(): Promise<
 export async function deleteSuggestion(filePath: string) {
   const trashName = process.platform === 'darwin' ? 'trash' : 'recycle bin';
 
-  const { response } = await showMessageBox({
+  const { response } = await dialog.showMessageBox({
     title: 'Delete File?',
     message: `Do you want to move ${filePath} to the ${trashName}?`,
     type: 'question',
@@ -70,7 +67,7 @@ export async function deleteSuggestion(filePath: string) {
 export async function deleteSuggestions(filePaths: Array<string>) {
   const trashName = process.platform === 'darwin' ? 'trash' : 'recycle bin';
 
-  const { response } = await showMessageBox({
+  const { response } = await dialog.showMessageBox({
     title: 'Delete Files?',
     message: `Do you want to move all log files older than 48 hours to the ${trashName}?`,
     type: 'question',

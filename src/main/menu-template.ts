@@ -124,8 +124,8 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
       submenu: [
         {
           label: 'Open Sentry',
-          click(_item: Electron.MenuItem, browserWindow: BrowserWindow) {
-            browserWindow.webContents.send(IpcEvents.OPEN_SENTRY);
+          click: async (_item: Electron.MenuItem, win: BrowserWindow) => {
+            win.webContents.send(IpcEvents.OPEN_SENTRY);
           },
         },
         { type: 'separator' },

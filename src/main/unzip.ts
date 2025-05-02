@@ -1,17 +1,20 @@
-import yauzl, { Entry, ZipFile } from 'yauzl';
-import fs from 'fs-extra';
-import path from 'path';
-import * as stream from 'stream';
-import tmp from 'tmp';
-import { promisify } from 'util';
 import debug from 'debug';
+import fs from 'fs-extra';
+import tmp from 'tmp';
+import yauzl, { Entry, ZipFile } from 'yauzl';
+
+import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
+import { promisify } from 'node:util';
 
 import { shouldIgnoreFile } from '../utils/should-ignore-file';
 import { UnzippedFile } from '../interfaces';
 
 const d = debug('sleuth:unzip');
-const pipeline = promisify(stream.pipeline);
 
+/**
+ * Handles unzipping a log archive.
+ */
 export class Unzipper {
   public readonly url: string;
   public output: string;

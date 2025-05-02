@@ -1,8 +1,6 @@
 import { observer } from 'mobx-react';
 import React from 'react';
-import * as path from 'path';
 import classNames from 'classnames';
-import fs from 'fs-extra';
 import autoBind from 'react-autobind';
 import {
   Card,
@@ -17,8 +15,8 @@ import {
 import { autorun, IReactionDisposer } from 'mobx';
 
 import { SleuthState } from '../state/sleuth';
-import { tmpdir } from 'os';
-import { showSaveDialog } from '../ipc';
+import { IpcEvents } from '../../ipc-events';
+import { ipcRenderer } from 'electron';
 
 export interface CachetoolDetailsProps {
   state: SleuthState;
@@ -36,7 +34,6 @@ export class CachetoolDetails extends React.Component<
 > {
   private headerAutorunDispose: IReactionDisposer;
   private dataAutorunDispose: IReactionDisposer;
-  private tmpdir: string;
 
   constructor(props: CachetoolDetailsProps) {
     super(props);
@@ -46,18 +43,28 @@ export class CachetoolDetails extends React.Component<
     this.headerAutorunDispose = autorun(async () => {
       const selectedCacheKey = this.props.state.selectedCacheKey;
       const cachePath = this.props.state.cachePath;
+      const headers = await ipcRenderer.invoke(
+        IpcEvents.CACHETOOL_GET_HEADERS,
+        cachePath,
+        selectedCacheKey,
+      );
 
       this.setState({
-        headers: await this.getHeaders(cachePath, selectedCacheKey),
+        headers,
       });
     });
 
     this.dataAutorunDispose = autorun(async () => {
       const selectedCacheKey = this.props.state.selectedCacheKey;
       const cachePath = this.props.state.cachePath;
+      const dataPath = await ipcRenderer.invoke(
+        IpcEvents.CACHETOOL_GET_DATA,
+        cachePath,
+        selectedCacheKey,
+      );
 
       this.setState({
-        dataPath: await this.getData(cachePath, selectedCacheKey),
+        dataPath,
       });
     });
   }
@@ -95,7 +102,12 @@ export class CachetoolDetails extends React.Component<
             <ButtonGroup>
               <Button
                 icon="download"
-                onClick={this.download}
+                onClick={() =>
+                  ipcRenderer.invoke(
+                    IpcEvents.CACHETOOL_DOWNLOAD,
+                    this.state.dataPath,
+                  )
+                }
                 text="Save File"
               />
               <Button icon="cross" onClick={this.toggle} text="Close" />
@@ -148,64 +160,5 @@ export class CachetoolDetails extends React.Component<
       : null;
 
     return <div className={className}>{logEntryInfo}</div>;
-  }
-
-  public async download() {
-    const { dataPath } = this.state;
-    if (!dataPath) return;
-
-    const filename = path.basename(dataPath);
-    const { filePath } = await showSaveDialog(filename);
-
-    if (filePath) {
-      try {
-        await fs.copyFile(dataPath, filePath);
-      } catch (error) {
-        console.error(`Cachetool download()`, error);
-      }
-    }
-  }
-
-  public async getHeaders(cachePath?: string, key?: string) {
-    if (!cachePath || !key) return '';
-
-    try {
-      const { getStream } = await import('cachetool');
-
-      return (await getStream({ cachePath, key })).toString();
-    } catch (error) {
-      return '';
-    }
-  }
-
-  public async getData(
-    cachePath?: string,
-    key?: string,
-  ): Promise<string | undefined> {
-    if (!cachePath || !key) return '';
-
-    try {
-      const { getStream } = await import('cachetool');
-      const data = await getStream({
-        cachePath,
-        key,
-        index: 1,
-      });
-
-      if (!this.tmpdir || !fs.existsSync(this.tmpdir)) {
-        this.tmpdir = await fs.mkdtemp(path.join(tmpdir(), 'sleuth'));
-      }
-
-      const fileName = path.basename(key);
-      const targetPath = path.join(this.tmpdir, fileName);
-      await fs.emptyDir(this.tmpdir);
-      await fs.writeFile(targetPath, data);
-
-      return targetPath;
-    } catch (error) {
-      console.error(`Cachetool getData()`, error);
-
-      return undefined;
-    }
   }
 }

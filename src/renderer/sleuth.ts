@@ -1,9 +1,4 @@
-import os from 'os';
-
-export function getSleuth(
-  platform: string = process.platform,
-  release: string = os.release(),
-) {
+export function getSleuth(platform: string = window.Sleuth.platform) {
   let sleuths = [
     '🕵',
     '🕵️‍♀️',
@@ -21,7 +16,7 @@ export function getSleuth(
 
   if (platform === 'darwin') {
     return sleuths[Math.floor(Math.random() * 11) + 1];
-  } else if (platform === 'win32' && release.startsWith('10')) {
+  } else if (platform === 'win32') {
     sleuths = ['🕵', '🕵🏻', '🕵🏼', '🕵🏽', '🕵🏾', '🕵🏿'];
     return sleuths[Math.floor(Math.random() * 5) + 1];
   } else {

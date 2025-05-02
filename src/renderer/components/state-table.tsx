@@ -1,8 +1,6 @@
 import React from 'react';
-import fs from 'fs-extra';
 import { shell } from 'electron';
 import { Card, Elevation } from '@blueprintjs/core';
-import debug from 'debug';
 
 import { SelectableLogFile, UnzippedFile } from '../../interfaces';
 import { SleuthState } from '../state/sleuth';
@@ -11,17 +9,14 @@ import { getEnvInfo } from '../analytics/environment-analytics';
 import { getLocalSettingsInfo } from '../analytics/local-settings-analytics';
 import { getNotifWarningsInfo } from '../analytics/notification-warning-analytics';
 import { JSONView } from './json-view';
-import { parseJSON } from '../../utils/parse-json';
 import { getFontForCSS } from './preferences-font';
 import { getSentryHref, convertInstallation } from '../sentry';
-import path from 'path';
+
 import {
   getMessage,
   getPoliciesAndDefaultsExternalConfig,
   getPoliciesAndDefaultsRootState,
 } from '../analytics/external-config-analytics';
-
-const d = debug('sleuth:statetable');
 
 export interface StateTableProps {
   state: SleuthState;
@@ -62,19 +57,21 @@ export class StateTable extends React.Component<
     this.state = {};
   }
 
-  public componentDidMount() {
+  public async componentDidMount() {
     const { selectedLogFile } = this.props.state;
 
     if (this.isStateFile(selectedLogFile)) {
-      this.parse(selectedLogFile);
+      const state = this.props.state.stateFiles[selectedLogFile.fileName];
+      this.setState(state);
     }
   }
 
-  public UNSAFE_componentWillReceiveProps(nextProps: StateTableProps) {
+  public async UNSAFE_componentWillReceiveProps(nextProps: StateTableProps) {
     const nextFile = nextProps.state.selectedLogFile;
 
     if (this.isStateFile(nextFile)) {
-      this.parse(nextFile);
+      const state = this.props.state.stateFiles[nextFile.fileName];
+      this.setState(state);
     }
   }
 
@@ -150,50 +147,6 @@ export class StateTable extends React.Component<
     }
 
     return StateType.unknown;
-  }
-
-  private async parse(file: UnzippedFile) {
-    if (!file) {
-      return;
-    }
-
-    d(`Reading ${file.fullPath}`);
-
-    if (this.isHtmlFile(file)) {
-      this.setState({ data: undefined, path: file.fullPath });
-    } else if (this.isInstallationFile(file)) {
-      try {
-        const content = await fs.readFile(file.fullPath, 'utf8');
-        this.setState({ data: [content], path: undefined });
-      } catch (error) {
-        d(error);
-      }
-    } else if (this.isExternalConfigFile(file)) {
-      try {
-        const raw = await fs.readFile(file.fullPath, 'utf8');
-        const rootStatePath = path.resolve(
-          path.dirname(file.fullPath),
-          'root-state.json',
-        );
-        const rootStateRaw = await fs.readFile(rootStatePath, 'utf8');
-        this.setState({
-          data: {
-            externalConfig: parseJSON(raw),
-            rootState: parseJSON(rootStateRaw),
-          },
-          path: undefined,
-        });
-      } catch (error) {
-        d(error);
-      }
-    } else {
-      try {
-        const raw = await fs.readFile(file.fullPath, 'utf8');
-        this.setState({ data: parseJSON(raw), path: undefined, raw });
-      } catch (error) {
-        d(error);
-      }
-    }
   }
 
   private renderSettingsInfo(): JSX.Element | null {

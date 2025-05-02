@@ -1,6 +1,5 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import path from 'path';
 import { observer } from 'mobx-react';
 import { Omnibar, ItemRenderer, ItemPredicate } from '@blueprintjs/select';
 import { IconName, MenuItem } from '@blueprintjs/core';
@@ -100,7 +99,7 @@ export class Spotlight extends React.Component<
     const spotSuggestions: Array<SpotlightItem> = suggestions
       .filter((s) => !('error' in s))
       .map((s: ValidSuggestion) => ({
-        text: path.basename(s.filePath),
+        text: s.filePath.split(/[/\\]/).pop() || '',
         label: `${s.age} old`,
         icon: s.filePath.endsWith('zip')
           ? ('compressed' as const)

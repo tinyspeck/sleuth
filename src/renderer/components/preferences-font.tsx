@@ -354,7 +354,7 @@ export const MACOS_FONTS = [
 ];
 
 export const FONTS =
-  process.platform === 'darwin' ? MACOS_FONTS : WINDOWS_FONTS;
+  window.Sleuth.platform === 'darwin' ? MACOS_FONTS : WINDOWS_FONTS;
 
 export const renderFontItem: ItemRenderer<string> = (
   font,
