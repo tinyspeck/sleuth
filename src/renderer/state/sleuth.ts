@@ -1,5 +1,4 @@
 import { observable, action, autorun, computed, toJS } from 'mobx';
-import { ipcRenderer } from 'electron';
 import debug from 'debug';
 
 import { testDateTimeFormat } from '../../utils/test-date-time';
@@ -31,9 +30,7 @@ import {
 import { getInitialTimeViewRange, getTimeBuckedLogMetrics } from './time-view';
 import { rehydrateBookmarks, importBookmarks } from './bookmarks';
 import { copy } from './copy';
-import { changeIcon } from '../ipc';
 import { ICON_NAMES } from '../../shared-constants';
-import { IpcEvents } from '../../ipc-events';
 import { setupTouchBarAutoruns } from './touchbar';
 import { TraceThreadDescription } from '../processor/trace';
 import { ColorTheme } from '../components/preferences';
@@ -151,7 +148,7 @@ export class SleuthState {
     public readonly resetApp: () => void,
   ) {
     this.getSuggestions();
-    ipcRenderer.on(IpcEvents.DARK_MODE_UPDATE, (_event, prefersDarkColors) => {
+    window.Sleuth.setupDarkModeUpdate((prefersDarkColors) => {
       this.prefersDarkColors = prefersDarkColors;
     });
 
@@ -165,8 +162,7 @@ export class SleuthState {
     autorun(() => this.save('serializedBookmarks', this.serializedBookmarks));
     autorun(async () => {
       this.save('colorTheme', this.colorTheme);
-      const prefersDarkColors = await ipcRenderer.invoke(
-        IpcEvents.SET_COLOR_THEME,
+      const prefersDarkColors = await window.Sleuth.setColorTheme(
         this.colorTheme,
       );
       this.prefersDarkColors = prefersDarkColors;
@@ -189,7 +185,9 @@ export class SleuthState {
     });
     autorun(() => {
       this.save('isMarkIcon', this.isMarkIcon);
-      changeIcon(this.isMarkIcon ? ICON_NAMES.mark : ICON_NAMES.default);
+      window.Sleuth.changeIcon(
+        this.isMarkIcon ? ICON_NAMES.mark : ICON_NAMES.default,
+      );
     });
     autorun(async () => {
       if (window.Sleuth.platform === 'darwin') {
@@ -217,14 +215,12 @@ export class SleuthState {
     this.setFilterLogLevels = this.setFilterLogLevels.bind(this);
 
     setupTouchBarAutoruns(this);
-    ipcRenderer.on(IpcEvents.TOGGLE_SIDEBAR, this.toggleSidebar);
-    ipcRenderer.on(IpcEvents.TOGGLE_SPOTLIGHT, this.toggleSpotlight);
-    ipcRenderer.on(IpcEvents.OPEN_BOOKMARKS, (_event, data) =>
+    window.Sleuth.setupToggleSidebar(this.toggleSidebar);
+    window.Sleuth.setupOpenBookmarks((_event, data) =>
       importBookmarks(this, data),
     );
-    ipcRenderer.on(IpcEvents.COPY, () => copy(this));
-    ipcRenderer.on(IpcEvents.RESET, () => this.reset(true));
-    ipcRenderer.on(IpcEvents.TOGGLE_FILTER, (_event, level: LogLevel) => {
+    window.Sleuth.setupReset(() => this.reset(true));
+    window.Sleuth.setupToggleFilter((_event, level: LogLevel) => {
       this.setFilterLogLevels({ [level]: !this.levelFilter[level] });
     });
 
@@ -280,8 +276,8 @@ export class SleuthState {
   }
 
   @action
-  public async getSuggestions() {
-    this.suggestions = await ipcRenderer.invoke(IpcEvents.GET_SUGGESTIONS);
+  public async getSuggestions(suggestions?: Suggestion[]) {
+    this.suggestions = suggestions || (await window.Sleuth.getSuggestions());
     this.suggestionsLoaded = true;
 
     // This is a side effect. There's probably a better

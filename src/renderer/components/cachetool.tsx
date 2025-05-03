@@ -4,7 +4,6 @@ import { Card, Callout, Intent, Button } from '@blueprintjs/core';
 import autoBind from 'react-autobind';
 
 import { SleuthState } from '../state/sleuth';
-import { showOpenDialog } from '../ipc';
 import { Loading } from './loading';
 import { CachetoolTable } from './cachetool-table';
 import { CachetoolDetails } from './cachetool-details';
@@ -54,7 +53,7 @@ export class Cachetool extends React.Component<
   }
 
   private async onOpenFolder() {
-    const { filePaths } = await showOpenDialog();
+    const { filePaths } = await window.Sleuth.showOpenDialog();
 
     if (filePaths && filePaths.length > 0) {
       this.props.state.cachePath = filePaths[0];

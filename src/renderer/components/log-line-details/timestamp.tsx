@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Tag } from '@blueprintjs/core';
 import { format, formatDistance } from 'date-fns';
 
-import { clipboard } from 'electron';
-
 export interface TimestampProps {
   momentValues: Array<number>;
   timestamps: Array<string>;
@@ -18,7 +16,7 @@ export function Timestamp(props: TimestampProps) {
   // the timestamp
   const onClick = () => {
     setLabel('Copied!');
-    clipboard.writeText(datetime);
+    window.Sleuth.clipboard.writeText(datetime);
     setTimeout(() => setLabel(datetime), 2000);
   };
 

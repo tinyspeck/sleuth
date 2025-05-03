@@ -1,7 +1,6 @@
 import React from 'react';
 import { SleuthState } from '../state/sleuth';
 import { getWindowTitle } from '../../utils/get-window-title';
-import { sendDoubleClick } from '../ipc';
 
 interface TitlebarProps {
   state: SleuthState;
@@ -13,7 +12,7 @@ export class MacTitlebar extends React.Component<TitlebarProps> {
   }
 
   private handleDoubleClick = () => {
-    sendDoubleClick();
+    window.Sleuth.sendDoubleClick();
   };
 
   render() {

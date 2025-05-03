@@ -11,7 +11,6 @@ import {
 import dayjs, { Dayjs } from 'dayjs';
 import { Button, DatePicker, Input, InputRef, Space } from 'antd';
 import { SleuthState } from '../state/sleuth';
-import { ipcRenderer } from 'electron';
 import { IpcEvents } from '../../ipc-events';
 import {
   ArrowDownOutlined,
@@ -51,11 +50,11 @@ export class Filter extends React.Component<FilterProps, object> {
   }
 
   public componentDidMount() {
-    ipcRenderer.on(IpcEvents.FIND, this.focus);
+    window.Sleuth.focusFindOn(this.focus);
   }
 
   public componentWillUnmount() {
-    ipcRenderer.off(IpcEvents.FIND, this.focus);
+    window.Sleuth.focusFindOff(this.focus);
   }
 
   public handleSearchQueryChange(value: string) {

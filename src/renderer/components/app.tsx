@@ -1,5 +1,4 @@
 import React from 'react';
-import { webUtils, ipcRenderer } from 'electron';
 import classNames from 'classnames';
 
 import { ConfigProvider, theme } from 'antd';
@@ -8,7 +7,6 @@ import { Welcome } from './welcome';
 import { CoreApplication } from './app-core';
 import { MacTitlebar } from './mac-titlebar';
 import { Preferences } from './preferences';
-import { sendWindowReady } from '../ipc';
 import { SleuthState } from '../state/sleuth';
 import { UnzippedFiles } from '../../interfaces';
 import { autorun } from 'mobx';
@@ -42,7 +40,7 @@ export class App extends React.Component<object, Partial<AppState>> {
    * Alright, time to show the window!
    */
   public componentDidMount() {
-    sendWindowReady();
+    window.Sleuth.sendWindowReady();
 
     this.setupFileDrop();
     this.setupOpenSentry();
@@ -128,7 +126,7 @@ export class App extends React.Component<object, Partial<AppState>> {
     document.ondragover = document.ondrop = (event) => event.preventDefault();
     document.body.ondrop = (event) => {
       if (event.dataTransfer && event.dataTransfer.files.length > 0) {
-        let url = webUtils.getPathForFile(event.dataTransfer.files[0]);
+        let url = window.Sleuth.getPathForFile(event.dataTransfer.files[0]);
         url = url.replace('file:///', '/');
         this.openFile(url);
       }
@@ -136,13 +134,11 @@ export class App extends React.Component<object, Partial<AppState>> {
       event.preventDefault();
     };
 
-    ipcRenderer.on(IpcEvents.FILE_DROPPED, (_event: any, url: string) =>
-      this.openFile(url),
-    );
+    window.Sleuth.setupFileDrop((_event, url: string) => this.openFile(url));
   }
 
   private setupOpenSentry() {
-    ipcRenderer.on(IpcEvents.OPEN_SENTRY, (event) => {
+    window.Sleuth.setupOpenSentry((event) => {
       // Get the file path to the installation file. Only app-* classes know.
       const installationFile = this.state.unzippedFiles?.find((file) => {
         return file.fileName === 'installation';
@@ -153,7 +149,7 @@ export class App extends React.Component<object, Partial<AppState>> {
   }
 
   private async openFile(url: string) {
-    const files = await ipcRenderer.invoke(IpcEvents.OPEN_FILE, url);
+    const files = await window.Sleuth.openFile(url);
     this.sleuthState.setSource(url);
     this.setState({ unzippedFiles: files });
   }

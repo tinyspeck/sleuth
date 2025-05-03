@@ -1,4 +1,3 @@
-import { clipboard } from 'electron';
 import { SleuthState } from './sleuth';
 import { LogEntry } from '../../interfaces';
 import { format } from 'date-fns';
@@ -21,10 +20,12 @@ export function copy(state: SleuthState): boolean {
     Array.isArray(selectedRangeEntries) &&
     selectedRangeEntries.length > 1
   ) {
-    clipboard.writeText(selectedRangeEntries.map(getCopyText).join('\n'));
+    window.Sleuth.clipboard.writeText(
+      selectedRangeEntries.map(getCopyText).join('\n'),
+    );
     return true;
   } else if (shouldCopy && selectedEntry) {
-    clipboard.writeText(getCopyText(selectedEntry));
+    window.Sleuth.clipboard.writeText(getCopyText(selectedEntry));
     return true;
   }
 

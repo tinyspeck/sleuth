@@ -20,8 +20,6 @@ import { isToday, isThisWeek } from 'date-fns';
 import { Suggestion, ValidSuggestion } from '../../interfaces';
 
 import classNames from 'classnames';
-import { ipcRenderer } from 'electron';
-import { IpcEvents } from '../../ipc-events';
 
 export interface WelcomeState {
   sleuth: string;
@@ -50,23 +48,27 @@ export class Welcome extends React.Component<
     };
   }
 
+  private unmountListener: () => void;
+
   public componentDidMount(): void {
-    ipcRenderer.on(IpcEvents.SUGGESTIONS_UPDATED, async () => {
-      await this.props.state.getSuggestions();
-    });
+    this.unmountListener = window.Sleuth.setupSuggestionsUpdated(
+      async (_event, suggestions: Suggestion[]) => {
+        await this.props.state.getSuggestions(suggestions);
+      },
+    );
   }
 
   public componentWillUnmount(): void {
-    ipcRenderer.removeAllListeners(IpcEvents.SUGGESTIONS_UPDATED);
+    this.unmountListener();
   }
 
   public async deleteSuggestion(filePath: string) {
-    await ipcRenderer.invoke(IpcEvents.DELETE_SUGGESTION, filePath);
+    await window.Sleuth.deleteSuggestion(filePath);
     await this.props.state.getSuggestions();
   }
 
   public async deleteSuggestions(filePaths: string[]) {
-    await ipcRenderer.invoke(IpcEvents.DELETE_SUGGESTIONS, filePaths);
+    await window.Sleuth.deleteSuggestions(filePaths);
     await this.props.state.getSuggestions();
   }
 

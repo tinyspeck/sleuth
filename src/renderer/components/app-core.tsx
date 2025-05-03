@@ -21,12 +21,10 @@ import { Loading } from './loading';
 import { LogContent } from './log-content';
 import { flushLogPerformance } from '../processor/performance';
 import { Spotlight } from './spotlight';
-import { showMessageBox } from '../ipc';
 import { rehydrateBookmarks } from '../state/bookmarks';
 import { getTypesForFiles } from '../../utils/get-file-types';
 import { mergeLogFiles, processLogFiles } from '../processor';
 import { IpcEvents } from '../../ipc-events';
-import { ipcRenderer } from 'electron';
 
 export interface CoreAppProps {
   state: SleuthState;
@@ -120,7 +118,7 @@ export class CoreApplication extends React.Component<
       .every((s) => s.length === 0);
 
     if (noFiles && !cachePath) {
-      showMessageBox({
+      window.Sleuth.showMessageBox({
         title: 'Huh, weird logs!',
         message:
           'Sorry, Sleuth does not understand the file(s). It seems like there are no Slack logs here.\n\nCheck the #sleuth FAQ for help!',
@@ -156,11 +154,10 @@ export class CoreApplication extends React.Component<
     }
     // also process state files
     for (const stateFile of rawLogFiles[STATE]) {
-      const content = await ipcRenderer.invoke(
-        IpcEvents.READ_STATE_FILE,
-        stateFile,
-      );
-      this.props.state.stateFiles[stateFile.fileName] = content;
+      const content = await window.Sleuth.readStateFile(stateFile);
+      if (content) {
+        this.props.state.stateFiles[stateFile.fileName] = content;
+      }
     }
     console.timeEnd('process-files');
 
