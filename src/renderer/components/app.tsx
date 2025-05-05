@@ -71,7 +71,6 @@ export class App extends React.Component<object, Partial<AppState>> {
       Darwin: window.Sleuth.platform === 'darwin',
     });
     const titleBar =
-      // eslint-disable-next-line no-restricted-globals
       window.Sleuth.platform === 'darwin' ? (
         <MacTitlebar state={this.sleuthState} />
       ) : (

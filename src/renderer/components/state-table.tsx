@@ -9,7 +9,7 @@ import { getLocalSettingsInfo } from '../analytics/local-settings-analytics';
 import { getNotifWarningsInfo } from '../analytics/notification-warning-analytics';
 import { JSONView } from './json-view';
 import { getFontForCSS } from './preferences-font';
-import { getSentryHref, convertInstallation } from '../sentry';
+import { getSentryHref } from '../sentry';
 
 import {
   getMessage,
@@ -180,7 +180,7 @@ export class StateTable extends React.Component<
     const { data } = this.state;
 
     if (Array.isArray(data) && data.length > 0) {
-      const id = convertInstallation(data[0]);
+      const id = atob(data[0]);
       const href = getSentryHref(id);
 
       return (

@@ -32,7 +32,6 @@ import {
 } from './filesystem/suggestions';
 import { readLogFile, readStateFile } from './filesystem/read-file';
 import { getSentryHref } from '../renderer/sentry';
-import { convertInstallation } from '../renderer/sentry';
 import { download, getHeaders, getData } from './cachetool';
 
 fs.watch(app.getPath('downloads'), async () => {
@@ -381,7 +380,7 @@ export class IpcManager {
 
         // Read the data
         const data = await fs.promises.readFile(installationFilePath, 'utf8');
-        const id = convertInstallation(data);
+        const id = atob(data);
 
         if (id) {
           shell.openExternal(getSentryHref(id));
