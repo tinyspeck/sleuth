@@ -5,3 +5,4 @@ coverage
 src/static/styles/styles.css
 dist
 catapult
+.vite

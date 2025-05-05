@@ -1,6 +1,13 @@
 import { observer } from 'mobx-react';
 import React from 'react';
-import { Button, Popover, Menu, Position } from '@blueprintjs/core';
+import {
+  Button,
+  Popover,
+  Menu,
+  Position,
+  MenuDivider,
+  MenuItem,
+} from '@blueprintjs/core';
 import autoBind from 'react-autobind';
 
 import { SleuthState } from '../state/sleuth';
@@ -41,13 +48,13 @@ export class Bookmarks extends React.Component<BookmarksProps, object> {
 
     if (items.length > 0) {
       items.push(
-        <Menu.Divider />,
-        <Menu.Item
+        <MenuDivider />,
+        <MenuItem
           icon="trash"
           text="Delete all bookmarks"
           onClick={() => deleteAllBookmarks(this.props.state)}
         />,
-        <Menu.Item
+        <MenuItem
           icon="export"
           text="Export bookmarks"
           onClick={() => exportBookmarks(this.props.state)}
@@ -73,7 +80,7 @@ export class Bookmarks extends React.Component<BookmarksProps, object> {
     const text = `${fileName}:${logEntry.line} "${shortLine}"`;
 
     return (
-      <Menu.Item
+      <MenuItem
         icon="star"
         text={text}
         onClick={() => goToBookmark(this.props.state, bookmark)}

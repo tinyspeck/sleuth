@@ -11,6 +11,7 @@ import { MakerRpm } from '@electron-forge/maker-rpm';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives';
 import { PublisherGithub } from '@electron-forge/publisher-github';
+import { VitePlugin } from '@electron-forge/plugin-vite';
 
 import { version } from './package.json';
 
@@ -21,7 +22,6 @@ const PORT = 37492;
 
 const options: ForgeConfig = {
   hooks: {
-    generateAssets: require('./tools/generateAssets'),
     preMake: async () => {
       let dir: string | undefined = undefined;
       try {
@@ -116,7 +116,32 @@ const options: ForgeConfig = {
       authToken: process.env.SLACK_GH_RELEASE_TOKEN,
     }),
   ],
-  plugins: [new AutoUnpackNativesPlugin({})],
+  plugins: [
+    new VitePlugin({
+      // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
+      // If you are familiar with Vite configuration, it will look really familiar.
+      build: [
+        {
+          // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
+          entry: './src/main/index.ts',
+          config: 'vite.main.config.ts',
+          target: 'main',
+        },
+        {
+          entry: './src/preload/preload.ts',
+          config: 'vite.preload.config.ts',
+          target: 'preload',
+        },
+      ],
+      renderer: [
+        {
+          name: 'main_window',
+          config: 'vite.renderer.config.ts',
+        },
+      ],
+    }),
+    new AutoUnpackNativesPlugin({}),
+  ],
 };
 
 export default options;

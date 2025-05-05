@@ -1,8 +1,6 @@
 import path from 'node:path';
 
 import fs from 'node:fs';
-import { app } from 'electron/main';
-import { ipcRenderer, webUtils } from 'electron/renderer';
 import { IpcEvents } from '../ipc-events';
 import { ICON_NAMES } from '../shared-constants';
 import {
@@ -16,14 +14,17 @@ import {
 } from '../interfaces';
 import { ReadFileResult } from '../main/filesystem/read-file';
 import { ColorTheme } from '../renderer/components/preferences';
-import { clipboard, shell } from 'electron/common';
+import {
+  clipboard,
+  shell,
+  ipcRenderer,
+  webUtils,
+  contextBridge,
+} from 'electron';
 
 const packageJSON = JSON.parse(
   fs
-    .readFileSync(
-      path.join(__dirname, '..', '..', '..', 'package.json'),
-      'utf8',
-    )
+    .readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8')
     .trim(),
 );
 
@@ -37,7 +38,7 @@ export const SleuthAPI = {
   platform: process.platform,
   versions: process.versions,
   sleuthVersion: packageJSON.version,
-  getPath: (path: Parameters<typeof app.getPath>[0]) => app.getPath(path),
+  // getPath: (path: Parameters<typeof app.getPath>[0]) => console.log(path),
   getUserAgent: (): Promise<string> =>
     ipcRenderer.invoke(IpcEvents.GET_USER_AGENT),
   readLogFile: (
@@ -139,4 +140,4 @@ export const SleuthAPI = {
   },
 };
 
-(window as any).Sleuth = SleuthAPI;
+contextBridge.exposeInMainWorld('Sleuth', SleuthAPI);

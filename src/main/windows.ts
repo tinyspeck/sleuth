@@ -82,9 +82,10 @@ export async function createWindow(): Promise<BrowserWindow> {
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : undefined,
     webPreferences: {
       webviewTag: false,
-      nodeIntegration: true,
-      contextIsolation: false,
-      preload: path.join(__dirname, '..', 'preload', 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: false,
+      preload: path.join(__dirname, 'preload.js'),
     },
   };
   console.log(`Windows: Creating window with options`, options);
@@ -102,7 +103,13 @@ export async function createWindow(): Promise<BrowserWindow> {
   }
 
   // and load the index.html of the app.
-  await mainWindow.loadFile('./dist/static/index.html');
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  } else {
+    mainWindow.loadFile(
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+    );
+  }
 
   // Open the DevTools.
   if (config.isDevMode) {

@@ -3,7 +3,8 @@
   "productName": "Sleuth",
   "version": "3.9.1",
   "description": "Slack Log Viewer",
-  "main": "./dist/src/main/index.js",
+  "main": ".vite/build/index.js",
+  "type": "commonjs",
   "engines": {
     "node": ">=22"
   },
@@ -12,10 +13,8 @@
     "lint": "npm run tsc && eslint .  --ignore-path .gitignore && prettier --check .",
     "package": "cross-env DISABLE_V8_COMPILE_CACHE=1 electron-forge package",
     "make": "cross-env DISABLE_V8_COMPILE_CACHE=1 electron-forge make",
-    "parcel:build": "node ./tools/parcel-build.js",
-    "parcel:watch": "node ./tools/parcel-watch.js",
     "publish": "cross-env DISABLE_V8_COMPILE_CACHE=1 electron-forge publish",
-    "start": "rimraf ./dist && cross-env DISABLE_V8_COMPILE_CACHE=1 electron-forge start",
+    "start": "rimraf ./.vite && cross-env DISABLE_V8_COMPILE_CACHE=1 electron-forge start",
     "test": "jest --config=jest.json --coverage --runInBand",
     "update-snapshots": "jest --config=jest.json --updateSnapshot",
     "catapult:update": "git submodule foreach git pull origin master",
@@ -28,9 +27,9 @@
   "license": "MIT",
   "dependencies": {
     "@ant-design/icons": "^5.3.0",
-    "@blueprintjs/core": "^3.36.0",
-    "@blueprintjs/datetime": "^3.20.0",
-    "@blueprintjs/select": "^3.15.0",
+    "@blueprintjs/core": "^4.0.0",
+    "@blueprintjs/datetime": "^4.0.0",
+    "@blueprintjs/select": "^4.0.0",
     "antd": "^5.6.3",
     "chart.js": "3.5.0",
     "chartjs-adapter-date-fns": "^2.0.0",
@@ -66,6 +65,7 @@
     "@electron-forge/maker-squirrel": "7.8.0",
     "@electron-forge/maker-zip": "7.8.0",
     "@electron-forge/plugin-auto-unpack-natives": "7.8.0",
+    "@electron-forge/plugin-vite": "^7.8.0",
     "@electron-forge/publisher-github": "7.8.0",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
@@ -103,11 +103,11 @@
     "less": "^3.12.2",
     "lint-staged": "^15.2.11",
     "node-abi": "^3.45.0",
-    "parcel-bundler": "^1.12.4",
     "patch-package": "^7.0.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
-    "typescript": "5.1.6"
+    "typescript": "5.1.6",
+    "vite": "5"
   },
   "optionalDependencies": {
     "cachetool": "^1.1.2"
