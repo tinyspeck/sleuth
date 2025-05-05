@@ -50,11 +50,13 @@ export class Bookmarks extends React.Component<BookmarksProps, object> {
       items.push(
         <MenuDivider />,
         <MenuItem
+          key="trash"
           icon="trash"
           text="Delete all bookmarks"
           onClick={() => deleteAllBookmarks(this.props.state)}
         />,
         <MenuItem
+          key="export"
           icon="export"
           text="Export bookmarks"
           onClick={() => exportBookmarks(this.props.state)}
@@ -63,7 +65,8 @@ export class Bookmarks extends React.Component<BookmarksProps, object> {
     }
 
     items.push(
-      <Menu.Item
+      <MenuItem
+        key="add-bookmark"
         icon="star"
         text="Add this log message to bookmarks"
         onClick={() => saveBookmark(this.props.state)}
@@ -81,6 +84,7 @@ export class Bookmarks extends React.Component<BookmarksProps, object> {
 
     return (
       <MenuItem
+        key={`${logFile.id}-${logEntry.index}`}
         icon="star"
         text={text}
         onClick={() => goToBookmark(this.props.state, bookmark)}
