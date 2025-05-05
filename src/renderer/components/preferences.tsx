@@ -1,5 +1,4 @@
 import { Select } from '@blueprintjs/select';
-import { ipcRenderer } from 'electron';
 import { observer } from 'mobx-react';
 import {
   Overlay,
@@ -66,9 +65,7 @@ export class Preferences extends React.Component<
     this.state = {};
     autoBind(this);
 
-    ipcRenderer.on(IpcEvents.PREFERENCES_SHOW, () =>
-      this.setState({ isOpen: true }),
-    );
+    window.Sleuth.setupPreferencesShow(() => this.setState({ isOpen: true }));
   }
 
   public render(): JSX.Element {

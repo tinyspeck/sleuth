@@ -6,8 +6,6 @@ import { MergedLogFile, SelectableLogType } from '../interfaces';
 import { ProcessedLogFile } from '../interfaces';
 import { getIdForLogFiles } from '../utils/id-for-logfiles';
 import { logPerformance } from './processor/performance';
-import { ipcRenderer } from 'electron';
-import { IpcEvents } from '../ipc-events';
 
 /**
  * Checks the filename to see if we should process a log file.
@@ -74,7 +72,7 @@ export async function processLogFile(
 
   const timeStart = performance.now();
   const { entries, lines, levelCounts, repeatedCounts } =
-    await ipcRenderer.invoke(IpcEvents.READ_LOG_FILE, logFile, logType);
+    await window.Sleuth.readLogFile(logFile, logType);
   const result: ProcessedLogFile = {
     logFile,
     logEntries: entries,

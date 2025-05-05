@@ -5,8 +5,6 @@ import debug from 'debug';
 import { SleuthState } from '../state/sleuth';
 import { autorun, IReactionDisposer } from 'mobx';
 import { UnzippedFile } from '../../interfaces';
-import { ipcRenderer } from 'electron';
-import { IpcEvents } from '../../ipc-events';
 
 export interface NetLogViewProps {
   state: SleuthState;
@@ -53,7 +51,7 @@ export class NetLogView extends React.Component<NetLogViewProps, object> {
     if (iframe && iframe[0]) {
       try {
         const catapultWindow = iframe[0].contentWindow;
-        const raw = await ipcRenderer.invoke(IpcEvents.READ_ANY_FILE, file);
+        const raw = await window.Sleuth.readAnyFile(file);
 
         // See catapult.html for the postMessage handler
         catapultWindow?.postMessage(

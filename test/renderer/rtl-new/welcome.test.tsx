@@ -9,9 +9,10 @@ import {
 } from '@testing-library/react';
 import { SleuthState } from '../../../src/renderer/state/sleuth';
 import { ipcRenderer } from 'electron';
-import { IpcEvents } from '../../../src/ipc-events';
 
 jest.mock('electron');
+
+const mockDeleteSuggestion = jest.fn();
 
 describe('Welcome', () => {
   beforeAll(() => {
@@ -20,7 +21,12 @@ describe('Welcome', () => {
         addListener: () => void 0,
         removeListener: () => void 0,
       }) as any;
-    (window as any).Sleuth = { platform: 'darwin' };
+    (window as any).Sleuth = {
+      platform: 'darwin',
+      setupSuggestionsUpdated: () => jest.fn(),
+      deleteSuggestion: mockDeleteSuggestion,
+      deleteSuggestions: jest.fn(),
+    };
   });
 
   beforeEach(() => {
@@ -79,8 +85,7 @@ describe('Welcome', () => {
       });
       fireEvent.click(btn);
       await waitFor(() =>
-        expect(ipcRenderer.invoke).toHaveBeenCalledWith(
-          IpcEvents.DELETE_SUGGESTION,
+        expect(mockDeleteSuggestion).toHaveBeenCalledWith(
           '/Users/ezhao/Downloads/logs-21-11-02_12-36-26.zip',
         ),
       );

@@ -39,6 +39,7 @@ module.exports = {
           'child_process',
           'stream',
           'util',
+          'electron',
         ],
         'no-restricted-globals': ['error', 'process', 'require', '__dirname'],
       },

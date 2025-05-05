@@ -1,5 +1,4 @@
 import React from 'react';
-import { shell } from 'electron';
 
 export function getLocalSettingsInfo(data: any): Array<JSX.Element> {
   const result: Array<JSX.Element> = [];
@@ -15,7 +14,7 @@ function getElectronLink({ lastElectronVersionLaunched }: any): JSX.Element {
       ? `https://electronjs.org/releases/beta#${electronVersion}`
       : `https://electronjs.org/releases/stable#${electronVersion}`;
 
-    return <a onClick={() => shell.openExternal(link)}>{link}</a>;
+    return <a onClick={() => window.Sleuth.openExternal(link)}>{link}</a>;
   } else {
     return <p>Unknown</p>;
   }

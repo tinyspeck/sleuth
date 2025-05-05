@@ -36,9 +36,11 @@ import { convertInstallation } from '../renderer/sentry';
 import { download, getHeaders, getData } from './cachetool';
 
 fs.watch(app.getPath('downloads'), async () => {
-  // TODO(erickzhao): It would be more efficient to send the suggestions in this one IPC call
-  // instead of making another roundtrip from the renderer to update the suggestions.
-  getCurrentWindow().webContents.send(IpcEvents.SUGGESTIONS_UPDATED);
+  const suggestions = await getItemsInSuggestionFolders();
+  getCurrentWindow().webContents.send(
+    IpcEvents.SUGGESTIONS_UPDATED,
+    suggestions,
+  );
 });
 
 function getCurrentWindow(): Electron.BrowserWindow {

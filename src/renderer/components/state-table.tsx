@@ -1,5 +1,4 @@
 import React from 'react';
-import { shell } from 'electron';
 import { Card, Elevation } from '@blueprintjs/core';
 
 import { SelectableLogFile, UnzippedFile } from '../../interfaces';
@@ -187,7 +186,7 @@ export class StateTable extends React.Component<
       return (
         <Card className="StateTable-Info">
           See exceptions in Sentry:{' '}
-          <a onClick={() => shell.openExternal(href)}>{id}</a>
+          <a onClick={() => window.Sleuth.openExternal(href)}>{id}</a>
         </Card>
       );
     }

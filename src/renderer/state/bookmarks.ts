@@ -12,8 +12,6 @@ import { isTool, isUnzippedFile } from '../../utils/is-logfile';
 import { SleuthState } from './sleuth';
 
 import lzString from 'lz-string';
-import { clipboard } from 'electron';
-import { showMessageBox } from '../ipc';
 import { plural } from '../../utils/pluralize';
 
 /**
@@ -353,7 +351,7 @@ export function exportBookmarks(state: SleuthState) {
   console.log(`Link`, link);
   console.groupEnd();
 
-  clipboard.writeText(link);
+  window.Sleuth.clipboard.writeText(link);
   alert(`A link containing the bookmarks has been written to your clipboard.`);
 }
 
@@ -380,7 +378,7 @@ export async function importBookmarks(state: SleuthState, input: string) {
     }
 
     // Let's first see if the user actually wants this
-    const { response } = await showMessageBox({
+    const { response } = await window.Sleuth.showMessageBox({
       type: 'question',
       title: 'Import bookmarks?',
       message: `We're ready to import ${deserialized.length} ${plural(

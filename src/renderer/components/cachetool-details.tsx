@@ -15,8 +15,6 @@ import {
 import { autorun, IReactionDisposer } from 'mobx';
 
 import { SleuthState } from '../state/sleuth';
-import { IpcEvents } from '../../ipc-events';
-import { ipcRenderer } from 'electron';
 
 export interface CachetoolDetailsProps {
   state: SleuthState;
@@ -43,29 +41,33 @@ export class CachetoolDetails extends React.Component<
     this.headerAutorunDispose = autorun(async () => {
       const selectedCacheKey = this.props.state.selectedCacheKey;
       const cachePath = this.props.state.cachePath;
-      const headers = await ipcRenderer.invoke(
-        IpcEvents.CACHETOOL_GET_HEADERS,
-        cachePath,
-        selectedCacheKey,
-      );
 
-      this.setState({
-        headers,
-      });
+      if (cachePath && selectedCacheKey) {
+        const headers = await window.Sleuth.cachetoolGetHeaders(
+          cachePath,
+          selectedCacheKey,
+        );
+
+        this.setState({
+          headers,
+        });
+      }
     });
 
     this.dataAutorunDispose = autorun(async () => {
-      const selectedCacheKey = this.props.state.selectedCacheKey;
       const cachePath = this.props.state.cachePath;
-      const dataPath = await ipcRenderer.invoke(
-        IpcEvents.CACHETOOL_GET_DATA,
-        cachePath,
-        selectedCacheKey,
-      );
+      const selectedCacheKey = this.props.state.selectedCacheKey;
 
-      this.setState({
-        dataPath,
-      });
+      if (cachePath && selectedCacheKey) {
+        const dataPath = await window.Sleuth.cachetoolGetData(
+          cachePath,
+          selectedCacheKey,
+        );
+
+        this.setState({
+          dataPath,
+        });
+      }
     });
   }
 
@@ -103,10 +105,7 @@ export class CachetoolDetails extends React.Component<
               <Button
                 icon="download"
                 onClick={() =>
-                  ipcRenderer.invoke(
-                    IpcEvents.CACHETOOL_DOWNLOAD,
-                    this.state.dataPath,
-                  )
+                  window.Sleuth.cachetoolDownload(this.state.dataPath!)
                 }
                 text="Save File"
               />

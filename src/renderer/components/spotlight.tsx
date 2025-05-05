@@ -3,7 +3,6 @@ import autoBind from 'react-autobind';
 import { observer } from 'mobx-react';
 import { Omnibar, ItemRenderer, ItemPredicate } from '@blueprintjs/select';
 import { IconName, MenuItem } from '@blueprintjs/core';
-import { ipcRenderer } from 'electron';
 
 import { SleuthState } from '../state/sleuth';
 import {
@@ -14,7 +13,6 @@ import {
 } from '../../interfaces';
 import { isProcessedLogFile } from '../../utils/is-logfile';
 import { highlightText } from '../../utils/highlight-text';
-import { IpcEvents } from '../../ipc-events';
 
 interface SpotlightItem {
   text: string;
@@ -143,7 +141,7 @@ export class Spotlight extends React.Component<
       {
         text: 'Quit Sleuth',
         icon: 'power' as const,
-        click: () => ipcRenderer.invoke(IpcEvents.QUIT),
+        click: async () => await window.Sleuth.quit(),
       },
       {
         text: 'Go Home',
