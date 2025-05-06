@@ -398,7 +398,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
 
     if (file.fileName.endsWith('.trace')) {
       const warnings = getTraceWarnings(
-        props.state.stateFiles[file.fileName].data,
+        props.state.stateFiles[file.fileName]?.data,
       );
       if (warnings && warnings.length > 0) {
         const content = warnings.join('\n');

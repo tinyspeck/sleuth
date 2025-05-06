@@ -3,6 +3,5 @@ out
 coverage
 .DS_Store
 src/static/styles/styles.css
-dist
 catapult
 .vite

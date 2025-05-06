@@ -21,7 +21,7 @@ export function registerScheme() {
       return new Response(null, { status: 400 });
     }
 
-    const dist = normalize(`${__dirname}/../..`);
+    const dist = normalize(`${__dirname}/..`);
     const path = join(dist, url.pathname);
 
     const relation = relative(dist, path);
@@ -29,6 +29,7 @@ export function registerScheme() {
       // request appears to be try to be navigating outside of dist
       return new Response(null, { status: 400 });
     } else {
+      console.log({ path });
       return net.fetch(pathToFileURL(path).href);
     }
   });

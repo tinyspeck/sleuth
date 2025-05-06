@@ -19,12 +19,12 @@
     <meta name="referrer" content="no-referrer" />
     <script
       type="module"
-      src="../devtools-frontend/entrypoints/devtools_app/devtools_app.js"
+      src="/devtools-frontend/entrypoints/devtools_app/devtools_app.js"
     ></script>
     <script>
       async function getTimelinePanel() {
         const module = await import(
-          '../devtools-frontend/panels/timeline/TimelinePanel.js'
+          '/devtools-frontend/panels/timeline/TimelinePanel.js'
         );
         return module.TimelinePanel.instance();
       }

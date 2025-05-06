@@ -20,6 +20,7 @@ import {
   ipcRenderer,
   webUtils,
   contextBridge,
+  app,
 } from 'electron';
 
 const packageJSON = JSON.parse(
@@ -38,7 +39,8 @@ export const SleuthAPI = {
   platform: process.platform,
   versions: process.versions,
   sleuthVersion: packageJSON.version,
-  // getPath: (path: Parameters<typeof app.getPath>[0]) => console.log(path),
+  getPath: (path: Parameters<typeof app.getPath>[0]) =>
+    ipcRenderer.invoke(IpcEvents.GET_PATH, path),
   getUserAgent: (): Promise<string> =>
     ipcRenderer.invoke(IpcEvents.GET_USER_AGENT),
   readLogFile: (

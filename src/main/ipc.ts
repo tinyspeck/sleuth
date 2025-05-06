@@ -358,6 +358,7 @@ export class IpcManager {
     ipcMain.handle(
       IpcEvents.READ_ANY_FILE,
       async (_event, file: UnzippedFile) => {
+        console.log('Reading file', file.fullPath);
         return fs.promises.readFile(file.fullPath, 'utf8');
       },
     );

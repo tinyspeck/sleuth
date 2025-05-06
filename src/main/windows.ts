@@ -1,11 +1,10 @@
-import { BrowserWindow } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from 'electron-devtools-installer';
 import windowStateKeeper from 'electron-window-state';
 
 import { settingsFileManager } from './settings';
-import { config } from '../config';
 import { getIconPath } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { TouchBarManager } from './touch-bar-manager';
@@ -75,7 +74,7 @@ export async function createWindow(): Promise<BrowserWindow> {
     y,
     width: mainWindowState.width,
     height: mainWindowState.height,
-    show: !!config.isDevMode,
+    show: !app.isPackaged,
     icon: process.platform !== 'darwin' ? icon : undefined,
     minHeight: 500,
     minWidth: 1170,
@@ -112,7 +111,7 @@ export async function createWindow(): Promise<BrowserWindow> {
   }
 
   // Open the DevTools.
-  if (config.isDevMode) {
+  if (!app.isPackaged) {
     await installExtension(REACT_DEVELOPER_TOOLS, {
       loadExtensionOptions: {
         allowFileAccess: true,

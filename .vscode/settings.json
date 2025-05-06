@@ -5,7 +5,6 @@
     "**/.git": true,
     "**/.hg": true,
     "**/.svn": true,
-    "**/catapult": true
   },
   "typescript.tsdk": "node_modules/typescript/lib"
 }

@@ -2,7 +2,6 @@ import { app, BrowserWindow } from 'electron';
 
 console.log(`Welcome to Sleuth ${app.getVersion()}`);
 
-import { config } from '../config';
 import { ipcManager } from './ipc';
 import { secureApp } from './security';
 import { createWindow, windows } from './windows';
@@ -11,7 +10,7 @@ import { setupUpdates } from './update';
 import { installProtocol } from './protocol';
 import { registerScheme, registerSchemePrivilege } from './scheme';
 
-if (!config.isDevMode) {
+if (app.isPackaged) {
   process.env.NODE_ENV = 'production';
 }
 

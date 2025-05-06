@@ -92,7 +92,7 @@ export class App extends React.Component<object, Partial<AppState>> {
           algorithm: this.sleuthState.prefersDarkColors
             ? theme.darkAlgorithm
             : theme.defaultAlgorithm,
-          cssVar: true,
+          cssVar: { key: 'sleuth' },
           token: {
             colorPrimary: '#137cbd',
             colorBgBase: this.sleuthState.prefersDarkColors
