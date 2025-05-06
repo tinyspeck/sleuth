@@ -33,6 +33,7 @@ export class App extends React.Component<object, Partial<AppState>> {
     localStorage.debug = 'sleuth:*';
 
     this.openFile = this.openFile.bind(this);
+    this.resetApp = this.resetApp.bind(this);
     this.sleuthState = new SleuthState(this.openFile, this.resetApp);
   }
 
