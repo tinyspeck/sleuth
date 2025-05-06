@@ -48,7 +48,6 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
     const from = chart.scales.x.min;
     const until = chart.scales.x.max;
     this.props.state.customTimeViewRange = until - from;
-    console.log(this.props.state.customTimeViewRange);
   }
 
   public render(): JSX.Element | null {

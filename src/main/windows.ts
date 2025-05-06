@@ -117,7 +117,6 @@ export async function createWindow(): Promise<BrowserWindow> {
         allowFileAccess: true,
       },
     });
-    mainWindow.webContents.openDevTools();
   }
 
   windows.push(mainWindow);
