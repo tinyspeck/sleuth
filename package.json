@@ -33,7 +33,7 @@
     "antd": "^5.6.3",
     "chart.js": "3.5.0",
     "chartjs-adapter-date-fns": "^2.0.0",
-    "chartjs-plugin-zoom": "^1.1.1",
+    "chartjs-plugin-zoom": "^2.2.0",
     "classnames": "2.2.6",
     "date-fns": "^2.16.1",
     "debug": "4.3.1",

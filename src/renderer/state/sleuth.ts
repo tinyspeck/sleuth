@@ -27,7 +27,10 @@ import {
   Suggestion,
   SelectableLogType,
 } from '../../interfaces';
-import { getInitialTimeViewRange, getTimeBuckedLogMetrics } from './time-view';
+import {
+  getInitialTimeViewRange,
+  getTimeBucketedLogMetrics,
+} from './time-view';
 import { rehydrateBookmarks, importBookmarks } from './bookmarks';
 import { copy } from './copy';
 import { ICON_NAMES } from '../../shared-constants';
@@ -256,7 +259,7 @@ export class SleuthState {
   public get timeBucketedLogMetrics(): TimeBucketedLogMetrics {
     const range = this.customTimeViewRange || this.initialTimeViewRange;
     return this.selectedLogFile
-      ? getTimeBuckedLogMetrics(this.selectedLogFile, range)
+      ? getTimeBucketedLogMetrics(this.selectedLogFile, range)
       : {};
   }
 
