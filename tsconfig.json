@@ -15,7 +15,8 @@
     "pretty": true,
     "target": "es2019",
     "jsx": "react",
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "skipLibCheck": true
   },
   "include": ["src/**/*", "./jest-setup.ts"],
   "exclude": ["node_modules"]
