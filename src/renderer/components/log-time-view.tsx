@@ -1,7 +1,7 @@
 import { SleuthState } from '../state/sleuth';
 import { observer } from 'mobx-react';
 import React from 'react';
-import { Chart, InteractionItem } from 'chart.js';
+import Chart, { InteractionItem } from 'chart.js/auto';
 import { ChartJSChart } from './chart-js';
 import { parse } from 'date-fns';
 import zoomPlugin from 'chartjs-plugin-zoom';
@@ -66,13 +66,13 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
     let datasets: Array<any> = [];
     const { timeBucketedLogMetrics } = this.props.state;
     if (timeBucketedLogMetrics) {
-      const buckedLogMetricsByTime = Object.entries<LogMetrics>(
+      const bucketedLogMetricsByTime = Object.entries<LogMetrics>(
         timeBucketedLogMetrics,
       );
       datasets = Object.keys(LogLevel).map((type: LogLevel) => {
         return {
           label: type,
-          data: buckedLogMetricsByTime.map(([time, buckets]) => ({
+          data: bucketedLogMetricsByTime.map(([time, buckets]) => ({
             y: buckets[type],
             x: new Date(parseInt(time, 10) * 1000),
           })),
@@ -127,6 +127,7 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
                     mode: 'x',
                     wheel: {
                       enabled: true,
+                      speed: 0.01,
                     },
                     drag: {
                       enabled: false,
