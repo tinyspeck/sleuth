@@ -89,7 +89,7 @@ export class StateTable extends React.Component<
 
     const content =
       !data && path ? (
-        <iframe sandbox="" onLoad={onIFrameLoad} src={path} />
+        <iframe sandbox="" onLoad={onIFrameLoad} src={`logfile://${path}`} />
       ) : type === StateType.installation ||
         type === StateType.externalConfig ? null : (
         <JSONView data={data} raw={raw} state={this.props.state} />
