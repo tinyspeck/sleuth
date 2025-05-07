@@ -135,6 +135,8 @@ export const SleuthAPI = {
       cachePath,
       selectedCacheKey,
     ),
+  cachetoolListKeys: (cachePath: string) =>
+    ipcRenderer.invoke(IpcEvents.CACHETOOL_LIST_KEYS, cachePath),
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
   openFile: (url: string) => ipcRenderer.invoke(IpcEvents.OPEN_FILE, url),
   cachetoolDownload: (dataPath: string) =>

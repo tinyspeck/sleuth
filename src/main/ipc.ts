@@ -34,6 +34,7 @@ import { readLogFile, readStateFile } from './filesystem/read-file';
 import { getSentryHref } from '../renderer/sentry';
 import { download, getHeaders, getData } from './cachetool';
 import { openLineInSource } from './open-line-in-source';
+import { listKeys } from 'cachetool';
 
 fs.watch(app.getPath('downloads'), async () => {
   const suggestions = await getItemsInSuggestionFolders();
@@ -409,6 +410,12 @@ export class IpcManager {
       IpcEvents.CACHETOOL_GET_DATA,
       async (_event, cachePath: string, key: string) => {
         return getData(cachePath, key);
+      },
+    );
+    ipcMain.handle(
+      IpcEvents.CACHETOOL_LIST_KEYS,
+      async (_event, cachePath: string) => {
+        return listKeys(cachePath);
       },
     );
   }
