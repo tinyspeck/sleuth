@@ -9,6 +9,7 @@ import {
   Menu,
   MenuItemConstructorOptions,
   nativeTheme,
+  clipboard,
 } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -33,6 +34,7 @@ import {
 import { readLogFile, readStateFile } from './filesystem/read-file';
 import { getSentryHref } from '../renderer/sentry';
 import { download, getHeaders, getData } from './cachetool';
+import { openLineInSource } from './open-line-in-source';
 
 fs.watch(app.getPath('downloads'), async () => {
   const suggestions = await getItemsInSuggestionFolders();
@@ -79,6 +81,7 @@ export class IpcManager {
     this.setupProcessor();
     this.setupOpenSentry();
     this.setupCachetool();
+    this.setupLogFileContextMenu();
   }
 
   public openFile(pathName: string) {
@@ -407,6 +410,22 @@ export class IpcManager {
       IpcEvents.CACHETOOL_GET_DATA,
       async (_event, cachePath: string, key: string) => {
         return getData(cachePath, key);
+      },
+    );
+  }
+
+  private setupLogFileContextMenu() {
+    ipcMain.handle(
+      IpcEvents.OPEN_LINE_IN_SOURCE,
+      (
+        _event,
+        line: number,
+        sourceFile: string,
+        options: {
+          defaultEditor: string;
+        },
+      ) => {
+        openLineInSource(line, sourceFile, options);
       },
     );
   }

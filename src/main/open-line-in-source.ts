@@ -1,5 +1,5 @@
 import { shell } from 'electron';
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
 import debug from 'debug';
 
 const d = debug('sleuth:open-line-in-source');

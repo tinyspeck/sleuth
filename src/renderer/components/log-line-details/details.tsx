@@ -9,7 +9,6 @@ import { LogLineData } from './data';
 import { Timestamp } from './timestamp';
 import { getIsBookmark, toggleBookmark } from '../../state/bookmarks';
 import { capitalize } from '../../../utils/capitalize';
-// import { openLineInSource } from '../../../utils/open-line-in-source';
 
 export interface LogLineDetailsProps {
   state: SleuthState;
@@ -44,9 +43,9 @@ export class LogLineDetails extends React.Component<
     if (selectedEntry && selectedEntry.sourceFile) {
       const { sourceFile, line } = selectedEntry;
 
-      // openLineInSource(line, sourceFile, {
-      //   defaultEditor,
-      // });
+      window.Sleuth.openLineInSource(line, sourceFile, {
+        defaultEditor,
+      });
     }
   }
 

@@ -40,7 +40,6 @@ import { RepeatedLevels } from '../../shared-constants';
 import { reaction } from 'mobx';
 import { Tag } from 'antd';
 import { observer } from 'mobx-react';
-// import { openLineInSource } from '../../utils/open-line-in-source';
 import { getCopyText } from '../state/copy';
 
 const d = debug('sleuth:logtable');
@@ -289,9 +288,9 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       }
       case LogLineContextMenuActions.OPEN_SOURCE: {
         const { line, sourceFile } = rowData;
-        // openLineInSource(line, sourceFile, {
-        //   defaultEditor: this.props.state.defaultEditor,
-        // });
+        window.Sleuth.openLineInSource(line, sourceFile, {
+          defaultEditor: this.props.state.defaultEditor,
+        });
         break;
       }
       case LogLineContextMenuActions.SHOW_IN_CONTEXT:

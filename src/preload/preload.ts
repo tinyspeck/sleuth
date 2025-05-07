@@ -140,6 +140,19 @@ export const SleuthAPI = {
   clipboard: {
     writeText: (text: string) => clipboard.writeText(text),
   },
+  openLineInSource: (
+    line: number,
+    sourceFile: string,
+    options: {
+      defaultEditor: string;
+    },
+  ) =>
+    ipcRenderer.invoke(
+      IpcEvents.OPEN_LINE_IN_SOURCE,
+      line,
+      sourceFile,
+      options,
+    ),
 };
 
 contextBridge.exposeInMainWorld('Sleuth', SleuthAPI);
