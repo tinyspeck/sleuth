@@ -9,7 +9,6 @@ import {
   Menu,
   MenuItemConstructorOptions,
   nativeTheme,
-  clipboard,
 } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
