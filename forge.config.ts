@@ -15,7 +15,7 @@ import { VitePlugin } from '@electron-forge/plugin-vite';
 
 import { version } from './package.json';
 
-const iconDir = path.join(__dirname, 'static/img');
+const iconDir = path.join(__dirname, 'public/img');
 
 let server: http.Server;
 const PORT = 37492;
@@ -55,7 +55,7 @@ const options: ForgeConfig = {
   packagerConfig: {
     name: 'Sleuth',
     executableName: process.platform === 'linux' ? 'sleuth' : 'Sleuth',
-    icon: './static/img/sleuth-icon',
+    icon: './public/img/sleuth-icon',
     appBundleId: 'com.felixrieseberg.sleuth',
     appCategoryType: 'public.app-category.developer-tools',
     asar: {
@@ -68,7 +68,7 @@ const options: ForgeConfig = {
       /^\/test/,
       /^\/tools/,
       /^\/src\//,
-      /^\/static/,
+      /^\/public/,
       /\/test\//,
       /\/[A-Za-z0-0]+\.md$/,
       /yarn.lock/,

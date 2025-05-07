@@ -44,10 +44,6 @@ const copyOps = [
     src: path.join(__dirname, './static/catapult-overrides/*'),
     dest: path.join(__dirname, './public/catapult'),
   },
-  {
-    src: path.join(__dirname, './static/img'),
-    dest: path.join(__dirname, './public'),
-  },
 ];
 
 export default defineConfig({
