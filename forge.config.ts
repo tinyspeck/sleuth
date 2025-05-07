@@ -61,19 +61,6 @@ const options: ForgeConfig = {
     asar: {
       unpackDir: '**/cachetool',
     },
-    ignore: [
-      /^\/\.vscode/,
-      /^\/catapult/,
-      /^\/coverage/,
-      /^\/test/,
-      /^\/tools/,
-      /^\/src\//,
-      /^\/public/,
-      /\/test\//,
-      /\/[A-Za-z0-0]+\.md$/,
-      /yarn.lock/,
-      /react.development.js/,
-    ],
     extendInfo: './static/extend.plist',
     win32metadata: {
       ProductName: 'Sleuth',

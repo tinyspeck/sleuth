@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from 'electron';
+import startup from 'electron-squirrel-startup';
 
 console.log(`Welcome to Sleuth ${app.getVersion()}`);
 
@@ -14,7 +15,7 @@ if (app.isPackaged) {
   process.env.NODE_ENV = 'production';
 }
 
-if (require('electron-squirrel-startup')) {
+if (startup) {
   // No-op, we're done here
 } else {
   const gotTheLock = app.requestSingleInstanceLock();
