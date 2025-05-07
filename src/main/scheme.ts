@@ -31,7 +31,6 @@ export function registerScheme() {
       // request appears to be try to be navigating outside of dist
       return new Response(null, { status: 400 });
     } else {
-      console.log({ path });
       return net.fetch(pathToFileURL(path).href);
     }
   });

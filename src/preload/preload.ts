@@ -80,6 +80,9 @@ export const SleuthAPI = {
     ipcRenderer.on(IpcEvents.TOGGLE_SIDEBAR, cb),
   setColorTheme: (colorTheme: ColorTheme) =>
     ipcRenderer.invoke(IpcEvents.SET_COLOR_THEME, colorTheme),
+  /**
+   * @deprecated
+   */
   readAnyFile: (file: UnzippedFile) =>
     ipcRenderer.invoke(IpcEvents.READ_ANY_FILE, file),
   setupOpenBookmarks: (

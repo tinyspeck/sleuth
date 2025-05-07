@@ -26,7 +26,7 @@ export class NetLogView extends React.Component<NetLogViewProps, object> {
   public render() {
     return (
       <div className="NetLogView">
-        <iframe src="/catapult.html" onLoad={this.loadFile} frameBorder={0} />
+        <iframe src="catapult.html" onLoad={this.loadFile} frameBorder={0} />
       </div>
     );
   }
@@ -59,7 +59,7 @@ export class NetLogView extends React.Component<NetLogViewProps, object> {
             instruction: 'load',
             payload: { fileName: file.fileName, content: raw },
           },
-          'http://localhost:5173',
+          window.location.href,
         );
       } catch (error) {
         d(`Failed to read file and load contents in catapult`, error);
@@ -91,7 +91,7 @@ export class NetLogView extends React.Component<NetLogViewProps, object> {
             instruction: 'dark-mode',
             payload: enabled,
           },
-          'http://localhost:5173',
+          window.location.href,
         );
       }
     } catch (error) {

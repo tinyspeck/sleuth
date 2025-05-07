@@ -128,6 +128,7 @@ export class App extends React.Component<object, Partial<AppState>> {
       if (event.dataTransfer && event.dataTransfer.files.length > 0) {
         let url = window.Sleuth.getPathForFile(event.dataTransfer.files[0]);
         url = url.replace('file:///', '/');
+        this.resetApp();
         this.openFile(url);
       }
 
