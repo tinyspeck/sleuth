@@ -26,6 +26,7 @@ describe('Welcome', () => {
       setupSuggestionsUpdated: () => jest.fn(),
       deleteSuggestion: mockDeleteSuggestion,
       deleteSuggestions: jest.fn(),
+      getPath: jest.fn(),
     };
   });
 
