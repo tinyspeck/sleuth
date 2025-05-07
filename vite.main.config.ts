@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, UserConfig } from 'vite';
 import copy from 'rollup-plugin-copy';
 
 import path from 'node:path';
@@ -38,15 +38,7 @@ const gitSubmodules = hasSubmodules
     ]
   : [];
 
-const copyOps = [
-  ...gitSubmodules,
-  {
-    src: path.join(__dirname, './static/catapult-overrides/*'),
-    dest: path.join(__dirname, './public/catapult'),
-  },
-];
-
-export default defineConfig({
+const config: UserConfig = {
   plugins: [
     copy({
       targets: [
@@ -61,8 +53,23 @@ export default defineConfig({
           src: path.join(__dirname, './static/devtools-frontend.html'),
           dest: path.join(__dirname, './.vite'),
         },
-        ...copyOps,
+        ...gitSubmodules,
+        {
+          src: path.join(__dirname, './static/catapult-overrides/*'),
+          dest: path.join(__dirname, './public/catapult'),
+        },
       ],
     }),
   ],
-});
+};
+
+// cachetool is an optionalDependency that is only available on macOS
+if (process.platform !== 'darwin') {
+  config.build = {
+    rollupOptions: {
+      external: ['cachetool'],
+    },
+  };
+}
+
+export default defineConfig(config);
