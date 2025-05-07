@@ -9,51 +9,51 @@
   border-bottom: 1px solid rgba(16, 22, 26, 0.05) !important;
 }
 
-.bp3-dark #timeline-view-graph-canvas,
-.bp3-dark #timeline-view-selection-ul,
-.bp3-dark #events-view-source-list-table,
-.bp3-dark #events-view-filter-box,
-.bp3-dark #timeline-view-graph-div {
+.bp4-dark #timeline-view-graph-canvas,
+.bp4-dark #timeline-view-selection-ul,
+.bp4-dark #events-view-source-list-table,
+.bp4-dark #events-view-filter-box,
+.bp4-dark #timeline-view-graph-div {
   filter: invert(0.9);
 }
 
-.bp3-dark #events-view-source-list-table {
+.bp4-dark #events-view-source-list-table {
   color: #000;
 }
 
-.bp3-dark .vertical-splitter {
+.bp4-dark .vertical-splitter {
   border-left: 1px solid #4a4a4a;
 }
 
-.bp3-dark #tab-list {
+.bp4-dark #tab-list {
   border-right: 1px solid #4a4a4a;
 }
 
-.bp3-dark #tab-list a,
+.bp4-dark #tab-list a,
 #tab-list a:visited {
   color: #f5f8fa;
 }
 
-.bp3-dark #tab-list #tab-list a.selected {
+.bp4-dark #tab-list #tab-list a.selected {
   color: #fff;
 }
 
-.bp3-dark .styled-table th {
+.bp4-dark .styled-table th {
   background-color: #202b33;
 }
 
-.bp3-dark .modules-view-extension-list tr.enabled {
+.bp4-dark .modules-view-extension-list tr.enabled {
   background-color: #294230;
 }
 
-.bp3-dark .modules-view-extension-list tr:not(.enabled) {
+.bp4-dark .modules-view-extension-list tr:not(.enabled) {
   background-color: #422929;
 }
 
-.bp3-dark #prerender-view-history-table tr.used {
+.bp4-dark #prerender-view-history-table tr.used {
   background-color: #294230;
 }
 
-.bp3-dark #prerender-view-history-table tr:not(.used) {
+.bp4-dark #prerender-view-history-table tr:not(.used) {
   background-color: #422929;
 }

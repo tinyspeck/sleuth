@@ -13,7 +13,6 @@ import {
 import dayjs, { Dayjs } from 'dayjs';
 import { Button, DatePicker, Input, InputRef, Space } from 'antd';
 import { SleuthState } from '../state/sleuth';
-import { IpcEvents } from '../../ipc-events';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,

@@ -175,7 +175,7 @@ export class CachetoolTable extends React.Component<
    * @memberof CachetoolTable
    */
   public render(): JSX.Element | null {
-    const className = classNames('LogTable', 'bp3-text-muted');
+    const className = classNames('LogTable', 'bp4-text-muted');
 
     return (
       <div className={className}>

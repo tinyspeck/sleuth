@@ -101,7 +101,12 @@ export class StateTable extends React.Component<
         <Card> {content} </Card>
       );
     return (
-      <div className="StateTable" style={{ fontFamily: getFontForCSS(font) }}>
+      <div
+        className="StateTable"
+        style={{
+          fontFamily: getFontForCSS(font),
+        }}
+      >
         <div className="StateTable-Content">
           {info}
           {contentCard}

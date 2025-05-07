@@ -96,7 +96,7 @@ export class App extends React.Component<object, Partial<AppState>> {
           token: {
             colorPrimary: '#137cbd',
             colorBgBase: this.sleuthState.prefersDarkColors
-              ? '#182026'
+              ? '#2f343c' // matches the .bp4-dark background colour
               : '#ffffff',
           },
         }}

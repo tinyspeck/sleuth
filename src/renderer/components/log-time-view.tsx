@@ -127,7 +127,7 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
                     mode: 'x',
                     wheel: {
                       enabled: true,
-                      speed: 0.01,
+                      speed: 0.05,
                     },
                     drag: {
                       enabled: false,

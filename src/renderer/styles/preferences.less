@@ -6,13 +6,13 @@
   max-height: calc(100% - 20vh);
   overflow: auto;
 
-  &.bp3-overlay-appear,
-  &.bp3-overlay-enter {
+  &.bp4-overlay-appear,
+  &.bp4-overlay-enter {
     transform: translateY(-50vh) rotate(-10deg);
   }
 
-  &.bp3-overlay-appear-active,
-  &.bp3-overlay-enter-active {
+  &.bp4-overlay-appear-active,
+  &.bp4-overlay-enter-active {
     transform: translateY(0) rotate(0deg);
     transition-property: -webkit-transform;
     transition-property: transform;
@@ -24,11 +24,11 @@
     transition-delay: 0;
   }
 
-  &.bp3-overlay-exit {
+  &.bp4-overlay-exit {
     transform: translateY(0) rotate(0deg);
   }
 
-  &.bp3-overlay-exit-active {
+  &.bp4-overlay-exit-active {
     transform: translateY(150vh) rotate(-20deg);
     transition-property: -webkit-transform;
     transition-property: transform;
@@ -40,19 +40,19 @@
     transition-delay: 0;
   }
 
-  .bp3-form-group {
+  .bp4-form-group {
     margin-top: 15px;
   }
 
-  .bp3-label {
+  .bp4-label {
     width: 200px;
   }
 
-  .bp3-form-group.bp3-inline label.bp3-label {
+  .bp4-form-group.bp4-inline label.bp4-label {
     line-height: normal;
   }
 
-  .bp3-form-content {
+  .bp4-form-content {
     width: 500px;
   }
 }
