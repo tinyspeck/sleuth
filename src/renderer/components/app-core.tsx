@@ -24,7 +24,6 @@ import { Spotlight } from './spotlight';
 import { rehydrateBookmarks } from '../state/bookmarks';
 import { getTypesForFiles } from '../../utils/get-file-types';
 import { mergeLogFiles, processLogFiles } from '../processor';
-import { IpcEvents } from '../../ipc-events';
 
 export interface CoreAppProps {
   state: SleuthState;

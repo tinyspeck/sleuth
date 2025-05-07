@@ -34,7 +34,6 @@ import {
   nameForCmd,
 } from './preferences-editor';
 import { SORT_DIRECTION } from './log-table-constants';
-import { IpcEvents } from '../../ipc-events';
 
 const FontSelect = Select.ofType<string>();
 const DateTimeSelect = Select.ofType<string>();
