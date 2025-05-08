@@ -14,6 +14,7 @@ import { PublisherGithub } from '@electron-forge/publisher-github';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 
 import { version } from './package.json';
+import { vendorSignTool } from './tools/vendor-signtool';
 
 const iconDir = path.join(__dirname, 'public/img');
 
@@ -23,6 +24,9 @@ const PORT = 37492;
 const options: ForgeConfig = {
   hooks: {
     preMake: async () => {
+      // Use signtool.exe from the `node_modules` folder
+      await vendorSignTool();
+
       let dir: string | undefined = undefined;
       try {
         const timestampProxiedProxy = httpProxy.createProxyServer({});
