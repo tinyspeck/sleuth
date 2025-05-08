@@ -9,6 +9,7 @@
     "sourceMap": true,
     "lib": ["es2019", "dom"],
     "strictNullChecks": true,
+    "importHelpers": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
