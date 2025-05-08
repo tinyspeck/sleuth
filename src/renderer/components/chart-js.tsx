@@ -1,9 +1,8 @@
 import React, { useEffect, useCallback } from 'react';
-import { Chart, ChartConfiguration, InteractionItem } from 'chart.js/auto';
+import Chart, { ChartConfiguration, InteractionItem } from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 import { useRefReRender } from '../hooks/use-ref-rerender';
 
-export { InteractionItem } from 'chart.js/auto';
 interface ChartJSProps {
   type: ChartConfiguration['type'];
   data: ChartConfiguration['data'];

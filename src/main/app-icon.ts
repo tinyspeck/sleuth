@@ -6,7 +6,7 @@ import { ICON_NAMES } from '../shared-constants';
 
 export function getIconPath(iconName: ICON_NAMES): string | undefined {
   const icon = `${iconName}.${getExtension()}`;
-  const iconPath = path.join(app.getAppPath(), 'dist/static/img', icon);
+  const iconPath = path.join(app.getAppPath(), 'public/img', icon);
 
   // Protect against missing icon
   if (!fs.existsSync(iconPath)) {

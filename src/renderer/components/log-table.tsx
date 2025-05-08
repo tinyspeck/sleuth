@@ -40,7 +40,6 @@ import { RepeatedLevels } from '../../shared-constants';
 import { reaction } from 'mobx';
 import { Tag } from 'antd';
 import { observer } from 'mobx-react';
-import { openLineInSource } from '../../utils/open-line-in-source';
 import { getCopyText } from '../state/copy';
 
 const d = debug('sleuth:logtable');
@@ -208,7 +207,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     const typeClassName =
       logFile.type === 'MergedLogFile' ? 'Merged' : 'Single';
-    const className = classNames('LogTable', 'bp3-text-muted', typeClassName);
+    const className = classNames('LogTable', 'bp4-text-muted', typeClassName);
 
     return (
       <div className={className}>
@@ -289,7 +288,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       }
       case LogLineContextMenuActions.OPEN_SOURCE: {
         const { line, sourceFile } = rowData;
-        openLineInSource(line, sourceFile, {
+        window.Sleuth.openLineInSource(line, sourceFile, {
           defaultEditor: this.props.state.defaultEditor,
         });
         break;

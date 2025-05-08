@@ -50,7 +50,11 @@ export class Welcome extends React.Component<
 
   private unmountListener: () => void;
 
-  public componentDidMount(): void {
+  public async componentDidMount() {
+    this.setState({
+      downloadsDir: await window.Sleuth.getPath('downloads'),
+    });
+
     this.unmountListener = window.Sleuth.setupSuggestionsUpdated(
       async (_event, suggestions: Suggestion[]) => {
         await this.props.state.getSuggestions(suggestions);

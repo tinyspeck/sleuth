@@ -60,3 +60,8 @@ export async function getData(
     return undefined;
   }
 }
+
+export async function listKeys(cachePath: string) {
+  const { listKeys } = await import('cachetool');
+  return await listKeys({ cachePath });
+}

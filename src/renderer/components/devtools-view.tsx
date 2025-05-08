@@ -129,7 +129,7 @@ export class DevtoolsView extends React.Component<
         <div className="Devtools">
           <iframe
             title="DevTools embed"
-            src={`oop://oop/static/devtools-frontend.html?panel=timeline`}
+            src={`oop://oop/devtools-frontend.html?panel=timeline`}
             onLoad={() => this.loadFile(this.state.profilePid)}
             frameBorder={0}
           />
@@ -171,7 +171,7 @@ export class DevtoolsView extends React.Component<
           instruction: 'load',
           payload: { events },
         },
-        'oop://oop/static/devtools-frontend.html',
+        'oop://oop/devtools-frontend.html',
       );
     }
 
@@ -201,7 +201,7 @@ export class DevtoolsView extends React.Component<
             instruction: 'dark-mode',
             payload: enabled,
           },
-          'oop://oop/static/devtools-frontend.html',
+          'oop://oop/devtools-frontend.html',
         );
       }
     } catch (error) {

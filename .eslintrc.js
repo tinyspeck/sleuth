@@ -24,7 +24,7 @@ module.exports = {
     },
     // Temporary override to detect usage of Node.js APIs in the renderer process
     {
-      files: ['src/renderer/**/*.{js,ts,jsx,tsx}'],
+      files: ['src/renderer/**/*.{js,ts,jsx,tsx}', 'src/utils/**/*.{js,ts}'],
       env: {
         browser: true,
         node: false,

@@ -32,8 +32,10 @@ import {
 } from './filesystem/suggestions';
 import { readLogFile, readStateFile } from './filesystem/read-file';
 import { getSentryHref } from '../renderer/sentry';
-import { convertInstallation } from '../renderer/sentry';
 import { download, getHeaders, getData } from './cachetool';
+import { openLineInSource } from './open-line-in-source';
+import { listKeys } from 'cachetool';
+import { isTraceSourcemapped } from './filesystem/is-trace-sourcemapped';
 
 fs.watch(app.getPath('downloads'), async () => {
   const suggestions = await getItemsInSuggestionFolders();
@@ -80,6 +82,7 @@ export class IpcManager {
     this.setupProcessor();
     this.setupOpenSentry();
     this.setupCachetool();
+    this.setupLogFileContextMenu();
   }
 
   public openFile(pathName: string) {
@@ -359,7 +362,15 @@ export class IpcManager {
     ipcMain.handle(
       IpcEvents.READ_ANY_FILE,
       async (_event, file: UnzippedFile) => {
+        console.log('Reading file', file.fullPath);
         return fs.promises.readFile(file.fullPath, 'utf8');
+      },
+    );
+    ipcMain.handle(
+      IpcEvents.TRACE_CHECK_SOURCEMAP,
+      async (_event, file: UnzippedFile) => {
+        const result = await isTraceSourcemapped(file);
+        return result;
       },
     );
   }
@@ -381,7 +392,7 @@ export class IpcManager {
 
         // Read the data
         const data = await fs.promises.readFile(installationFilePath, 'utf8');
-        const id = convertInstallation(data);
+        const id = atob(data);
 
         if (id) {
           shell.openExternal(getSentryHref(id));
@@ -407,6 +418,28 @@ export class IpcManager {
       IpcEvents.CACHETOOL_GET_DATA,
       async (_event, cachePath: string, key: string) => {
         return getData(cachePath, key);
+      },
+    );
+    ipcMain.handle(
+      IpcEvents.CACHETOOL_LIST_KEYS,
+      async (_event, cachePath: string) => {
+        return listKeys(cachePath);
+      },
+    );
+  }
+
+  private setupLogFileContextMenu() {
+    ipcMain.handle(
+      IpcEvents.OPEN_LINE_IN_SOURCE,
+      (
+        _event,
+        line: number,
+        sourceFile: string,
+        options: {
+          defaultEditor: string;
+        },
+      ) => {
+        openLineInSource(line, sourceFile, options);
       },
     );
   }

@@ -2,31 +2,34 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <script src="../catapult/webcomponentsjs/webcomponents.js"></script>
-    <link rel="import" href="../catapult/polymer/polymer.html" />
+    <script src="./catapult/webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="./catapult/polymer/polymer.html" />
 
-    <link type="text/css" rel="stylesheet" href="../catapult/main.css" />
-    <link type="text/css" rel="stylesheet" href="../catapult/status_view.css" />
-    <link type="text/css" rel="stylesheet" href="../catapult/events_view.css" />
+    <link type="text/css" rel="stylesheet" href="./catapult/main.css" />
+    <link type="text/css" rel="stylesheet" href="./catapult/status_view.css" />
+    <link type="text/css" rel="stylesheet" href="./catapult/events_view.css" />
     <link
       type="text/css"
       rel="stylesheet"
-      href="../catapult/timeline_view.css"
+      href="./catapult/timeline_view.css"
     />
-    <link type="text/css" rel="stylesheet" href="../catapult/tab_views.css" />
-
+    <link type="text/css" rel="stylesheet" href="./catapult/tab_views.css" />
+    <style>
+      .bp4-dark {
+        background-color: #2b2b2b;
+        color: #f8f8f2;
+      }
+      td {
+        word-break: break-word;
+      }
+    </style>
     <link
       type="text/css"
       rel="stylesheet"
-      href="../../node_modules/@blueprintjs/core/lib/css/blueprint.css"
-    />
-    <link
-      type="text/css"
-      rel="stylesheet"
-      href="../catapult/sleuth-overrides.css"
+      href="./catapult/sleuth-overrides.css"
     />
 
-    <link rel="import" href="../catapult/netlog_viewer.html" />
+    <link rel="import" href="./catapult/netlog_viewer.html" />
 
     <script>
       function load(payload) {
@@ -35,7 +38,7 @@
           return LogUtil.loadLogFile(payload.content, payload.fileName);
         } catch (error) {
           console.log(`Tried to load, but failed. Deferring.`);
-          setTimeout(() => load(payload), 250);
+          setTimeout(() => load(payload), 1000);
         }
       }
 
@@ -54,15 +57,15 @@
         if (instruction === 'dark-mode') {
           console.log(`Setting dark mode to`, payload);
           if (!!payload) {
-            document.body.classList.add('bp3-dark');
+            document.body.classList.add('bp4-dark');
           } else {
-            document.body.classList.remove('bp3-dark');
+            document.body.classList.remove('bp4-dark');
           }
         }
       });
     </script>
   </head>
-  <body class="bp3-dark">
+  <body class="bp4-dark">
     <netlog-viewer></netlog-viewer>
   </body>
 </html>

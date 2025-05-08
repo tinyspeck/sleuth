@@ -1,6 +1,8 @@
-import { normalize, join, relative } from 'path';
-import { pathToFileURL } from 'url';
+import { normalize, join, relative } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { net, protocol } from 'electron';
+
+import { logFileList } from './filesystem/open-file';
 
 export function registerSchemePrivilege() {
   protocol.registerSchemesAsPrivileged([
@@ -21,7 +23,7 @@ export function registerScheme() {
       return new Response(null, { status: 400 });
     }
 
-    const dist = normalize(`${__dirname}/../..`);
+    const dist = normalize(`${__dirname}/..`);
     const path = join(dist, url.pathname);
 
     const relation = relative(dist, path);
@@ -30,6 +32,20 @@ export function registerScheme() {
       return new Response(null, { status: 400 });
     } else {
       return net.fetch(pathToFileURL(path).href);
+    }
+  });
+
+  /**
+   * Custom protocol scheme for loading log files that were loaded
+   * via the `openFile` function. Block any request that is not explicitly
+   * in that allowlist.
+   */
+  protocol.handle('logfile', (request) => {
+    const url = new URL(request.url);
+    if (logFileList.map((file) => file.fullPath).includes(url.pathname)) {
+      return net.fetch(pathToFileURL(url.pathname).href);
+    } else {
+      return new Response(null, { status: 400 });
     }
   });
 }

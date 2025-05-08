@@ -1,8 +1,8 @@
 import { app, BrowserWindow } from 'electron';
+import startup from 'electron-squirrel-startup';
 
 console.log(`Welcome to Sleuth ${app.getVersion()}`);
 
-import { config } from '../config';
 import { ipcManager } from './ipc';
 import { secureApp } from './security';
 import { createWindow, windows } from './windows';
@@ -11,11 +11,11 @@ import { setupUpdates } from './update';
 import { installProtocol } from './protocol';
 import { registerScheme, registerSchemePrivilege } from './scheme';
 
-if (!config.isDevMode) {
+if (app.isPackaged) {
   process.env.NODE_ENV = 'production';
 }
 
-if (require('electron-squirrel-startup')) {
+if (startup) {
   // No-op, we're done here
 } else {
   const gotTheLock = app.requestSingleInstanceLock();
@@ -56,6 +56,12 @@ if (require('electron-squirrel-startup')) {
     createMenu();
     setupUpdates();
     registerScheme();
+  });
+
+  app.on('web-contents-created', (_event, contents) => {
+    if (!app.isPackaged) {
+      contents.openDevTools();
+    }
   });
 
   // Quit when all windows are closed.
