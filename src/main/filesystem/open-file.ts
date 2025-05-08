@@ -46,7 +46,6 @@ async function openZip(url: string): Promise<UnzippedFiles> {
 
 async function openDirectory(url: string): Promise<UnzippedFiles> {
   d(`Now opening directory ${url}`);
-  this.resetApp();
 
   const dir = await fs.promises.readdir(url);
   const unzippedFiles: UnzippedFiles = [];
