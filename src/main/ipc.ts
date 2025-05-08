@@ -35,6 +35,7 @@ import { getSentryHref } from '../renderer/sentry';
 import { download, getHeaders, getData } from './cachetool';
 import { openLineInSource } from './open-line-in-source';
 import { listKeys } from 'cachetool';
+import { isTraceSourcemapped } from './filesystem/is-trace-sourcemapped';
 
 fs.watch(app.getPath('downloads'), async () => {
   const suggestions = await getItemsInSuggestionFolders();
@@ -363,6 +364,13 @@ export class IpcManager {
       async (_event, file: UnzippedFile) => {
         console.log('Reading file', file.fullPath);
         return fs.promises.readFile(file.fullPath, 'utf8');
+      },
+    );
+    ipcMain.handle(
+      IpcEvents.TRACE_CHECK_SOURCEMAP,
+      async (_event, file: UnzippedFile) => {
+        const result = await isTraceSourcemapped(file);
+        return result;
       },
     );
   }

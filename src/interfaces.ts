@@ -129,13 +129,6 @@ export interface MergedLogFile extends BaseFile {
   type: 'MergedLogFile';
 }
 
-export interface MergedFilesLoadStatus {
-  all: boolean;
-  browser: boolean;
-  webapp: boolean;
-  mobile: boolean;
-}
-
 export type Suggestion = ValidSuggestion | InvalidSuggestion;
 
 export interface ValidSuggestion extends fs.Stats {

@@ -6,7 +6,6 @@ import {
   ProcessedLogFile,
   ProcessedLogFiles,
   LogType,
-  MergedFilesLoadStatus,
 } from '../../../src/interfaces';
 import { fakeUnzippedFile } from '../../__mocks__/unzipped-file';
 
@@ -59,18 +58,10 @@ describe('sidebar', () => {
       processedLogFiles: files,
     };
 
-    const mergedFilesStatus: MergedFilesLoadStatus = {
-      all: true,
-      browser: false,
-      webapp: false,
-      mobile: false,
-    };
-
     const selectedLogFileName = 'trace';
 
     render(
       <Sidebar
-        mergedFilesStatus={mergedFilesStatus}
         selectedLogFileName={selectedLogFileName}
         state={state as SleuthState}
       />,

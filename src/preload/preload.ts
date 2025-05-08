@@ -85,6 +85,8 @@ export const SleuthAPI = {
    */
   readAnyFile: (file: UnzippedFile) =>
     ipcRenderer.invoke(IpcEvents.READ_ANY_FILE, file),
+  isTraceSourcemapped: (file: UnzippedFile) =>
+    ipcRenderer.invoke(IpcEvents.TRACE_CHECK_SOURCEMAP, file),
   setupOpenBookmarks: (
     cb: (event: Electron.IpcRendererEvent, data: string) => void,
   ) => ipcRenderer.on(IpcEvents.OPEN_BOOKMARKS, cb),

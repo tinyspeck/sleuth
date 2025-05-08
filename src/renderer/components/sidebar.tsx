@@ -12,7 +12,6 @@ import { observer } from 'mobx-react';
 
 import {
   LogType,
-  MergedFilesLoadStatus,
   ProcessedLogFile,
   SelectableLogType,
   Tool,
@@ -29,7 +28,6 @@ import { getEnvironmentWarnings } from '../analytics/environment-analytics';
 
 export interface SidebarProps {
   selectedLogFileName: string;
-  mergedFilesStatus: MergedFilesLoadStatus;
   state: SleuthState;
 }
 
@@ -139,10 +137,8 @@ const DEFAULT_NODES: Array<ITreeNode> = [
 
 @observer
 export class Sidebar extends React.Component<SidebarProps, SidebarState> {
-  public static getDerivedStateFromProps(
-    props: SidebarProps,
-    state: SidebarState,
-  ) {
+  public async componentDidMount() {
+    const { props, state } = this;
     const { processedLogFiles } = props.state;
 
     if (!processedLogFiles) return {};
@@ -150,19 +146,29 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     Sidebar.setChildNodes(
       NODE_ID.STATE,
       state,
-      processedLogFiles.state.map((file) =>
-        Sidebar.getStateFileNode(file, props),
+      await Promise.all(
+        processedLogFiles.state.map((file) =>
+          Sidebar.getStateFileNode(file, props),
+        ),
       ),
     );
     Sidebar.setChildNodes(
       NODE_ID.BROWSER,
       state,
-      processedLogFiles.browser.map((file) => Sidebar.getFileNode(file, props)),
+      await Promise.all(
+        processedLogFiles.browser.map((file) =>
+          Sidebar.getFileNode(file, props),
+        ),
+      ),
     );
     Sidebar.setChildNodes(
       NODE_ID.WEBAPP,
       state,
-      processedLogFiles.webapp.map((file) => Sidebar.getFileNode(file, props)),
+      await Promise.all(
+        processedLogFiles.webapp.map((file) =>
+          Sidebar.getFileNode(file, props),
+        ),
+      ),
     );
     Sidebar.setChildNodes(
       NODE_ID.INSTALLER,
@@ -181,24 +187,32 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     Sidebar.setChildNodes(
       NODE_ID.MOBILE,
       state,
-      processedLogFiles.mobile.map((file) => Sidebar.getFileNode(file, props)),
+      await Promise.all(
+        processedLogFiles.mobile.map((file) =>
+          Sidebar.getFileNode(file, props),
+        ),
+      ),
     );
     Sidebar.setChildNodes(
       NODE_ID.TRACE,
       state,
-      processedLogFiles.trace.map((file) =>
-        Sidebar.getStateFileNode(file, props),
+      await Promise.all(
+        processedLogFiles.trace.map((file) =>
+          Sidebar.getStateFileNode(file, props),
+        ),
       ),
     );
     Sidebar.setChildNodes(
       NODE_ID.CHROMIUM,
       state,
-      processedLogFiles.chromium.map((file) =>
-        Sidebar.getFileNode(file, props),
+      await Promise.all(
+        processedLogFiles.chromium.map((file) =>
+          Sidebar.getFileNode(file, props),
+        ),
       ),
     );
 
-    return { nodes: state.nodes };
+    this.setState({ nodes: state.nodes });
   }
 
   /**
@@ -235,13 +249,13 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    * @param {SidebarProps} props
    * @returns {ITreeNode}
    */
-  public static getFileNode(
+  public static async getFileNode(
     file: ProcessedLogFile | UnzippedFile,
     props: SidebarProps,
-  ): ITreeNode {
+  ) {
     return isProcessedLogFile(file)
       ? Sidebar.getLogFileNode(file, props)
-      : Sidebar.getStateFileNode(file, props);
+      : await Sidebar.getStateFileNode(file, props);
   }
 
   /**
@@ -252,10 +266,10 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
    * @param {SidebarProps} props
    * @returns {ITreeNode}
    */
-  public static getStateFileNode(
+  public static async getStateFileNode(
     file: UnzippedFile,
     props: SidebarProps,
-  ): ITreeNode {
+  ) {
     const { selectedLogFileName } = props;
     const isSelected = selectedLogFileName === file.fileName;
 
@@ -288,7 +302,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     }
 
     const options: Partial<ITreeNode> = {
-      secondaryLabel: this.getStateFileHint(file, props),
+      secondaryLabel: await this.getStateFileHint(file, props),
     };
 
     return Sidebar.getNode(label, { file }, isSelected, options);
@@ -368,15 +382,11 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
 
   /**
    * Get potential warnings for state files
-   *
-   * @static
-   * @param {ProcessedLogFile} file
-   * @returns {(JSX.Element | null)}
    */
-  public static getStateFileHint(
+  public static async getStateFileHint(
     file: UnzippedFile,
     props: SidebarProps,
-  ): JSX.Element | null {
+  ) {
     if (file.fileName.endsWith('root-state.json')) {
       const warnings = getRootStateWarnings(
         props.state.stateFiles[file.fileName].data,
@@ -397,9 +407,7 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     }
 
     if (file.fileName.endsWith('.trace')) {
-      const warnings = getTraceWarnings(
-        props.state.stateFiles[file.fileName]?.data,
-      );
+      const warnings = await getTraceWarnings(file);
       if (warnings && warnings.length > 0) {
         const content = warnings.join('\n');
         return (
