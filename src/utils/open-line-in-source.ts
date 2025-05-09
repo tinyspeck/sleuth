@@ -1,11 +1,12 @@
 import { shell } from 'electron';
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 import debug from 'debug';
+import { Editor } from '../renderer/components/preferences-editor';
 
 const d = debug('sleuth:open-line-in-source');
 
 interface OpenSourceOptions {
-  defaultEditor: string;
+  defaultEditor: Editor;
 }
 
 export function openLineInSource(
@@ -14,14 +15,17 @@ export function openLineInSource(
   options: OpenSourceOptions,
 ) {
   if (options.defaultEditor) {
-    const cmd = options.defaultEditor
-      .replace('{filepath}', `"${sourceFile}"`)
-      .replace('{line}', line.toString(10));
+    const { cmd, args } = options.defaultEditor;
+    const mappedArgs = args.map((arg) =>
+      arg
+        .replace('{filepath}', `${sourceFile}`)
+        .replace('{line}', line.toString(10)),
+    );
 
-    d(`Executing ${cmd}`);
-    exec(cmd, (error: Error) => {
-      if (!error) return;
-      d(`Tried to open source file, but failed`, error);
+    d(`Executing ${cmd} with args ${mappedArgs}`);
+    const spawned = spawn(cmd, mappedArgs);
+    spawned.on('error', (err) => {
+      d(`Tried to open source file, but failed`, err);
       shell.showItemInFolder(sourceFile);
     });
   } else {
