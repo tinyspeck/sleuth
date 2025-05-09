@@ -27,14 +27,8 @@ import {
   renderDateTimeItem,
   DATE_TIME_FORMATS,
 } from './preferences-datetime';
-import {
-  renderEditorItem,
-  Editor,
-  EDITORS,
-  nameForCmd,
-} from './preferences-editor';
+import { renderEditorItem, Editor, EDITORS } from './preferences-editor';
 import { SORT_DIRECTION } from './log-table-constants';
-import { IpcEvents } from '../../ipc-events';
 
 const FontSelect = Select.ofType<string>();
 const DateTimeSelect = Select.ofType<string>();
@@ -210,13 +204,8 @@ export class Preferences extends React.Component<
                 onItemSelect={this.onEditorSelect}
                 popoverProps={{ minimal: true }}
               >
-                <Button text={nameForCmd(defaultEditor)} rightIcon="code" />
+                <Button text={defaultEditor.name} rightIcon="code" />
               </EditorSelect>
-              <InputGroup
-                placeholder="Custom shell command"
-                value={defaultEditor}
-                onChange={this.onEditorCmdChange}
-              />
             </ControlGroup>
           </FormGroup>
           <Divider />
@@ -243,14 +232,7 @@ export class Preferences extends React.Component<
   }
 
   private onEditorSelect(editor: Editor) {
-    this.props.state.defaultEditor = editor.cmd;
-  }
-
-  private onEditorCmdChange(event: React.FormEvent<HTMLInputElement>) {
-    const target = event.target as HTMLInputElement;
-    if (target?.value) {
-      this.props.state.defaultEditor = target.value;
-    }
+    this.props.state.defaultEditor = editor;
   }
 
   private onFontSelect(font: string) {
