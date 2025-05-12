@@ -38,6 +38,7 @@ import { setupTouchBarAutoruns } from './touchbar';
 import { TraceThreadDescription } from '../processor/trace';
 import { ColorTheme } from '../components/preferences';
 import { StateTableState } from '../components/state-table';
+import { Editor, EDITORS } from '../components/preferences-editor';
 
 const d = debug('sleuth:state');
 
@@ -121,9 +122,9 @@ export class SleuthState {
     fallback:
       window.Sleuth.platform === 'darwin' ? 'San Francisco' : 'Segoe UI',
   });
-  @observable public defaultEditor: string = this.retrieve<string>(
+  @observable public defaultEditor: Editor = this.retrieve<Editor>(
     'defaultEditor',
-    { parse: false, fallback: 'code --goto {filepath}:{line}' },
+    { parse: true, fallback: EDITORS[0] },
   );
   @observable public defaultSort: SORT_DIRECTION =
     this.retrieve<SORT_DIRECTION>('defaultSort', {
@@ -430,7 +431,12 @@ export class SleuthState {
     const localStorageValue: string | null = localStorage.getItem(key);
 
     if (options?.parse) {
-      const parsed = JSON.parse(localStorageValue || 'null') as T | null;
+      let parsed: T | null;
+      try {
+        parsed = JSON.parse(localStorageValue || 'null') as T | null;
+      } catch {
+        return options.fallback ?? null;
+      }
 
       if (parsed === null && options.fallback !== undefined) {
         return options.fallback;

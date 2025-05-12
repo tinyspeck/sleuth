@@ -150,6 +150,7 @@ export class App extends React.Component<object, Partial<AppState>> {
   }
 
   private async openFile(url: string) {
+    this.resetApp();
     const files = await window.Sleuth.openFile(url);
     this.sleuthState.setSource(url);
     this.setState({ unzippedFiles: files });
