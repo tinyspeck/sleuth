@@ -22,6 +22,7 @@ import {
   contextBridge,
   app,
 } from 'electron';
+import { Editor } from '../renderer/components/preferences-editor';
 
 const packageJSON = JSON.parse(
   fs
@@ -151,7 +152,7 @@ export const SleuthAPI = {
     line: number,
     sourceFile: string,
     options: {
-      defaultEditor: string;
+      defaultEditor: Editor;
     },
   ) =>
     ipcRenderer.invoke(

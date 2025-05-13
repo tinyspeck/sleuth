@@ -36,6 +36,7 @@ import { download, getHeaders, getData } from './cachetool';
 import { openLineInSource } from './open-line-in-source';
 import { listKeys } from 'cachetool';
 import { isTraceSourcemapped } from './filesystem/is-trace-sourcemapped';
+import { Editor } from '../renderer/components/preferences-editor';
 
 fs.watch(app.getPath('downloads'), async () => {
   const suggestions = await getItemsInSuggestionFolders();
@@ -436,7 +437,7 @@ export class IpcManager {
         line: number,
         sourceFile: string,
         options: {
-          defaultEditor: string;
+          defaultEditor: Editor;
         },
       ) => {
         openLineInSource(line, sourceFile, options);
