@@ -33,7 +33,7 @@ function getBucket(range: number, momentValue: number): number {
  * @param {SleuthState} state
  * @returns {TimeBucketedLogMetrics} timeBucketedLogMetrics
  */
-export function getTimeBuckedLogMetrics(
+export function getTimeBucketedLogMetrics(
   selectedLogFile: SelectableLogFile,
   range: number,
 ): TimeBucketedLogMetrics {

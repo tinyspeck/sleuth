@@ -71,7 +71,6 @@ export class App extends React.Component<object, Partial<AppState>> {
       Darwin: window.Sleuth.platform === 'darwin',
     });
     const titleBar =
-      // eslint-disable-next-line no-restricted-globals
       window.Sleuth.platform === 'darwin' ? (
         <MacTitlebar state={this.sleuthState} />
       ) : (
@@ -97,7 +96,7 @@ export class App extends React.Component<object, Partial<AppState>> {
           token: {
             colorPrimary: '#137cbd',
             colorBgBase: this.sleuthState.prefersDarkColors
-              ? '#182026'
+              ? '#2f343c' // matches the .bp4-dark background colour
               : '#ffffff',
           },
         }}
@@ -129,6 +128,7 @@ export class App extends React.Component<object, Partial<AppState>> {
       if (event.dataTransfer && event.dataTransfer.files.length > 0) {
         let url = window.Sleuth.getPathForFile(event.dataTransfer.files[0]);
         url = url.replace('file:///', '/');
+        this.resetApp();
         this.openFile(url);
       }
 

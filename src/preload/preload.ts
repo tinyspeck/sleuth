@@ -1,8 +1,6 @@
 import path from 'node:path';
 
 import fs from 'node:fs';
-import { app } from 'electron/main';
-import { ipcRenderer, webUtils } from 'electron/renderer';
 import { IpcEvents } from '../ipc-events';
 import { ICON_NAMES } from '../shared-constants';
 import {
@@ -16,14 +14,19 @@ import {
 } from '../interfaces';
 import { ReadFileResult } from '../main/filesystem/read-file';
 import { ColorTheme } from '../renderer/components/preferences';
-import { clipboard, shell } from 'electron/common';
+import {
+  clipboard,
+  shell,
+  ipcRenderer,
+  webUtils,
+  contextBridge,
+  app,
+} from 'electron';
+import { Editor } from '../renderer/components/preferences-editor';
 
 const packageJSON = JSON.parse(
   fs
-    .readFileSync(
-      path.join(__dirname, '..', '..', '..', 'package.json'),
-      'utf8',
-    )
+    .readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8')
     .trim(),
 );
 
@@ -37,7 +40,8 @@ export const SleuthAPI = {
   platform: process.platform,
   versions: process.versions,
   sleuthVersion: packageJSON.version,
-  getPath: (path: Parameters<typeof app.getPath>[0]) => app.getPath(path),
+  getPath: (path: Parameters<typeof app.getPath>[0]) =>
+    ipcRenderer.invoke(IpcEvents.GET_PATH, path),
   getUserAgent: (): Promise<string> =>
     ipcRenderer.invoke(IpcEvents.GET_USER_AGENT),
   readLogFile: (
@@ -77,8 +81,13 @@ export const SleuthAPI = {
     ipcRenderer.on(IpcEvents.TOGGLE_SIDEBAR, cb),
   setColorTheme: (colorTheme: ColorTheme) =>
     ipcRenderer.invoke(IpcEvents.SET_COLOR_THEME, colorTheme),
+  /**
+   * @deprecated
+   */
   readAnyFile: (file: UnzippedFile) =>
     ipcRenderer.invoke(IpcEvents.READ_ANY_FILE, file),
+  isTraceSourcemapped: (file: UnzippedFile) =>
+    ipcRenderer.invoke(IpcEvents.TRACE_CHECK_SOURCEMAP, file),
   setupOpenBookmarks: (
     cb: (event: Electron.IpcRendererEvent, data: string) => void,
   ) => ipcRenderer.on(IpcEvents.OPEN_BOOKMARKS, cb),
@@ -129,6 +138,8 @@ export const SleuthAPI = {
       cachePath,
       selectedCacheKey,
     ),
+  cachetoolListKeys: (cachePath: string) =>
+    ipcRenderer.invoke(IpcEvents.CACHETOOL_LIST_KEYS, cachePath),
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
   openFile: (url: string) => ipcRenderer.invoke(IpcEvents.OPEN_FILE, url),
   cachetoolDownload: (dataPath: string) =>
@@ -137,6 +148,19 @@ export const SleuthAPI = {
   clipboard: {
     writeText: (text: string) => clipboard.writeText(text),
   },
+  openLineInSource: (
+    line: number,
+    sourceFile: string,
+    options: {
+      defaultEditor: Editor;
+    },
+  ) =>
+    ipcRenderer.invoke(
+      IpcEvents.OPEN_LINE_IN_SOURCE,
+      line,
+      sourceFile,
+      options,
+    ),
 };
 
-(window as any).Sleuth = SleuthAPI;
+contextBridge.exposeInMainWorld('Sleuth', SleuthAPI);

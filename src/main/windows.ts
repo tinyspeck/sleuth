@@ -1,11 +1,10 @@
-import { BrowserWindow } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from 'electron-devtools-installer';
 import windowStateKeeper from 'electron-window-state';
 
 import { settingsFileManager } from './settings';
-import { config } from '../config';
 import { getIconPath } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { TouchBarManager } from './touch-bar-manager';
@@ -75,16 +74,17 @@ export async function createWindow(): Promise<BrowserWindow> {
     y,
     width: mainWindowState.width,
     height: mainWindowState.height,
-    show: !!config.isDevMode,
+    show: !app.isPackaged,
     icon: process.platform !== 'darwin' ? icon : undefined,
     minHeight: 500,
     minWidth: 1170,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : undefined,
     webPreferences: {
       webviewTag: false,
-      nodeIntegration: true,
-      contextIsolation: false,
-      preload: path.join(__dirname, '..', 'preload', 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: false,
+      preload: path.join(__dirname, 'preload.js'),
     },
   };
   console.log(`Windows: Creating window with options`, options);
@@ -102,16 +102,21 @@ export async function createWindow(): Promise<BrowserWindow> {
   }
 
   // and load the index.html of the app.
-  await mainWindow.loadFile('./dist/static/index.html');
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  } else {
+    mainWindow.loadFile(
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+    );
+  }
 
   // Open the DevTools.
-  if (config.isDevMode) {
+  if (!app.isPackaged) {
     await installExtension(REACT_DEVELOPER_TOOLS, {
       loadExtensionOptions: {
         allowFileAccess: true,
       },
     });
-    mainWindow.webContents.openDevTools();
   }
 
   windows.push(mainWindow);

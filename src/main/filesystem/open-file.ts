@@ -9,6 +9,8 @@ import { shouldIgnoreFile } from '../../utils/should-ignore-file';
 
 const d = debug('sleuth:filesystem');
 
+export const logFileList: UnzippedFiles = [];
+
 /**
  * Takes a rando string, quickly checks if it's a zip or not,
  * and either tries to open it as a file or as a folder. If
@@ -33,8 +35,11 @@ export async function openFile(url: string): Promise<UnzippedFiles | void> {
 
   d(`Adding ${url} to recent documents`);
   app.addRecentDocument(url);
+  const files = await openFunction(url);
+  logFileList.length = 0;
+  logFileList.push(...files);
 
-  return await openFunction(url);
+  return files;
 }
 
 async function openZip(url: string): Promise<UnzippedFiles> {

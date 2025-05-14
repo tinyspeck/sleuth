@@ -27,7 +27,10 @@ import {
   Suggestion,
   SelectableLogType,
 } from '../../interfaces';
-import { getInitialTimeViewRange, getTimeBuckedLogMetrics } from './time-view';
+import {
+  getInitialTimeViewRange,
+  getTimeBucketedLogMetrics,
+} from './time-view';
 import { rehydrateBookmarks, importBookmarks } from './bookmarks';
 import { copy } from './copy';
 import { ICON_NAMES } from '../../shared-constants';
@@ -172,9 +175,9 @@ export class SleuthState {
       // handles BlueprintJS color theming
       // antd theming is handled by querying `this.prefersDarkColors` within app.tsx
       if (this.prefersDarkColors) {
-        document.body.classList.add('bp3-dark');
+        document.body.classList.add('bp4-dark');
       } else {
-        document.body.classList.remove('bp3-dark');
+        document.body.classList.remove('bp4-dark');
       }
     });
     autorun(() => {
@@ -195,8 +198,7 @@ export class SleuthState {
         this.isLoadingCacheKeys = true;
         if (!this.cachePath) return;
 
-        const { listKeys } = await import('cachetool');
-        const keys = await listKeys({ cachePath: this.cachePath });
+        const keys = await window.Sleuth.cachetoolListKeys(this.cachePath);
 
         // Last entry is sometimes empty
         if (keys.length > 0 && !keys[keys.length - 1]) {
@@ -257,7 +259,7 @@ export class SleuthState {
   public get timeBucketedLogMetrics(): TimeBucketedLogMetrics {
     const range = this.customTimeViewRange || this.initialTimeViewRange;
     return this.selectedLogFile
-      ? getTimeBuckedLogMetrics(this.selectedLogFile, range)
+      ? getTimeBucketedLogMetrics(this.selectedLogFile, range)
       : {};
   }
 

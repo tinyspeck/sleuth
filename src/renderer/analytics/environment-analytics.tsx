@@ -1,7 +1,6 @@
 import React from 'react';
 import { getOSInfo, getVersionInfo } from '../../utils/settings-data-helper';
 import { getChannelInfo } from './settings-analytics';
-import { UnzippedFile } from '../../interfaces';
 
 export function getEnvInfo(data: any): Array<JSX.Element> {
   const result: Array<JSX.Element> = [];

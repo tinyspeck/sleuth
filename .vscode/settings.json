@@ -4,8 +4,7 @@
     "**/.DS_Store": true,
     "**/.git": true,
     "**/.hg": true,
-    "**/.svn": true,
-    "**/catapult": true
+    "**/.svn": true
   },
   "typescript.tsdk": "node_modules/typescript/lib"
 }

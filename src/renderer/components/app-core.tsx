@@ -6,7 +6,6 @@ import { getFirstLogFile } from '../../utils/get-first-logfile';
 import { SleuthState } from '../state/sleuth';
 import {
   LevelFilter,
-  MergedFilesLoadStatus,
   MergedLogFiles,
   ProcessedLogFiles,
   LogType,
@@ -24,7 +23,6 @@ import { Spotlight } from './spotlight';
 import { rehydrateBookmarks } from '../state/bookmarks';
 import { getTypesForFiles } from '../../utils/get-file-types';
 import { mergeLogFiles, processLogFiles } from '../processor';
-import { IpcEvents } from '../../ipc-events';
 
 export interface CoreAppProps {
   state: SleuthState;
@@ -210,50 +208,16 @@ export class CoreApplication extends React.Component<
   }
 
   /**
-   * Real quick: Are we loaded yet?
-   *
-   * @returns {MergedFilesLoadStatus}
-   */
-  private getMergedFilesStatus(): MergedFilesLoadStatus {
-    const { mergedLogFiles } = this.props.state;
-
-    return {
-      all: !!(
-        mergedLogFiles &&
-        mergedLogFiles.all &&
-        mergedLogFiles.all.logEntries
-      ),
-      browser: !!(
-        mergedLogFiles &&
-        mergedLogFiles.browser &&
-        mergedLogFiles.browser.logEntries
-      ),
-      webapp: !!(
-        mergedLogFiles &&
-        mergedLogFiles.webapp &&
-        mergedLogFiles.webapp.logEntries
-      ),
-      mobile: !!(
-        mergedLogFiles &&
-        mergedLogFiles.mobile &&
-        mergedLogFiles.mobile.logEntries
-      ),
-    };
-  }
-
-  /**
    * Renders both the sidebar as well as the Spotlight-like omnibar.
    *
    * @returns {JSX.Element}
    */
   private renderSidebarSpotlight(): JSX.Element {
     const { selectedFileName } = this.props.state;
-    const mergedFilesStatus = this.getMergedFilesStatus();
 
     return (
       <>
         <Sidebar
-          mergedFilesStatus={mergedFilesStatus}
           selectedLogFileName={selectedFileName}
           state={this.props.state}
         />

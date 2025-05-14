@@ -7,11 +7,12 @@ import {
   Popover,
   Menu,
   Position,
+  MenuItem,
+  MenuDivider,
 } from '@blueprintjs/core';
 import dayjs, { Dayjs } from 'dayjs';
 import { Button, DatePicker, Input, InputRef, Space } from 'antd';
 import { SleuthState } from '../state/sleuth';
-import { IpcEvents } from '../../ipc-events';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
@@ -122,7 +123,7 @@ export class Filter extends React.Component<FilterProps, object> {
 
     const menu = (
       <Menu>
-        <Menu.Item
+        <MenuItem
           active={false}
           onClick={() => {
             this.props.state.setFilterLogLevels({
@@ -135,8 +136,8 @@ export class Filter extends React.Component<FilterProps, object> {
           shouldDismissPopover={true}
           text="Default levels"
         />
-        <Menu.Divider />
-        <Menu.Item
+        <MenuDivider />
+        <MenuItem
           active={debug}
           onClick={() => {
             this.props.state.setFilterLogLevels({ debug: !debug });
@@ -145,7 +146,7 @@ export class Filter extends React.Component<FilterProps, object> {
           shouldDismissPopover={false}
           text="Debug"
         />
-        <Menu.Item
+        <MenuItem
           active={info}
           onClick={() => {
             this.props.state.setFilterLogLevels({ info: !info });
@@ -154,7 +155,7 @@ export class Filter extends React.Component<FilterProps, object> {
           shouldDismissPopover={false}
           text="Info"
         />
-        <Menu.Item
+        <MenuItem
           active={warn}
           onClick={() => {
             this.props.state.setFilterLogLevels({ warn: !warn });
@@ -163,7 +164,7 @@ export class Filter extends React.Component<FilterProps, object> {
           shouldDismissPopover={false}
           text="Warning"
         />
-        <Menu.Item
+        <MenuItem
           active={error}
           onClick={() => {
             this.props.state.setFilterLogLevels({ error: !error });

@@ -1,7 +1,7 @@
 export function getTheme(isDark = false) {
   if (isDark) {
     return {
-      base00: '#30404d',
+      base00: '#2f343C',
       base01: '#34495E',
       base02: '#7F8C8D',
       base03: '#95A5A6',

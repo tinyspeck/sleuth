@@ -1,4 +1,4 @@
-import { RootState, UnzippedFile } from '../../interfaces';
+import { RootState } from '../../interfaces';
 
 export function getRootStateWarnings(data: any): Array<string> {
   const result: Array<string> = [];
