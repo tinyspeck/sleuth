@@ -19,6 +19,6 @@
     "typeRoots": ["./node_modules/@types"],
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "./jest-setup.ts"],
+  "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules"]
 }

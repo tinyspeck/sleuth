@@ -1,4 +1,5 @@
 import React from 'react';
+import { describe, it, vi, expect } from 'vitest';
 import { Sidebar } from '../../../src/renderer/components/sidebar';
 import { render, screen } from '@testing-library/react';
 import { SleuthState } from '../../../src/renderer/state/sleuth';
@@ -9,7 +10,7 @@ import {
 } from '../../../src/interfaces';
 import { fakeUnzippedFile } from '../../__mocks__/unzipped-file';
 
-jest.mock('electron');
+vi.mock('electron');
 
 const fakeFile1: ProcessedLogFile = {
   repeatedCounts: {},
@@ -80,9 +81,9 @@ describe('sidebar', () => {
     expect(all).toHaveLength(1);
 
     const mobile = screen.queryByText('Mobile');
-    expect(mobile).not.toBeInTheDocument;
+    expect(mobile).not.toBeInTheDocument();
 
     const installer = screen.queryByText('Installer');
-    expect(installer).not.toBeInTheDocument;
+    expect(installer).not.toBeInTheDocument();
   });
 });
