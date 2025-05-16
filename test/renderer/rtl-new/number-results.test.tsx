@@ -1,8 +1,9 @@
 import React from 'react';
 import NumberResults from '../../../src/renderer/components/number-results';
 import { render, screen } from '@testing-library/react';
+import { vi, describe, it, expect } from 'vitest';
 
-jest.mock('electron');
+vi.mock('electron');
 
 describe('results', () => {
   it('shows the results number in correct format', () => {

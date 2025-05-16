@@ -1,7 +1,4 @@
-/*
- * @jest-environment node
- */
-
+import { expect, it, describe } from 'vitest';
 import { Unzipper } from '../../src/main/unzip';
 import path from 'path';
 

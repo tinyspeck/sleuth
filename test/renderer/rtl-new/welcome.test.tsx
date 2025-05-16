@@ -9,10 +9,11 @@ import {
 } from '@testing-library/react';
 import { SleuthState } from '../../../src/renderer/state/sleuth';
 import { ipcRenderer } from 'electron';
+import { vi, describe, beforeAll, beforeEach, it, expect } from 'vitest';
 
-jest.mock('electron');
+vi.mock('electron');
 
-const mockDeleteSuggestion = jest.fn();
+const mockDeleteSuggestion = vi.fn();
 
 describe('Welcome', () => {
   beforeAll(() => {
@@ -23,16 +24,16 @@ describe('Welcome', () => {
       }) as any;
     (window as any).Sleuth = {
       platform: 'darwin',
-      setupSuggestionsUpdated: () => jest.fn(),
+      setupSuggestionsUpdated: () => vi.fn(),
       deleteSuggestion: mockDeleteSuggestion,
-      deleteSuggestions: jest.fn(),
-      getPath: jest.fn(),
+      deleteSuggestions: vi.fn(),
+      getPath: vi.fn(),
     };
   });
 
   beforeEach(() => {
     // fake getPath("downloads") for the Watcher
-    jest.mocked(ipcRenderer.invoke).mockResolvedValue(process.cwd());
+    vi.mocked(ipcRenderer.invoke).mockResolvedValue(process.cwd());
   });
 
   it('renders the Sleuth title', () => {
@@ -75,13 +76,13 @@ describe('Welcome', () => {
             age: '7 days',
           },
         ],
-        getSuggestions: jest.fn(),
+        getSuggestions: vi.fn(),
       };
       render(<Welcome state={state as unknown as SleuthState} />);
       const list = screen.getAllByRole('list')[0];
       const suggestions = within(list).getAllByRole('listitem');
       const btn = within(suggestions[0]).getByLabelText('delete');
-      jest.mocked(ipcRenderer.invoke).mockResolvedValue({
+      vi.mocked(ipcRenderer.invoke).mockResolvedValue({
         response: true,
       });
       fireEvent.click(btn);

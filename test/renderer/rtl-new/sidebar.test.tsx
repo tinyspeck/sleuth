@@ -8,7 +8,7 @@ import {
   ProcessedLogFiles,
   LogType,
 } from '../../../src/interfaces';
-import { fakeUnzippedFile } from '../../__mocks__/unzipped-file';
+import { fakeUnzippedFile } from '../../../__mocks__/unzipped-file';
 
 vi.mock('electron');
 
