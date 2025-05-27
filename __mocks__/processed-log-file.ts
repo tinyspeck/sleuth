@@ -1,4 +1,4 @@
-import { ProcessedLogFile, LogType, LogLevel } from '../../src/interfaces';
+import { ProcessedLogFile, LogType, LogLevel } from '../src/interfaces';
 
 export const mockBrowserFile1: ProcessedLogFile = {
   id: '123',

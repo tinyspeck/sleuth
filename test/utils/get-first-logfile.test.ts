@@ -1,4 +1,4 @@
-import { fakeUnzippedFile } from '../__mocks__/unzipped-file';
+import { fakeUnzippedFile } from '../../__mocks__/unzipped-file';
 import {
   ProcessedLogFile,
   ProcessedLogFiles,

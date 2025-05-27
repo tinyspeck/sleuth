@@ -1,10 +1,12 @@
+import { describe, it, expect } from 'vitest';
+
 import { mergeLogFiles } from '../../src/renderer/processor';
 
 import { LogType } from '../../src/interfaces';
 import {
   mockBrowserFile1,
   mockBrowserFile2,
-} from '../__mocks__/processed-log-file';
+} from '../../__mocks__/processed-log-file';
 
 describe('mergeLogFiles', () => {
   it('should merge two logfiles together', () => {

@@ -54,31 +54,26 @@ const files: ProcessedLogFiles = {
 };
 
 describe('sidebar', () => {
-  it('hides the sidebar log types that dont have files in them', () => {
+  it('hides the sidebar log types that dont have files in them', async () => {
     const state: Partial<SleuthState> = {
       processedLogFiles: files,
     };
 
-    const selectedLogFileName = 'trace';
-
     render(
-      <Sidebar
-        selectedLogFileName={selectedLogFileName}
-        state={state as SleuthState}
-      />,
+      <Sidebar selectedLogFileName={'test'} state={state as SleuthState} />,
     );
 
-    const chromium = screen.getAllByText('Chromium');
-    expect(chromium).toHaveLength(1);
+    const chromium = await screen.findByText('Chromium');
+    expect(chromium).toBeInTheDocument();
 
-    const webapp = screen.getAllByText('WebApp');
-    expect(webapp).toHaveLength(1);
+    const webapp = await screen.findByText('WebApp');
+    expect(webapp).toBeInTheDocument();
 
-    const browser = screen.getAllByText('Browser Process');
-    expect(browser).toHaveLength(1);
+    const browser = await screen.findByText('Browser Process');
+    expect(browser).toBeInTheDocument();
 
-    const all = screen.getAllByText('All Desktop Logs');
-    expect(all).toHaveLength(1);
+    const all = await screen.findByText('All Desktop Logs');
+    expect(all).toBeInTheDocument();
 
     const mobile = screen.queryByText('Mobile');
     expect(mobile).not.toBeInTheDocument();
