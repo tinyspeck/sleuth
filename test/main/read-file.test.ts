@@ -1,7 +1,6 @@
-import { LogType } from '../../src/interfaces';
-
-import path from 'path';
-import { UnzippedFile } from '../../src/interfaces';
+import { describe, it, expect } from 'vitest';
+import path from 'node:path';
+import { UnzippedFile, LogType } from '../../src/interfaces';
 import {
   matchLineElectron,
   matchLineWebApp,

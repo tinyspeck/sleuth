@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest';
+
 import { didFilterChange } from '../../src/utils/did-filter-change';
 
 describe('didFilterChange', () => {

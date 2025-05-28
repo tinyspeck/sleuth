@@ -178,17 +178,18 @@ export class Sidebar extends React.Component<SidebarProps, SidebarState> {
     ];
 
     const visibleNodes = DEFAULT_NODES.filter((node) => {
+      // Show "All Desktop Logs" if there are any browser or webapp logs
       if (node.id === NODE_ID.ALL) {
         const main = DEFAULT_NODES.find((n) => n.id === NODE_ID.BROWSER);
         const renderer = DEFAULT_NODES.find((n) => n.id === NODE_ID.WEBAPP);
 
         return (
-          (Array.isArray(main?.childNodes) && main.childNodes.length > 0) ||
-          (Array.isArray(renderer?.childNodes) &&
-            renderer.childNodes.length > 0)
+          (main?.childNodes?.length && main?.childNodes?.length > 0) ||
+          (renderer?.childNodes?.length && renderer?.childNodes?.length > 0)
         );
+      } else {
+        return node.childNodes?.length && node.childNodes?.length > 0;
       }
-      return Array.isArray(node.childNodes) && node.childNodes.length > 0;
     });
 
     this.setState({ nodes: visibleNodes });
