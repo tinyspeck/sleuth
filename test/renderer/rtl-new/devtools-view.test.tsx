@@ -1,8 +1,9 @@
 import React from 'react';
 import { DevtoolsView } from '../../../src/renderer/components/devtools-view';
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 
-jest.mock('../../../src/renderer/processor/trace');
+vi.mock('../../../src/renderer/processor/trace');
 
 describe('DevtoolsView', () => {
   it('renders a table containing a list of trace threads', () => {

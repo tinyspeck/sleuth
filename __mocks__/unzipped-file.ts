@@ -1,4 +1,4 @@
-import { UnzippedFile } from '../../src/interfaces';
+import { UnzippedFile } from '../src/interfaces';
 
 export const fakeUnzippedFile: UnzippedFile = {
   type: 'UnzippedFile',

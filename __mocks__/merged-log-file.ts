@@ -1,4 +1,4 @@
-import { MergedLogFile, LogType } from '../../src/interfaces';
+import { MergedLogFile, LogType } from '../src/interfaces';
 
 export const fakeMergedFile: MergedLogFile = {
   id: '123',

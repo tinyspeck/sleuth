@@ -1,3 +1,5 @@
+import { beforeAll, describe, it, expect } from 'vitest';
+
 import { getSleuth } from '../../src/renderer/sleuth';
 
 const sleuths = [

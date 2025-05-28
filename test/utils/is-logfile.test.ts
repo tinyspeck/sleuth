@@ -1,6 +1,8 @@
-import { mockBrowserFile1 } from '../__mocks__/processed-log-file';
-import { fakeUnzippedFile } from '../__mocks__/unzipped-file';
-import { fakeMergedFile } from '../__mocks__/merged-log-file';
+import { describe, it, expect } from 'vitest';
+
+import { mockBrowserFile1 } from '../../__mocks__/processed-log-file';
+import { fakeUnzippedFile } from '../../__mocks__/unzipped-file';
+import { fakeMergedFile } from '../../__mocks__/merged-log-file';
 import {
   isLogFile,
   isMergedLogFile,

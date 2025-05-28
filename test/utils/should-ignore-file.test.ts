@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest';
+
 import { shouldIgnoreFile } from '../../src/utils/should-ignore-file';
 
 describe('shouldIgnoreFile', () => {

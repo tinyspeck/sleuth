@@ -1,4 +1,6 @@
-import { fakeUnzippedFile } from '../__mocks__/unzipped-file';
+import { afterEach, describe, it, expect } from 'vitest';
+
+import { fakeUnzippedFile } from '../../__mocks__/unzipped-file';
 import {
   ProcessedLogFile,
   ProcessedLogFiles,
