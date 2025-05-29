@@ -1,26 +1,41 @@
 @import '../../../node_modules/@blueprintjs/core/lib/less/variables.less';
 @import './colors.less';
 
-.Sidebar {
-  background: @light-gray1;
-  overflow: auto;
-  flex-shrink: 0;
+.SidebarWrapper {
+  max-height: calc(100vh - var(--sleuth-height-1) - var(--sleuth-height-2));
+}
+
+.SidebarRail {
+  --sidebar-gap: 6px;
+  gap: var(--sidebar-gap);
+  padding: var(--sidebar-gap);
+  width: calc(var(--ant-control-height) + 2 * var(--sidebar-gap));
+}
+
+.SidebarTreeToggle {
+  width: 100%;
+  border-radius: 0;
+  border-top-right-radius: var(--ant-border-radius);
+  margin-top: -4px;
+}
+
+.SidebarFileTree {
+  overflow-x: hidden;
   width: 0;
+  opacity: 0;
+  transition: 0.2s ease-in all;
+  height: 100%;
+  background: var(--ant-color-bg-layout);
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border: 1px solid #00000000;
+  padding: var(--ant-border-radius) 0;
 
   &.Open {
     width: 300px;
+    border: 1px solid var(--ant-color-border);
+    padding: var(--ant-border-radius);
+    opacity: 1;
   }
-
-  .StillLoading {
-    opacity: 0.5;
-  }
-}
-
-.Darwin .Sidebar {
-  padding-top: 25px;
-}
-
-.bp4-dark .Sidebar {
-  background-color: @dark-gray2;
-  box-shadow: inset -9px 0px 15px 9px #00000020;
 }

@@ -14,6 +14,8 @@ import { NetLogView } from './net-log-view';
 import { ToolView } from './tool-view';
 import { LogTimeView } from './log-time-view';
 import { DevtoolsView } from './devtools-view';
+import { Navbar } from '@blueprintjs/core';
+import { Filter } from './app-core-header-filter';
 
 export interface LogContentProps {
   state: SleuthState;
@@ -70,6 +72,9 @@ export class LogContent extends React.Component<
     if (isLog) {
       return (
         <div className="LogContent" style={{ fontFamily: getFontForCSS(font) }}>
+          <Navbar className="AppHeader">
+            <Filter state={this.props.state} />
+          </Navbar>
           <div
             id="LogTableContainer"
             style={{ height: this.state.tableHeight }}
