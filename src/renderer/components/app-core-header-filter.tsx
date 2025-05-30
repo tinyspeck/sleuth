@@ -232,7 +232,7 @@ export class Filter extends React.Component<FilterProps, object> {
                 max: searchList.length,
               }}
             />
-            <Button.Group>
+            <Space.Compact>
               <Button
                 icon={<ArrowUpOutlined />}
                 onClick={() => this.handleSearchIndexChange(-1)}
@@ -243,7 +243,7 @@ export class Filter extends React.Component<FilterProps, object> {
                 onClick={() => this.handleSearchIndexChange(1)}
                 disabled={this.props.state.searchList.length === 0}
               />
-            </Button.Group>
+            </Space.Compact>
           </Space.Compact>
         </NavbarGroup>
       </>
