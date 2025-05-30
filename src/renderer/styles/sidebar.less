@@ -6,10 +6,9 @@
 }
 
 .SidebarRail {
-  --sidebar-gap: 6px;
-  gap: var(--sidebar-gap);
-  padding: var(--sidebar-gap);
-  width: calc(var(--ant-control-height) + 2 * var(--sidebar-gap));
+  gap: var(--sleuth-sidebar-gap);
+  padding: var(--sleuth-sidebar-gap);
+  width: calc(var(--ant-control-height) + 2 * var(--sleuth-sidebar-gap));
 }
 
 .SidebarTreeToggle {
@@ -33,7 +32,7 @@
   padding: var(--ant-border-radius) 0;
 
   &.Open {
-    width: 300px;
+    width: var(--sleuth-sidebar-open-width);
     border: 1px solid var(--ant-color-border);
     padding: var(--ant-border-radius);
     opacity: 1;

@@ -125,7 +125,7 @@ describe('Sidebar', () => {
       render(<Sidebar state={state as SleuthState} />);
       const fileTreeInner = screen.queryByRole('tree');
       expect(fileTreeInner).toBeInTheDocument();
-      const fileTreeOuter = fileTreeInner!.parentElement!;
+      const fileTreeOuter = fileTreeInner?.parentElement;
       expect(fileTreeOuter).not.toHaveClass('Open');
     });
   });
