@@ -1,8 +1,10 @@
-@import '../../../node_modules/@blueprintjs/core/lib/less/variables.less';
-@import './colors.less';
-
 .SidebarWrapper {
-  max-height: calc(100vh - var(--sleuth-height-1) - var(--sleuth-height-2));
+  max-height: calc(100vh - var(--ant-control-height));
+  .Darwin & {
+    max-height: calc(
+      100vh - var(--ant-control-height) - var(--sleuth-darwin-titlebar-height)
+    );
+  }
 }
 
 .SidebarRail {
@@ -12,10 +14,12 @@
 }
 
 .SidebarTreeToggle {
+  --overlap-height: 4px;
   width: 100%;
   border-radius: 0;
   border-top-right-radius: var(--ant-border-radius);
-  margin-top: -4px;
+  height: calc(var(--ant-control-height) + var(--overlap-height));
+  margin-top: calc(-1 * var(--overlap-height));
 }
 
 .SidebarFileTree {
