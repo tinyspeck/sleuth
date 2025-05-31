@@ -66,10 +66,14 @@ export class App extends React.Component<object, Partial<AppState>> {
    */
   public render(): JSX.Element {
     const { unzippedFiles, openEmpty } = this.state;
-    const className = classNames('App', {
-      // eslint-disable-next-line no-restricted-globals
-      Darwin: window.Sleuth.platform === 'darwin',
-    });
+    const className = classNames(
+      'App',
+      {
+        // eslint-disable-next-line no-restricted-globals
+        Darwin: window.Sleuth.platform === 'darwin',
+      },
+      'antd',
+    );
     const titleBar =
       window.Sleuth.platform === 'darwin' ? (
         <MacTitlebar state={this.sleuthState} />
@@ -92,7 +96,7 @@ export class App extends React.Component<object, Partial<AppState>> {
           algorithm: this.sleuthState.prefersDarkColors
             ? theme.darkAlgorithm
             : theme.defaultAlgorithm,
-          cssVar: true,
+          cssVar: { key: 'antd' },
           token: {
             colorPrimary: '#137cbd',
             colorBgBase: this.sleuthState.prefersDarkColors

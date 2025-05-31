@@ -14,8 +14,7 @@ import {
   UnzippedFiles,
   ProcessedLogFile,
 } from '../../interfaces';
-import { AppCoreHeader } from './app-core-header';
-import { Sidebar } from './sidebar';
+import { Sidebar } from './sidebar/sidebar';
 import { Loading } from './loading';
 import { LogContent } from './log-content';
 import { flushLogPerformance } from '../processor/performance';
@@ -213,14 +212,9 @@ export class CoreApplication extends React.Component<
    * @returns {JSX.Element}
    */
   private renderSidebarSpotlight(): JSX.Element {
-    const { selectedFileName } = this.props.state;
-
     return (
       <>
-        <Sidebar
-          selectedLogFileName={selectedFileName}
-          state={this.props.state}
-        />
+        <Sidebar state={this.props.state} />
         <Spotlight state={this.props.state} />
       </>
     );
@@ -258,7 +252,6 @@ export class CoreApplication extends React.Component<
         {this.renderSidebarSpotlight()}
 
         <div id="content" className={logContentClassName}>
-          <AppCoreHeader state={this.props.state} />
           <LogContent state={this.props.state} />
         </div>
       </div>

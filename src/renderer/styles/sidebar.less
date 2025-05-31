@@ -1,26 +1,44 @@
-@import '../../../node_modules/@blueprintjs/core/lib/less/variables.less';
-@import './colors.less';
+.SidebarWrapper {
+  max-height: calc(100vh - var(--ant-control-height));
+  .Darwin & {
+    max-height: calc(
+      100vh - var(--ant-control-height) - var(--sleuth-darwin-titlebar-height)
+    );
+  }
+}
 
-.Sidebar {
-  background: @light-gray1;
-  overflow: auto;
-  flex-shrink: 0;
+.SidebarRail {
+  gap: var(--sleuth-sidebar-gap);
+  padding: var(--sleuth-sidebar-gap);
+  width: calc(var(--ant-control-height) + 2 * var(--sleuth-sidebar-gap));
+}
+
+.SidebarTreeToggle {
+  --overlap-height: 4px;
+  width: 100%;
+  border-radius: 0;
+  border-top-right-radius: var(--ant-border-radius);
+  height: calc(var(--ant-control-height) + var(--overlap-height));
+  margin-top: calc(-1 * var(--overlap-height));
+}
+
+.SidebarFileTree {
+  overflow-x: hidden;
   width: 0;
+  opacity: 0;
+  transition: 0.2s ease-in all;
+  height: 100%;
+  background: var(--ant-color-bg-layout);
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border: 1px solid #00000000;
+  padding: var(--ant-border-radius) 0;
 
   &.Open {
-    width: 300px;
+    width: var(--sleuth-sidebar-open-width);
+    border: 1px solid var(--ant-color-border);
+    padding: var(--ant-border-radius);
+    opacity: 1;
   }
-
-  .StillLoading {
-    opacity: 0.5;
-  }
-}
-
-.Darwin .Sidebar {
-  padding-top: 25px;
-}
-
-.bp4-dark .Sidebar {
-  background-color: @dark-gray2;
-  box-shadow: inset -9px 0px 15px 9px #00000020;
 }

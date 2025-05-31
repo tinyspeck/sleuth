@@ -32,9 +32,8 @@ import {
 } from './filesystem/suggestions';
 import { readLogFile, readStateFile } from './filesystem/read-file';
 import { getSentryHref } from '../renderer/sentry';
-import { download, getHeaders, getData } from './cachetool';
+import { download, getHeaders, getData, listKeys } from './cachetool';
 import { openLineInSource } from './open-line-in-source';
-import { listKeys } from 'cachetool';
 import { isTraceSourcemapped } from './filesystem/is-trace-sourcemapped';
 import { Editor } from '../renderer/components/preferences-editor';
 

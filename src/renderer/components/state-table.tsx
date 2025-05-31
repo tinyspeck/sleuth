@@ -243,17 +243,13 @@ export class StateTable extends React.Component<
                     <p className="fileHeaderStyle">
                       Root-State Policies + Defaults
                     </p>
-                    <div className="jsonContainer">
-                      <p>{rootStateJSON}</p>
-                    </div>
+                    <div className="jsonContainer">{rootStateJSON}</div>
                   </div>
                   <div className="fileDisplay">
                     <p className="fileHeaderStyle">
                       External Config Policies + Defaults
                     </p>
-                    <div className="jsonContainer">
-                      <p>{externalConfigJSON}</p>
-                    </div>
+                    <div className="jsonContainer">{externalConfigJSON}</div>
                   </div>
                 </div>
               </Card>
