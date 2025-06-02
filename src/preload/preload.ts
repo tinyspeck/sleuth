@@ -79,6 +79,8 @@ export const SleuthAPI = {
     }),
   setupToggleSidebar: (cb: () => void) =>
     ipcRenderer.on(IpcEvents.TOGGLE_SIDEBAR, cb),
+  setupToggleSpotlight: (cb: () => void) =>
+    ipcRenderer.on(IpcEvents.TOGGLE_SPOTLIGHT, cb),
   setColorTheme: (colorTheme: ColorTheme) =>
     ipcRenderer.invoke(IpcEvents.SET_COLOR_THEME, colorTheme),
   /**

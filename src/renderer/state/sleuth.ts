@@ -219,6 +219,7 @@ export class SleuthState {
 
     setupTouchBarAutoruns(this);
     window.Sleuth.setupToggleSidebar(this.toggleSidebar);
+    window.Sleuth.setupToggleSpotlight(this.toggleSpotlight);
     window.Sleuth.setupOpenBookmarks((_event, data) =>
       importBookmarks(this, data),
     );
