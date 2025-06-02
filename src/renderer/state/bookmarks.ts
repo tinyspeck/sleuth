@@ -9,10 +9,13 @@ import {
   MergedLogFiles,
 } from '../../interfaces';
 import { isTool, isUnzippedFile } from '../../utils/is-logfile';
+import { plural } from '../../utils/pluralize';
 import { SleuthState } from './sleuth';
 
+import debug from 'debug';
 import lzString from 'lz-string';
-import { plural } from '../../utils/pluralize';
+
+const d = debug('sleuth:bookmarks');
 
 /**
  * Go to the given bookmark
@@ -20,6 +23,12 @@ import { plural } from '../../utils/pluralize';
  * @param {Bookmark} bookmark
  */
 export function goToBookmark(state: SleuthState, bookmark: Bookmark) {
+  if (!state.isDetailsVisible) {
+    state.isDetailsVisible = true;
+  }
+
+  d(`Going to ${bookmark.logFile.id} at line ${bookmark.logEntry.line}`);
+
   state.selectedLogFile = bookmark.logFile;
   state.selectedEntry = bookmark.logEntry;
 }

@@ -198,7 +198,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   @keydown('down', 'up')
   public onKeyboardNavigate(e: React.KeyboardEvent) {
     e.preventDefault();
-    console.log('erick' + Date.now(), e.key);
     this.incrementSelection(e.key === 'ArrowDown' ? 1 : -1);
   }
 
