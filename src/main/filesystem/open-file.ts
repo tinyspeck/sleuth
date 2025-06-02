@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { UnzippedFile, UnzippedFiles } from '../../interfaces';
 import { Unzipper } from '../unzip';
-import { isCacheDir } from '../../utils/is-cache';
 import { shouldIgnoreFile } from '../../utils/should-ignore-file';
 
 const d = debug('sleuth:filesystem');
@@ -57,27 +56,20 @@ async function openDirectory(url: string): Promise<UnzippedFiles> {
 
   console.groupCollapsed(`Open directory`);
 
-  if (isCacheDir(dir)) {
-    console.log(`${url} is a cache directory`);
-    this.sleuthState.cachePath = url;
-    this.setState({ openEmpty: true });
-  } else {
-    // Not a cache?
-    for (const fileName of dir) {
-      if (!shouldIgnoreFile(fileName)) {
-        const fullPath = path.join(url, fileName);
-        const stats = fs.statSync(fullPath);
-        const file: UnzippedFile = {
-          fileName,
-          fullPath,
-          size: stats.size,
-          id: fullPath,
-          type: 'UnzippedFile',
-        };
+  for (const fileName of dir) {
+    if (!shouldIgnoreFile(fileName)) {
+      const fullPath = path.join(url, fileName);
+      const stats = fs.statSync(fullPath);
+      const file: UnzippedFile = {
+        fileName,
+        fullPath,
+        size: stats.size,
+        id: fullPath,
+        type: 'UnzippedFile',
+      };
 
-        d('Found file, adding to result.', file);
-        unzippedFiles.push(file);
-      }
+      d('Found file, adding to result.', file);
+      unzippedFiles.push(file);
     }
   }
 

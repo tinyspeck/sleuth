@@ -62,9 +62,6 @@ const options: ForgeConfig = {
     icon: './public/img/sleuth-icon',
     appBundleId: 'com.felixrieseberg.sleuth',
     appCategoryType: 'public.app-category.developer-tools',
-    asar: {
-      unpackDir: '**/cachetool',
-    },
     extendInfo: './static/extend.plist',
     win32metadata: {
       ProductName: 'Sleuth',

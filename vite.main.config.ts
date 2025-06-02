@@ -63,13 +63,4 @@ const config: UserConfig = {
   ],
 };
 
-// cachetool is an optionalDependency that is only available on macOS
-if (process.platform !== 'darwin') {
-  config.build = {
-    rollupOptions: {
-      external: ['cachetool'],
-    },
-  };
-}
-
 export default defineConfig(config);

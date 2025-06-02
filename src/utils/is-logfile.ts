@@ -1,5 +1,4 @@
 import {
-  Tool,
   SelectableLogFile,
   UnzippedFile,
   ProcessedLogFile,
@@ -41,10 +40,6 @@ export function isUnzippedFile(file?: SelectableLogFile): file is UnzippedFile {
   }
 
   return false;
-}
-
-export function isTool(file?: SelectableLogFile): file is Tool {
-  return !!(file && file.toString() in Tool);
 }
 
 export function isLogFile(

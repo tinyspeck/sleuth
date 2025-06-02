@@ -1,8 +1,7 @@
 import fs from 'fs-extra';
 
-// Anything that's valid as a "selected" log file. We started with just
-// actual files  and have since added the "Tool" enum for, well, tools.
-export type SelectableLogFile = LogFile | Tool | UnzippedFile;
+// Anything that's valid as a "selected" log file.
+export type SelectableLogFile = LogFile | UnzippedFile;
 
 export type LogFile = MergedLogFile | ProcessedLogFile;
 
@@ -159,10 +158,6 @@ export type TimeBucketedLogMetrics = Record<number, LogMetrics>;
 export interface TouchBarLogFileUpdate {
   levelCounts: Record<string, number>;
   isLogFile: boolean;
-}
-
-export enum Tool {
-  cache = 'cache',
 }
 
 export interface RootState {

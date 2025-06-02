@@ -8,7 +8,7 @@ import {
   ProcessedLogFiles,
   MergedLogFiles,
 } from '../../interfaces';
-import { isTool, isUnzippedFile } from '../../utils/is-logfile';
+import { isProcessedLogFile } from '../../utils/is-logfile';
 import { plural } from '../../utils/pluralize';
 import { SleuthState } from './sleuth';
 
@@ -48,7 +48,7 @@ export function getBookmark(state: SleuthState): Bookmark | undefined {
   }
 
   // Don't bookmark tools and unzipped files
-  if (isTool(state.selectedLogFile) || isUnzippedFile(state.selectedLogFile)) {
+  if (!isProcessedLogFile(state.selectedLogFile)) {
     return;
   }
 

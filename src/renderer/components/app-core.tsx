@@ -107,14 +107,13 @@ export class CoreApplication extends React.Component<
    */
   private async processFiles() {
     const { unzippedFiles } = this.props;
-    const { cachePath } = this.props.state;
 
     const sortedUnzippedFiles = getTypesForFiles(unzippedFiles);
     const noFiles = Object.keys(sortedUnzippedFiles)
       .map((k: keyof SortedUnzippedFiles) => sortedUnzippedFiles[k])
       .every((s) => s.length === 0);
 
-    if (noFiles && !cachePath) {
+    if (noFiles) {
       window.Sleuth.showMessageBox({
         title: 'Huh, weird logs!',
         message:
