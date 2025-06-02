@@ -32,7 +32,6 @@ import {
 } from './filesystem/suggestions';
 import { readLogFile, readStateFile } from './filesystem/read-file';
 import { getSentryHref } from '../renderer/sentry';
-import { download, getHeaders, getData, listKeys } from './cachetool';
 import { openLineInSource } from './open-line-in-source';
 import { isTraceSourcemapped } from './filesystem/is-trace-sourcemapped';
 import { Editor } from '../renderer/components/preferences-editor';
@@ -81,7 +80,6 @@ export class IpcManager {
     this.setupSuggestions();
     this.setupProcessor();
     this.setupOpenSentry();
-    this.setupCachetool();
     this.setupLogFileContextMenu();
   }
 
@@ -397,33 +395,6 @@ export class IpcManager {
         if (id) {
           shell.openExternal(getSentryHref(id));
         }
-      },
-    );
-  }
-
-  private setupCachetool() {
-    ipcMain.handle(
-      IpcEvents.CACHETOOL_DOWNLOAD,
-      async (_event, dataPath: string) => {
-        return download(dataPath);
-      },
-    );
-    ipcMain.handle(
-      IpcEvents.CACHETOOL_GET_HEADERS,
-      async (_event, cachePath: string, key: string) => {
-        return getHeaders(cachePath, key);
-      },
-    );
-    ipcMain.handle(
-      IpcEvents.CACHETOOL_GET_DATA,
-      async (_event, cachePath: string, key: string) => {
-        return getData(cachePath, key);
-      },
-    );
-    ipcMain.handle(
-      IpcEvents.CACHETOOL_LIST_KEYS,
-      async (_event, cachePath: string) => {
-        return listKeys(cachePath);
       },
     );
   }

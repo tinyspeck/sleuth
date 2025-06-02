@@ -1,4 +1,4 @@
-import { ProcessedLogFiles, Tool, SelectableLogFile } from '../interfaces';
+import { ProcessedLogFiles, SelectableLogFile } from '../interfaces';
 
 export function getFirstLogFile(
   files: ProcessedLogFiles | undefined,
@@ -14,5 +14,5 @@ export function getFirstLogFile(
     if (files.mobile && files.mobile.length > 0) return files.mobile[0];
   }
 
-  return Tool.cache;
+  throw new Error('No log files found');
 }

@@ -99,24 +99,6 @@ export class AppMenu {
   }
 
   /**
-   * Opens, you guessed it, a cache folder.
-   */
-  public getOpenCacheItem(
-    type: '' | 'DevEnv' | 'DevMode' = '',
-  ): Electron.MenuItemConstructorOptions {
-    const appData = app.getPath('appData');
-    const cachePath = path.join(appData, `Slack${type}`, 'Cache');
-
-    return {
-      label: `Open local Slack${type} Cache...`,
-      click: async () => {
-        const { webContents } = await getCurrentWindow();
-        webContents.send(IpcEvents.FILE_DROPPED, cachePath);
-      },
-    };
-  }
-
-  /**
    * Checks what kind of Slack logs are locally available and returns an array
    * with appropriate items.
    *
@@ -190,23 +172,6 @@ export class AppMenu {
     if (this.productionLogsExist) openItems.push(this.getOpenItem());
     if (this.devEnvLogsExist) openItems.push(this.getOpenItem('DevEnv'));
     if (this.devModeLogsExist) openItems.push(this.getOpenItem('DevMode'));
-
-    // We only support cache files on macOS right now
-    if (process.platform === 'darwin') {
-      if (
-        this.productionCacheExist ||
-        this.devEnvCacheExist ||
-        this.devModeCacheExist
-      ) {
-        openItems.push({ type: 'separator' });
-      }
-
-      if (this.productionCacheExist) openItems.push(this.getOpenCacheItem());
-      if (this.devEnvCacheExist)
-        openItems.push(this.getOpenCacheItem('DevEnv'));
-      if (this.devModeCacheExist)
-        openItems.push(this.getOpenCacheItem('DevMode'));
-    }
 
     return openItems;
   }

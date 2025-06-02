@@ -1,4 +1,4 @@
-import { isLogFile, isUnzippedFile, isTool } from '../../utils/is-logfile';
+import { isLogFile, isUnzippedFile } from '../../utils/is-logfile';
 import { ProcessedLogFile, LogType } from '../../interfaces';
 import { StateTable } from './state-table';
 import { SleuthState } from '../state/sleuth';
@@ -11,7 +11,6 @@ import { Scrubber } from './scrubber';
 import { getFontForCSS } from './preferences-font';
 import { getTypeForFile } from '../../utils/get-file-types';
 import { NetLogView } from './net-log-view';
-import { ToolView } from './tool-view';
 import { LogTimeView } from './log-time-view';
 import { DevtoolsView } from './devtools-view';
 import { Navbar } from '@blueprintjs/core';
@@ -108,11 +107,6 @@ export class LogContent extends React.Component<
       } else if (logType === LogType.TRACE) {
         return <DevtoolsView file={selectedLogFile} state={this.props.state} />;
       }
-    }
-
-    // If _that's_ not the case, we're probably a tool
-    if (isTool(selectedLogFile)) {
-      return <ToolView state={this.props.state} />;
     }
 
     return <StateTable state={this.props.state} />;

@@ -1,7 +1,6 @@
 import {
   isProcessedLogFile,
   isUnzippedFile,
-  isTool,
   isMergedLogFile,
 } from './is-logfile';
 import { SelectableLogFile } from '../interfaces';
@@ -14,8 +13,6 @@ export function getFileName(file: SelectableLogFile): string {
     return file.logType;
   } else if (isUnzippedFile(file)) {
     return file.fileName;
-  } else if (isTool(file)) {
-    return capitalize(file);
   } else {
     return '';
   }

@@ -13,7 +13,6 @@ import {
   MergedLogFile,
   ProcessedLogFile,
   DateRange,
-  Tool,
   Bookmark,
   MergedLogFiles,
   UnzippedFile,
@@ -59,14 +58,6 @@ export class SleuthState {
   @observable public source?: string;
   // A reference to the selected log file
   @observable.ref public selectedLogFile?: SelectableLogFile;
-
-  //** Cachetool **
-  // When looking at the cache using cachetool, we'll keep the selected
-  // cache key in this property
-  @observable public selectedCacheKey?: string;
-  @observable public cachePath?: string;
-  @observable public cacheKeys: Array<string> = [];
-  @observable public isLoadingCacheKeys?: boolean;
 
   // ** Search and Filter **
   @observable public levelFilter: LevelFilter = {
@@ -193,22 +184,6 @@ export class SleuthState {
         this.isMarkIcon ? ICON_NAMES.mark : ICON_NAMES.default,
       );
     });
-    autorun(async () => {
-      if (window.Sleuth.platform === 'darwin') {
-        this.isLoadingCacheKeys = true;
-        if (!this.cachePath) return;
-
-        const keys = await window.Sleuth.cachetoolListKeys(this.cachePath);
-
-        // Last entry is sometimes empty
-        if (keys.length > 0 && !keys[keys.length - 1]) {
-          keys.splice(keys.length - 1, 1);
-        }
-
-        this.cacheKeys = keys;
-        this.isLoadingCacheKeys = false;
-      }
-    });
 
     this.reset = this.reset.bind(this);
     this.toggleSidebar = this.toggleSidebar.bind(this);
@@ -324,10 +299,6 @@ export class SleuthState {
     this.isSpotlightOpen = false;
     this.isDetailsVisible = false;
     this.dateRange = { from: null, to: null };
-    this.cacheKeys = [];
-    this.cachePath = undefined;
-    this.selectedCacheKey = undefined;
-    this.isLoadingCacheKeys = false;
     this.traceThreads = undefined;
 
     if (goBackToHome) {
@@ -342,7 +313,7 @@ export class SleuthState {
   @action
   public selectLogFile(
     logFile: ProcessedLogFile | UnzippedFile | null,
-    logType?: SelectableLogType | Tool,
+    logType?: SelectableLogType,
   ): void {
     this.selectedEntry = undefined;
     this.selectedRangeEntries = undefined;
@@ -350,7 +321,6 @@ export class SleuthState {
     this.selectedIndex = undefined;
     this.customTimeViewRange = undefined;
 
-    // FIXME: this logic should be refactored so that Tools aren't passed as a "logType"
     if (logFile) {
       const name = isProcessedLogFile(logFile)
         ? logFile.logType
@@ -365,8 +335,6 @@ export class SleuthState {
     ) {
       d(`Selecting log type ${logType}`);
       this.selectedLogFile = this.mergedLogFiles[logType as KnownLogType];
-    } else if (logType && Object.values(Tool).includes(logType as Tool)) {
-      this.selectedLogFile = logType as Tool;
     }
   }
 

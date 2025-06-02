@@ -128,24 +128,8 @@ export const SleuthAPI = {
     return () => ipcRenderer.off(IpcEvents.OPEN_SENTRY, cb);
   },
   quit: () => ipcRenderer.invoke(IpcEvents.QUIT),
-  cachetoolGetHeaders: (cachePath: string, selectedCacheKey: string) =>
-    ipcRenderer.invoke(
-      IpcEvents.CACHETOOL_GET_HEADERS,
-      cachePath,
-      selectedCacheKey,
-    ),
-  cachetoolGetData: (cachePath: string, selectedCacheKey: string) =>
-    ipcRenderer.invoke(
-      IpcEvents.CACHETOOL_GET_DATA,
-      cachePath,
-      selectedCacheKey,
-    ),
-  cachetoolListKeys: (cachePath: string) =>
-    ipcRenderer.invoke(IpcEvents.CACHETOOL_LIST_KEYS, cachePath),
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
   openFile: (url: string) => ipcRenderer.invoke(IpcEvents.OPEN_FILE, url),
-  cachetoolDownload: (dataPath: string) =>
-    ipcRenderer.invoke(IpcEvents.CACHETOOL_DOWNLOAD, dataPath),
   openExternal: (url: string) => shell.openExternal(url),
   clipboard: {
     writeText: (text: string) => clipboard.writeText(text),

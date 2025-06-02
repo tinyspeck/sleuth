@@ -3119,11 +3119,6 @@ cacheable-request@^7.0.2:
     normalize-url "^6.0.1"
     responselike "^2.0.0"
 
-cachetool@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/cachetool/-/cachetool-1.1.2.tgz#868df8adb23ae0ecaa68db465fdb589cd1bbbc61"
-  integrity sha512-pcShYbsYXCOeC7MsaFo1JSWm+ChS49j6exE+5W8vTOsY/16AtLkpKAQH73Ldxn/eeuMUad5T2dqqvxMfdG2Y6w==
-
 call-bind-apply-helpers@^1.0.0, call-bind-apply-helpers@^1.0.1, call-bind-apply-helpers@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/call-bind-apply-helpers/-/call-bind-apply-helpers-1.0.2.tgz#4b5428c222be985d79c3d82657479dbe0b59b2d6"
