@@ -288,7 +288,9 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       case LogLineContextMenuActions.OPEN_SOURCE: {
         const { line, sourceFile } = rowData;
         window.Sleuth.openLineInSource(line, sourceFile, {
-          defaultEditor: this.props.state.defaultEditor,
+          defaultEditor: JSON.parse(
+            JSON.stringify(this.props.state.defaultEditor), // Clone this object because Proxies can't be sent over IPC
+          ),
         });
         break;
       }

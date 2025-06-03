@@ -44,7 +44,7 @@ export class LogLineDetails extends React.Component<
       const { sourceFile, line } = selectedEntry;
 
       window.Sleuth.openLineInSource(line, sourceFile, {
-        defaultEditor,
+        defaultEditor: JSON.parse(JSON.stringify(defaultEditor)), // Clone this object because Proxies can't be sent over IPC
       });
     }
   }
