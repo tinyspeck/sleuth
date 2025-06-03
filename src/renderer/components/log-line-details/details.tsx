@@ -9,6 +9,7 @@ import { LogLineData } from './data';
 import { Timestamp } from './timestamp';
 import { getIsBookmark, toggleBookmark } from '../../state/bookmarks';
 import { capitalize } from '../../../utils/capitalize';
+import { toJS } from 'mobx';
 
 export interface LogLineDetailsProps {
   state: SleuthState;
@@ -44,7 +45,7 @@ export class LogLineDetails extends React.Component<
       const { sourceFile, line } = selectedEntry;
 
       window.Sleuth.openLineInSource(line, sourceFile, {
-        defaultEditor: JSON.parse(JSON.stringify(defaultEditor)), // Clone this object because Proxies can't be sent over IPC
+        defaultEditor: toJS(defaultEditor),
       });
     }
   }
