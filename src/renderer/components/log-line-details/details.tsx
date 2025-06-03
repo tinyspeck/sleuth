@@ -66,15 +66,17 @@ export class LogLineDetails extends React.Component<
 
   /**
    * Renders a single log entry, ensuring that people can scroll around and still now what log entry they're looking at.
-   *
-   * @returns {(JSX.Element | null)}
    */
   private renderLogEntry(): JSX.Element | null {
     const { selectedEntry } = this.props.state;
     if (!selectedEntry) return null;
 
     return (
-      <div className="Details-LogEntry">
+      <div
+        className="Details-LogEntry"
+        role="dialog"
+        aria-label="Log Line Details"
+      >
         <div className="MetaInfo">
           <div className="Details-Moment">
             <Timestamp
