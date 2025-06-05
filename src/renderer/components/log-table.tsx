@@ -37,7 +37,7 @@ import { getRegExpMaybeSafe } from '../../utils/regexp';
 import { between } from '../../utils/is-between';
 import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
-import { reaction } from 'mobx';
+import { reaction, toJS } from 'mobx';
 import { Tag } from 'antd';
 import { observer } from 'mobx-react';
 import { getCopyText } from '../state/copy';
@@ -296,7 +296,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       case LogLineContextMenuActions.OPEN_SOURCE: {
         const { line, sourceFile } = rowData;
         window.Sleuth.openLineInSource(line, sourceFile, {
-          defaultEditor: this.props.state.defaultEditor,
+          defaultEditor: toJS(this.props.state.defaultEditor),
         });
         break;
       }
