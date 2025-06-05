@@ -150,4 +150,3 @@ function getProperties<T>(state: SleuthState, key: keyof LogEntry): T[] {
 
   return [];
 }
-// }
