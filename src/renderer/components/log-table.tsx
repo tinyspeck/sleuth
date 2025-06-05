@@ -44,6 +44,14 @@ import { getCopyText } from '../state/copy';
 
 const d = debug('sleuth:logtable');
 
+export const logColorMap: Record<ProcessableLogType, string> = {
+  [LogType.BROWSER]: 'cyan',
+  [LogType.WEBAPP]: 'magenta',
+  [LogType.INSTALLER]: 'green',
+  [LogType.CHROMIUM]: 'geekblue',
+  [LogType.MOBILE]: 'lime',
+};
+
 /**
  * Welcome! This is the biggest class in this application - it's the table that displays logging
  * information. This is also the class that could most easily destroy performance, so be careful
@@ -683,14 +691,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sortDirection: this.state.sortDirection,
     };
 
-    const colorMap: Record<ProcessableLogType, string> = {
-      [LogType.BROWSER]: 'cyan',
-      [LogType.WEBAPP]: 'magenta',
-      [LogType.INSTALLER]: 'green',
-      [LogType.CHROMIUM]: 'geekblue',
-      [LogType.MOBILE]: 'lime',
-    };
-
     if (scrollToSelection)
       tableOptions.scrollToIndex = this.props.state.selectedIndex;
 
@@ -722,7 +722,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
             width={120}
             cellRenderer={({ cellData }: TableCellProps) => (
               <Tag
-                color={colorMap[cellData as ProcessableLogType] ?? 'default'}
+                color={logColorMap[cellData as ProcessableLogType] ?? 'default'}
               >
                 {cellData}
               </Tag>
