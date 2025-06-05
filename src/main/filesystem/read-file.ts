@@ -350,11 +350,21 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
       message = message.slice(WEBAPP_NEW_TIMESTAMP_RGX.lastIndex);
     }
 
+    let meta: string | undefined = undefined;
+
+    // As a shortcut, detect `{` as the start of some JSON and store it into the meta
+    const indexOfJSON = message.indexOf('{');
+    if (indexOfJSON > -1) {
+      meta = message.slice(indexOfJSON);
+      message = message.slice(0, indexOfJSON);
+    }
+
     return {
       timestamp: results[1],
       level: results[2].toLowerCase(),
       message,
       momentValue,
+      meta,
     };
   }
 
