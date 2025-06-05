@@ -72,7 +72,15 @@ describe('readFile', () => {
     };
 
     return readLogFile(file, LogType.WEBAPP).then(({ entries }) => {
-      expect(entries).toHaveLength(3);
+      expect(entries).toHaveLength(4);
+      // Can parse JSON meta
+      expect(JSON.parse(entries[3].meta as string)).toEqual({
+        viewSet: {
+          sidebar: { id: 'ChannelList', viewType: 'ChannelList' },
+          primary: { id: 'Punreads', viewType: 'Page' },
+        },
+        nextTab: 'home',
+      });
     });
   });
 });
