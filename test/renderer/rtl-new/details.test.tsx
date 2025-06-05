@@ -46,8 +46,8 @@ describe('Details', () => {
 
     expect(screen.getByText('Test log message')).toBeVisible();
     expect(screen.getByText('Test meta')).toBeVisible();
-    expect(screen.getByText('info')).toBeVisible();
-    expect(screen.getByText('Browser Process')).toBeVisible();
+    expect(screen.getByText('level:info')).toBeVisible();
+    expect(screen.getByText('process:browser')).toBeVisible();
   });
 
   it('closes the details pane when button is clicked', () => {
