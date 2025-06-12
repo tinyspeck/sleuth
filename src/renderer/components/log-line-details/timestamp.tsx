@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tag } from '@blueprintjs/core';
+import { Tag } from 'antd';
 import { format, formatDistance } from 'date-fns';
 
 export interface TimestampProps {
@@ -24,17 +24,7 @@ export function Timestamp(props: TimestampProps) {
     setLabel(datetime);
   }, [momentValues, timestamps]);
 
-  return (
-    <Tag
-      fill={true}
-      large={true}
-      icon="calendar"
-      interactive={true}
-      onClick={onClick}
-    >
-      {label}
-    </Tag>
-  );
+  return <Tag>{label}</Tag>;
 }
 
 function getDateTime(momentValues: Array<number>, timestamps: Array<string>) {

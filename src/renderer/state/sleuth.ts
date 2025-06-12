@@ -1,4 +1,4 @@
-import { observable, action, autorun, computed, toJS } from 'mobx';
+import { observable, action, autorun, computed, toJS, reaction } from 'mobx';
 import debug from 'debug';
 
 import { testDateTimeFormat } from '../../utils/test-date-time';
@@ -183,6 +183,12 @@ export class SleuthState {
       window.Sleuth.changeIcon(
         this.isMarkIcon ? ICON_NAMES.mark : ICON_NAMES.default,
       );
+    });
+
+    autorun(() => {
+      if (!this.selectedEntry && !this.selectedIndex) {
+        this.isDetailsVisible = false;
+      }
     });
 
     this.reset = this.reset.bind(this);

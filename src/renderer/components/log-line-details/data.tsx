@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react';
 import { JSONView } from '../json-view';
-import { AnchorButton, Card, Elevation } from '@blueprintjs/core';
+import { AnchorButton } from '@blueprintjs/core';
 import debug from 'debug';
 import { SleuthState } from '../../state/sleuth';
 import { LogEntry } from '../../../interfaces';
@@ -23,9 +23,7 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, object> {
   public renderJSON(raw: string): JSX.Element {
     return (
       <div className="LogLineData">
-        <Card elevation={Elevation.TWO}>
-          <JSONView raw={raw} state={this.props.state} />
-        </Card>
+        <JSONView raw={raw} state={this.props.state} />
       </div>
     );
   }
