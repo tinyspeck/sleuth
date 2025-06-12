@@ -1,3 +1,4 @@
 [10/28/19, 14:52:34:884] info: Oct-28 14:52:34.884 [API-Q] (T024BE7LD) noversion-1572299554.883 Flannel users/info is ACTIVE
 [10/28/19, 14:52:34:917] info: Oct-28 14:52:34.917 [API-Q] (T024BE7LD) noversion-1572299554.883 Flannel users/info is RESOLVED
 [10/28/19, 14:52:35:210] info: Oct-28 14:52:35.210 [COUNTS] (T024BE7LD) Updated unread_cnt for CA91ZPRDW: 2
+[06/03/25, 23:15:14:181] info: [NAVIGATE-IN-MAIN-WIND] Built view set after middleware {"viewSet":{"sidebar":{"id":"ChannelList","viewType":"ChannelList"},"primary":{"id":"Punreads","viewType":"Page"}},"nextTab":"home"} 
