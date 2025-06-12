@@ -25,7 +25,10 @@ const WEBAPP_B_RGX =
 const MOBILE_RGX =
   /^\[([0-9]{4}-[0-9]{2}-[0-9]{2} )T([0-9]{2}:[0-9]{2}:[0-9]{2})(?:.[0-9]{6} -[0-9]{2}:[0-9]{2}\]\s)(.+)/;
 
-const IOS_RGX =
+const IOS_A_RGX =
+  /^\[([0-9]{4}-[0-9]{2}-[0-9]{2})( T)([0-9]{2}:[0-9]{2}:[0-9]{2}).[0-9\s+:\]-]{15}(-|.{0,2}[</[]\w+[>\]])(.*)/;
+
+const IOS_B_RGX =
   /^\s*\[((?:[0-9]{1,4}(?:\/|-|\.|\. )?){3}(?:, | |\){0,2}))((?:上午|下午){0,1}(?:[0-9]{1,2}[:.][0-9]{2}[:.][0-9]{2}\s?(?:AM|PM)?))\] (-|.{0,2}[</[]\w+[>\]])(.+)$/;
 
 const ANDROID_A_RGX =
@@ -596,10 +599,35 @@ export function matchLineIOS(line: string): MatchResult | undefined {
     return;
   } // We're ignoring these lines
 
+  // This iOS regex is for the newest timestamp format (as of 5/5/25)
+  IOS_A_RGX.lastIndex = 0;
+  let results = IOS_A_RGX.exec(line);
+  if (results && results.length === 6) {
+    const timestamp = results[1] + ' ' + results[3];
+    const momentValue = new Date(timestamp).valueOf();
+    const oldLevel = results[4];
+    let newLevel;
+
+    if (oldLevel.includes('ERR')) {
+      newLevel = 'error';
+    } else if (oldLevel.includes('WARN')) {
+      newLevel = 'warn';
+    } else {
+      newLevel = 'info';
+    }
+
+    return {
+      timestamp,
+      level: newLevel,
+      message: results[5],
+      momentValue,
+    };
+  }
+
   // The iOS regex is long because it accounts for the localized versions
   // Android logs are always in English which makes them simpler than iOS
-  IOS_RGX.lastIndex = 0;
-  const results = IOS_RGX.exec(line);
+  IOS_B_RGX.lastIndex = 0;
+  results = IOS_B_RGX.exec(line);
 
   if (results && results.length === 5) {
     // Results should be: full match, date, time, level, message
