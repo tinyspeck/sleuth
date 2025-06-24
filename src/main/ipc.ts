@@ -22,7 +22,7 @@ import {
   LogType,
   UnzippedFile,
 } from '../interfaces';
-import { ColorTheme } from '../renderer/components/preferences';
+import { ColorTheme } from '../renderer/components/preferences/preferences';
 import { Unzipper } from './unzip';
 import { openFile } from './filesystem/open-file';
 import {
@@ -34,7 +34,7 @@ import { readLogFile, readStateFile } from './filesystem/read-file';
 import { getSentryHref } from '../renderer/sentry';
 import { openLineInSource } from './open-line-in-source';
 import { isTraceSourcemapped } from './filesystem/is-trace-sourcemapped';
-import { Editor } from '../renderer/components/preferences-editor';
+import { Editor } from '../renderer/components/preferences/preferences-utils';
 
 fs.watch(app.getPath('downloads'), async () => {
   const suggestions = await getItemsInSuggestionFolders();

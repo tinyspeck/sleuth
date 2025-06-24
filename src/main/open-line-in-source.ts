@@ -1,7 +1,7 @@
 import { shell } from 'electron';
 import { spawn } from 'child_process';
 import debug from 'debug';
-import { Editor } from '../renderer/components/preferences-editor';
+import { Editor } from '../renderer/components/preferences/preferences-utils';
 
 const d = debug('sleuth:open-line-in-source');
 

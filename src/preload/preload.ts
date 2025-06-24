@@ -13,7 +13,7 @@ import {
   UnzippedFile,
 } from '../interfaces';
 import { ReadFileResult } from '../main/filesystem/read-file';
-import { ColorTheme } from '../renderer/components/preferences';
+import { ColorTheme } from '../renderer/components/preferences/preferences';
 import {
   clipboard,
   shell,
@@ -22,7 +22,7 @@ import {
   contextBridge,
   app,
 } from 'electron';
-import { Editor } from '../renderer/components/preferences-editor';
+import { Editor } from '../renderer/components/preferences/preferences-utils';
 
 const packageJSON = JSON.parse(
   fs
