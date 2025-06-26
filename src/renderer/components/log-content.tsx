@@ -8,7 +8,7 @@ import React from 'react';
 
 import { LogLineDetails } from './log-line-details/details';
 import { Scrubber } from './scrubber';
-import { getFontForCSS } from './preferences-font';
+import { getFontForCSS } from './preferences/preferences-utils';
 import { getTypeForFile } from '../../utils/get-file-types';
 import { NetLogView } from './net-log-view';
 import { LogTimeView } from './log-time-view';

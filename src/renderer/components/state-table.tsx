@@ -8,7 +8,7 @@ import { getEnvInfo } from '../analytics/environment-analytics';
 import { getLocalSettingsInfo } from '../analytics/local-settings-analytics';
 import { getNotifWarningsInfo } from '../analytics/notification-warning-analytics';
 import { JSONView } from './json-view';
-import { getFontForCSS } from './preferences-font';
+import { getFontForCSS } from './preferences/preferences-utils';
 import { getSentryHref } from '../sentry';
 
 import {

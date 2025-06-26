@@ -35,9 +35,9 @@ import { copy } from './copy';
 import { ICON_NAMES } from '../../shared-constants';
 import { setupTouchBarAutoruns } from './touchbar';
 import { TraceThreadDescription } from '../processor/trace';
-import { ColorTheme } from '../components/preferences';
+import { ColorTheme } from '../components/preferences/preferences';
 import { StateTableState } from '../components/state-table';
-import { Editor, EDITORS } from '../components/preferences-editor';
+import { Editor, EDITORS } from '../components/preferences/preferences-utils';
 
 const d = debug('sleuth:state');
 

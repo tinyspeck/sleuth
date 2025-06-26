@@ -6,7 +6,7 @@ import { ConfigProvider, theme } from 'antd';
 import { Welcome } from './welcome';
 import { CoreApplication } from './app-core';
 import { MacTitlebar } from './mac-titlebar';
-import { Preferences } from './preferences';
+import { Preferences } from './preferences/preferences';
 import { SleuthState } from '../state/sleuth';
 import { UnzippedFiles } from '../../interfaces';
 import { autorun } from 'mobx';

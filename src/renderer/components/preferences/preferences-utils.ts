@@ -1,7 +1,3 @@
-import { MenuItem } from '@blueprintjs/core';
-import { ItemRenderer, ItemPredicate } from '@blueprintjs/select';
-import React from 'react';
-
 export const WINDOWS_FONTS = [
   'Abadi MT Condensed',
   'Agency FB',
@@ -356,38 +352,6 @@ export const MACOS_FONTS = [
 export const FONTS =
   window.Sleuth.platform === 'darwin' ? MACOS_FONTS : WINDOWS_FONTS;
 
-export const renderFontItem: ItemRenderer<string> = (
-  font,
-  { handleClick, modifiers },
-) => {
-  if (!modifiers.matchesPredicate) {
-    return null;
-  }
-
-  return (
-    <MenuItem
-      active={modifiers.active}
-      disabled={modifiers.disabled}
-      key={font}
-      onClick={handleClick}
-      text={font}
-      style={{ fontFamily: getFontForCSS(font) }}
-    />
-  );
-};
-
-/**
- * Given a query and a font, return whether or not the font
- * matches the query.
- *
- * @param {string} query
- * @param {string} font
- * @returns {string}
- */
-export const filterFont: ItemPredicate<string> = (query, font) => {
-  return font.toLowerCase().includes(query.toLowerCase());
-};
-
 /**
  * Returns a font usable for CSS, given its name.
  *
@@ -399,3 +363,40 @@ export function getFontForCSS(font: string): string {
 
   return font;
 }
+
+export const DATE_TIME_FORMATS = [
+  'HH:mm:ss (dd/MM)',
+  'hh:mm:ss a (dd/MM)',
+  'HH:mm:ss.SSS (dd/MM)',
+  'hh:mm:ss.SSS a (dd/MM)',
+  'hh:mm a, MMM do',
+  'eeee, MMMM do y, h:mm:ss a',
+  'eeee, ha',
+];
+
+export interface Editor {
+  name: string;
+  cmd: string;
+  args: string[];
+}
+
+/**
+ * Supported editors for opening external files.
+ */
+export const EDITORS: Record<string, Editor> = {
+  VSCODE: {
+    name: 'Visual Studio Code',
+    cmd: `code`,
+    args: ['--goto', '{filepath}:{line}'],
+  },
+  SUBLIME: {
+    name: 'Sublime Text',
+    cmd: `subl`,
+    args: ['{filepath}:{line}'],
+  },
+  CURSOR: {
+    name: 'Cursor',
+    cmd: `cursor`,
+    args: ['--goto', '{filepath}:{line}'],
+  },
+};
