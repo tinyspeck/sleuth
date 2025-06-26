@@ -1,10 +1,9 @@
 import React from 'react';
-import { ProgressBar } from '@blueprintjs/core';
+import { Progress } from 'antd';
 
 export interface LoadingProps {
   percentage?: number;
   message?: string;
-  animate?: boolean;
 }
 
 /**
@@ -14,15 +13,11 @@ export interface LoadingProps {
  * @returns {JSX.Element}
  */
 export const Loading = (props: LoadingProps) => {
-  const { percentage, message, animate } = props;
-
-  if (percentage === 100) {
-    return <div />;
-  }
+  const { percentage, message } = props;
 
   return (
     <div className="Loading">
-      <ProgressBar animate={!!animate} value={(percentage ?? 0) / 100} />
+      <Progress percent={percentage ?? 0} />
       <br />
       <p>{message}</p>
     </div>
