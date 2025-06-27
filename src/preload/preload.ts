@@ -65,8 +65,10 @@ export const SleuthAPI = {
     ipcRenderer.invoke(IpcEvents.OPEN_LOG_CONTEXT_MENU, type),
   setSetting: (key: string, value: unknown) =>
     ipcRenderer.invoke(IpcEvents.SET_SETTINGS, key, value),
-  focusFindOn: (cb: () => void) => ipcRenderer.on(IpcEvents.FIND, cb),
-  focusFindOff: (cb: () => void) => ipcRenderer.off(IpcEvents.FIND, cb),
+  focusFind: (cb: () => void) => {
+    ipcRenderer.on(IpcEvents.FIND, cb);
+    return () => ipcRenderer.off(IpcEvents.FIND, cb);
+  },
   readStateFile: (file: UnzippedFile) =>
     ipcRenderer.invoke(IpcEvents.READ_STATE_FILE, file),
   logFileUpdate: (options: TouchBarLogFileUpdate) =>

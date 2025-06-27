@@ -1,66 +1,38 @@
 import { observer } from 'mobx-react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { debounce } from 'lodash';
-import {
-  NavbarDivider,
-  NavbarGroup,
-  Popover,
-  Menu,
-  Position,
-  MenuItem,
-  MenuDivider,
-} from '@blueprintjs/core';
 import dayjs, { Dayjs } from 'dayjs';
-import { Button, DatePicker, Input, InputRef, Space } from 'antd';
+import {
+  Button,
+  DatePicker,
+  Divider,
+  Dropdown,
+  Input,
+  InputRef,
+  Space,
+} from 'antd';
 import { SleuthState } from '../state/sleuth';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
+  BugOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
   FilterOutlined,
   FilterTwoTone,
+  FireOutlined,
+  InfoCircleOutlined,
   SearchOutlined,
+  WarningOutlined,
 } from '@ant-design/icons';
 
 export interface FilterProps {
   state: SleuthState;
 }
 
-@observer
-export class Filter extends React.Component<FilterProps, object> {
-  private searchRef = React.createRef<InputRef>();
-
-  constructor(props: FilterProps) {
-    super(props);
-
-    this.toggleSearchResultVisibility =
-      this.toggleSearchResultVisibility.bind(this);
-    this.handleSearchQueryChange = debounce(
-      this.handleSearchQueryChange.bind(this),
-      500,
-    );
-    this.handleSearchIndexChange = this.handleSearchIndexChange.bind(this);
-    this.handleDateRangeChange = this.handleDateRangeChange.bind(this);
-    this.renderFilter = this.renderFilter.bind(this);
-    this.focus = this.focus.bind(this);
-  }
-
-  public focus() {
-    this.searchRef.current?.focus();
-  }
-
-  public componentDidMount() {
-    window.Sleuth.focusFindOn(this.focus);
-  }
-
-  public componentWillUnmount() {
-    window.Sleuth.focusFindOff(this.focus);
-  }
-
-  public handleSearchQueryChange(value: string) {
-    this.props.state.search = value;
-  }
+export const Filter = observer((props: FilterProps) => {
+  const searchRef = React.useRef<InputRef>(null);
+  const [open, setOpen] = React.useState(false);
 
   /**
    * Handles an increment or decrement of the selected index in the
@@ -68,8 +40,8 @@ export class Filter extends React.Component<FilterProps, object> {
    * results.
    * @param change 1 or -1, normally
    */
-  public handleSearchIndexChange(change: number) {
-    const { searchList, searchIndex, selectedIndex } = this.props.state;
+  const handleSearchIndexChange = (change: number) => {
+    const { searchList, searchIndex, selectedIndex } = props.state;
     // noop if we have no search results at the moment
     if (searchList.length === 0 || selectedIndex === undefined) {
       return;
@@ -99,154 +71,191 @@ export class Filter extends React.Component<FilterProps, object> {
       }
     }
 
-    this.props.state.searchIndex = newSearchIndex;
-  }
+    props.state.searchIndex = newSearchIndex;
+  };
 
-  public handleDateRangeChange(
+  const handleSearchQueryChange = debounce((value: string) => {
+    props.state.search = value;
+  }, 500);
+
+  const handleDateRangeChange = (
     values: [Dayjs, Dayjs],
     dateStrings: [string, string],
-  ) {
-    this.props.state.dateRange = {
+  ) => {
+    props.state.dateRange = {
       from: values && values[0] ? new Date(dateStrings[0]) : null,
       to: values && values[1] ? new Date(dateStrings[1]) : null,
     };
-  }
+  };
 
-  public toggleSearchResultVisibility() {
-    this.props.state.showOnlySearchResults =
-      !this.props.state.showOnlySearchResults;
-  }
+  useEffect(() => {
+    const destructor = window.Sleuth.focusFind(
+      () => searchRef.current?.focus(),
+    );
+    return () => {
+      destructor();
+    };
+  }, []);
 
-  public renderFilter() {
-    const { error, warn, info, debug } = this.props.state.levelFilter;
+  const { showOnlySearchResults, searchIndex, searchList } = props.state;
+
+  const showOnlySearchResultsButton = (
+    <Button
+      onClick={() => {
+        props.state.showOnlySearchResults = !props.state.showOnlySearchResults;
+      }}
+      icon={showOnlySearchResults ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+    />
+  );
+
+  const { RangePicker } = DatePicker;
+
+  function renderFilter() {
+    const { error, warn, info, debug } = props.state.levelFilter;
     const isDefaultState = !(debug || info || warn || error);
 
-    const menu = (
-      <Menu>
-        <MenuItem
-          active={false}
-          onClick={() => {
-            this.props.state.setFilterLogLevels({
-              debug: false,
-              info: false,
-              warn: false,
-              error: false,
-            });
-          }}
-          shouldDismissPopover={true}
-          text="Default levels"
-        />
-        <MenuDivider />
-        <MenuItem
-          active={debug}
-          onClick={() => {
-            this.props.state.setFilterLogLevels({ debug: !debug });
-          }}
-          icon="code"
-          shouldDismissPopover={false}
-          text="Debug"
-        />
-        <MenuItem
-          active={info}
-          onClick={() => {
-            this.props.state.setFilterLogLevels({ info: !info });
-          }}
-          icon="info-sign"
-          shouldDismissPopover={false}
-          text="Info"
-        />
-        <MenuItem
-          active={warn}
-          onClick={() => {
-            this.props.state.setFilterLogLevels({ warn: !warn });
-          }}
-          icon="warning-sign"
-          shouldDismissPopover={false}
-          text="Warning"
-        />
-        <MenuItem
-          active={error}
-          onClick={() => {
-            this.props.state.setFilterLogLevels({ error: !error });
-          }}
-          icon="error"
-          shouldDismissPopover={false}
-          text="Error"
-        />
-      </Menu>
-    );
+    const selectedKeys: string[] = [];
+
+    for (const level of ['debug', 'info', 'warn', 'error']) {
+      if (props.state.levelFilter[level]) {
+        selectedKeys.push(level);
+      }
+    }
 
     return (
-      <Popover content={menu} position={Position.BOTTOM}>
+      <Dropdown
+        open={open}
+        trigger={['click']}
+        menu={{
+          selectable: true,
+          selectedKeys: [
+            debug ? 'debug' : '',
+            info ? 'info' : '',
+            warn ? 'warn' : '',
+            error ? 'error' : '',
+          ],
+          items: [
+            {
+              label: (
+                <Space>
+                  <BugOutlined />
+                  Debug
+                </Space>
+              ),
+              onClick: () => {
+                props.state.setFilterLogLevels({ debug: !debug });
+              },
+              key: 'debug',
+            },
+            {
+              label: (
+                <Space>
+                  <InfoCircleOutlined />
+                  Info
+                </Space>
+              ),
+              onClick: () => {
+                props.state.setFilterLogLevels({ info: !info });
+              },
+              key: 'info',
+            },
+            {
+              label: (
+                <Space>
+                  <WarningOutlined />
+                  Warning
+                </Space>
+              ),
+              onClick: () => {
+                props.state.setFilterLogLevels({ warn: !warn });
+              },
+              key: 'warn',
+            },
+            {
+              label: (
+                <Space>
+                  <FireOutlined />
+                  Error
+                </Space>
+              ),
+              onClick: () => {
+                props.state.setFilterLogLevels({ error: !error });
+              },
+              key: 'error',
+            },
+            {
+              type: 'divider',
+            },
+            {
+              label: 'Reset Levels',
+              onClick: () => {
+                setOpen(false);
+                props.state.setFilterLogLevels({
+                  debug: false,
+                  info: false,
+                  warn: false,
+                  error: false,
+                });
+              },
+              key: 'reset',
+            },
+          ],
+          // onMouseLeave: (): void => setOpen(false),
+        }}
+      >
         <Button
+          onClick={() => setOpen(!open)}
           icon={isDefaultState ? <FilterOutlined /> : <FilterTwoTone />}
         />
-      </Popover>
+      </Dropdown>
     );
   }
-
-  public render() {
-    const { showOnlySearchResults, searchIndex, searchList } = this.props.state;
-
-    const showOnlySearchResultsButton = (
-      <Button
-        onClick={this.toggleSearchResultVisibility}
-        icon={
-          showOnlySearchResults ? <EyeInvisibleOutlined /> : <EyeOutlined />
-        }
+  return (
+    <Space className="SearchGroup">
+      <RangePicker
+        showTime={{
+          defaultValue: [
+            dayjs('00:00:00', 'HH:mm:ss'),
+            dayjs('23:59:59', 'HH:mm:ss'),
+          ],
+        }}
+        onChange={handleDateRangeChange}
+        allowEmpty={[true, true]}
       />
-    );
-
-    const { RangePicker } = DatePicker;
-    return (
-      <>
-        <NavbarGroup className="SearchGroup">
-          <RangePicker
-            showTime={{
-              defaultValue: [
-                dayjs('00:00:00', 'HH:mm:ss'),
-                dayjs('23:59:59', 'HH:mm:ss'),
-              ],
-            }}
-            onChange={this.handleDateRangeChange}
-            allowEmpty={[true, true]}
+      <Divider type="vertical" />
+      <Space className="FilterGroup">
+        {renderFilter()}
+        {showOnlySearchResultsButton}
+      </Space>
+      <Divider type="vertical" />
+      <Space.Compact className="SearchInputGroup">
+        <Input
+          placeholder="Search"
+          prefix={<SearchOutlined />}
+          onChange={(e) => handleSearchQueryChange(e.target.value)}
+          ref={searchRef}
+          allowClear={true}
+          count={{
+            show: searchList.length > 0,
+            strategy: () => {
+              return searchIndex + 1; // result number is 1-indexed
+            },
+            max: searchList.length,
+          }}
+        />
+        <Space.Compact>
+          <Button
+            icon={<ArrowUpOutlined />}
+            onClick={() => handleSearchIndexChange(-1)}
+            disabled={props.state.searchList.length === 0}
           />
-          <NavbarDivider />
-          <NavbarGroup className="FilterGroup">
-            {this.renderFilter()}
-            {showOnlySearchResultsButton}
-          </NavbarGroup>
-          <NavbarDivider />
-          <Space.Compact className="SearchInputGroup">
-            <Input
-              placeholder="Search"
-              prefix={<SearchOutlined />}
-              onChange={(e) => this.handleSearchQueryChange(e.target.value)}
-              ref={this.searchRef}
-              allowClear={true}
-              count={{
-                show: searchList.length > 0,
-                strategy: () => {
-                  return searchIndex + 1; // result number is 1-indexed
-                },
-                max: searchList.length,
-              }}
-            />
-            <Space.Compact>
-              <Button
-                icon={<ArrowUpOutlined />}
-                onClick={() => this.handleSearchIndexChange(-1)}
-                disabled={this.props.state.searchList.length === 0}
-              />
-              <Button
-                icon={<ArrowDownOutlined />}
-                onClick={() => this.handleSearchIndexChange(1)}
-                disabled={this.props.state.searchList.length === 0}
-              />
-            </Space.Compact>
-          </Space.Compact>
-        </NavbarGroup>
-      </>
-    );
-  }
-}
+          <Button
+            icon={<ArrowDownOutlined />}
+            onClick={() => handleSearchIndexChange(1)}
+            disabled={props.state.searchList.length === 0}
+          />
+        </Space.Compact>
+      </Space.Compact>
+    </Space>
+  );
+});
