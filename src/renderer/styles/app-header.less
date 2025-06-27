@@ -17,17 +17,17 @@
   .FilterGroup {
     margin-left: auto;
     padding-left: 5px;
-
-    .isActive {
-      background: var(--ant-control-item-bg-active);
-    }
   }
 
   .SearchGroup {
     flex-grow: 1;
   }
 
-  .SearchInputGroup {
+  div:has(> .SearchInputGroup) {
     flex-grow: 1;
+  }
+
+  .SearchInputGroup {
+    width: 100%;
   }
 }
