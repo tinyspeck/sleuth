@@ -62,6 +62,7 @@ export const Preferences = observer((props: PreferencesProps) => {
     isOpenMostRecent,
     isSmartCopy,
   } = props.state;
+  console.log('***test', defaultEditor);
   return (
     <Modal
       open={isOpen}
@@ -175,7 +176,7 @@ export const Preferences = observer((props: PreferencesProps) => {
           <Select
             prefix={<CodeOutlined />}
             style={{ width: 200 }}
-            defaultValue={defaultEditor.name}
+            defaultValue={defaultEditor?.name}
             options={Object.entries(EDITORS).map(([editor, details]) => ({
               value: editor,
               label: <span>{details.name}</span>,
