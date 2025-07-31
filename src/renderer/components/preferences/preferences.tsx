@@ -62,7 +62,6 @@ export const Preferences = observer((props: PreferencesProps) => {
     isOpenMostRecent,
     isSmartCopy,
   } = props.state;
-  console.log('***test', defaultEditor);
   return (
     <Modal
       open={isOpen}
