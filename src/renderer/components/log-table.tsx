@@ -12,7 +12,6 @@ import {
   Size,
   TableProps,
 } from 'react-virtualized';
-import { Icon } from '@blueprintjs/core';
 import debug from 'debug';
 
 import {
@@ -41,6 +40,7 @@ import { reaction, toJS } from 'mobx';
 import { Tag } from 'antd';
 import { observer } from 'mobx-react';
 import { getCopyText } from '../state/copy';
+import { PaperClipOutlined, PartitionOutlined } from '@ant-design/icons';
 
 const d = debug('sleuth:logtable');
 
@@ -579,9 +579,9 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     if (entry && entry.meta) {
       const icon = isReduxAction(entry.message) ? (
-        <Icon icon="diagram-tree" />
+        <PartitionOutlined />
       ) : (
-        <Icon icon="paperclip" />
+        <PaperClipOutlined />
       );
       return (
         <div style={{ display: 'flex', gap: '0.25rem' }}>
