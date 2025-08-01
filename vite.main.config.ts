@@ -10,9 +10,12 @@ const hasSubmodules = fs.existsSync(
 const isCI = process.env.CI;
 
 if (!hasSubmodules && isCI) {
-  throw new Error('Catapult missing');
+  console.error(`In CI and missing Catapult`);
+  process.exit(1);
 } else if (!hasSubmodules) {
   console.warn(`Building WITHOUT catapult!`);
+} else {
+  console.log('Catapult found');
 }
 
 const gitSubmodules = hasSubmodules
