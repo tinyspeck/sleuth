@@ -1,0 +1,59 @@
+#tab-list,
+#events-view-filter-box,
+#events-view-splitter-box {
+  top: 0 !important;
+}
+
+#events-view-source-list-table td {
+  border-left: 1px solid rgba(16, 22, 26, 0.05) !important;
+  border-bottom: 1px solid rgba(16, 22, 26, 0.05) !important;
+}
+
+.bp4-dark #timeline-view-graph-canvas,
+.bp4-dark #timeline-view-selection-ul,
+.bp4-dark #events-view-source-list-table,
+.bp4-dark #events-view-filter-box,
+.bp4-dark #timeline-view-graph-div {
+  filter: invert(0.9);
+}
+
+.bp4-dark #events-view-source-list-table {
+  color: #000;
+}
+
+.bp4-dark .vertical-splitter {
+  border-left: 1px solid #4a4a4a;
+}
+
+.bp4-dark #tab-list {
+  border-right: 1px solid #4a4a4a;
+}
+
+.bp4-dark #tab-list a,
+#tab-list a:visited {
+  color: #f5f8fa;
+}
+
+.bp4-dark #tab-list #tab-list a.selected {
+  color: #fff;
+}
+
+.bp4-dark .styled-table th {
+  background-color: #202b33;
+}
+
+.bp4-dark .modules-view-extension-list tr.enabled {
+  background-color: #294230;
+}
+
+.bp4-dark .modules-view-extension-list tr:not(.enabled) {
+  background-color: #422929;
+}
+
+.bp4-dark #prerender-view-history-table tr.used {
+  background-color: #294230;
+}
+
+.bp4-dark #prerender-view-history-table tr:not(.used) {
+  background-color: #422929;
+}
