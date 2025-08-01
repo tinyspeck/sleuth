@@ -42,6 +42,9 @@ const gitSubmodules = hasSubmodules
   : [];
 
 const config: UserConfig = {
+  build: {
+    copyPublicDir: false,
+  },
   plugins: [
     copy({
       targets: [

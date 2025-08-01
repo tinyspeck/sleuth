@@ -24,6 +24,7 @@ export default defineConfig({
     global: {},
   },
   build: {
+    copyPublicDir: true,
     rollupOptions: {
       onwarn(warning, warn) {
         // Module level directives cause errors when bundled, "use client" in "node_modules/antd/es/color-picker/components/ColorHexInput.js" was ignored.
