@@ -24,36 +24,40 @@ const PORT = 37492;
 const options: ForgeConfig = {
   hooks: {
     preMake: async () => {
-      // Use signtool.exe from the `node_modules` folder
-      await vendorSignTool();
+      if (process.platform === 'win32') {
+        // Use signtool.exe from the `node_modules` folder
+        await vendorSignTool();
 
-      let dir: string | undefined = undefined;
-      try {
-        const timestampProxiedProxy = httpProxy.createProxyServer({});
+        let dir: string | undefined = undefined;
+        try {
+          const timestampProxiedProxy = httpProxy.createProxyServer({});
 
-        server = http.createServer((req, res) => {
-          return timestampProxiedProxy.web(req, res, {
-            target: 'http://timestamp.digicert.com',
+          server = http.createServer((req, res) => {
+            return timestampProxiedProxy.web(req, res, {
+              target: 'http://timestamp.digicert.com',
+            });
           });
-        });
 
-        await new Promise((resolve) => {
-          server.listen(PORT, () => {
-            resolve(null);
+          await new Promise((resolve) => {
+            server.listen(PORT, () => {
+              resolve(null);
+            });
+            console.log(`server listening on port ${PORT}`);
           });
-          console.log(`server listening on port ${PORT}`);
-        });
 
-        dir = await fs.mkdtemp(
-          path.resolve(os.tmpdir(), 'slack-builder-folder-'),
-        );
-      } finally {
-        if (dir) await fs.remove(dir);
+          dir = await fs.mkdtemp(
+            path.resolve(os.tmpdir(), 'slack-builder-folder-'),
+          );
+        } finally {
+          if (dir) await fs.remove(dir);
+        }
       }
     },
     postMake: async () => {
-      server.close();
-      console.log(`server closing`);
+      if (process.platform === 'win32') {
+        server.close();
+        console.log(`server closing`);
+      }
     },
   },
   packagerConfig: {
