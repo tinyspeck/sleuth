@@ -1,5 +1,4 @@
 import React from 'react';
-import { Card, Elevation } from '@blueprintjs/core';
 
 import { SelectableLogFile, UnzippedFile } from '../../interfaces';
 import { SleuthState } from '../state/sleuth';
@@ -16,6 +15,7 @@ import {
   getPoliciesAndDefaultsExternalConfig,
   getPoliciesAndDefaultsRootState,
 } from '../analytics/external-config-analytics';
+import { Card } from 'antd';
 
 export interface StateTableProps {
   state: SleuthState;
@@ -98,7 +98,7 @@ export class StateTable extends React.Component<
       type === StateType.installation || type === StateType.externalConfig ? (
         <div />
       ) : (
-        <Card> {content} </Card>
+        <Card>{content}</Card>
       );
     return (
       <div
@@ -155,7 +155,7 @@ export class StateTable extends React.Component<
 
   private renderSettingsInfo(): JSX.Element | null {
     return (
-      <Card className="StateTable-Info" elevation={Elevation.ONE}>
+      <Card className="StateTable-Info">
         {...getSettingsInfo(
           (this.state as StateTableState<StateType.settings>).data || {},
         )}
@@ -201,7 +201,7 @@ export class StateTable extends React.Component<
 
   private renderEnvironmentInfo(): JSX.Element | null {
     return (
-      <Card className="StateTable-Info" elevation={Elevation.ONE}>
+      <Card className="StateTable-Info">
         {...getEnvInfo(this.state.data || {})}
       </Card>
     );
@@ -209,7 +209,7 @@ export class StateTable extends React.Component<
 
   private renderLocalSettings(): JSX.Element | null {
     return (
-      <Card className="StateTable-Info" elevation={Elevation.ONE}>
+      <Card className="StateTable-Info">
         {...getLocalSettingsInfo(this.state.data || {})}
       </Card>
     );
@@ -237,7 +237,7 @@ export class StateTable extends React.Component<
         <div>
           <div id="externalConfigContainerTwo">
             <div id="comparisons">
-              <Card className="StateTable-Info" elevation={Elevation.ONE}>
+              <Card className="StateTable-Info">
                 <div id="externalConfigContainer">
                   <div className="fileDisplay">
                     <p className="fileHeaderStyle">
@@ -255,7 +255,7 @@ export class StateTable extends React.Component<
               </Card>
             </div>
             <div id="resultContainer">
-              <Card className="StateTable-Info" elevation={Elevation.ONE}>
+              <Card className="StateTable-Info">
                 <div id="matchDisplay">{message}</div>
               </Card>
             </div>
