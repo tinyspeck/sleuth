@@ -66,7 +66,7 @@ commands:
       - run:
           name: Build Packages with flags; << parameters.make_flags >>
           command: |
-            npx yarn@1.22.2 run publish --dry-run << parameters.make_flags >>
+            npx yarn@1.22.22 run publish --dry-run << parameters.make_flags >>
           no_output_timeout: 30m
       - store_artifacts:
           path: out/make
