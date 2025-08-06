@@ -1,0 +1,17 @@
+diff --git a/node_modules/@electron-forge/plugin-vite/src/Config.ts b/node_modules/@electron-forge/plugin-vite/src/Config.ts
+index 8aba1b9..c703e9d 100644
+--- a/node_modules/@electron-forge/plugin-vite/src/Config.ts
++++ b/node_modules/@electron-forge/plugin-vite/src/Config.ts
+@@ -1,10 +1,10 @@
+-import type { LibraryOptions } from 'vite';
++// import type { LibraryOptions } from 'vite';
+ 
+ export interface VitePluginBuildConfig {
+   /**
+    * Alias of `build.lib.entry` in `config`.
+    */
+-  entry: LibraryOptions['entry'];
++  entry: any;
+   /**
+    * Vite config file path.
+    */
