@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 
 import { SleuthState } from '../state/sleuth';
@@ -31,7 +31,7 @@ export interface SpotlightProps {
 export const Spotlight = observer((props: SpotlightProps): JSX.Element => {
   const { isSpotlightOpen, toggleSpotlight } = props.state;
 
-  const getItems: () => AutoCompleteOptions = useCallback(() => {
+  const items = useMemo(() => {
     const {
       openFile,
       processedLogFiles,
@@ -193,8 +193,8 @@ export const Spotlight = observer((props: SpotlightProps): JSX.Element => {
           setTimeout(() => el?.focus(), 0);
         }}
         style={{ width: '100%' }}
-        options={getItems()}
-        onSelect={(_, opt) => {
+        options={items}
+        onSelect={(_, opt: any) => {
           if (opt?.click) {
             toggleSpotlight();
             opt.click();
