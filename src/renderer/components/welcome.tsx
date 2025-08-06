@@ -18,6 +18,7 @@ import { getSleuth } from '../sleuth';
 import { SleuthState } from '../state/sleuth';
 import { isToday, isThisWeek } from 'date-fns';
 import { Suggestion, ValidSuggestion } from '../../interfaces';
+import { TraceGenerator } from './trace-generator';
 
 import classNames from 'classnames';
 
@@ -301,6 +302,10 @@ export class Welcome extends React.Component<
         ) : (
           <Spin className="welcome__spinner" />
         )}
+
+        <div className="welcome__trace-generator">
+          <TraceGenerator state={this.props.state} />
+        </div>
       </div>
     );
   }

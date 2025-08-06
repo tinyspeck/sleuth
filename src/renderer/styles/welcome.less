@@ -158,6 +158,48 @@
   }
 }
 
+.welcome__trace-generator {
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 0 20px;
+
+  .TraceGenerator {
+    margin-top: 20px;
+    
+    h3 {
+      margin-top: 0;
+    }
+    
+    h4 {
+      margin-top: 20px;
+    }
+    
+    .tracing-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 15px 0;
+      
+      .option-button {
+        width: 100%;
+        justify-content: left;
+      }
+    }
+    
+    .info-text {
+      margin-bottom: 10px;
+    }
+    
+    .code-example {
+      padding: 10px;
+      background-color: rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+      font-size: 12px;
+      overflow-x: auto;
+    }
+  }
+}
+
 @keyframes focus-in-contract-bck {
   0% {
     letter-spacing: 1em;

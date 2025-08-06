@@ -1,19 +1,21 @@
-import { isLogFile, isUnzippedFile } from '../../utils/is-logfile';
-import { ProcessedLogFile, LogType } from '../../interfaces';
-import { StateTable } from './state-table';
-import { SleuthState } from '../state/sleuth';
-import { LogTable } from './log-table';
-import { observer } from 'mobx-react';
 import React from 'react';
+import { observer } from 'mobx-react';
+import { TRACE_VIEWER } from './preferences/preferences-utils';
 
-import { LogLineDetails } from './log-line-details/details';
+import { isLogFile, isUnzippedFile } from '../../utils/is-logfile';
 import { Scrubber } from './scrubber';
 import { getFontForCSS } from './preferences/preferences-utils';
+import { LogTable } from './log-table';
+import { StateTable } from './state-table';
+import { SleuthState } from '../state/sleuth';
+import { ProcessedLogFile, LogType } from '../../interfaces';
 import { getTypeForFile } from '../../utils/get-file-types';
-import { NetLogView } from './net-log-view';
+import { LogLineDetails } from './log-line-details/details';
 import { LogTimeView } from './log-time-view';
+import { NetLogView } from './net-log-view';
 import { DevtoolsView } from './devtools-view';
-import { Navbar } from '@blueprintjs/core';
+import { PerfettoView } from './perfetto-view';
+import { Navbar, ButtonGroup, Button } from '@blueprintjs/core';
 import { Filter } from './app-core-header-filter';
 
 export interface LogContentProps {
@@ -22,6 +24,7 @@ export interface LogContentProps {
 
 export interface LogContentState {
   tableHeight?: number;
+  traceViewer: string; // Using TRACE_VIEWER.CHROME or TRACE_VIEWER.PERFETTO
 }
 
 @observer
@@ -34,14 +37,25 @@ export class LogContent extends React.Component<
 
     this.state = {
       tableHeight: 600,
+      traceViewer: props.state.defaultTraceViewer || TRACE_VIEWER.CHROME,
     };
 
     this.resizeHandler = this.resizeHandler.bind(this);
+    this.toggleTraceViewer = this.toggleTraceViewer.bind(this);
   }
 
   public resizeHandler(height: number) {
     if (height < 100 || height > window.innerHeight - 100) return;
     this.setState({ tableHeight: height });
+  }
+
+  public toggleTraceViewer() {
+    this.setState({
+      traceViewer:
+        this.state.traceViewer === TRACE_VIEWER.CHROME
+          ? TRACE_VIEWER.PERFETTO
+          : TRACE_VIEWER.CHROME,
+    });
   }
 
   public render(): JSX.Element | null {
@@ -105,7 +119,35 @@ export class LogContent extends React.Component<
       if (logType === LogType.NETLOG) {
         return <NetLogView file={selectedLogFile} state={this.props.state} />;
       } else if (logType === LogType.TRACE) {
-        return <DevtoolsView file={selectedLogFile} state={this.props.state} />;
+        return (
+          <div className="TraceViewContainer">
+            <Navbar className="TraceViewerSelector">
+              <ButtonGroup>
+                <Button
+                  active={this.state.traceViewer === TRACE_VIEWER.CHROME}
+                  onClick={() =>
+                    this.setState({ traceViewer: TRACE_VIEWER.CHROME })
+                  }
+                >
+                  Chrome DevTools
+                </Button>
+                <Button
+                  active={this.state.traceViewer === TRACE_VIEWER.PERFETTO}
+                  onClick={() =>
+                    this.setState({ traceViewer: TRACE_VIEWER.PERFETTO })
+                  }
+                >
+                  Perfetto
+                </Button>
+              </ButtonGroup>
+            </Navbar>
+            {this.state.traceViewer === TRACE_VIEWER.CHROME ? (
+              <DevtoolsView file={selectedLogFile} state={this.props.state} />
+            ) : (
+              <PerfettoView file={selectedLogFile} state={this.props.state} />
+            )}
+          </div>
+        );
       }
     }
 

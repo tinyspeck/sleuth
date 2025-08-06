@@ -400,3 +400,11 @@ export const EDITORS: Record<string, Editor> = {
     args: ['--goto', '{filepath}:{line}'],
   },
 };
+
+/**
+ * Supported trace viewers
+ */
+export const TRACE_VIEWER = {
+  CHROME: 'chrome',
+  PERFETTO: 'perfetto',
+} as const;

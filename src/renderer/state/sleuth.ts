@@ -33,6 +33,7 @@ import {
 import { rehydrateBookmarks, importBookmarks } from './bookmarks';
 import { copy } from './copy';
 import { ICON_NAMES } from '../../shared-constants';
+import { TRACE_VIEWER } from '../components/preferences/preferences-utils';
 import { setupTouchBarAutoruns } from './touchbar';
 import { TraceThreadDescription } from '../processor/trace';
 import { ColorTheme } from '../components/preferences/preferences';
@@ -91,6 +92,12 @@ export class SleuthState {
   @observable public prefersDarkColors = false;
   // ** Profiler **
   @observable public traceThreads?: Array<TraceThreadDescription>;
+
+  @observable
+  public zoomLevel = 1.0;
+
+  @observable
+  public defaultTraceViewer: string = TRACE_VIEWER.CHROME;
 
   // ** Settings **
   @observable public colorTheme = this.retrieve<ColorTheme>('colorTheme', {
