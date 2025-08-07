@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { Button, List, Result, Spin, Tooltip, Typography } from 'antd';
 import {
@@ -35,48 +35,27 @@ const iconStyle = {
   fontSize: 36,
 };
 
-@observer
-export class Welcome extends React.Component<
-  WelcomeProps,
-  Partial<WelcomeState>
-> {
-  constructor(props: WelcomeProps) {
-    super(props);
+export const Welcome = observer((props: WelcomeProps) => {
+  const [sleuth, setSleuth] = useState<string>(props.sleuth || getSleuth());
+  const [downloadsDir, setDownloadsDir] = useState<string | undefined>();
 
-    this.state = {
-      sleuth: props.sleuth || getSleuth(),
-    };
-  }
+  const deleteSuggestion = useCallback(
+    async (filePath: string) => {
+      await window.Sleuth.deleteSuggestion(filePath);
+      await props.state.getSuggestions();
+    },
+    [props.state],
+  );
 
-  private unmountListener: () => void;
+  const deleteSuggestions = useCallback(
+    async (filePaths: string[]) => {
+      await window.Sleuth.deleteSuggestions(filePaths);
+      await props.state.getSuggestions();
+    },
+    [props.state],
+  );
 
-  public async componentDidMount() {
-    this.setState({
-      downloadsDir: await window.Sleuth.getPath('downloads'),
-    });
-
-    this.unmountListener = window.Sleuth.setupSuggestionsUpdated(
-      async (_event, suggestions: Suggestion[]) => {
-        await this.props.state.getSuggestions(suggestions);
-      },
-    );
-  }
-
-  public componentWillUnmount(): void {
-    this.unmountListener();
-  }
-
-  public async deleteSuggestion(filePath: string) {
-    await window.Sleuth.deleteSuggestion(filePath);
-    await this.props.state.getSuggestions();
-  }
-
-  public async deleteSuggestions(filePaths: string[]) {
-    await window.Sleuth.deleteSuggestions(filePaths);
-    await this.props.state.getSuggestions();
-  }
-
-  private logFileDescription(item: ValidSuggestion): React.ReactNode {
+  const logFileDescription = (item: ValidSuggestion): React.ReactNode => {
     let appVersionToUse = item.appVersion;
     if (item.platform === 'android') {
       appVersionToUse = appVersionToUse.split('.', 3).join('.');
@@ -94,8 +73,8 @@ export class Welcome extends React.Component<
     if (item.platform !== 'unknown') {
       return (
         <>
-          {this.prettyPlatform(item.platform)} logs from {appVersionElem},{' '}
-          {item.age} old
+          {prettyPlatform(item.platform)} logs from {appVersionElem}, {item.age}{' '}
+          old
         </>
       );
     }
@@ -109,9 +88,9 @@ export class Welcome extends React.Component<
     }
 
     return `Unknown logs, ${item.age} old`;
-  }
+  };
 
-  private prettyPlatform = (platform: string) => {
+  const prettyPlatform = (platform: string) => {
     switch (platform) {
       case 'win32':
         return 'Windows';
@@ -128,7 +107,7 @@ export class Welcome extends React.Component<
     }
   };
 
-  private platformIcon = (platform: string) => {
+  const platformIcon = (platform: string) => {
     switch (platform) {
       case 'win32':
         return <WindowsFilled style={iconStyle} />;
@@ -145,12 +124,31 @@ export class Welcome extends React.Component<
     }
   };
 
-  public renderSuggestions(): JSX.Element | null {
+  const renderDeleteStale = (staleFiles: Suggestion[]): JSX.Element | null => {
+    if (staleFiles.length > 0) {
+      const stalePaths = staleFiles.map((f) => f.filePath);
+      return (
+        <Button
+          className="welcome__delete-stale"
+          type="primary"
+          danger={true}
+          icon={<DeleteOutlined />}
+          onClick={() => deleteSuggestions(stalePaths)}
+        >
+          Delete stale logs
+        </Button>
+      );
+    }
+
+    return null;
+  };
+
+  const renderSuggestions = (): JSX.Element | null => {
     const today: Suggestion[] = [];
     const thisWeek: Suggestion[] = [];
     const stale: Suggestion[] = [];
 
-    const { suggestions } = this.props.state;
+    const { suggestions } = props.state;
 
     for (const item of suggestions) {
       if (isToday(item.mtimeMs)) {
@@ -170,12 +168,12 @@ export class Welcome extends React.Component<
           renderItem={(item) => {
             const openItem = (e: React.MouseEvent) => {
               e.preventDefault();
-
-              this.props.state.openFile(item.filePath);
+              props.state.openFile(item.filePath);
             };
+
             const deleteItem = (e: React.MouseEvent) => {
               e.stopPropagation();
-              this.deleteSuggestion(item.filePath);
+              deleteSuggestion(item.filePath);
             };
 
             return (
@@ -205,9 +203,9 @@ export class Welcome extends React.Component<
                   />
                 ) : (
                   <List.Item.Meta
-                    avatar={this.platformIcon(item.platform)}
+                    avatar={platformIcon(item.platform)}
                     title={<span>{item.filePath.split('/').pop()}</span>}
-                    description={this.logFileDescription(item)}
+                    description={logFileDescription(item)}
                   />
                 )}
               </List.Item>
@@ -239,69 +237,64 @@ export class Welcome extends React.Component<
               {list(stale)}
             </>
           )}
-          {this.renderDeleteStale(stale)}
+          {renderDeleteStale(stale)}
         </div>
       );
     }
 
     return null;
-  }
+  };
 
-  public renderDeleteStale(staleFiles: Suggestion[]): JSX.Element | null {
-    if (staleFiles.length > 0) {
-      const stalePaths = staleFiles.map((f) => f.filePath);
-      return (
-        <Button
-          className="welcome__delete-stale"
-          type="primary"
-          danger={true}
-          icon={<DeleteOutlined />}
-          onClick={() => this.deleteSuggestions(stalePaths)}
-        >
-          Delete stale logs
-        </Button>
-      );
-    }
+  useEffect(() => {
+    const getDownloadsPath = async () => {
+      setDownloadsDir(await window.Sleuth.getPath('downloads'));
+    };
 
-    return null;
-  }
+    getDownloadsPath();
 
-  public render() {
-    const { sleuth } = this.state;
-
-    const suggestions = this.renderSuggestions();
-
-    return (
-      <div className="welcome css-var-">
-        <div>
-          <Typography.Title level={1} className="welcome__title">
-            <span className="welcome__title-emoji">{sleuth}</span> Sleuth
-          </Typography.Title>
-        </div>
-
-        {suggestions ? (
-          <div className="welcome__suggestion-container">
-            <div className="welcome__suggestion-drag-and-drop-reminder">
-              (or drag and drop logs)
-            </div>
-            <div className="welcome__downloads-dir">
-              Open from <code>{this.state.downloadsDir}</code>
-            </div>
-            {suggestions}
-          </div>
-        ) : this.props.state.suggestionsLoaded ? (
-          <div className="welcome__drag-and-drop">
-            <Result
-              icon={<FolderOpenTwoTone />}
-              title="You have no log bundles in your Downloads folder"
-              subTitle="
-            Drag and drop a ZIP archive or folder anywhere on this window"
-            />
-          </div>
-        ) : (
-          <Spin className="welcome__spinner" />
-        )}
-      </div>
+    const unmountListener = window.Sleuth.setupSuggestionsUpdated(
+      async (_event, suggestions: Suggestion[]) => {
+        await props.state.getSuggestions(suggestions);
+      },
     );
-  }
-}
+
+    return () => {
+      unmountListener();
+    };
+  }, [props.state]);
+
+  const suggestions = renderSuggestions();
+
+  return (
+    <div className="welcome css-var-">
+      <div>
+        <Typography.Title level={1} className="welcome__title">
+          <span className="welcome__title-emoji">{sleuth}</span> Sleuth
+        </Typography.Title>
+      </div>
+
+      {suggestions ? (
+        <div className="welcome__suggestion-container">
+          <div className="welcome__suggestion-drag-and-drop-reminder">
+            (or drag and drop logs)
+          </div>
+          <div className="welcome__downloads-dir">
+            Open from <code>{downloadsDir}</code>
+          </div>
+          {suggestions}
+        </div>
+      ) : props.state.suggestionsLoaded ? (
+        <div className="welcome__drag-and-drop">
+          <Result
+            icon={<FolderOpenTwoTone />}
+            title="You have no log bundles in your Downloads folder"
+            subTitle="
+          Drag and drop a ZIP archive or folder anywhere on this window"
+          />
+        </div>
+      ) : (
+        <Spin className="welcome__spinner" />
+      )}
+    </div>
+  );
+});

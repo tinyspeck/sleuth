@@ -4,7 +4,7 @@ import { StateTable } from './state-table';
 import { SleuthState } from '../state/sleuth';
 import { LogTable } from './log-table';
 import { observer } from 'mobx-react';
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 
 import { LogLineDetails } from './log-line-details/details';
 import { Scrubber } from './scrubber';
@@ -23,91 +23,75 @@ export interface LogContentState {
   tableHeight?: number;
 }
 
-@observer
-export class LogContent extends React.Component<
-  LogContentProps,
-  LogContentState
-> {
-  constructor(props: LogContentProps) {
-    super(props);
+export const LogContent = observer((props: LogContentProps) => {
+  const [tableHeight, setTableHeight] = useState<number>(600);
 
-    this.state = {
-      tableHeight: 600,
-    };
-
-    this.resizeHandler = this.resizeHandler.bind(this);
-  }
-
-  public resizeHandler(height: number) {
+  const resizeHandler = useCallback((height: number) => {
     if (height < 100 || height > window.innerHeight - 100) return;
-    this.setState({ tableHeight: height });
-  }
+    setTableHeight(height);
+  }, []);
 
-  public render(): JSX.Element | null {
-    const {
-      selectedLogFile,
-      levelFilter,
-      search,
-      dateTimeFormat_v3: dateTimeFormat,
-      font,
-      showOnlySearchResults,
-      searchIndex,
-      searchList,
-      dateRange,
-      selectedEntry,
-    } = this.props.state;
+  const {
+    selectedLogFile,
+    levelFilter,
+    search,
+    dateTimeFormat_v3: dateTimeFormat,
+    font,
+    showOnlySearchResults,
+    searchIndex,
+    searchList,
+    dateRange,
+    selectedEntry,
+  } = props.state;
 
-    if (!selectedLogFile) return null;
-    const isLog = isLogFile(selectedLogFile);
-    const scrubber = (
-      <Scrubber
-        elementSelector="LogTableContainer"
-        onResizeHandler={this.resizeHandler}
-      />
-    );
+  if (!selectedLogFile) return null;
 
-    // In most cases, we're dealing with a log file
-    if (isLog) {
-      return (
-        <div className="LogContent" style={{ fontFamily: getFontForCSS(font) }}>
-          <div className="AppHeader">
-            <Filter state={this.props.state} />
-          </div>
-          <div
-            id="LogTableContainer"
-            style={{ height: this.state.tableHeight }}
-          >
-            <LogTable
-              state={this.props.state}
-              dateTimeFormat={dateTimeFormat}
-              logFile={selectedLogFile as ProcessedLogFile}
-              levelFilter={levelFilter}
-              search={search}
-              searchIndex={searchIndex}
-              searchList={searchList}
-              showOnlySearchResults={showOnlySearchResults}
-              dateRange={dateRange}
-              selectedEntry={selectedEntry}
-            />
-          </div>
-          {scrubber}
-          <LogLineDetails state={this.props.state} />
-          <LogTimeView state={this.props.state} />
+  const isLog = isLogFile(selectedLogFile);
+  const scrubber = (
+    <Scrubber
+      elementSelector="LogTableContainer"
+      onResizeHandler={resizeHandler}
+    />
+  );
+
+  // In most cases, we're dealing with a log file
+  if (isLog) {
+    return (
+      <div className="LogContent" style={{ fontFamily: getFontForCSS(font) }}>
+        <div className="AppHeader">
+          <Filter state={props.state} />
         </div>
-      );
-    }
-
-    // If we're not a log file, we're probably a state file
-    if (isUnzippedFile(selectedLogFile)) {
-      const logType = getTypeForFile(selectedLogFile);
-
-      if (logType === LogType.NETLOG) {
-        return <NetLogView file={selectedLogFile} state={this.props.state} />;
-      } else if (logType === LogType.TRACE) {
-        return <DevtoolsView file={selectedLogFile} state={this.props.state} />;
-      }
-    }
-
-    return <StateTable state={this.props.state} />;
+        <div id="LogTableContainer" style={{ height: tableHeight }}>
+          <LogTable
+            state={props.state}
+            dateTimeFormat={dateTimeFormat}
+            logFile={selectedLogFile as ProcessedLogFile}
+            levelFilter={levelFilter}
+            search={search}
+            searchIndex={searchIndex}
+            searchList={searchList}
+            showOnlySearchResults={showOnlySearchResults}
+            dateRange={dateRange}
+            selectedEntry={selectedEntry}
+          />
+        </div>
+        {scrubber}
+        <LogLineDetails state={props.state} />
+        <LogTimeView state={props.state} />
+      </div>
+    );
   }
-}
+
+  // If we're not a log file, we're probably a state file
+  if (isUnzippedFile(selectedLogFile)) {
+    const logType = getTypeForFile(selectedLogFile);
+
+    if (logType === LogType.NETLOG) {
+      return <NetLogView file={selectedLogFile} state={props.state} />;
+    } else if (logType === LogType.TRACE) {
+      return <DevtoolsView file={selectedLogFile} state={props.state} />;
+    }
+  }
+
+  return <StateTable state={props.state} />;
+});

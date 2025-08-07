@@ -1,5 +1,6 @@
 import React from 'react';
 import { Progress } from 'antd';
+import { observer } from 'mobx-react';
 
 export interface LoadingProps {
   percentage?: number;
@@ -12,7 +13,7 @@ export interface LoadingProps {
  * @param {LoadingProps} props
  * @returns {JSX.Element}
  */
-export const Loading = (props: LoadingProps) => {
+export const Loading = observer((props: LoadingProps) => {
   const { percentage, message } = props;
 
   return (
@@ -22,4 +23,4 @@ export const Loading = (props: LoadingProps) => {
       <p>{message}</p>
     </div>
   );
-};
+});

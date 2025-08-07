@@ -12,38 +12,32 @@ export interface JSONViewProps {
   data?: unknown;
 }
 
-export interface JSONViewState {
-  data?: unknown;
-}
+export const JSONView = observer((props: JSONViewProps) => {
+  const { state, raw, data: propsData } = props;
+  const data = propsData || parseJSON(raw || '');
+  const isDarkMode = state.prefersDarkColors;
 
-@observer
-export class JSONView extends React.Component<JSONViewProps, JSONViewState> {
-  public render() {
-    const data = this.props.data || parseJSON(this.props.raw || '');
-    const isDarkMode = this.props.state.prefersDarkColors;
+  if (data && Object.keys(data as object).length > 0) {
+    const theme = getTheme(isDarkMode);
 
-    if (data && Object.keys(data).length > 0) {
-      const theme = getTheme(isDarkMode);
-
-      return (
-        <div className="Monospace">
-          <JSONTree
-            invertTheme={!isDarkMode}
-            data={data}
-            theme={theme}
-            hideRoot={true}
-            shouldExpandNodeInitially={() => true}
-          />
-        </div>
-      );
-    } else if (this.props.raw) {
-      return (
-        <div className="Monospace">
-          <code>{this.props.raw}</code>
-        </div>
-      );
-    } else {
-      return <p>This file is empty and contains no data.</p>;
-    }
+    return (
+      <div className="Monospace">
+        <JSONTree
+          invertTheme={!isDarkMode}
+          data={data}
+          theme={theme}
+          hideRoot={true}
+          shouldExpandNodeInitially={() => true}
+        />
+      </div>
+    );
+  } else if (raw) {
+    return (
+      <div className="Monospace">
+        <code>{raw}</code>
+      </div>
+    );
+  } else {
+    return <p>This file is empty and contains no data.</p>;
   }
-}
+});
