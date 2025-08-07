@@ -1,9 +1,9 @@
 import React, { ReactElement } from 'react';
 import { JSONView } from '../json-view';
-import { AnchorButton } from '@blueprintjs/core';
 import debug from 'debug';
 import { SleuthState } from '../../state/sleuth';
 import { LogEntry } from '../../../interfaces';
+import { Button } from 'antd';
 
 const d = debug('sleuth:data');
 
@@ -80,9 +80,9 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, object> {
 
     return (
       <div className="LogLineData">
-        <AnchorButton href={str} icon="search">
+        <Button href={str} icon="search">
           Search the log in the Chromium source
-        </AnchorButton>
+        </Button>
       </div>
     );
   }
