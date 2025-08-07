@@ -19,10 +19,6 @@ export interface LogContentProps {
   state: SleuthState;
 }
 
-export interface LogContentState {
-  tableHeight?: number;
-}
-
 export const LogContent = observer((props: LogContentProps) => {
   const [tableHeight, setTableHeight] = useState<number>(600);
 

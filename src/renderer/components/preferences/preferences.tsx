@@ -35,10 +35,6 @@ export enum ColorTheme {
   System = 'system',
 }
 
-export interface PreferencesState {
-  isOpen: boolean;
-}
-
 export interface PreferencesProps {
   state: SleuthState;
 }

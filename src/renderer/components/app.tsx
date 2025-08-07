@@ -14,11 +14,6 @@ import { getWindowTitle } from '../../utils/get-window-title';
 import { IpcEvents } from '../../ipc-events';
 import { observer } from 'mobx-react';
 
-export interface AppState {
-  unzippedFiles: UnzippedFiles;
-  openEmpty?: boolean;
-}
-
 export const App = observer(() => {
   const [unzippedFiles, setUnzippedFiles] = useState<UnzippedFiles>([]);
   const [openEmpty, setOpenEmpty] = useState<boolean | undefined>();

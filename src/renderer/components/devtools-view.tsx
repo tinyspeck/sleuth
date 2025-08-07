@@ -14,18 +14,13 @@ import {
 import { SleuthState } from '../state/sleuth';
 import { autorun, IReactionDisposer } from 'mobx';
 import { UnzippedFile } from '../../interfaces';
-import { TraceThreadDescription, TraceProcessor } from '../processor/trace';
+import { TraceProcessor } from '../processor/trace';
 import debug from 'debug';
 import { AreaChartOutlined } from '@ant-design/icons';
 
 export interface DevtoolsViewProps {
   state: SleuthState;
   file: UnzippedFile;
-}
-
-export interface DevtoolsViewState {
-  profilePid?: number;
-  profileType?: TraceThreadDescription['type'];
 }
 
 const d = debug('sleuth:devtoolsview');

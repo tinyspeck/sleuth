@@ -21,11 +21,6 @@ import { Suggestion, ValidSuggestion } from '../../interfaces';
 
 import classNames from 'classnames';
 
-export interface WelcomeState {
-  sleuth: string;
-  downloadsDir?: string;
-}
-
 export interface WelcomeProps {
   sleuth?: string;
   state: SleuthState;
@@ -36,7 +31,7 @@ const iconStyle = {
 };
 
 export const Welcome = observer((props: WelcomeProps) => {
-  const [sleuth, setSleuth] = useState<string>(props.sleuth || getSleuth());
+  const sleuth = props.sleuth || getSleuth();
   const [downloadsDir, setDownloadsDir] = useState<string | undefined>();
 
   const deleteSuggestion = useCallback(
