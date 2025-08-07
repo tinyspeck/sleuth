@@ -79,32 +79,32 @@ export class DevtoolsView extends React.Component<
                 key: '1',
                 label: 'Duration',
                 children: (
-                  <p>
+                  <span>
                     {duration
                       ? Math.floor(duration / 1000).toString()
                       : 'unknown'}{' '}
                     seconds
-                  </p>
+                  </span>
                 ),
               },
               {
                 key: '2',
                 label: 'Trace started',
                 children: (
-                  <p>
+                  <span>
                     {startTime
                       ? new Date(startTime).toLocaleString()
                       : 'unknown'}
-                  </p>
+                  </span>
                 ),
               },
               {
                 key: '3',
                 label: 'Trace ended',
                 children: (
-                  <p>
+                  <span>
                     {endTime ? new Date(endTime).toLocaleString() : 'unknown'}
-                  </p>
+                  </span>
                 ),
               },
             ]}
