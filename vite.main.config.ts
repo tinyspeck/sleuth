@@ -1,4 +1,4 @@
-import { defineConfig, UserConfig } from 'vite';
+import { defineConfig, loadEnv, UserConfig } from 'vite';
 import copy from 'rollup-plugin-copy';
 
 import path from 'node:path';
@@ -44,6 +44,11 @@ const gitSubmodules = hasSubmodules
 const config: UserConfig = {
   build: {
     copyPublicDir: false,
+    rollupOptions: {
+      output: {
+        sourcemap: process.env.NODE_ENV === 'development',
+      },
+    },
   },
   plugins: [
     copy({
