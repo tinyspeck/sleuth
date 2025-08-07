@@ -3731,10 +3731,10 @@ detect-node@^2.0.4:
   resolved "https://registry.yarnpkg.com/detect-node/-/detect-node-2.0.4.tgz#014ee8f8f669c5c58023da64b8179c083a28c46c"
   integrity sha512-ZIzRpLJrOj7jjP2miAtgqIfmzbxa4ZOr5jJc601zklsfEx9oTzmmj2nVpIPRpNlRTIh8lc1kyViIY7BWSGNmKw==
 
-devtools-frontend-prebuilt@1.2.0-beta2:
-  version "1.2.0-beta2"
-  resolved "https://registry.yarnpkg.com/devtools-frontend-prebuilt/-/devtools-frontend-prebuilt-1.2.0-beta2.tgz#0fc8d562e8ccf3ed8432af941202695521165517"
-  integrity sha512-6IhsUiwcYI7lRmuslHH7JCEpm9kcZHFH5fXAHK+oxJ2gxHJfN5K/MTE9bvHrwJF3MquyxBMeWQX1K4ZKysMVIw==
+devtools-frontend-prebuilt@1.2.0-beta3:
+  version "1.2.0-beta3"
+  resolved "https://registry.yarnpkg.com/devtools-frontend-prebuilt/-/devtools-frontend-prebuilt-1.2.0-beta3.tgz#791739db8253cc3185025b98055c40f1b8a444c7"
+  integrity sha512-JoYinRwkbElqYf/jN/PFFcR4iD4GOnIyHonLIh2Y7LzlJpR3CTkMMQ5oG80NngCeIMu8hKVVlH2tlkUmQFcRpQ==
 
 diff@^4.0.1:
   version "4.0.2"
