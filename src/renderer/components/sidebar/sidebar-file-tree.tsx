@@ -41,6 +41,7 @@ import { levelsHave } from '../../../utils/level-counts';
 import { countExcessiveRepeats } from '../../../utils/count-excessive-repeats';
 import { plural } from '../../../utils/pluralize';
 import { getTraceWarnings } from '../../analytics/trace-analytics';
+import { TRACE_VIEWER } from '../preferences/preferences-utils';
 
 interface SidebarFileTreeProps {
   state: SleuthState;
@@ -98,12 +99,18 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
           icon: <SlidersOutlined />,
           selectable: false,
           title: <Typography.Text strong>Trace</Typography.Text>,
-          children: await Promise.all(
-            processedLogFiles.trace.map(async (file) => {
-              filesMap.set(file.id, file);
-              return await getStateFileNode(file);
-            }),
-          ),
+          children: [
+            {
+              key: 'chrome-devtools',
+              icon: <ChromeOutlined />,
+              title: 'Chrome DevTools',
+            },
+            {
+              key: 'perfetto',
+              icon: <PictureOutlined />,
+              title: 'Perfetto',
+            },
+          ],
         },
         {
           key: LogType.CHROMIUM,
@@ -181,6 +188,14 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     (selectedKeys: string[]) => {
       // only one node can be selected at atime
       const selected = selectedKeys[0];
+
+      if (selected === 'chrome-devtools') {
+        props.state.openTraceViewer(TRACE_VIEWER.CHROME);
+        return;
+      } else if (selected === 'perfetto') {
+        props.state.openTraceViewer(TRACE_VIEWER.PERFETTO);
+        return;
+      }
 
       if (Object.values(LogType).includes(selected as SelectableLogType)) {
         props.state.selectLogFile(null, selected as SelectableLogType);

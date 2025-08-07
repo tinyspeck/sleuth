@@ -41,21 +41,11 @@ export class LogContent extends React.Component<
     };
 
     this.resizeHandler = this.resizeHandler.bind(this);
-    this.toggleTraceViewer = this.toggleTraceViewer.bind(this);
   }
 
   public resizeHandler(height: number) {
     if (height < 100 || height > window.innerHeight - 100) return;
     this.setState({ tableHeight: height });
-  }
-
-  public toggleTraceViewer() {
-    this.setState({
-      traceViewer:
-        this.state.traceViewer === TRACE_VIEWER.CHROME
-          ? TRACE_VIEWER.PERFETTO
-          : TRACE_VIEWER.CHROME,
-    });
   }
 
   public render(): JSX.Element | null {
@@ -119,29 +109,13 @@ export class LogContent extends React.Component<
       if (logType === LogType.NETLOG) {
         return <NetLogView file={selectedLogFile} state={this.props.state} />;
       } else if (logType === LogType.TRACE) {
+        // Use defaultTraceViewer from props instead of local state
+        const traceViewer =
+          this.props.state.defaultTraceViewer || TRACE_VIEWER.CHROME;
+
         return (
           <div className="TraceViewContainer">
-            <Navbar className="TraceViewerSelector">
-              <ButtonGroup>
-                <Button
-                  active={this.state.traceViewer === TRACE_VIEWER.CHROME}
-                  onClick={() =>
-                    this.setState({ traceViewer: TRACE_VIEWER.CHROME })
-                  }
-                >
-                  Chrome DevTools
-                </Button>
-                <Button
-                  active={this.state.traceViewer === TRACE_VIEWER.PERFETTO}
-                  onClick={() =>
-                    this.setState({ traceViewer: TRACE_VIEWER.PERFETTO })
-                  }
-                >
-                  Perfetto
-                </Button>
-              </ButtonGroup>
-            </Navbar>
-            {this.state.traceViewer === TRACE_VIEWER.CHROME ? (
+            {traceViewer === TRACE_VIEWER.CHROME ? (
               <DevtoolsView file={selectedLogFile} state={this.props.state} />
             ) : (
               <PerfettoView file={selectedLogFile} state={this.props.state} />
