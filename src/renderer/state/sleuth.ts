@@ -94,9 +94,6 @@ export class SleuthState {
   @observable public traceThreads?: Array<TraceThreadDescription>;
 
   @observable
-  public zoomLevel = 1.0;
-
-  @observable
   public defaultTraceViewer: string = TRACE_VIEWER.CHROME;
 
   // ** Settings **
