@@ -17,8 +17,11 @@ export interface PerfettoViewProps {
 @observer
 export class PerfettoView extends React.Component<PerfettoViewProps> {
   render() {
-    // ?embedding=true tells Perfetto this is an embedded instance
-    const perfettoUrl = `${PERFETTO_UI_URL}?embedding=true`;
+    // URL parameters for Perfetto UI
+    // embedding=true tells Perfetto this is an embedded instance
+    // theme=light forces light mode regardless of system preferences
+    // note that dark mode looks very not good
+    const perfettoUrl = `${PERFETTO_UI_URL}?embedding=true&theme=light`;
 
     return (
       <div className="PerfettoView">
