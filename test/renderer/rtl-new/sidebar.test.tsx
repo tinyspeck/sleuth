@@ -1,10 +1,39 @@
 import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { Sidebar } from '../../../src/renderer/components/sidebar/sidebar';
 import { render, screen } from '@testing-library/react';
 import { SleuthState } from '../../../src/renderer/state/sleuth';
 import { ProcessedLogFile, LogType } from '../../../src/interfaces';
 import { fakeUnzippedFile } from '../../../__mocks__/unzipped-file';
+
+vi.mock(
+  '../../../src/renderer/components/preferences/preferences-utils',
+  () => {
+    return {
+      FONTS: ['Arial'],
+      WINDOWS_FONTS: ['Arial'],
+      MACOS_FONTS: ['Arial'],
+      THEMES: {
+        DARK: 'dark',
+        LIGHT: 'light',
+        AUTO: 'auto',
+      },
+      TRACE_VIEWER: {
+        CHROME: 'chrome',
+        PERFETTO: 'perfetto',
+      },
+      DATE_TIME_FORMATS: ['HH:mm:ss (dd/MM)'],
+      EDITORS: {
+        VSCODE: {
+          name: 'VSCode',
+          cmd: 'code',
+          args: ['--goto', '{filepath}:{line}'],
+        },
+      },
+      getFontForCSS: () => 'Arial',
+    };
+  },
+);
 
 const fakeFile1: ProcessedLogFile = {
   repeatedCounts: {},
