@@ -33,6 +33,7 @@ import {
 import { rehydrateBookmarks, importBookmarks } from './bookmarks';
 import { copy } from './copy';
 import { ICON_NAMES } from '../../shared-constants';
+import { TRACE_VIEWER } from '../components/preferences/preferences-utils';
 import { setupTouchBarAutoruns } from './touchbar';
 import { TraceThreadDescription } from '../processor/trace';
 import { ColorTheme } from '../components/preferences/preferences';
@@ -91,6 +92,9 @@ export class SleuthState {
   @observable public prefersDarkColors = false;
   // ** Profiler **
   @observable public traceThreads?: Array<TraceThreadDescription>;
+
+  @observable
+  public defaultTraceViewer: string = TRACE_VIEWER.CHROME;
 
   // ** Settings **
   @observable public colorTheme = this.retrieve<ColorTheme>('colorTheme', {
@@ -357,6 +361,27 @@ export class SleuthState {
 
     // Recalculate bookmarks
     rehydrateBookmarks(this);
+  }
+
+  /**
+   * Open a trace viewer by setting active file and viewer type
+   *
+   * @param {string} viewerType - Either TRACE_VIEWER.CHROME or TRACE_VIEWER.PERFETTO
+   */
+  @action
+  public openTraceViewer(viewerType: string): void {
+    d(`Opening trace viewer: ${viewerType}`);
+
+    this.defaultTraceViewer = viewerType;
+
+    if (!this.processedLogFiles?.trace?.length) {
+      return;
+    }
+
+    const firstTraceFile = this.processedLogFiles?.trace[0];
+    if (firstTraceFile) {
+      this.selectLogFile(firstTraceFile);
+    }
   }
 
   /**
