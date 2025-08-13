@@ -169,15 +169,6 @@ export class SleuthState {
       );
       this.prefersDarkColors = prefersDarkColors;
     });
-    autorun(async () => {
-      // handles BlueprintJS color theming
-      // antd theming is handled by querying `this.prefersDarkColors` within app.tsx
-      if (this.prefersDarkColors) {
-        document.body.classList.add('bp4-dark');
-      } else {
-        document.body.classList.remove('bp4-dark');
-      }
-    });
     autorun(() => {
       if (this.isSidebarOpen) {
         document.body.classList.add('SidebarOpen');

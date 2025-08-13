@@ -3,4 +3,4 @@ out
 coverage
 .DS_Store
 .vite
-catapult
+/catapult

@@ -1,8 +1,5 @@
-import React from 'react';
-import autoBind from 'react-autobind';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
-import { Omnibar, ItemRenderer, ItemPredicate } from '@blueprintjs/select';
-import { IconName, MenuItem } from '@blueprintjs/core';
 
 import { SleuthState } from '../state/sleuth';
 import {
@@ -12,102 +9,60 @@ import {
   ValidSuggestion,
 } from '../../interfaces';
 import { isProcessedLogFile } from '../../utils/is-logfile';
-import { highlightText } from '../../utils/highlight-text';
+import { AutoComplete, Flex, Input, Modal, Space, Typography } from 'antd';
+import {
+  FileTextOutlined,
+  FileZipOutlined,
+  FolderAddOutlined,
+  FolderOpenOutlined,
+  HomeOutlined,
+  MacCommandOutlined,
+  MenuOutlined,
+  PoweroffOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
 
-interface SpotlightItem {
-  text: string;
-  icon?: IconName;
-  label?: string;
-  click: () => void;
-}
-const SleuthOmnibar = Omnibar.ofType<SpotlightItem>();
-
-export const renderItem: ItemRenderer<SpotlightItem> = (
-  { text, label, icon },
-  { handleClick, modifiers, query },
-) => {
-  if (!modifiers.matchesPredicate) {
-    return null;
-  }
-
-  return (
-    <MenuItem
-      active={modifiers.active}
-      disabled={modifiers.disabled}
-      text={highlightText(text, query)}
-      key={text}
-      onClick={handleClick}
-      label={label || ''}
-      icon={icon}
-    />
-  );
-};
-
-export const filterItem: ItemPredicate<SpotlightItem> = (query, item) => {
-  return item.text.toLowerCase().includes(query.toLowerCase());
-};
-
-export interface SpotlightState {
-  isOpen: boolean;
-}
+type AutoCompleteOptions = React.ComponentProps<typeof AutoComplete>['options'];
 
 export interface SpotlightProps {
   state: SleuthState;
 }
 
-@observer
-export class Spotlight extends React.Component<
-  SpotlightProps,
-  Partial<SpotlightState>
-> {
-  constructor(props: SpotlightProps) {
-    super(props);
+export const Spotlight = observer((props: SpotlightProps): JSX.Element => {
+  const { isSpotlightOpen, toggleSpotlight } = props.state;
 
-    this.state = {};
-    autoBind(this);
-  }
-
-  public render(): JSX.Element {
-    const { isSpotlightOpen } = this.props.state;
-    return (
-      <SleuthOmnibar
-        isOpen={isSpotlightOpen}
-        noResults={<MenuItem disabled={true} text="No results." />}
-        onClose={this.props.state.toggleSpotlight}
-        items={this.getItems()}
-        itemRenderer={renderItem}
-        onItemSelect={this.onItemSelect}
-        itemPredicate={filterItem}
-        resetOnSelect={true}
-      />
-    );
-  }
-
-  private onItemSelect(item: SpotlightItem) {
-    if (item && item.click) {
-      item.click();
-      this.props.state.toggleSpotlight();
-    }
-  }
-
-  private getItems(): Array<SpotlightItem> {
-    const { suggestions } = this.props.state;
-    const { processedLogFiles } = this.props.state;
-
-    const spotSuggestions: Array<SpotlightItem> = suggestions
+  const items = useMemo(() => {
+    const {
+      openFile,
+      processedLogFiles,
+      reset,
+      selectLogFile,
+      suggestions,
+      toggleSidebar,
+    } = props.state;
+    const spotSuggestions: AutoCompleteOptions = suggestions
       .filter((s) => !('error' in s))
       .map((s: ValidSuggestion) => ({
-        text: s.filePath.split(/[/\\]/).pop() || '',
-        label: `${s.age} old`,
-        icon: s.filePath.endsWith('zip')
-          ? ('compressed' as const)
-          : ('folder-open' as const),
+        label: (
+          <Flex justify="space-between">
+            <Space>
+              {s.filePath.endsWith('zip') ? (
+                <FileZipOutlined />
+              ) : (
+                <FolderOpenOutlined />
+              )}
+              <span>{s.filePath.split(/[/\\]/).pop() || ''}</span>
+            </Space>
+            <Typography.Text type="secondary">{s.age} old</Typography.Text>
+          </Flex>
+        ),
+        value: s.filePath.split(/[/\\]/).pop() || '',
         click: () => {
-          this.props.state.openFile(s.filePath);
+          openFile(s.filePath);
         },
       }));
 
-    const logFileSuggestions: Array<SpotlightItem> = [];
+    const logFileSuggestions: AutoCompleteOptions = [];
 
     if (processedLogFiles) {
       Object.keys(processedLogFiles).forEach((key: keyof ProcessedLogFiles) => {
@@ -116,20 +71,38 @@ export class Spotlight extends React.Component<
         keyFiles.forEach((logFile) => {
           if (isProcessedLogFile(logFile)) {
             logFileSuggestions.push({
-              text: logFile.logFile.fileName,
-              label: `${logFile.logEntries.length} entries`,
-              icon: 'document' as const,
+              label: (
+                <Flex justify="space-between">
+                  <Space>
+                    <FileTextOutlined />
+                    <Typography.Text>
+                      {logFile.logFile.fileName}
+                    </Typography.Text>
+                  </Space>
+                  <Typography.Text type="secondary">
+                    {logFile.logEntries.length} entries
+                  </Typography.Text>
+                </Flex>
+              ),
+              value: logFile.logFile.fileName,
               click: () => {
-                this.props.state.selectLogFile(logFile);
+                selectLogFile(logFile);
               },
             });
           } else {
             logFileSuggestions.push({
-              text: logFile.fileName,
-              label: `State`,
-              icon: 'cog' as const,
+              label: (
+                <Flex justify="space-between">
+                  <Space>
+                    <SettingOutlined />
+                    <Typography.Text>{logFile.fileName}</Typography.Text>
+                  </Space>
+                  <Typography.Text type="secondary">State</Typography.Text>
+                </Flex>
+              ),
+              value: logFile.fileName,
               click: () => {
-                this.props.state.selectLogFile(logFile);
+                selectLogFile(logFile);
               },
             });
           }
@@ -139,26 +112,102 @@ export class Spotlight extends React.Component<
 
     const appSuggestions = [
       {
-        text: 'Quit Sleuth',
-        icon: 'power' as const,
+        label: (
+          <Space>
+            <PoweroffOutlined />
+            Quit Sleuth
+          </Space>
+        ),
+        value: 'quit',
         click: async () => await window.Sleuth.quit(),
       },
       {
-        text: 'Go Home',
-        icon: 'home' as const,
+        label: (
+          <Space>
+            <HomeOutlined />
+            Go Home
+          </Space>
+        ),
+        value: 'home',
         click: () => {
-          this.props.state.reset(true);
+          reset(true);
         },
       },
       {
-        text: 'Toggle Sidebar',
-        icon: 'menu' as const,
+        label: (
+          <Space>
+            <MenuOutlined />
+            Toggle Sidebar
+          </Space>
+        ),
+        value: 'toggle-sidebar',
         click: () => {
-          this.props.state.toggleSidebar();
+          toggleSidebar();
         },
       },
     ];
 
-    return [...spotSuggestions, ...logFileSuggestions, ...appSuggestions];
-  }
-}
+    return [
+      {
+        label: (
+          <Space>
+            <FolderOpenOutlined />
+            <span>Current Log Files</span>
+          </Space>
+        ),
+        options: [...logFileSuggestions],
+      },
+      {
+        label: (
+          <Space>
+            <FolderAddOutlined />
+            <span>Log Bundles on Disk</span>
+          </Space>
+        ),
+        options: [...spotSuggestions],
+      },
+      {
+        label: (
+          <Space>
+            <MacCommandOutlined />
+            <span>App Commands</span>
+          </Space>
+        ),
+        options: [...appSuggestions],
+      },
+    ];
+  }, [props.state]);
+
+  return (
+    <Modal
+      width={800}
+      open={isSpotlightOpen}
+      onCancel={toggleSpotlight}
+      closable={false}
+      footer={null}
+    >
+      <AutoComplete
+        ref={(el) => {
+          // autofocus hack
+          // https://stackoverflow.com/questions/60877390/why-the-autofocus-isnt-working-in-reactjs-with-antd
+          setTimeout(() => el?.focus(), 0);
+        }}
+        style={{ width: '100%' }}
+        options={items}
+        onSelect={(_, opt: any) => {
+          if (opt?.click) {
+            toggleSpotlight();
+            opt.click();
+          }
+        }}
+        filterOption={(inputValue, option) => {
+          return (
+            option?.value?.toUpperCase().indexOf(inputValue.toUpperCase()) > -1
+          );
+        }}
+      >
+        <Input.Search size="large" placeholder="Search..." />
+      </AutoComplete>
+    </Modal>
+  );
+});

@@ -15,7 +15,7 @@
     />
     <link type="text/css" rel="stylesheet" href="./catapult/tab_views.css" />
     <style>
-      .bp4-dark {
+      .dark-mode {
         background-color: #2b2b2b;
         color: #f8f8f2;
       }
@@ -57,15 +57,15 @@
         if (instruction === 'dark-mode') {
           console.log(`Setting dark mode to`, payload);
           if (!!payload) {
-            document.body.classList.add('bp4-dark');
+            document.body.classList.add('dark-mode');
           } else {
-            document.body.classList.remove('bp4-dark');
+            document.body.classList.remove('dark-mode');
           }
         }
       });
     </script>
   </head>
-  <body class="bp4-dark">
+  <body class="dark-mode">
     <netlog-viewer></netlog-viewer>
   </body>
 </html>

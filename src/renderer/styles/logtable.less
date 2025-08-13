@@ -1,5 +1,3 @@
-@import '../../../node_modules/@blueprintjs/core/lib/less/variables.less';
-
 #LogTableContainer {
   display: flex;
   flex-direction: column;
@@ -11,7 +9,7 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  padding: 1.2rem 2.2rem 0 0;
+  padding-top: 1rem;
   user-select: none;
 
   &.Single {
@@ -70,8 +68,7 @@
   }
 }
 
-// Dark mode
-.bp4-dark {
+@media (prefers-color-scheme: dark) {
   .ReactVirtualized__Table__row {
     border-bottom: 1px solid rgba(137, 191, 226, 0.05);
   }

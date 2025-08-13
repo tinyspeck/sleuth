@@ -11,7 +11,7 @@ interface SidebarRailProps {
 
 const SidebarRail = observer((props: SidebarRailProps) => {
   return (
-    <Flex className="SidebarRail" vertical>
+    <Flex className="SidebarRail" vertical align="center">
       <Tooltip title="Return Home" placement="right">
         <Button
           icon={<HomeOutlined />}

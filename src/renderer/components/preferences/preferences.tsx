@@ -176,7 +176,7 @@ export const Preferences = observer((props: PreferencesProps) => {
           <Select
             prefix={<CodeOutlined />}
             style={{ width: 200 }}
-            defaultValue={defaultEditor?.name || 'VSCODE'}
+            defaultValue={defaultEditor?.name}
             options={Object.entries(EDITORS).map(([editor, details]) => ({
               value: editor,
               label: <span>{details.name}</span>,

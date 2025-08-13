@@ -1,13 +1,23 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 
-import { HTMLTable, Button, Card, Icon, ButtonGroup } from '@blueprintjs/core';
+import {
+  Button,
+  Card,
+  Descriptions,
+  Skeleton,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from 'antd';
 import { SleuthState } from '../state/sleuth';
 import { autorun, IReactionDisposer } from 'mobx';
 import { UnzippedFile } from '../../interfaces';
 import { TraceThreadDescription, TraceProcessor } from '../processor/trace';
 import autoBind from 'react-autobind';
 import debug from 'debug';
+import { AreaChartOutlined } from '@ant-design/icons';
 
 export interface DevtoolsViewProps {
   state: SleuthState;
@@ -44,38 +54,11 @@ export class DevtoolsView extends React.Component<
     }
   }
 
-  private rowRenderer({
-    title,
-    type,
-    processId,
-    isClient,
-  }: TraceThreadDescription) {
-    return (
-      <tr key={processId}>
-        <td>
-          {isClient && <Icon icon="chat" />} {title || 'Unknown'}
-        </td>
-        <td>{processId}</td>
-        <td>
-          <ButtonGroup fill={true}>
-            <Button
-              onClick={() =>
-                this.setState({ profilePid: processId, profileType: type })
-              }
-              icon={'document-open'}
-            >
-              Open
-            </Button>
-          </ButtonGroup>
-        </td>
-      </tr>
-    );
-  }
-
   private renderThreads() {
     const { traceThreads } = this.props.state;
     const hasThreads = !!traceThreads?.length;
     const isLoading = !traceThreads;
+
     const startTime = parseInt(
       this.props.file.fileName.split('.')[0]?.split('_')[4] || '0',
       10,
@@ -87,38 +70,79 @@ export class DevtoolsView extends React.Component<
     const duration = endTime - startTime;
 
     return (
-      <Card>
-        <h1>Threads</h1>
-        <h4>
-          Duration:{' '}
-          {duration ? Math.floor(duration / 1000).toString() : 'unknown'}{' '}
-          seconds | Trace started:{' '}
-          {startTime ? new Date(startTime).toLocaleString() : 'unknown'} | Trace
-          ended: {endTime ? new Date(endTime).toLocaleString() : 'unknown'}
-        </h4>
-        <h5>* Start & end times displayed in your local time</h5>
-        <HTMLTable>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>PID</th>
-            </tr>
-          </thead>
-          <tbody>
-            {hasThreads &&
-              traceThreads?.map((thread) => this.rowRenderer(thread))}
-            {!hasThreads && (
-              <tr>
-                <td colSpan={3}>No renderer threads found</td>
-              </tr>
-            )}
-            {isLoading && (
-              <tr>
-                <td colSpan={3}>Loading...</td>
-              </tr>
-            )}
-          </tbody>
-        </HTMLTable>
+      <Card className="ProcessTable">
+        <Space direction="vertical">
+          <Typography.Title level={3}>Performance Profile</Typography.Title>
+          <Descriptions
+            items={[
+              {
+                key: '1',
+                label: 'Duration',
+                children: (
+                  <span>
+                    {duration
+                      ? Math.floor(duration / 1000).toString()
+                      : 'unknown'}{' '}
+                    seconds
+                  </span>
+                ),
+              },
+              {
+                key: '2',
+                label: 'Trace started',
+                children: (
+                  <span>
+                    {startTime
+                      ? new Date(startTime).toLocaleString()
+                      : 'unknown'}
+                  </span>
+                ),
+              },
+              {
+                key: '3',
+                label: 'Trace ended',
+                children: (
+                  <span>
+                    {endTime ? new Date(endTime).toLocaleString() : 'unknown'}
+                  </span>
+                ),
+              },
+            ]}
+          />
+          {isLoading && <Skeleton />}
+          {!hasThreads && !isLoading ? (
+            <p>No trace threads found...</p>
+          ) : (
+            <Table
+              pagination={false}
+              dataSource={traceThreads?.map((value, index) => ({
+                key: index,
+                process: value.title || 'Unknown',
+                type: <Tag>{value.type}</Tag>,
+                pid: value.processId,
+                open: (
+                  <Button
+                    onClick={() =>
+                      this.setState({
+                        profilePid: value.processId,
+                        profileType: value.type,
+                      })
+                    }
+                    icon={<AreaChartOutlined />}
+                  >
+                    Open
+                  </Button>
+                ),
+              }))}
+              columns={[
+                { title: 'Process Name', dataIndex: 'process', key: 'process' },
+                { title: 'Type', dataIndex: 'type', key: 'type' },
+                { title: 'PID', dataIndex: 'pid', key: 'pid' },
+                { title: 'Action', dataIndex: 'open', key: 'open' },
+              ]}
+            />
+          )}
+        </Space>
       </Card>
     );
   }
@@ -136,7 +160,7 @@ export class DevtoolsView extends React.Component<
         </div>
       );
     }
-    return <div className="ProcessTable">{this.renderThreads()}</div>;
+    return <div className="ProcessTableWrapper">{this.renderThreads()}</div>;
   }
 
   public componentWillUnmount() {

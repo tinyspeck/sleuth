@@ -15,7 +15,6 @@ import { LogTimeView } from './log-time-view';
 import { NetLogView } from './net-log-view';
 import { DevtoolsView } from './devtools-view';
 import { PerfettoView } from './perfetto-view';
-import { Navbar, ButtonGroup, Button } from '@blueprintjs/core';
 import { Filter } from './app-core-header-filter';
 
 export interface LogContentProps {
@@ -75,9 +74,9 @@ export class LogContent extends React.Component<
     if (isLog) {
       return (
         <div className="LogContent" style={{ fontFamily: getFontForCSS(font) }}>
-          <Navbar className="AppHeader">
+          <div className="AppHeader">
             <Filter state={this.props.state} />
-          </Navbar>
+          </div>
           <div
             id="LogTableContainer"
             style={{ height: this.state.tableHeight }}

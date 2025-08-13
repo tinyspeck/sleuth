@@ -8,9 +8,13 @@
   height: 50px;
   overflow: hidden;
   border-top-left-radius: var(--ant-border-radius);
+  background: var(--ant-color-bg-layout);
+  border: 1px solid var(--ant-color-border);
+  transition: 0.2s ease-in border;
 
   .isSidebarOpen & {
     border-top-left-radius: 0;
+    border-left: 1px solid rgba(0, 0, 0, 0);
     outline: none;
   }
 
@@ -21,6 +25,7 @@
 
   .SearchGroup {
     flex-grow: 1;
+    padding: 0 15px;
   }
 
   div:has(> .SearchInputGroup) {

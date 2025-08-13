@@ -45,8 +45,8 @@ describe('DevtoolsView', () => {
       />,
     );
 
-    const threadsTable = screen.getByRole('table');
-    expect(threadsTable).toBeInTheDocument();
+    const tables = screen.getAllByRole('table');
+    expect(tables).toHaveLength(2);
   });
 
   it('opens an iframe of the devtools frontend', () => {
