@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 
 export interface ScrubberProps {
   onResizeHandler: (newHeight: number) => void;
@@ -10,41 +10,47 @@ export interface ScrubberState {
   startHeight: number;
 }
 
-export class Scrubber extends React.Component<ScrubberProps, ScrubberState> {
-  constructor(props: ScrubberProps) {
-    super(props);
+export const Scrubber: React.FC<ScrubberProps> = ({
+  onResizeHandler,
+  elementSelector,
+}) => {
+  const [resizeState, setResizeState] = useState<Partial<ScrubberState>>({});
 
-    this.mouseDownHandler = this.mouseDownHandler.bind(this);
-    this.mouseMoveHandler = this.mouseMoveHandler.bind(this);
-    this.mouseUpHandler = this.mouseUpHandler.bind(this);
-  }
+  const mouseMoveHandler = useCallback(
+    (e: MouseEvent) => {
+      const { startHeight, startY } = resizeState;
+      if (startHeight !== undefined && startY !== undefined) {
+        const newHeight = startHeight + e.clientY - startY;
+        onResizeHandler(newHeight);
+      }
+    },
+    [resizeState, onResizeHandler],
+  );
 
-  public mouseMoveHandler(e: MouseEvent) {
-    const { startHeight, startY } = this.state;
-    const newHeight = startHeight + e.clientY - startY;
-    this.props.onResizeHandler(newHeight);
-  }
+  const mouseUpHandler = useCallback(() => {
+    document.removeEventListener('mousemove', mouseMoveHandler, false);
+    document.removeEventListener('mouseup', mouseUpHandler, false);
+  }, [mouseMoveHandler]);
 
-  public mouseDownHandler(e: React.MouseEvent) {
-    const resizeTarget = document.getElementById(this.props.elementSelector);
+  const mouseDownHandler = useCallback(
+    (e: React.MouseEvent) => {
+      const resizeTarget = document.getElementById(elementSelector);
 
-    if (!resizeTarget) return;
+      if (!resizeTarget) return;
 
-    this.setState({
-      startY: e.clientY,
-      startHeight: parseInt(window.getComputedStyle(resizeTarget).height, 10),
-    });
+      const startY = e.clientY;
+      const startHeight = parseInt(
+        window.getComputedStyle(resizeTarget).height,
+        10,
+      );
 
-    document.addEventListener('mousemove', this.mouseMoveHandler, false);
-    document.addEventListener('mouseup', this.mouseUpHandler, false);
-  }
+      setResizeState({ startY, startHeight });
 
-  public mouseUpHandler() {
-    document.removeEventListener('mousemove', this.mouseMoveHandler, false);
-    document.removeEventListener('mouseup', this.mouseUpHandler, false);
-  }
+      document.addEventListener('mousemove', mouseMoveHandler, false);
+      document.addEventListener('mouseup', mouseUpHandler, false);
+    },
+    [elementSelector, mouseMoveHandler, mouseUpHandler],
+  );
 
-  public render() {
-    return <div className="Scrubber" onMouseDown={this.mouseDownHandler} />;
-  }
-}
+  return <div className="Scrubber" onMouseDown={mouseDownHandler} />;
+};
