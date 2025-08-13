@@ -17,7 +17,6 @@ export interface PerfettoViewProps {
 @observer
 export class PerfettoView extends React.Component<PerfettoViewProps> {
   render() {
-    // Use proper parameters to ensure the UI loads correctly
     // ?embedding=true tells Perfetto this is an embedded instance
     const perfettoUrl = `${PERFETTO_UI_URL}?embedding=true`;
 
@@ -27,8 +26,9 @@ export class PerfettoView extends React.Component<PerfettoViewProps> {
           title="Perfetto UI"
           src={perfettoUrl}
           style={{ width: '100%', height: '100%' }}
-          sandbox="allow-scripts allow-same-origin allow-forms"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-top-navigation"
           allow="clipboard-write"
+          loading="lazy"
         />
       </div>
     );

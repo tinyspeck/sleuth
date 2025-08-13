@@ -24,7 +24,7 @@ export interface LogContentProps {
 
 export interface LogContentState {
   tableHeight?: number;
-  traceViewer: string; // Using TRACE_VIEWER.CHROME or TRACE_VIEWER.PERFETTO
+  traceViewer: string;
 }
 
 @observer
@@ -109,7 +109,6 @@ export class LogContent extends React.Component<
       if (logType === LogType.NETLOG) {
         return <NetLogView file={selectedLogFile} state={this.props.state} />;
       } else if (logType === LogType.TRACE) {
-        // Use defaultTraceViewer from props instead of local state
         const traceViewer =
           this.props.state.defaultTraceViewer || TRACE_VIEWER.CHROME;
 

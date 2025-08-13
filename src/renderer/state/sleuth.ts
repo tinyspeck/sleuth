@@ -384,15 +384,12 @@ export class SleuthState {
   public openTraceViewer(viewerType: string): void {
     d(`Opening trace viewer: ${viewerType}`);
 
-    // Set the default trace viewer
     this.defaultTraceViewer = viewerType;
 
-    // If we have no files in the trace section yet, just update the default viewer
     if (!this.processedLogFiles?.trace?.length) {
       return;
     }
 
-    // Select the first trace file if available
     const firstTraceFile = this.processedLogFiles?.trace[0];
     if (firstTraceFile) {
       this.selectLogFile(firstTraceFile);
