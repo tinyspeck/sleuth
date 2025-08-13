@@ -19,48 +19,11 @@
 @import 'logview.less';
 @import 'devtools.less';
 @import 'mac-titlebar.less';
+@import 'net-log-view.less';
+@import 'perfetto-view.less';
 @import 'preferences.less';
+@import 'scrollbar.less';
 @import 'sidebar.less';
 @import 'statetable.less';
 @import 'welcome.less';
-@import 'net-log-view.less';
-@import 'scrollbar.less';
 @import 'numberOfResults.less';
-
-.PerfettoView {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  
-  iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-  }
-}
-
-.PerfettoLoading, .PerfettoError {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 2rem;
-}
-
-.TraceViewContainer {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  
-  .PerfettoView, .Devtools {
-    width: 100%;
-    height: 100%;
-  }
-}
