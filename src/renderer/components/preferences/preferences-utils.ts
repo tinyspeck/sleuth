@@ -350,7 +350,11 @@ export const MACOS_FONTS = [
 ];
 
 export const FONTS =
-  window.Sleuth.platform === 'darwin' ? MACOS_FONTS : WINDOWS_FONTS;
+  typeof window !== 'undefined'
+    ? window.Sleuth?.platform === 'darwin'
+      ? MACOS_FONTS
+      : WINDOWS_FONTS
+    : MACOS_FONTS;
 
 /**
  * Returns a font usable for CSS, given its name.
