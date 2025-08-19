@@ -94,24 +94,28 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
             return getLogFileNode(file);
           }),
         },
-        {
-          key: LogType.TRACE,
-          icon: <SlidersOutlined />,
-          selectable: false,
-          title: <Typography.Text strong>Trace</Typography.Text>,
-          children: [
-            {
-              key: 'chrome-devtools',
-              icon: <ChromeOutlined />,
-              title: 'Chrome DevTools',
-            },
-            {
-              key: 'perfetto',
-              icon: <PictureOutlined />,
-              title: 'Perfetto',
-            },
-          ],
-        },
+        ...(processedLogFiles.trace.length > 0
+          ? [
+              {
+                key: LogType.TRACE,
+                icon: <SlidersOutlined />,
+                selectable: false,
+                title: <Typography.Text strong>Trace</Typography.Text>,
+                children: [
+                  {
+                    key: 'chrome-devtools',
+                    icon: <ChromeOutlined />,
+                    title: 'Chrome DevTools',
+                  },
+                  {
+                    key: 'perfetto',
+                    icon: <PictureOutlined />,
+                    title: 'Perfetto',
+                  },
+                ],
+              },
+            ]
+          : []),
         {
           key: LogType.CHROMIUM,
           icon: <ChromeOutlined />,

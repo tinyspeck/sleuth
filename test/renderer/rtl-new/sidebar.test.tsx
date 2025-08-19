@@ -157,5 +157,59 @@ describe('Sidebar', () => {
       const fileTreeOuter = fileTreeInner?.parentElement;
       expect(fileTreeOuter).not.toHaveClass('Open');
     });
+
+    it('does not show Trace section when no trace files exist', async () => {
+      const state: Partial<SleuthState> = {
+        processedLogFiles: {
+          browser: [fakeFile1],
+          webapp: [fakeFile3],
+          state: [],
+          netlog: [],
+          installer: [],
+          trace: [],
+          mobile: [],
+          chromium: [fakeFile2],
+        },
+        bookmarks: [],
+      };
+
+      render(<Sidebar state={state as SleuthState} />);
+
+      expect(await screen.findByText('Browser Process')).toBeInTheDocument();
+      expect(await screen.findByText('WebApp')).toBeInTheDocument();
+      expect(await screen.findByText('Chromium')).toBeInTheDocument();
+
+      const trace = screen.queryByText('Trace');
+      expect(trace).not.toBeInTheDocument();
+    });
+
+    it('shows Trace section when trace files exist', async () => {
+      const traceFile = {
+        fileName: 'performance.trace',
+        size: 1000,
+        fullPath: '/mock/path/asdf.trace',
+        id: 'trace1',
+        type: 'UnzippedFile' as const,
+      };
+
+      const state: Partial<SleuthState> = {
+        processedLogFiles: {
+          browser: [],
+          webapp: [],
+          state: [],
+          netlog: [],
+          installer: [],
+          trace: [traceFile],
+          mobile: [],
+          chromium: [],
+        },
+        bookmarks: [],
+      };
+
+      render(<Sidebar state={state as SleuthState} />);
+
+      const trace = await screen.findByText('Trace');
+      expect(trace).toBeInTheDocument();
+    });
   });
 });
