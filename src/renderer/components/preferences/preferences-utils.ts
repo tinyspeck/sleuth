@@ -351,6 +351,7 @@ export const MACOS_FONTS = [
 
 export const FONTS =
   window.Sleuth.platform === 'darwin' ? MACOS_FONTS : WINDOWS_FONTS;
+
 /**
  * Returns a font usable for CSS, given its name.
  *
@@ -399,11 +400,3 @@ export const EDITORS: Record<string, Editor> = {
     args: ['--goto', '{filepath}:{line}'],
   },
 };
-
-/**
- * Supported trace viewers
- */
-export enum TRACE_VIEWER {
-  CHROME,
-  PERFETTO,
-}

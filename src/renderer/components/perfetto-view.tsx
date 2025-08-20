@@ -67,8 +67,6 @@ export const PerfettoView = observer(({ state, file }: PerfettoViewProps) => {
         ref={perfettoRef}
         title="Perfetto UI"
         src={perfettoUrl}
-        style={{ width: '100%', height: '100%' }}
-        sandbox="allow-scripts allow-same-origin allow-forms"
         loading="lazy"
       />
     </div>
