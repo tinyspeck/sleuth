@@ -8,6 +8,7 @@ import {
   ProcessedLogFile,
   SelectableLogFile,
   SelectableLogType,
+  TRACE_VIEWER,
   UnzippedFile,
 } from '../../../interfaces';
 import {
@@ -42,7 +43,6 @@ import { levelsHave } from '../../../utils/level-counts';
 import { countExcessiveRepeats } from '../../../utils/count-excessive-repeats';
 import { plural } from '../../../utils/pluralize';
 import { getTraceWarnings } from '../../analytics/trace-analytics';
-import { TRACE_VIEWER } from '../preferences/preferences-utils';
 
 interface SidebarFileTreeProps {
   state: SleuthState;

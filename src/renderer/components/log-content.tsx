@@ -1,6 +1,5 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-import { TRACE_VIEWER } from './preferences/preferences-utils';
 
 import { isLogFile, isUnzippedFile } from '../../utils/is-logfile';
 import { Scrubber } from './scrubber';
@@ -8,7 +7,7 @@ import { getFontForCSS } from './preferences/preferences-utils';
 import { LogTable } from './log-table';
 import { StateTable } from './state-table';
 import { SleuthState } from '../state/sleuth';
-import { ProcessedLogFile, LogType } from '../../interfaces';
+import { ProcessedLogFile, LogType, TRACE_VIEWER } from '../../interfaces';
 import { getTypeForFile } from '../../utils/get-file-types';
 import { LogLineDetails } from './log-line-details/details';
 import { LogTimeView } from './log-time-view';
@@ -23,7 +22,6 @@ export interface LogContentProps {
 
 export interface LogContentState {
   tableHeight?: number;
-  traceViewer: string;
 }
 
 @observer
@@ -36,7 +34,6 @@ export class LogContent extends React.Component<
 
     this.state = {
       tableHeight: 600,
-      traceViewer: props.state.defaultTraceViewer || TRACE_VIEWER.CHROME,
     };
 
     this.resizeHandler = this.resizeHandler.bind(this);
@@ -108,12 +105,9 @@ export class LogContent extends React.Component<
       if (logType === LogType.NETLOG) {
         return <NetLogView file={selectedLogFile} state={this.props.state} />;
       } else if (logType === LogType.TRACE) {
-        const traceViewer =
-          this.props.state.defaultTraceViewer || TRACE_VIEWER.CHROME;
-
         return (
           <div className="TraceViewContainer">
-            {traceViewer === TRACE_VIEWER.CHROME ? (
+            {this.props.state.selectedTraceViewer === TRACE_VIEWER.CHROME ? (
               <DevtoolsView file={selectedLogFile} state={this.props.state} />
             ) : (
               <PerfettoView file={selectedLogFile} state={this.props.state} />

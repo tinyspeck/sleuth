@@ -10,7 +10,6 @@ import {
   EDITORS,
   FONTS,
   getFontForCSS,
-  TRACE_VIEWER,
 } from './preferences-utils';
 import { SORT_DIRECTION } from '../log-table-constants';
 import {
@@ -188,23 +187,6 @@ export const Preferences = observer((props: PreferencesProps) => {
           />
           <Typography.Text type="secondary">
             Sleuth can open log source files in your favorite editor.
-          </Typography.Text>
-        </Space>
-      </Form.Item>
-      <Form.Item layout="vertical" label="Default Trace Viewer">
-        <Space direction="vertical">
-          <Radio.Group
-            value={props.state.defaultTraceViewer}
-            options={[
-              { value: TRACE_VIEWER.CHROME, label: 'Chrome DevTools' },
-              { value: TRACE_VIEWER.PERFETTO, label: 'Perfetto' },
-            ]}
-            onChange={(event) => {
-              props.state.defaultTraceViewer = event.target.value;
-            }}
-          />
-          <Typography.Text type="secondary">
-            Choose the default viewer for trace files.
           </Typography.Text>
         </Space>
       </Form.Item>

@@ -25,6 +25,7 @@ import {
   KnownLogType,
   Suggestion,
   SelectableLogType,
+  TRACE_VIEWER,
 } from '../../interfaces';
 import {
   getInitialTimeViewRange,
@@ -33,7 +34,6 @@ import {
 import { rehydrateBookmarks, importBookmarks } from './bookmarks';
 import { copy } from './copy';
 import { ICON_NAMES } from '../../shared-constants';
-import { TRACE_VIEWER } from '../components/preferences/preferences-utils';
 import { setupTouchBarAutoruns } from './touchbar';
 import { TraceThreadDescription } from '../processor/trace';
 import { ColorTheme } from '../components/preferences/preferences';
@@ -94,7 +94,7 @@ export class SleuthState {
   @observable public traceThreads?: Array<TraceThreadDescription>;
 
   @observable
-  public defaultTraceViewer: string = TRACE_VIEWER.CHROME;
+  public selectedTraceViewer: TRACE_VIEWER;
 
   // ** Settings **
   @observable public colorTheme = this.retrieve<ColorTheme>('colorTheme', {
@@ -369,10 +369,10 @@ export class SleuthState {
    * @param {string} viewerType - Either TRACE_VIEWER.CHROME or TRACE_VIEWER.PERFETTO
    */
   @action
-  public openTraceViewer(viewerType: string): void {
+  public openTraceViewer(viewerType: TRACE_VIEWER): void {
     d(`Opening trace viewer: ${viewerType}`);
 
-    this.defaultTraceViewer = viewerType;
+    this.selectedTraceViewer = viewerType;
 
     if (!this.processedLogFiles?.trace?.length) {
       return;

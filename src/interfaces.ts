@@ -174,3 +174,11 @@ export enum LogLineContextMenuActions {
   COPY_TO_CLIPBOARD,
   OPEN_SOURCE,
 }
+
+/**
+ * Supported trace viewers
+ */
+export enum TRACE_VIEWER {
+  CHROME,
+  PERFETTO,
+}

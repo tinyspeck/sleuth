@@ -403,7 +403,7 @@ export const EDITORS: Record<string, Editor> = {
 /**
  * Supported trace viewers
  */
-export const TRACE_VIEWER = {
-  CHROME: 'chrome',
-  PERFETTO: 'perfetto',
-} as const;
+export enum TRACE_VIEWER {
+  CHROME,
+  PERFETTO,
+}

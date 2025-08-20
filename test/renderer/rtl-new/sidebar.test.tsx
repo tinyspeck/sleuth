@@ -18,10 +18,6 @@ vi.mock(
         LIGHT: 'light',
         AUTO: 'auto',
       },
-      TRACE_VIEWER: {
-        CHROME: 'chrome',
-        PERFETTO: 'perfetto',
-      },
       DATE_TIME_FORMATS: ['HH:mm:ss (dd/MM)'],
       EDITORS: {
         VSCODE: {
