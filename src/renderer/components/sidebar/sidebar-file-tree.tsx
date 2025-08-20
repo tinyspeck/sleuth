@@ -195,7 +195,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       const selected = selectedKeys[0];
 
       if (selected === 'chrome-devtools') {
-        props.state.openTraceViewer(TRACE_VIEWER.CHROME);
+        props.state.openTraceViewer(TRACE_VIEWER.CHROME_DEVTOOLS);
         return;
       } else if (selected === 'perfetto') {
         props.state.openTraceViewer(TRACE_VIEWER.PERFETTO);

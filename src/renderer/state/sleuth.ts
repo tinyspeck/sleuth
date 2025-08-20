@@ -365,8 +365,6 @@ export class SleuthState {
 
   /**
    * Open a trace viewer by setting active file and viewer type
-   *
-   * @param {string} viewerType - Either TRACE_VIEWER.CHROME or TRACE_VIEWER.PERFETTO
    */
   @action
   public openTraceViewer(viewerType: TRACE_VIEWER): void {

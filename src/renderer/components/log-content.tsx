@@ -105,7 +105,8 @@ export class LogContent extends React.Component<
       if (logType === LogType.NETLOG) {
         return <NetLogView file={selectedLogFile} state={this.props.state} />;
       } else if (logType === LogType.TRACE) {
-        return this.props.state.selectedTraceViewer === TRACE_VIEWER.CHROME ? (
+        return this.props.state.selectedTraceViewer ===
+          TRACE_VIEWER.CHROME_DEVTOOLS ? (
           <DevtoolsView file={selectedLogFile} state={this.props.state} />
         ) : (
           <PerfettoView file={selectedLogFile} state={this.props.state} />
