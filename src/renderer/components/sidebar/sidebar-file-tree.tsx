@@ -14,6 +14,7 @@ import {
   ApartmentOutlined,
   ChromeOutlined,
   CommentOutlined,
+  DashboardOutlined,
   DesktopOutlined,
   DownloadOutlined,
   DownOutlined,
@@ -109,7 +110,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                   },
                   {
                     key: 'perfetto',
-                    icon: <PictureOutlined />,
+                    icon: <DashboardOutlined />,
                     title: 'Perfetto',
                   },
                 ],
