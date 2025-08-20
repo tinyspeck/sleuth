@@ -289,7 +289,14 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     switch (response) {
       case LogLineContextMenuActions.COPY_TO_CLIPBOARD: {
-        const copyText = getCopyText(rowData);
+        let copyText = '';
+        if (this.props.state.selectedRangeEntries) {
+          for (const entry of this.props.state.selectedRangeEntries) {
+            copyText += getCopyText(entry) + '\n';
+          }
+        } else {
+          copyText = getCopyText(rowData);
+        }
         window.Sleuth.clipboard.writeText(copyText);
         break;
       }
