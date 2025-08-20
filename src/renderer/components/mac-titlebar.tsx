@@ -1,26 +1,21 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { observer } from 'mobx-react';
 import { SleuthState } from '../state/sleuth';
 import { getWindowTitle } from '../../utils/get-window-title';
 
-interface TitlebarProps {
+export interface TitlebarProps {
   state: SleuthState;
 }
 
-export class MacTitlebar extends React.Component<TitlebarProps> {
-  constructor(props: TitlebarProps) {
-    super(props);
-  }
-
-  private handleDoubleClick = () => {
+export const MacTitlebar = observer((props: TitlebarProps) => {
+  const handleDoubleClick = useCallback(() => {
     window.Sleuth.sendDoubleClick();
-  };
+  }, []);
 
-  render() {
-    const { source } = this.props.state;
-    return (
-      <div className="MacTitlebar" onDoubleClick={this.handleDoubleClick}>
-        <span>{getWindowTitle(source)}</span>
-      </div>
-    );
-  }
-}
+  const { source } = props.state;
+  return (
+    <div className="MacTitlebar" onDoubleClick={handleDoubleClick}>
+      <span>{getWindowTitle(source)}</span>
+    </div>
+  );
+});
