@@ -179,6 +179,6 @@ export enum LogLineContextMenuActions {
  * Supported trace viewers
  */
 export enum TRACE_VIEWER {
-  CHROME_DEVTOOLS,
-  PERFETTO,
+  CHROME_DEVTOOLS = 'chrome-devtools',
+  PERFETTO = 'perfetto',
 }

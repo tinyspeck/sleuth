@@ -104,12 +104,12 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                 title: <Typography.Text strong>Trace</Typography.Text>,
                 children: [
                   {
-                    key: 'chrome-devtools',
+                    key: TRACE_VIEWER.CHROME_DEVTOOLS,
                     icon: <ChromeOutlined />,
                     title: 'Chrome DevTools',
                   },
                   {
-                    key: 'perfetto',
+                    key: TRACE_VIEWER.PERFETTO,
                     icon: <DashboardOutlined />,
                     title: 'Perfetto',
                   },
@@ -194,10 +194,10 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       // only one node can be selected at atime
       const selected = selectedKeys[0];
 
-      if (selected === 'chrome-devtools') {
+      if (selected === TRACE_VIEWER.CHROME_DEVTOOLS) {
         props.state.openTraceViewer(TRACE_VIEWER.CHROME_DEVTOOLS);
         return;
-      } else if (selected === 'perfetto') {
+      } else if (selected === TRACE_VIEWER.PERFETTO) {
         props.state.openTraceViewer(TRACE_VIEWER.PERFETTO);
         return;
       }
