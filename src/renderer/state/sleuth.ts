@@ -25,6 +25,7 @@ import {
   KnownLogType,
   Suggestion,
   SelectableLogType,
+  TRACE_VIEWER,
 } from '../../interfaces';
 import {
   getInitialTimeViewRange,
@@ -91,6 +92,9 @@ export class SleuthState {
   @observable public prefersDarkColors = false;
   // ** Profiler **
   @observable public traceThreads?: Array<TraceThreadDescription>;
+
+  @observable
+  public selectedTraceViewer: TRACE_VIEWER;
 
   // ** Settings **
   @observable public colorTheme = this.retrieve<ColorTheme>('colorTheme', {
@@ -357,6 +361,25 @@ export class SleuthState {
 
     // Recalculate bookmarks
     rehydrateBookmarks(this);
+  }
+
+  /**
+   * Open a trace viewer by setting active file and viewer type
+   */
+  @action
+  public openTraceViewer(viewerType: TRACE_VIEWER): void {
+    d(`Opening trace viewer: ${viewerType}`);
+
+    this.selectedTraceViewer = viewerType;
+
+    if (!this.processedLogFiles?.trace?.length) {
+      return;
+    }
+
+    const firstTraceFile = this.processedLogFiles?.trace[0];
+    if (firstTraceFile) {
+      this.selectLogFile(firstTraceFile);
+    }
   }
 
   /**

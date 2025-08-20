@@ -1,10 +1,35 @@
 import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { Sidebar } from '../../../src/renderer/components/sidebar/sidebar';
 import { render, screen } from '@testing-library/react';
 import { SleuthState } from '../../../src/renderer/state/sleuth';
 import { ProcessedLogFile, LogType } from '../../../src/interfaces';
 import { fakeUnzippedFile } from '../../../__mocks__/unzipped-file';
+
+vi.mock(
+  '../../../src/renderer/components/preferences/preferences-utils',
+  () => {
+    return {
+      FONTS: ['Arial'],
+      WINDOWS_FONTS: ['Arial'],
+      MACOS_FONTS: ['Arial'],
+      THEMES: {
+        DARK: 'dark',
+        LIGHT: 'light',
+        AUTO: 'auto',
+      },
+      DATE_TIME_FORMATS: ['HH:mm:ss (dd/MM)'],
+      EDITORS: {
+        VSCODE: {
+          name: 'VSCode',
+          cmd: 'code',
+          args: ['--goto', '{filepath}:{line}'],
+        },
+      },
+      getFontForCSS: () => 'Arial',
+    };
+  },
+);
 
 const fakeFile1: ProcessedLogFile = {
   repeatedCounts: {},
@@ -127,6 +152,60 @@ describe('Sidebar', () => {
       expect(fileTreeInner).toBeInTheDocument();
       const fileTreeOuter = fileTreeInner?.parentElement;
       expect(fileTreeOuter).not.toHaveClass('Open');
+    });
+
+    it('does not show Trace section when no trace files exist', async () => {
+      const state: Partial<SleuthState> = {
+        processedLogFiles: {
+          browser: [fakeFile1],
+          webapp: [fakeFile3],
+          state: [],
+          netlog: [],
+          installer: [],
+          trace: [],
+          mobile: [],
+          chromium: [fakeFile2],
+        },
+        bookmarks: [],
+      };
+
+      render(<Sidebar state={state as SleuthState} />);
+
+      expect(await screen.findByText('Browser Process')).toBeInTheDocument();
+      expect(await screen.findByText('WebApp')).toBeInTheDocument();
+      expect(await screen.findByText('Chromium')).toBeInTheDocument();
+
+      const trace = screen.queryByText('Trace');
+      expect(trace).not.toBeInTheDocument();
+    });
+
+    it('shows Trace section when trace files exist', async () => {
+      const traceFile = {
+        fileName: 'performance.trace',
+        size: 1000,
+        fullPath: '/mock/path/asdf.trace',
+        id: 'trace1',
+        type: 'UnzippedFile' as const,
+      };
+
+      const state: Partial<SleuthState> = {
+        processedLogFiles: {
+          browser: [],
+          webapp: [],
+          state: [],
+          netlog: [],
+          installer: [],
+          trace: [traceFile],
+          mobile: [],
+          chromium: [],
+        },
+        bookmarks: [],
+      };
+
+      render(<Sidebar state={state as SleuthState} />);
+
+      const trace = await screen.findByText('Trace');
+      expect(trace).toBeInTheDocument();
     });
   });
 });

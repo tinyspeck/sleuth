@@ -8,12 +8,14 @@ import {
   ProcessedLogFile,
   SelectableLogFile,
   SelectableLogType,
+  TRACE_VIEWER,
   UnzippedFile,
 } from '../../../interfaces';
 import {
   ApartmentOutlined,
   ChromeOutlined,
   CommentOutlined,
+  DashboardOutlined,
   DesktopOutlined,
   DownloadOutlined,
   DownOutlined,
@@ -93,18 +95,28 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
             return getLogFileNode(file);
           }),
         },
-        {
-          key: LogType.TRACE,
-          icon: <SlidersOutlined />,
-          selectable: false,
-          title: <Typography.Text strong>Trace</Typography.Text>,
-          children: await Promise.all(
-            processedLogFiles.trace.map(async (file) => {
-              filesMap.set(file.id, file);
-              return await getStateFileNode(file);
-            }),
-          ),
-        },
+        ...(processedLogFiles.trace.length > 0
+          ? [
+              {
+                key: LogType.TRACE,
+                icon: <SlidersOutlined />,
+                selectable: false,
+                title: <Typography.Text strong>Trace</Typography.Text>,
+                children: [
+                  {
+                    key: TRACE_VIEWER.CHROME_DEVTOOLS,
+                    icon: <ChromeOutlined />,
+                    title: 'Chrome DevTools',
+                  },
+                  {
+                    key: TRACE_VIEWER.PERFETTO,
+                    icon: <DashboardOutlined />,
+                    title: 'Perfetto',
+                  },
+                ],
+              },
+            ]
+          : []),
         {
           key: LogType.CHROMIUM,
           icon: <ChromeOutlined />,
@@ -181,6 +193,14 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     (selectedKeys: string[]) => {
       // only one node can be selected at atime
       const selected = selectedKeys[0];
+
+      if (selected === TRACE_VIEWER.CHROME_DEVTOOLS) {
+        props.state.openTraceViewer(TRACE_VIEWER.CHROME_DEVTOOLS);
+        return;
+      } else if (selected === TRACE_VIEWER.PERFETTO) {
+        props.state.openTraceViewer(TRACE_VIEWER.PERFETTO);
+        return;
+      }
 
       if (Object.values(LogType).includes(selected as SelectableLogType)) {
         props.state.selectLogFile(null, selected as SelectableLogType);
