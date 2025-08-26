@@ -137,6 +137,8 @@ export interface ValidSuggestion extends fs.Stats {
   platform: string;
   appVersion: string;
   instanceUuid: string;
+  hasTrace?: boolean;
+  hasNetLog?: boolean;
 }
 
 export interface InvalidSuggestion extends fs.Stats {

@@ -129,6 +129,8 @@ async function getSuggestionInfo(path: string) {
   }
 
   const files: Record<string, Promise<string>> = {};
+  let hasTrace = false;
+  let hasNetLog = false;
 
   await new Promise<void>((resolve, reject) => {
     yauzl.open(path, { lazyEntries: true }, (err, zipfile) => {
@@ -143,6 +145,11 @@ async function getSuggestionInfo(path: string) {
           files[entry.fileName] = streamToString(zipfile, entry);
           files[entry.fileName].then(() => zipfile.readEntry());
         } else {
+          if (entry.fileName.endsWith('.trace')) {
+            hasTrace = true;
+          } else if (entry.fileName === 'net.log') {
+            hasNetLog = true;
+          }
           zipfile.readEntry();
         }
       });
@@ -160,6 +167,8 @@ async function getSuggestionInfo(path: string) {
     platform: environment.platform,
     appVersion: environment.appVersion,
     instanceUuid: Buffer.from(installation, 'base64').toString('utf-8'),
+    hasTrace,
+    hasNetLog,
   };
 }
 
