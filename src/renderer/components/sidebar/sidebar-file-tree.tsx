@@ -373,10 +373,24 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
         const content = warnings.join('\n');
         return (
           <Tooltip title={content} placement="right">
-            <WarningFilled style={{ color: 'goldenrod' }} />
+            <WarningFilled style={{ color: 'red' }} />
           </Tooltip>
         );
       }
+    }
+
+    if (file.fileName.endsWith('installation')) {
+      const warnings = props.state.stateFiles[
+        'logfiles-shipping-manifest.json'
+      ].data.files.filter((f) => f.fileName.endsWith('.dmp'));
+      return (
+        <Tooltip
+          title={`${warnings.length} DMP files found in log bundle. Check corresponding errors on Sentry.`}
+          placement="right"
+        >
+          <Badge status="error" />
+        </Tooltip>
+      );
     }
 
     return null;
