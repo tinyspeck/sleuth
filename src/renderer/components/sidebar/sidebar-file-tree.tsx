@@ -379,7 +379,6 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       const warnings = props.state.stateFiles[
         'logfiles-shipping-manifest.json'
       ].data.files.filter((f) => f.fileName.endsWith('.dmp'));
-      console.log(warnings);
       return (
         <Tooltip
           title={`${warnings.length} DMP files found in log bundle. Check corresponding errors on Sentry.`}
