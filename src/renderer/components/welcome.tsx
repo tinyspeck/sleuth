@@ -1,6 +1,15 @@
 import React from 'react';
 
-import { Button, List, Result, Spin, Tooltip, Typography } from 'antd';
+import {
+  Button,
+  List,
+  Result,
+  Space,
+  Spin,
+  Tooltip,
+  Typography,
+  Tag,
+} from 'antd';
 import {
   DeleteOutlined,
   FolderOpenTwoTone,
@@ -32,7 +41,7 @@ export interface WelcomeProps {
 }
 
 const iconStyle = {
-  fontSize: 36,
+  fontSize: 40,
 };
 
 @observer
@@ -82,7 +91,7 @@ export class Welcome extends React.Component<
       appVersionToUse = appVersionToUse.split('.', 3).join('.');
     }
 
-    let appVersionElem = <>Slack@{appVersionToUse}</>;
+    let appVersionElem = <>Slack v{appVersionToUse}</>;
     if (appVersionToUse !== item.appVersion) {
       appVersionElem = (
         <Tooltip title={`Slack@${item.appVersion}`}>
@@ -94,8 +103,10 @@ export class Welcome extends React.Component<
     if (item.platform !== 'unknown') {
       return (
         <>
-          {this.prettyPlatform(item.platform)} logs from {appVersionElem},{' '}
-          {item.age} old
+          {this.prettyPlatform(item.platform)} • {appVersionElem} •{' '}
+          <span title={new Date(item.mtimeMs).toLocaleString()}>
+            {item.age} old
+          </span>
         </>
       );
     }
@@ -103,7 +114,10 @@ export class Welcome extends React.Component<
     if (item.appVersion !== '0.0.0') {
       return (
         <>
-          Logs from {appVersionElem} on an unknown platform, {item.age} old
+          unknown platform • {appVersionElem} •{' '}
+          <span title={new Date(item.mtimeMs).toLocaleString()}>
+            {item.age} old
+          </span>
         </>
       );
     }
@@ -167,6 +181,7 @@ export class Welcome extends React.Component<
         <List
           itemLayout="horizontal"
           dataSource={data}
+          size="small"
           renderItem={(item) => {
             const openItem = (e: React.MouseEvent) => {
               e.preventDefault();
@@ -206,7 +221,13 @@ export class Welcome extends React.Component<
                 ) : (
                   <List.Item.Meta
                     avatar={this.platformIcon(item.platform)}
-                    title={<span>{item.filePath.split('/').pop()}</span>}
+                    title={
+                      <Space>
+                        <span>{item.filePath.split('/').pop()}</span>
+                        {item.hasTrace && <Tag color="blue">Trace</Tag>}
+                        {item.hasNetLog && <Tag color="green">Net Log</Tag>}
+                      </Space>
+                    }
                     description={this.logFileDescription(item)}
                   />
                 )}
