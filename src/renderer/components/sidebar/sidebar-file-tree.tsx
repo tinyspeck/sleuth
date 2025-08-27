@@ -277,7 +277,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     } else if (file.fileName.endsWith('installation')) {
       label = 'Installation';
       icon = <ExceptionOutlined />;
-    } else if (file.fileName.endsWith('diagonistic.json')) {
+    } else if (file.fileName.endsWith('diagnostic.json')) {
       label = 'System Diagnostics';
       icon = <HeartOutlined />;
     } else {
