@@ -2,7 +2,6 @@ import React from 'react';
 
 import { SelectableLogFile, UnzippedFile } from '../../interfaces';
 import { SleuthState } from '../state/sleuth';
-import { getSettingsInfo } from '../analytics/settings-analytics';
 import { getEnvInfo } from '../analytics/environment-analytics';
 import { getLocalSettingsInfo } from '../analytics/local-settings-analytics';
 import { getNotifWarningsInfo } from '../analytics/notification-warning-analytics';
@@ -27,8 +26,7 @@ export interface StateTableState<T extends keyof StateData> {
   raw?: string;
 }
 
-export enum StateType {
-  'settings',
+enum StateType {
   'html',
   'notifs',
   'installation',
@@ -153,16 +151,6 @@ export class StateTable extends React.Component<
     return StateType.unknown;
   }
 
-  private renderSettingsInfo(): JSX.Element | null {
-    return (
-      <Card className="StateTable-Info">
-        {...getSettingsInfo(
-          (this.state as StateTableState<StateType.settings>).data || {},
-        )}
-      </Card>
-    );
-  }
-
   private renderNotifsInfo(): JSX.Element | null {
     const { data } = this.state;
 
@@ -283,9 +271,7 @@ export class StateTable extends React.Component<
   private renderInfo(): JSX.Element | null {
     const type = this.getFileType();
 
-    if (type === StateType.settings) {
-      return this.renderSettingsInfo();
-    } else if (type === StateType.notifs) {
+    if (type === StateType.notifs) {
       return this.renderNotifsInfo();
     } else if (type === StateType.installation) {
       return this.renderInstallationInfo();
