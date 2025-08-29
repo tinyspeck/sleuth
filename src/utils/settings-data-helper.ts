@@ -7,7 +7,7 @@ export function getOSInfo(data?: Record<string, any>): string {
   const { platformVersion, pretendNotReallyWindows10 } = data;
   const osVersion =
     platformVersion && platformVersion.major
-      ? `(${platformVersion.major}.${platformVersion.minor})`
+      ? `(${platformVersion.major}.${platformVersion.minor}.${platformVersion.build})`
       : '(unknown version)';
   let windowsInfo = '';
 
@@ -19,10 +19,6 @@ export function getOSInfo(data?: Record<string, any>): string {
   }
 
   return `${os} ${osVersion}.${windowsInfo}`;
-}
-
-export function getVersionInfo({ appVersion, versionName }: any): string {
-  return appVersion ? `${appVersion} (${versionName || 'no name'})` : '';
 }
 
 function getPlatform(data?: Record<string, any>): string {
@@ -60,28 +56,89 @@ function getWindowsVersion({
   minor: number;
   build: number;
 }): string {
-  if (major === 10 && minor === 0) {
-    let buildName = '';
+  const windowsVersions: Record<string, { os: number; version: string }> = {
+    '10240': {
+      os: 10,
+      version: 'Version 1507 (RTM)',
+    },
+    '10586': {
+      os: 10,
+      version: 'Version 1511',
+    },
+    '14393': {
+      os: 10,
+      version: 'Version 1607',
+    },
+    '15063': {
+      os: 10,
+      version: 'Version 1703',
+    },
+    '16299': {
+      os: 10,
+      version: 'Version 1709',
+    },
+    '17134': {
+      os: 10,
+      version: 'Version 1803',
+    },
+    '17763': {
+      os: 10,
+      version: 'Version 1809',
+    },
+    '18362': {
+      os: 10,
+      version: 'Version 1903',
+    },
+    '18363': {
+      os: 10,
+      version: 'Version 1909',
+    },
+    '19041': {
+      os: 10,
+      version: 'Version 2004',
+    },
+    '19042': {
+      os: 10,
+      version: 'Version 20H2',
+    },
+    '19043': {
+      os: 10,
+      version: 'Version 21H1',
+    },
+    '19044': {
+      os: 10,
+      version: 'Version 21H2',
+    },
+    '19045': {
+      os: 10,
+      version: 'Version 22H2',
+    },
+    '22000': {
+      os: 11,
+      version: 'Version 21H2',
+    },
+    '22621': {
+      os: 11,
+      version: 'Version 22H2',
+    },
+    '22631': {
+      os: 11,
+      version: 'Version 23H2',
+    },
+    '26100': {
+      os: 11,
+      version: 'Version 24H2',
+    },
+  } as const;
+  let version: { os: number; version: string } = { os: 0, version: '' };
 
-    if (build <= 10240) buildName = 'Original Release (RTM), ';
-    if (build >= 10586)
-      buildName = 'Threshold 2 (First major round of updates in 2015), ';
-    if (build >= 14393) buildName = 'Anniversary Update, ';
-    if (build >= 15063) buildName = 'Creators Update, ';
-    if (build >= 16299) buildName = 'Fall Creators Update, ';
-    if (build >= 17000) buildName = 'April 2018 Update, ';
-    if (build >= 17600) buildName = 'October 2018 Update, ';
-
-    return `Windows 10 (${buildName}Build ${build})`;
+  for (const [key, value] of Object.entries(windowsVersions)) {
+    if (build < Number(key)) {
+      break;
+    } else {
+      version = value;
+    }
   }
 
-  // Windows NT 6 and up
-  if (major === 6) {
-    if (minor === 0) return `Windows Vista (NT 6.0, Build ${build})`;
-    if (minor === 1) return `Windows 7 (NT 6.1, Build ${build})`;
-    if (minor === 2) return `Windows 8 (NT 6.2, Build ${build})`;
-    if (minor === 3) return `Windows 8.1 (NT 6.3, Build ${build})`;
-  }
-
-  return `an unknown Windows version (${major}.${minor}, Build ${build})`;
+  return `Windows ${version.os} ${version.version}.`;
 }
