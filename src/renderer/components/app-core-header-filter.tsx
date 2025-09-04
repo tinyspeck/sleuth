@@ -9,7 +9,9 @@ import {
   Dropdown,
   Input,
   InputRef,
+  Select,
   Space,
+  Tag,
 } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import {
@@ -210,6 +212,7 @@ export const Filter = observer((props: FilterProps) => {
       </Dropdown>
     );
   }
+
   return (
     <Space className="SearchGroup">
       <RangePicker
@@ -227,6 +230,8 @@ export const Filter = observer((props: FilterProps) => {
         {renderFilter()}
         {showOnlySearchResultsButton}
       </Space>
+      <Divider type="vertical" />
+      <Select mode="tags" />
       <Divider type="vertical" />
       <Space.Compact className="SearchInputGroup">
         <Input

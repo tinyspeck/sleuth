@@ -271,8 +271,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     this.props.state.selectedRangeIndex = selectedRangeIndex;
     this.props.state.isDetailsVisible = true;
 
-    console.log(sortedList[selectedIndex]);
-
     this.setState({
       selectedRangeIndex,
       ignoreSearchIndex: true,
@@ -381,7 +379,6 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
 
     if (typeof selectedIndex === 'number') {
       const nextIndex = selectedIndex + count;
-      console.log({ nextIndex });
       this.changeSelection(nextIndex);
     }
   }
@@ -594,6 +591,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       );
       return (
         <div style={{ display: 'flex', gap: '0.25rem' }}>
+          {entry.meta?.tag && <Tag>{entry.meta.tag}</Tag>}
           <span title={entry.message}>{icon}</span>
           <span title={entry.message}>{message}</span>
         </div>
@@ -613,12 +611,18 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       const emojiMessage = `(${emoji} Repeated ${entry.repeated.length} times)`;
       return (
         <div style={{ display: 'flex', gap: '0.25rem' }}>
+          {entry.meta?.tag && <Tag>{entry.meta.tag}</Tag>}
           <span>{emojiMessage}</span>
           <span>{message}</span>
         </div>
       );
     } else {
-      return message;
+      return (
+        <div style={{ display: 'flex', gap: '0.25rem' }}>
+          {entry.meta?.tag && <Tag>{entry.meta.tag}</Tag>}
+          {message}
+        </div>
+      );
     }
   }
 

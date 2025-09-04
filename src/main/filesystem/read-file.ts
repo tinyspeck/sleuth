@@ -16,11 +16,12 @@ import { StateTableState } from '../../renderer/components/state-table';
 
 const d = debug('sleuth:read-file');
 
-const DESKTOP_RGX = /^\s*\[([\d/,\s:]{22,24})\] ([A-Za-z]{0,20}):?(.*)$/g;
+const DESKTOP_RGX =
+  /^\s*\[([\d/,\s:]{22,24})\] ([A-Za-z]{0,20}):?\s*(?:\[([a-zA-Z0-9:_-]+)\] )?(.*)$/g;
 
 const WEBAPP_A_RGX = /^(\w*): (.{3}-\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
 const WEBAPP_B_RGX =
-  /^(\w*): (\d{4}\/\d{1,2}\/\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
+  /^(\w*): (\d{4}\/\d{1,2}\/\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) ?(.*)$/;
 
 const MOBILE_RGX =
   /^\[([0-9]{4}-[0-9]{2}-[0-9]{2} )T([0-9]{2}:[0-9]{2}:[0-9]{2})(?:.[0-9]{6} -[0-9]{2}:[0-9]{2}\]\s)(.+)/;
@@ -217,7 +218,7 @@ export function readLogFile(
       if (matched) {
         // Is there a meta object?
         if (current && toParse && toParse.length > 0) {
-          current.meta = { data: toParse };
+          current.meta = { ...current.meta, data: toParse };
         }
 
         // Deal with leading Android debug log lines with no timestamp that were given the Jan 1970 default
@@ -340,12 +341,12 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
   let results = DESKTOP_RGX.exec(line);
 
   // First, try the expected default format
-  if (results && results.length === 4) {
+  if (results && results.length === 5) {
     // Expected format: MM/DD/YY(YY), HH:mm:ss:SSS'
     const momentValue = new Date(
       results[1].replace(', 24:', ', 00:'),
     ).valueOf();
-    let message = results[3];
+    let message = results[4];
 
     // If we have two timestamps, cut that from the message
     WEBAPP_NEW_TIMESTAMP_RGX.lastIndex = 0;
@@ -367,7 +368,7 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
       level: results[2].toLowerCase(),
       message,
       momentValue,
-      meta: { data: meta },
+      meta: { ...(results[3] ? { tag: results[3] } : undefined), data: meta },
     };
   }
 
@@ -387,11 +388,13 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
   WEBAPP_B_RGX.lastIndex = 0;
   results = WEBAPP_B_RGX.exec(line);
 
-  if (results && results.length === 4) {
+  if (results && results.length === 5) {
     return {
       timestamp: results[2],
       level: results[1],
-      message: results[3],
+      message: results[4],
+      // FIXME: should support meta.tag and meta.data
+      meta: results[3] ? { tag: results[3] } : undefined,
     };
   }
 
@@ -483,7 +486,7 @@ export function matchLineElectron(line: string): MatchResult | undefined {
   DESKTOP_RGX.lastIndex = 0;
   const results = DESKTOP_RGX.exec(line);
 
-  if (results && results.length === 4) {
+  if (results && results.length === 5) {
     // Expected format: MM/DD/YY, HH:mm:ss:SSS'
     const momentValue = new Date(
       results[1].replace(', 24:', ', 00:'),
@@ -492,8 +495,9 @@ export function matchLineElectron(line: string): MatchResult | undefined {
     return {
       timestamp: results[1],
       level: results[2].toLowerCase(),
-      message: results[3],
+      message: results[4],
       momentValue,
+      meta: results[3] ? { tag: results[3] } : undefined,
     };
   }
 
