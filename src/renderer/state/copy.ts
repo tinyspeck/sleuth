@@ -42,8 +42,8 @@ export function getCopyText(entry: LogEntry) {
 
   let text = `${timestamp} ${message}`;
 
-  if (meta) {
-    text += `\n${meta}`;
+  if (meta?.data) {
+    text += `\n${meta.data}`;
   }
 
   return text;
