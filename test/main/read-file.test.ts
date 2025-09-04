@@ -57,7 +57,7 @@ describe('readFile', () => {
 
       expect(entries[4]).toHaveProperty('meta');
 
-      const parsedMeta = dirtyJSON(entries[4].meta);
+      const parsedMeta = dirtyJSON(entries[4].meta?.data as string);
       expect(parsedMeta.isDevMode).toBe(true);
     });
   });
@@ -74,7 +74,7 @@ describe('readFile', () => {
     return readLogFile(file, LogType.WEBAPP).then(({ entries }) => {
       expect(entries).toHaveLength(4);
       // Can parse JSON meta
-      expect(JSON.parse(entries[3].meta as string)).toEqual({
+      expect(JSON.parse(entries[3].meta?.data as string)).toEqual({
         viewSet: {
           sidebar: { id: 'ChannelList', viewType: 'ChannelList' },
           primary: { id: 'Punreads', viewType: 'Page' },

@@ -271,6 +271,8 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     this.props.state.selectedRangeIndex = selectedRangeIndex;
     this.props.state.isDetailsVisible = true;
 
+    console.log(sortedList[selectedIndex]);
+
     this.setState({
       selectedRangeIndex,
       ignoreSearchIndex: true,

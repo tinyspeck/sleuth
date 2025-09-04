@@ -17,7 +17,9 @@ const mockLogEntry = {
     logType: LogType.BROWSER,
     line: 1,
     sourceFile: 'browser.log',
-    meta: 'Test meta',
+    meta: {
+      data: 'Test meta',
+    },
     momentValue: 1672531200000,
   },
 } as SleuthState;
