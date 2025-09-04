@@ -40,7 +40,13 @@ export function getCopyText(entry: LogEntry) {
   // Might as well reformat all timestamps to be consistent with m/dd/yy, hh:mm:ss
   timestamp = format(new Date(timestamp), 'M/dd/yy, HH:mm:ss');
 
-  let text = `${timestamp} ${message}`;
+  let text = `${timestamp}`;
+
+  if (meta && 'tag' in meta) {
+    text += ` [${meta.tag}]`;
+  }
+
+  text += ` ${message}`;
 
   if (meta?.data) {
     text += `\n${meta.data}`;

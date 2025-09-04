@@ -74,6 +74,10 @@ export interface DateRange {
   to: Date | null;
 }
 
+export interface WebAppMeta extends BaseMeta {
+  tag: string;
+}
+
 export interface ChromiumMeta extends BaseMeta {
   sourceFile: string;
 }
@@ -84,6 +88,8 @@ interface BaseMeta {
 
 export type LogMetaType<T extends LogType> = T extends LogType.CHROMIUM
   ? ChromiumMeta
+  : T extends LogType.WEBAPP
+  ? WebAppMeta
   : BaseMeta;
 
 export interface LogEntry<T extends LogType = LogType> {
