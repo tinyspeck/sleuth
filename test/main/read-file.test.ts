@@ -36,7 +36,7 @@ describe('matchLineElectron', () => {
 });
 
 describe('readFile', () => {
-  it('should read a browser.log file and create log entries', () => {
+  it('should read a browser.log file and create log entries', async () => {
     const file: UnzippedFile = {
       type: 'UnzippedFile',
       id: '123',
@@ -45,43 +45,41 @@ describe('readFile', () => {
       size: 1713,
     };
 
-    return readLogFile(file, LogType.BROWSER).then(({ entries }) => {
-      expect(entries).toHaveLength(13);
-      expect(entries[0]).toMatchObject({
-        timestamp: '02/22/17, 16:02:32:675',
-        level: 'info',
-        momentValue: expect.any(Number),
-        logType: LogType.BROWSER,
-        index: 0,
-      });
-
-      expect(entries[4]).toHaveProperty('meta');
-
-      const parsedMeta = dirtyJSON(entries[4].meta?.data as string);
-      expect(parsedMeta.isDevMode).toBe(true);
+    const { entries } = await readLogFile(file, LogType.BROWSER);
+    expect(entries).toHaveLength(13);
+    expect(entries[0]).toMatchObject({
+      timestamp: '02/22/17, 16:02:32:675',
+      level: 'info',
+      momentValue: expect.any(Number),
+      logType: LogType.BROWSER,
+      index: 0,
     });
+
+    expect(entries[4]).toHaveProperty('meta');
+
+    const parsedMeta = dirtyJSON(entries[4].meta?.data as string);
+    expect(parsedMeta.isDevMode).toBe(true);
   });
+});
 
-  it('should read a webapp.log file and create log entries', () => {
-    const file: UnzippedFile = {
-      type: 'UnzippedFile',
-      id: '123',
-      fullPath: path.join(__dirname, '../static/webapp.log'),
-      fileName: 'webapp.log',
-      size: 1713,
-    };
+it('should read a webapp.log file and create log entries', async () => {
+  const file: UnzippedFile = {
+    type: 'UnzippedFile',
+    id: '123',
+    fullPath: path.join(__dirname, '../static/webapp.log'),
+    fileName: 'webapp.log',
+    size: 1713,
+  };
 
-    return readLogFile(file, LogType.WEBAPP).then(({ entries }) => {
-      expect(entries).toHaveLength(4);
-      // Can parse JSON meta
-      expect(JSON.parse(entries[3].meta?.data as string)).toEqual({
-        viewSet: {
-          sidebar: { id: 'ChannelList', viewType: 'ChannelList' },
-          primary: { id: 'Punreads', viewType: 'Page' },
-        },
-        nextTab: 'home',
-      });
-    });
+  const { entries } = await readLogFile(file, LogType.WEBAPP);
+  expect(entries).toHaveLength(5);
+  // Can parse JSON meta
+  expect(JSON.parse(entries[3].meta?.data as string)).toEqual({
+    viewSet: {
+      sidebar: { id: 'ChannelList', viewType: 'ChannelList' },
+      primary: { id: 'Punreads', viewType: 'Page' },
+    },
+    nextTab: 'home',
   });
 });
 

@@ -586,7 +586,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   }: TableCellProps): JSX.Element | string {
     const message = entry.highlightMessage ?? entry.message;
 
-    if (entry && entry.meta) {
+    if (entry && entry.meta?.data) {
       const icon = isReduxAction(entry.message) ? (
         <PartitionOutlined />
       ) : (
