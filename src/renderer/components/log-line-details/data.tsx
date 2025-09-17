@@ -2,13 +2,13 @@ import React, { ReactElement } from 'react';
 import { JSONView } from '../json-view';
 import debug from 'debug';
 import { SleuthState } from '../../state/sleuth';
-import { LogEntry, LogMetaType, LogType } from '../../../interfaces';
+import { LogEntry } from '../../../interfaces';
 import { Button } from 'antd';
 
 const d = debug('sleuth:data');
 
 export interface LogLineDataProps {
-  meta: LogMetaType<any>;
+  meta: string | LogEntry;
   state: SleuthState;
 }
 
@@ -74,7 +74,7 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, object> {
     return <div className="LogLineData">{data}</div>;
   }
 
-  public renderChromiumFile(selectedEntry: LogEntry<LogType.CHROMIUM>) {
+  public renderChromiumFile(selectedEntry: LogEntry) {
     if (!selectedEntry?.meta || typeof selectedEntry.meta === 'string') return;
     const str = `https://source.chromium.org/search?q=LOG%20filepath:${selectedEntry.meta.sourceFile}&ss=chromium`;
 
@@ -94,27 +94,22 @@ export class LogLineData extends React.PureComponent<LogLineDataProps, object> {
     const { meta } = this.props;
     const { selectedEntry } = this.props.state;
 
-    if (!meta || !meta.data || !selectedEntry) {
+    if (!meta) {
       return null;
     }
 
-    const isLogType =
-      <T extends LogType>(logType: T) =>
-      (entry: LogEntry<LogType>): entry is LogEntry<T> =>
-        entry.logType === logType;
-
-    if (isLogType(LogType.CHROMIUM)(selectedEntry)) {
-      return this.renderChromiumFile(selectedEntry) ?? null;
-    } else if (typeof meta.data === 'string') {
-      if (
-        meta &&
-        meta.data.startsWith(`+----`) &&
-        meta.data.endsWith('----+\n')
-      ) {
-        return this.renderTable(meta.data);
+    // string
+    if (typeof meta === 'string') {
+      if (meta && meta.startsWith(`+----`) && meta.endsWith('----+\n')) {
+        return this.renderTable(meta);
       } else {
-        return this.renderJSON(meta.data);
+        return this.renderJSON(meta);
       }
+    }
+
+    // object
+    if (meta.sourceFile && selectedEntry) {
+      return this.renderChromiumFile(selectedEntry) ?? null;
     }
 
     return null;
