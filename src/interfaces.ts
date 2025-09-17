@@ -74,27 +74,15 @@ export interface DateRange {
   to: Date | null;
 }
 
-export interface ChromiumMeta extends BaseMeta {
-  sourceFile: string;
-}
-
-interface BaseMeta {
-  data: string;
-}
-
-export type LogMetaType<T extends LogType> = T extends LogType.CHROMIUM
-  ? ChromiumMeta
-  : BaseMeta;
-
-export interface LogEntry<T extends LogType = LogType> {
+export interface LogEntry {
   index: number;
   timestamp: string;
   message: string;
   level: LogLevel;
-  logType: T;
+  logType: LogType;
   line: number;
   sourceFile: string;
-  meta?: LogMetaType<T>;
+  meta?: string | LogEntry;
   momentValue?: number;
   repeated?: Array<string>;
 }

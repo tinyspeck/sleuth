@@ -182,7 +182,7 @@ export function readLogFile(
         if (
           previous &&
           previous.message === entry.message &&
-          JSON.stringify(previous.meta) === JSON.stringify(entry.meta)
+          previous.meta === entry.meta
         ) {
           entries[lastIndex].repeated = entries[lastIndex].repeated || [];
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -217,7 +217,7 @@ export function readLogFile(
       if (matched) {
         // Is there a meta object?
         if (current && toParse && toParse.length > 0) {
-          current.meta = { data: toParse };
+          current.meta = toParse;
         }
 
         // Deal with leading Android debug log lines with no timestamp that were given the Jan 1970 default
@@ -367,7 +367,7 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
       level: results[2].toLowerCase(),
       message,
       momentValue,
-      meta: { data: meta },
+      meta,
     };
   }
 
