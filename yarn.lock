@@ -9890,6 +9890,8 @@ __metadata:
   dependenciesMeta:
     electron:
       built: true
+    electron-winstaller:
+      built: true
   languageName: unknown
   linkType: soft
 

@@ -116,6 +116,9 @@
   "dependenciesMeta": {
     "electron": {
       "built": true
+    },
+    "electron-winstaller": {
+      "built": true
     }
   }
 }
