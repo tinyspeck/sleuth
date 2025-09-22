@@ -1,7 +1,7 @@
-diff --git a/node_modules/mobx-react/dist/inject.d.ts b/node_modules/mobx-react/dist/inject.d.ts
-index bbd4aa6..52bd36e 100644
---- a/node_modules/mobx-react/dist/inject.d.ts
-+++ b/node_modules/mobx-react/dist/inject.d.ts
+diff --git a/dist/inject.d.ts b/dist/inject.d.ts
+index bbd4aa608df252ebe9cd7f2adcda56613a2342d7..52bd36e81b307ed1eeb52be9507272619635dea9 100644
+--- a/dist/inject.d.ts
++++ b/dist/inject.d.ts
 @@ -1,5 +1,6 @@
  import { IReactComponent } from "./types/IReactComponent";
  import { IWrappedComponent } from "./types/IWrappedComponent";
