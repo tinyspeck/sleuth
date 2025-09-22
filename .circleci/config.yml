@@ -38,6 +38,9 @@ commands:
           keys:
             - v2-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
       - run:
+          name: Prepare Yarn
+          command: corepack install
+      - run:
           name: Install Dependencies
           command: yarn install --immutable
       - save_cache:
