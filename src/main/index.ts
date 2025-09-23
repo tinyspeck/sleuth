@@ -10,7 +10,6 @@ import { createMenu } from './menu';
 import { setupUpdates } from './update';
 import { installProtocol } from './protocol';
 import { registerScheme, registerSchemePrivilege } from './scheme';
-import { crash } from 'node:process';
 
 if (app.isPackaged) {
   process.env.NODE_ENV = 'production';
