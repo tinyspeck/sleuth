@@ -4,7 +4,10 @@ module.exports = {
     es2021: true,
     node: true,
   },
-  ignorePatterns: ['public/catapult/**/*.js'],
+  ignorePatterns: [
+    'public/catapult/**/*.js',
+    'static/catapult-overrides/**/*.js',
+  ],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
