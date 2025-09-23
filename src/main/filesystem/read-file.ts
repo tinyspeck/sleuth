@@ -545,10 +545,6 @@ export function matchLineConsole(line: string): MatchResult | undefined {
  * @returns {(MatchResult | undefined)}
  */
 export function matchLineIOS(line: string): MatchResult | undefined {
-  // if (line.startsWith('=====')) {
-  //   return;
-  // } // We're ignoring these lines
-
   // This iOS regex is for the newest timestamp format (as of 5/5/25)
   IOS_A_RGX.lastIndex = 0;
   let results = IOS_A_RGX.exec(line);
