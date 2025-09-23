@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, crashReporter } from 'electron';
 import startup from 'electron-squirrel-startup';
 
 console.log(`Welcome to Sleuth ${app.getVersion()}`);
@@ -23,6 +23,10 @@ if (startup) {
   if (!gotTheLock) {
     app.quit();
   }
+
+  crashReporter.start({
+    uploadToServer: false,
+  });
 
   console.log(`Booting application (ready status: ${app.isReady()})`);
 
