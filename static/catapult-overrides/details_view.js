@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-var DetailsView = (function () {
+var DetailsView = (function() {
   'use strict';
 
   // We inherit from DivView.
@@ -33,7 +33,7 @@ var DetailsView = (function () {
     // Inherit the superclass's methods.
     __proto__: superClass.prototype,
 
-    setData: function (sourceEntries) {
+    setData: function(sourceEntries) {
       // Make a copy of the array (in case the caller mutates it), and sort it
       // by the source ID.
       this.sourceEntries_ = createSortedCopy_(sourceEntries);
@@ -45,7 +45,7 @@ var DetailsView = (function () {
       }
     },
 
-    repaint: function () {
+    repaint: function() {
       this.outstandingRepaint_ = false;
       this.sourceIdToDivMap_ = {};
       this.getNode().innerHTML = '';
@@ -53,7 +53,8 @@ var DetailsView = (function () {
       var node = this.getNode();
 
       for (var i = 0; i < this.sourceEntries_.length; ++i) {
-        if (i != 0) addNode(node, 'hr');
+        if (i != 0)
+          addNode(node, 'hr');
 
         var sourceEntry = this.sourceEntries_[i];
         var div = addNode(node, 'div');
@@ -61,17 +62,15 @@ var DetailsView = (function () {
 
         var p = addNode(div, 'p');
         addNodeWithText(
-          p,
-          'h4',
-          sourceEntry.getSourceId() + ': ' + sourceEntry.getSourceTypeString(),
-        );
+            p, 'h4',
+            sourceEntry.getSourceId() + ': ' +
+                sourceEntry.getSourceTypeString());
 
         if (sourceEntry.getDescription())
           addNodeWithText(p, 'h4', sourceEntry.getDescription());
 
-        const startDate = timeutil.convertTimeTicksToDate(
-          sourceEntry.getStartTicks(),
-        );
+        const startDate =
+            timeutil.convertTimeTicksToDate(sourceEntry.getStartTicks());
         var startTimeDiv = addNodeWithText(p, 'div', 'Start Time: ');
         timeutil.addNodeWithDate(startTimeDiv, startDate);
 
@@ -86,7 +85,7 @@ var DetailsView = (function () {
       }
     },
 
-    show: function (isVisible) {
+    show: function(isVisible) {
       superClass.prototype.show.call(this, isVisible);
       if (isVisible) {
         this.repaint();
@@ -99,7 +98,7 @@ var DetailsView = (function () {
      * Scrolls to the source indicated by |sourceId|, if displayed.  If a
      * repaint is outstanding, waits for it to complete before scrolling.
      */
-    scrollToSourceId: function (sourceId) {
+    scrollToSourceId: function(sourceId) {
       if (this.outstandingRepaint_) {
         this.outstandingScrollToId_ = sourceId;
         return;
@@ -111,12 +110,12 @@ var DetailsView = (function () {
           block: 'nearest',
           inline: 'start',
         });
-    },
+    }
   };
 
   function createSortedCopy_(origArray) {
     var sortedArray = origArray.slice(0);
-    sortedArray.sort(function (a, b) {
+    sortedArray.sort(function(a, b) {
       return a.getSourceId() - b.getSourceId();
     });
     return sortedArray;
@@ -124,3 +123,4 @@ var DetailsView = (function () {
 
   return DetailsView;
 })();
+
