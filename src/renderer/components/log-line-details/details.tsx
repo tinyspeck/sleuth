@@ -65,7 +65,12 @@ export const LogLineDetails = observer((props: LogLineDetailsProps) => {
                 <Button
                   size="small"
                   onClick={() => {
-                    if (selectedEntry) {
+                    if (selectedRangeEntries) {
+                      const copyText = selectedRangeEntries
+                        .map(getCopyText)
+                        .join('\n');
+                      window.Sleuth.clipboard.writeText(copyText);
+                    } else if (selectedEntry) {
                       const copyText = getCopyText(selectedEntry);
                       window.Sleuth.clipboard.writeText(copyText);
                     }
