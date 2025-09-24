@@ -137,7 +137,6 @@ export function readLogFile(
     let lines = 0;
     let current: LogEntry | null = null;
     let toParse = '';
-    let androidDebug: LogEntry | null = null;
 
     const levelCounts: Record<LogLevel, number> = {
       debug: 0,
@@ -157,22 +156,24 @@ export function readLogFile(
           previous &&
           previous.timestamp &&
           previous.momentValue &&
-          entry.timestamp === new Date('Jan-01-70 00:00:00').toString()
+          entry.timestamp.startsWith('No Date B') &&
+          entry.momentValue === 0
         ) {
           // In this case, the line didn't have a timestamp. If possible, give it the timestamp of the line before.
-          // Jan-01-70 is the default timestamp Sleuth is giving to console log lines (regex B) and Android debug lines
+          // This should apply to console log lines (regex B)
           entry.timestamp = previous.timestamp;
           entry.momentValue = previous.momentValue;
         } else if (
           previous &&
           previous.timestamp &&
           previous.momentValue &&
-          entry.timestamp.startsWith('No Date')
+          entry.timestamp.startsWith('No Date C') &&
+          entry.momentValue === 0
         ) {
           // In this case, the line has a time but no date. If possible, give it the date of the line before!
-          // 'No Date' is the default timestamp Sleuth is giving to console log lines (regex C) only
+          // This should apply to console log lines (regex C) only
           const newTimestamp =
-            previous.timestamp.substring(0, 16) + entry.timestamp.substring(7);
+            previous.timestamp.substring(0, 16) + entry.timestamp.substring(9);
           const newDate = new Date(newTimestamp);
 
           entry.timestamp = newTimestamp;
@@ -204,11 +205,7 @@ export function readLogFile(
 
     function readLine(line: string) {
       lines = lines + 1;
-      if (
-        !line ||
-        line.length === 0 ||
-        (logType === 'mobile' && line.startsWith('====='))
-      ) {
+      if (!line || line.length === 0) {
         return;
       }
 
@@ -219,49 +216,7 @@ export function readLogFile(
         if (current && toParse && toParse.length > 0) {
           current.meta = toParse;
         }
-
-        // Deal with leading Android debug log lines with no timestamp that were given the Jan 1970 default
-        // and console log lines given 'No Date'
-        if (
-          (logType === 'mobile' || logType === 'webapp') &&
-          (current?.timestamp === new Date('Jan-01-70 00:00:00').toString() ||
-            current?.timestamp.startsWith('No Date'))
-        ) {
-          // If a debug line isn't currently being stored
-          if (!androidDebug) {
-            // Copy the current log entry to the debug store
-            androidDebug = current;
-          } else {
-            // Append the current log entry message to the debug store
-            androidDebug.message += '\n' + current?.message;
-          }
-          // If a debug line is stored and current exists
-        } else if (
-          (logType === 'mobile' || logType === 'webapp') &&
-          androidDebug &&
-          current
-        ) {
-          if (androidDebug.timestamp.startsWith('No Date')) {
-            // If it's a console log with only the timestamp, give it the date of the next possible log line
-            androidDebug.timestamp =
-              current.timestamp.substring(0, 16) +
-              androidDebug.timestamp.substring(7);
-            androidDebug.momentValue = new Date(
-              androidDebug.timestamp,
-            ).valueOf();
-          } else {
-            // Give the debug line current's timestamp and momentvalue and push it separately
-            androidDebug.timestamp = current.timestamp;
-            androidDebug.momentValue = current.momentValue;
-          }
-
-          pushEntry(androidDebug);
-          androidDebug = null;
-          pushEntry(current);
-        } else {
-          // No Android log line to deal with, push the last entry
-          pushEntry(current);
-        }
+        pushEntry(current);
 
         // Create new entry
         toParse = matched.toParseHead || '';
@@ -301,13 +256,8 @@ export function readLogFile(
     readInterface.on('line', readLine);
     // This happens on the last line of the file because we don't need to create a new current (?)
     readInterface.on('close', () => {
-      // If an unpushed Android debug line exists, add the current message to it (probably another orphan Android debug line) and push
-      if (androidDebug) {
-        androidDebug.message += '\n' + current?.message;
-        pushEntry(androidDebug);
-      } else {
-        pushEntry(current);
-      }
+      pushEntry(current);
+
       resolve({ entries, lines, levelCounts, repeatedCounts });
     });
   });
@@ -564,11 +514,11 @@ export function matchLineConsole(line: string): MatchResult | undefined {
 
   if (results && results.length === 3) {
     return {
-      // Jan-01-70 is the default timestamp given to logs with bad/no timestamps so we can identify & append new datestamps in pushEntry()
-      timestamp: new Date('Jan-01-70 00:00:00').toString(),
+      // This has no timestamp at all; let's give it 'No Date' so we can identify it later
+      timestamp: 'No Date B',
       level: 'info',
       message: results[2] + ' ' + results[1],
-      momentValue: new Date('Jan-01-70 00:00:00').valueOf(),
+      momentValue: 0,
     };
   }
 
@@ -578,7 +528,7 @@ export function matchLineConsole(line: string): MatchResult | undefined {
   if (results && results.length === 4) {
     return {
       // 'No Date' is the default timestamp given to these console logs so we can identify & append new datestamps in pushEntry()
-      timestamp: 'No Date' + results[1],
+      timestamp: 'No Date C' + results[1],
       level: 'info',
       message: results[2] ? results[3] + ' <' + results[2] + '>' : results[3],
       momentValue: 0,
@@ -595,10 +545,6 @@ export function matchLineConsole(line: string): MatchResult | undefined {
  * @returns {(MatchResult | undefined)}
  */
 export function matchLineIOS(line: string): MatchResult | undefined {
-  if (line.startsWith('=====')) {
-    return;
-  } // We're ignoring these lines
-
   // This iOS regex is for the newest timestamp format (as of 5/5/25)
   IOS_A_RGX.lastIndex = 0;
   let results = IOS_A_RGX.exec(line);
@@ -678,19 +624,6 @@ export function matchLineIOS(line: string): MatchResult | undefined {
  * @returns {(MatchResult | undefined)}
  */
 export function matchLineAndroid(line: string): MatchResult | undefined {
-  // Let's pretend some of the debugging metadata is a log line so we can search for it and give it a default date
-  if (
-    line.startsWith('UsersCounts') ||
-    (line.startsWith('Messag') && !line.startsWith('MessageGap('))
-  ) {
-    return {
-      timestamp: new Date('Jan-01-70 00:00:00').toString(),
-      level: 'info',
-      message: line,
-      momentValue: new Date('Jan-01-70 00:00:00').valueOf(),
-    };
-  }
-
   // ANDROID_C_RGX expects lines that start with YYYY-MM-DD THH:MM:SS.SSSSSS
   ANDROID_C_RGX.lastIndex = 0;
   let results = ANDROID_C_RGX.exec(line);
