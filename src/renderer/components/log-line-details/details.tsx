@@ -58,7 +58,6 @@ export const LogLineDetails = observer((props: LogLineDetailsProps) => {
           height: '100%',
           borderRadius: 0,
         }}
-        title={<span title={message}>{message}</span>}
         extra={
           <div className="Details-LogType">
             <Space>
@@ -114,6 +113,7 @@ export const LogLineDetails = observer((props: LogLineDetailsProps) => {
           </div>
         }
       >
+        <div className="LogLine Monospace">{message}</div>
         {selectedEntry?.meta && !selectedRangeEntries && (
           <Card>
             <LogLineData state={props.state} meta={selectedEntry.meta} />
