@@ -36,15 +36,18 @@ commands:
       - restore_cache:
           name: Restore Cached Dependencies
           keys:
-            - v1-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
+            - v2-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
+      - run:
+          name: Prepare Yarn
+          command: corepack enable
       - run:
           name: Install Dependencies
-          command: npx yarn@1.22.22 install --frozen-lockfile
+          command: yarn install --immutable
       - save_cache:
           name: Cache Installed Dependencies
           paths:
             - node_modules
-          key: v1-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
+          key: v2-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
   load_cloudhsm:
     steps:
       - run:
@@ -66,7 +69,7 @@ commands:
       - run:
           name: Build Packages with flags; << parameters.make_flags >>
           command: |
-            npx yarn@1.22.22 run publish --dry-run << parameters.make_flags >>
+            yarn run publish --dry-run << parameters.make_flags >>
           no_output_timeout: 30m
       - store_artifacts:
           path: out/make
@@ -85,10 +88,10 @@ jobs:
       - install_deps
       - run:
           name: Lint
-          command: npx yarn@1.22.22 lint
+          command: yarn lint
       - run:
           name: Run tests
-          command: npx yarn@1.22.22 test
+          command: yarn test
   build-macos:
     parameters:
       arch:
@@ -183,7 +186,7 @@ jobs:
           name: Publish
           command: |
             node tools/fix-publish-paths.js
-            npx yarn@1.22.22 run publish --from-dry-run
+            yarn run publish --from-dry-run
 
 workflows:
   ci:

@@ -17,7 +17,6 @@
     "start": "electron-forge start",
     "test": "vitest",
     "catapult:update": "git submodule foreach git pull origin master",
-    "postinstall": "patch-package",
     "lint:fix": "npm run tsc && eslint . --fix  --ignore-path .gitignore && prettier . --write",
     "prepare": "husky"
   },
@@ -41,13 +40,13 @@
     "lodash": "^4.17.21",
     "lz-string": "^1.4.4",
     "mobx": "5.15.7",
-    "mobx-react": "6.3.0",
+    "mobx-react": "patch:mobx-react@npm%3A6.3.0#~/.yarn/patches/mobx-react-npm-6.3.0-e118b28c32.patch",
     "react": "^17.0.1",
     "react-autobind": "^1.0.6",
     "react-dom": "^17.0.1",
     "react-json-tree": "0.18.0",
     "react-keydown": "1.9.12",
-    "react-virtualized": "^9.22.4",
+    "react-virtualized": "patch:react-virtualized@npm%3A9.22.5#~/.yarn/patches/react-virtualized-npm-9.22.5-be95b8e1a8.patch",
     "tmp": "0.2.4",
     "tslib": "^2.8.1",
     "update-electron-app": "^2.0.1",
@@ -93,7 +92,6 @@
     "less": "^3.12.2",
     "lint-staged": "^15.2.11",
     "node-abi": "^3.45.0",
-    "patch-package": "^7.0.0",
     "prettier": "^3.0.0",
     "rollup-plugin-copy": "^3.5.0",
     "ts-node": "^10.9.2",
@@ -113,5 +111,14 @@
     "*.{yml,yaml}": [
       "prettier --write"
     ]
+  },
+  "packageManager": "yarn@4.10.2",
+  "dependenciesMeta": {
+    "electron": {
+      "built": true
+    },
+    "electron-winstaller": {
+      "built": true
+    }
   }
 }
