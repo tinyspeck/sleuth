@@ -10,6 +10,9 @@ import {
   Input,
   InputRef,
   Space,
+  Switch,
+  Tooltip,
+  Typography,
 } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import {
@@ -25,6 +28,7 @@ import {
   SearchOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
+import { tzOffset } from '@date-fns/tz';
 
 export interface FilterProps {
   state: SleuthState;
@@ -200,7 +204,6 @@ export const Filter = observer((props: FilterProps) => {
               key: 'reset',
             },
           ],
-          // onMouseLeave: (): void => setOpen(false),
         }}
       >
         <Button
@@ -210,8 +213,35 @@ export const Filter = observer((props: FilterProps) => {
       </Dropdown>
     );
   }
+
+  const systemTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const userTZ = props.state.stateFiles['log-context.json']?.data?.systemTZ;
+  const tz = props.state.isUserTZ ? userTZ : systemTZ;
+  const offset = tzOffset(tz, new Date('2020-01-15T00:00:00Z'));
+  const isTZSwitchable = userTZ && userTZ !== systemTZ;
+
   return (
     <Space className="SearchGroup">
+      <div>
+        <Space>
+          <Typography.Text style={{ whiteSpace: 'nowrap' }}>TZ</Typography.Text>
+          <Tooltip title={`${tz} (UTC${offset < 0 ? '' : '+'}${offset / 60})`}>
+            <Switch
+              disabled={!isTZSwitchable}
+              checkedChildren={
+                isTZSwitchable
+                  ? 'System'
+                  : `UTC${offset < 0 ? '' : '+'}${offset / 60}`
+              }
+              unCheckedChildren={'User'}
+              checked={!props.state.isUserTZ}
+              onChange={() => {
+                props.state.toggleTZ();
+              }}
+            />
+          </Tooltip>
+        </Space>
+      </div>
       <RangePicker
         showTime={{
           defaultValue: [

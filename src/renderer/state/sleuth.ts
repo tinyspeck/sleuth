@@ -81,6 +81,7 @@ export class SleuthState {
   @observable public isDetailsVisible = false;
   @observable public isSidebarOpen = true;
   @observable public isSpotlightOpen = false;
+  @observable public isUserTZ = false;
   @observable.shallow public bookmarks: Array<Bookmark> = [];
   @observable public serializedBookmarks: Record<
     string,
@@ -253,6 +254,11 @@ export class SleuthState {
   @action
   public toggleSpotlight() {
     this.isSpotlightOpen = !this.isSpotlightOpen;
+  }
+
+  @action
+  public toggleTZ() {
+    this.isUserTZ = !this.isUserTZ;
   }
 
   @action
