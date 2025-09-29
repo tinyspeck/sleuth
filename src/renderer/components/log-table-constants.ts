@@ -43,6 +43,7 @@ export interface LogTableState {
   sortDirection?: SORT_DIRECTION;
   ignoreSearchIndex?: boolean;
   scrollToSelection?: boolean;
+  userTZ?: string;
 }
 
 export interface SortFilterListOptions {
