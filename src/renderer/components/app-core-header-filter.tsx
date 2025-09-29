@@ -225,7 +225,10 @@ export const Filter = observer((props: FilterProps) => {
       <div>
         <Space>
           <Typography.Text style={{ whiteSpace: 'nowrap' }}>TZ</Typography.Text>
-          <Tooltip title={`${tz} (UTC${offset < 0 ? '' : '+'}${offset / 60})`}>
+          <Tooltip
+            placement="right"
+            title={`${tz} (UTC${offset < 0 ? '' : '+'}${offset / 60})`}
+          >
             <Switch
               disabled={!isTZSwitchable}
               checkedChildren={
