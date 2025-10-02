@@ -19,8 +19,9 @@ IMPORTANT: Never attempt to run `npm`, instead always run the equivalent `yarn` 
 - `yarn run lint` - Run linting (includes TypeScript check, ESLint, and Prettier)
 - `yarn run lint:fix` - Fix linting issues automatically
 
-
 ### Build Commands
+
+note that you (Claude) should avoid running these commands  as they are slow, instead prefer running test, tsc or lint to validate changes rapidly.
 
 - `yarn run package` - Package the app for current platform
 - `yarn run make` - Create distributable for current platform
@@ -116,8 +117,6 @@ The app follows standard Electron patterns with three main processes:
 IMPORTANT: never disable a lint rule or add @ts-ignore unless explicitly asked to do so by the user.
 If you are unable to solve a problem without disabling a lint rule, stop and ask the user for
 guidance first.
-
-note that you (Claude) should avoid running these commands as they are slow, instead prefer running test, tsc or lint to validate changes rapidly.
 
 **CRITICAL: NEVER use --no-verify flag with git commands.** This bypasses pre-commit hooks that enforce code quality and can introduce broken code into the repository. Always fix the underlying issues that cause hooks to fail instead of bypassing them. If a hook is failing, address the specific linting, formatting, or test failures it identifies.
 
