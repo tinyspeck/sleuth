@@ -43,6 +43,25 @@ describe('Filter', () => {
   });
 
   describe('Timezone Switch', () => {
+    it('does not render switch when userTZ is not set', () => {
+      const state: Partial<SleuthState> = {
+        isUserTZ: false,
+        stateFiles: {
+          'log-context.json': {
+            data: {},
+          } as any,
+        },
+        searchList: [],
+        levelFilter: { error: true, warn: true, info: true, debug: true },
+        dateRange: { from: null, to: null },
+      };
+
+      render(<Filter state={state as SleuthState} />);
+
+      const tzSwitch = screen.queryByRole('switch');
+      expect(tzSwitch).not.toBeInTheDocument();
+    });
+
     it('renders disabled switch when userTZ matches systemTZ', () => {
       const state: Partial<SleuthState> = {
         isUserTZ: false,

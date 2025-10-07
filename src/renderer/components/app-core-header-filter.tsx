@@ -223,28 +223,30 @@ export const Filter = observer((props: FilterProps) => {
 
   return (
     <Space className="SearchGroup">
-      <div>
-        <Space>
-          <Tooltip
-            placement="right"
-            title={`${tz} (UTC${offset < 0 ? '' : '+'}${offset / 60})`}
-          >
-            <Switch
-              disabled={!isTZSwitchable}
-              checkedChildren={
-                isTZSwitchable
-                  ? 'TZ: System'
-                  : `TZ: UTC${offset < 0 ? '' : '+'}${offset / 60}`
-              }
-              unCheckedChildren={'TZ: User'}
-              checked={!props.state.isUserTZ}
-              onChange={() => {
-                props.state.toggleTZ();
-              }}
-            />
-          </Tooltip>
-        </Space>
-      </div>
+      {!!userTZ && (
+        <div>
+          <Space>
+            <Tooltip
+              placement="right"
+              title={`${tz} (UTC${offset < 0 ? '' : '+'}${offset / 60})`}
+            >
+              <Switch
+                disabled={!isTZSwitchable}
+                checkedChildren={
+                  isTZSwitchable
+                    ? 'TZ: System'
+                    : `TZ: UTC${offset < 0 ? '' : '+'}${offset / 60}`
+                }
+                unCheckedChildren={'TZ: User'}
+                checked={!props.state.isUserTZ}
+                onChange={() => {
+                  props.state.toggleTZ();
+                }}
+              />
+            </Tooltip>
+          </Space>
+        </div>
+      )}
       <RangePicker
         showTime
         onChange={handleDateRangeChange}
