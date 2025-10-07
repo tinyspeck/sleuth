@@ -1,7 +1,6 @@
 import { observer } from 'mobx-react';
 import React, { useEffect } from 'react';
 import { debounce } from 'lodash';
-import dayjs, { Dayjs } from 'dayjs';
 import {
   Button,
   DatePicker,
@@ -12,7 +11,6 @@ import {
   Space,
   Switch,
   Tooltip,
-  Typography,
 } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import {
@@ -28,7 +26,8 @@ import {
   SearchOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import { tzOffset } from '@date-fns/tz';
+import { TZDate, tzOffset } from '@date-fns/tz';
+import dateFnsGenerateConfig from 'rc-picker/lib/generate/dateFns';
 
 export interface FilterProps {
   state: SleuthState;
@@ -83,7 +82,7 @@ export const Filter = observer((props: FilterProps) => {
   }, 500);
 
   const handleDateRangeChange = (
-    values: [Dayjs, Dayjs],
+    values: [TZDate, TZDate],
     dateStrings: [string, string],
   ) => {
     props.state.dateRange = {
@@ -112,7 +111,9 @@ export const Filter = observer((props: FilterProps) => {
     />
   );
 
-  const { RangePicker } = DatePicker;
+  const { RangePicker } = DatePicker.generatePicker<Date>(
+    dateFnsGenerateConfig,
+  );
 
   function renderFilter() {
     const { error, warn, info, debug } = props.state.levelFilter;
@@ -224,7 +225,6 @@ export const Filter = observer((props: FilterProps) => {
     <Space className="SearchGroup">
       <div>
         <Space>
-          <Typography.Text style={{ whiteSpace: 'nowrap' }}>TZ</Typography.Text>
           <Tooltip
             placement="right"
             title={`${tz} (UTC${offset < 0 ? '' : '+'}${offset / 60})`}
@@ -233,10 +233,10 @@ export const Filter = observer((props: FilterProps) => {
               disabled={!isTZSwitchable}
               checkedChildren={
                 isTZSwitchable
-                  ? 'System'
-                  : `UTC${offset < 0 ? '' : '+'}${offset / 60}`
+                  ? 'TZ: System'
+                  : `TZ: UTC${offset < 0 ? '' : '+'}${offset / 60}`
               }
-              unCheckedChildren={'User'}
+              unCheckedChildren={'TZ: User'}
               checked={!props.state.isUserTZ}
               onChange={() => {
                 props.state.toggleTZ();
@@ -246,14 +246,16 @@ export const Filter = observer((props: FilterProps) => {
         </Space>
       </div>
       <RangePicker
-        showTime={{
-          defaultValue: [
-            dayjs('00:00:00', 'HH:mm:ss'),
-            dayjs('23:59:59', 'HH:mm:ss'),
-          ],
-        }}
+        showTime
         onChange={handleDateRangeChange}
-        allowEmpty={[true, true]}
+        value={[
+          props.state.dateRange.from
+            ? new TZDate(props.state.dateRange.from, tz)
+            : null,
+          props.state.dateRange.to
+            ? new TZDate(props.state.dateRange.to, tz)
+            : null,
+        ]}
       />
       <Divider type="vertical" />
       <Space className="FilterGroup">
