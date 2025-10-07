@@ -307,6 +307,7 @@ export class SleuthState {
     this.isDetailsVisible = false;
     this.dateRange = { from: null, to: null };
     this.traceThreads = undefined;
+    this.stateFiles = {};
 
     if (goBackToHome) {
       this.resetApp();
