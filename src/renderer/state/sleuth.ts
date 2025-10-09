@@ -81,6 +81,7 @@ export class SleuthState {
   @observable public isDetailsVisible = false;
   @observable public isSidebarOpen = true;
   @observable public isSpotlightOpen = false;
+  @observable public isUserTZ = false;
   @observable.shallow public bookmarks: Array<Bookmark> = [];
   @observable public serializedBookmarks: Record<
     string,
@@ -256,6 +257,11 @@ export class SleuthState {
   }
 
   @action
+  public toggleTZ() {
+    this.isUserTZ = !this.isUserTZ;
+  }
+
+  @action
   public async getSuggestions(suggestions?: Suggestion[]) {
     this.suggestions = suggestions || (await window.Sleuth.getSuggestions());
     this.suggestionsLoaded = true;
@@ -301,6 +307,7 @@ export class SleuthState {
     this.isDetailsVisible = false;
     this.dateRange = { from: null, to: null };
     this.traceThreads = undefined;
+    this.stateFiles = {};
 
     if (goBackToHome) {
       this.resetApp();

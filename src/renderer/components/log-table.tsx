@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import { format } from 'date-fns';
+import { TZDate } from '@date-fns/tz';
 import { default as keydown } from 'react-keydown';
 import autoBind from 'react-autobind';
 import {
@@ -59,6 +60,8 @@ export const logColorMap: Record<ProcessableLogType, string> = {
  */
 @observer
 export class LogTable extends React.Component<LogTableProps, LogTableState> {
+  private tableRef = React.createRef<Table>();
+
   constructor(props: LogTableProps) {
     super(props);
 
@@ -67,10 +70,12 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       sortBy: 'index',
       sortDirection: props.state.defaultSort || SORT_DIRECTION.DESC,
       ignoreSearchIndex: false,
+      userTZ: props.state.stateFiles['log-context.json']?.data?.systemTZ,
     };
 
     autoBind(this);
     this.selectSearchIndex();
+    this.setupTimezoneReaction();
   }
 
   /**
@@ -85,6 +90,22 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
           this.props.state.searchList[searchIndex];
         this.props.state.selectedEntry =
           this.state.sortedList[this.props.state.selectedIndex];
+      },
+    );
+  }
+
+  /**
+   * Sets up a reaction to force update the grid when timezone setting changes.
+   *
+   * @see https://github.com/bvaughn/react-virtualized/blob/master/docs/Table.md#forceupdategrid
+   */
+  private setupTimezoneReaction() {
+    reaction(
+      () => this.props.state.isUserTZ,
+      () => {
+        if (this.tableRef.current) {
+          this.tableRef.current.forceUpdateGrid();
+        }
       },
     );
   }
@@ -631,7 +652,13 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
   }: TableCellProps): JSX.Element | string {
     const { dateTimeFormat } = this.props;
     const timestamp = entry.momentValue
-      ? format(entry.momentValue, dateTimeFormat)
+      ? format(
+          new TZDate(
+            entry.momentValue,
+            this.props.state.isUserTZ ? this.state.userTZ : undefined,
+          ),
+          dateTimeFormat,
+        )
       : entry.timestamp;
     let prefix = <i className="Meta ts_icon ts_icon_question" />;
 
@@ -705,7 +732,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       tableOptions.scrollToIndex = searchList[searchIndex] || 0;
 
     return (
-      <Table {...tableOptions}>
+      <Table {...tableOptions} ref={this.tableRef}>
         <Column
           label="Index"
           dataKey="index"
