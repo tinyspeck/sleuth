@@ -4,17 +4,24 @@
 
 A Slack Log Viewer.
 
-# Development
+## Development
+
+Sleuth requires [git](https://git-scm.com/) and [Node.js](https://nodejs.org/) for development.
+We recommend installing [nvm](https://github.com/nvm-sh/nvm) to install Node.js on your machine.
+
+To start the app in development mode, run the following commands:
 
 ```sh
 git clone https://github.com/tinyspeck/sleuth
 cd sleuth
 git submodule update --init --recursive
+nvm install
+corepack enable
 yarn
 yarn start
 ```
 
-# Releases
+## Releases
 
 Releases are now fully automated and happen entirely within CircleCI.
 To release a new version, follow the following steps:
