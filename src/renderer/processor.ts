@@ -32,6 +32,7 @@ function getShouldProcessFile(logFile: UnzippedFile): boolean {
  */
 export async function processLogFiles(
   files: UnzippedFiles,
+  userTZ?: string,
   progressCb?: (status: string) => void,
 ) {
   const promises: Promise<ProcessedLogFile>[] = [];
@@ -39,7 +40,7 @@ export async function processLogFiles(
 
   files.forEach((logFile) => {
     if (getShouldProcessFile(logFile)) {
-      promises.push(processLogFile(logFile, progressCb));
+      promises.push(processLogFile(logFile, userTZ, progressCb));
     } else {
       rawFiles.push(logFile);
     }
@@ -58,6 +59,7 @@ export async function processLogFiles(
  */
 export async function processLogFile(
   logFile: UnzippedFile,
+  userTZ?: string,
   progressCb?: (status: string) => void,
 ): Promise<ProcessedLogFile> {
   const logType = getTypeForFile(logFile);
@@ -72,7 +74,7 @@ export async function processLogFile(
 
   const timeStart = performance.now();
   const { entries, lines, levelCounts, repeatedCounts } =
-    await window.Sleuth.readLogFile(logFile, logType);
+    await window.Sleuth.readLogFile(logFile, logType, userTZ);
   const result: ProcessedLogFile = {
     logFile,
     logEntries: entries,

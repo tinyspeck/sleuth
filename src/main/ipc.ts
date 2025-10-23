@@ -348,9 +348,12 @@ export class IpcManager {
   }
 
   private setupProcessor() {
-    ipcMain.handle(IpcEvents.READ_LOG_FILE, async (_event, files) => {
-      return readLogFile(files);
-    });
+    ipcMain.handle(
+      IpcEvents.READ_LOG_FILE,
+      async (_event, logFile, logType, userTZ) => {
+        return readLogFile(logFile, { logType, userTZ });
+      },
+    );
     ipcMain.handle(
       IpcEvents.READ_STATE_FILE,
       async (_event, file: UnzippedFile) => {
