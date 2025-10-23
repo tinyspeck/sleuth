@@ -13,8 +13,7 @@ import {
 import { getTypeForFile } from '../../utils/get-file-types';
 import debug from 'debug';
 import { StateTableState } from '../../renderer/components/state-table';
-import { TZDate, tzOffset } from '@date-fns/tz';
-import { getEpochFromDateString } from '../../utils/get-timestamp-from-date';
+import { TZDate } from '@date-fns/tz';
 
 const d = debug('sleuth:read-file');
 
@@ -291,9 +290,25 @@ export function matchLineWebApp(
 
   // First, try the expected default format
   if (results && results.length === 4) {
-    // Expected format: MM/DD/YY(YY), HH:mm:ss:SSS'
+    // Expected format: MM/DD/YY, HH:mm:ss:SSS'
+    const DATE_FORMAT_RGX =
+      /^(\d{2})\/(\d{2})\/(\d{2}), (\d{2}):(\d{2}):(\d{2}):(\d{3})$/;
     const dateString = results[1].replace(', 24:', ', 00:');
-    const momentValue = getEpochFromDateString(dateString, userTZ);
+    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
+    if (parsedDate === null) {
+      throw new Error(`Failed to parse date: ${dateString}`);
+    }
+    const [, month, day, year, hour, minute, second, millisecond] = parsedDate;
+    const momentValue = new TZDate(
+      parseInt(`20${year}`, 10),
+      parseInt(month, 10),
+      parseInt(day, 10),
+      parseInt(hour, 10),
+      parseInt(minute, 10),
+      parseInt(second, 10),
+      parseInt(millisecond, 10),
+      userTZ,
+    ).valueOf();
     let message = results[3];
 
     // If we have two timestamps, cut that from the message
@@ -361,7 +376,22 @@ export function matchLineSquirrel(
 
   if (results && results.length === 3) {
     // Expected format: 2019-01-30 21:08:25
-    const momentValue = getEpochFromDateString(results[1], userTZ);
+    const DATE_FORMAT_RGX = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/;
+    const dateString = results[1];
+    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
+    if (parsedDate === null) {
+      throw new Error(`Failed to parse date: ${dateString}`);
+    }
+    const [, year, month, day, hour, minute, second] = parsedDate;
+    const momentValue = new TZDate(
+      parseInt(year, 10),
+      parseInt(month, 10),
+      parseInt(day, 10),
+      parseInt(hour, 10),
+      parseInt(minute, 10),
+      parseInt(second, 10),
+      userTZ,
+    ).valueOf();
 
     return {
       timestamp: results[1],
@@ -390,7 +420,24 @@ export function matchLineShipItMac(
 
   if (results && results.length === 3) {
     // Expected format: 2019-01-08 08:29:56.504
-    const momentValue = getEpochFromDateString(results[1], userTZ);
+    const DATE_FORMAT_RGX =
+      /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d{3})$/;
+    const dateString = results[1];
+    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
+    if (parsedDate === null) {
+      throw new Error(`Failed to parse date: ${dateString}`);
+    }
+    const [, year, month, day, hour, minute, second, millisecond] = parsedDate;
+    const momentValue = new TZDate(
+      parseInt(year, 10),
+      parseInt(month, 10),
+      parseInt(day, 10),
+      parseInt(hour, 10),
+      parseInt(minute, 10),
+      parseInt(second, 10),
+      parseInt(millisecond, 10),
+      userTZ,
+    ).valueOf();
     let message = results[2];
 
     // Handle a meta entry
@@ -431,9 +478,24 @@ export function matchLineElectron(
   const results = DESKTOP_RGX.exec(line);
 
   if (results && results.length === 4) {
-    // Expected format: MM/DD/YY, HH:mm:ss:SSS'
+    const DATE_FORMAT_RGX =
+      /^(\d{2})\/(\d{2})\/(\d{2}), (\d{2}):(\d{2}):(\d{2}):(\d{3})$/;
     const dateString = results[1].replace(', 24:', ', 00:');
-    const momentValue = getEpochFromDateString(dateString, userTZ);
+    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
+    if (parsedDate === null) {
+      throw new Error(`Failed to parse date: ${dateString}`);
+    }
+    const [, month, day, year, hour, minute, second, millisecond] = parsedDate;
+    const momentValue = new TZDate(
+      parseInt(`20${year}`, 10),
+      parseInt(month, 10),
+      parseInt(day, 10),
+      parseInt(hour, 10),
+      parseInt(minute, 10),
+      parseInt(second, 10),
+      parseInt(millisecond, 10),
+      userTZ,
+    ).valueOf();
 
     return {
       timestamp: results[1],
@@ -729,7 +791,10 @@ export function matchLineMobile(line: string): MatchResult | undefined {
   }
 }
 
-export function matchLineChromium(line: string): MatchResult | undefined {
+export function matchLineChromium(
+  line: string,
+  userTZ?: string,
+): MatchResult | undefined {
   // See format: https://support.google.com/chrome/a/answer/6271282
   const results = CHROMIUM_RGX.exec(line);
 
@@ -741,18 +806,26 @@ export function matchLineChromium(line: string): MatchResult | undefined {
   const [pid, timestamp, level, sourceFile] = metadata.split(':');
   const currentDate = new Date();
 
-  // ts format is MMDD/HHmmss.SSS
+  // ts format is MMDD/HHmmss.
+  // https://support.google.com/chrome/a/answer/6271282?hl=en
   // this log format has no year information. Assume that the logs
   // happened in the past year because why would we read stale logs?
-  const [date, time] = timestamp.split('/');
-  const logDate = new Date(
+  const TIMESTAMP_FORMAT_RGX =
+    /^(\d{2})(\d{2})\/(\d{2})(\d{2})(\d{2})\.(\d{3})$/;
+  const parsedTimestamp = TIMESTAMP_FORMAT_RGX.exec(timestamp);
+  if (parsedTimestamp === null) {
+    throw new Error(`Failed to parse Chromium timestamp: ${timestamp}`);
+  }
+  const [, month, day, hour, minute, second, millisecond] = parsedTimestamp;
+  const logDate = new TZDate(
     currentDate.getFullYear(),
-    parseInt(date.slice(0, 2), 10) - 1, // month (0-indexed)
-    parseInt(date.slice(2, 4), 10), // day
-    parseInt(time.slice(0, 2), 10), // hour
-    parseInt(time.slice(2, 4), 10), // minute
-    parseInt(time.slice(4, 6), 10), // second
-    parseInt(time.slice(7, 10), 10), // millisecond
+    parseInt(month, 10), // month
+    parseInt(day, 10),
+    parseInt(hour, 10),
+    parseInt(minute, 10),
+    parseInt(second, 10),
+    parseInt(millisecond, 10),
+    userTZ,
   );
 
   // make sure we aren't time traveling. Maybe this

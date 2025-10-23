@@ -28,7 +28,7 @@ import {
 } from '@ant-design/icons';
 import { TZDate, tzOffset } from '@date-fns/tz';
 import dateFnsGenerateConfig from 'rc-picker/lib/generate/dateFns';
-import { getUTCOffsetForTZ } from '../../utils/get-timestamp-from-date';
+import { LogType } from '../../interfaces';
 
 export interface FilterProps {
   state: SleuthState;
@@ -219,8 +219,22 @@ export const Filter = observer((props: FilterProps) => {
   const systemTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const userTZ = props.state.stateFiles['log-context.json']?.data?.systemTZ;
   const tz = props.state.isUserTZ ? userTZ : systemTZ;
-  const offset = getUTCOffsetForTZ(tz);
   const isTZSwitchable = userTZ && userTZ !== systemTZ;
+
+  let offset = '';
+
+  // We do our best to represent the UTC offset based on the latest log entry's date.
+  // This could be wrong if daylight savings time changed in the middle of the log bundle.
+  if (userTZ && props.state.processedLogFiles?.browser[0]) {
+    const latestDate =
+      props.state.processedLogFiles.browser[0].logEntries[0].momentValue;
+    if (latestDate) {
+      const offsetInMinutes = tzOffset(tz, new TZDate(latestDate, tz));
+      const offsetTime = Math.abs(offsetInMinutes) / 60;
+      const offsetDirection = offsetInMinutes < 0 ? '-' : '+';
+      offset = `${offsetDirection}${String(offsetTime)}`;
+    }
+  }
 
   return (
     <Space className="SearchGroup">
