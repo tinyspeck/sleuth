@@ -28,6 +28,7 @@ import {
 } from '@ant-design/icons';
 import { TZDate, tzOffset } from '@date-fns/tz';
 import dateFnsGenerateConfig from 'rc-picker/lib/generate/dateFns';
+import { getUTCOffsetForTZ } from '../../utils/get-timestamp-from-date';
 
 export interface FilterProps {
   state: SleuthState;
@@ -218,7 +219,7 @@ export const Filter = observer((props: FilterProps) => {
   const systemTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const userTZ = props.state.stateFiles['log-context.json']?.data?.systemTZ;
   const tz = props.state.isUserTZ ? userTZ : systemTZ;
-  const offset = tzOffset(tz, new Date('2020-01-15T00:00:00Z'));
+  const offset = getUTCOffsetForTZ(tz);
   const isTZSwitchable = userTZ && userTZ !== systemTZ;
 
   return (
@@ -226,16 +227,11 @@ export const Filter = observer((props: FilterProps) => {
       {!!userTZ && (
         <div>
           <Space>
-            <Tooltip
-              placement="right"
-              title={`${tz} (UTC${offset < 0 ? '' : '+'}${offset / 60})`}
-            >
+            <Tooltip placement="right" title={`${tz} (UTC${offset})`}>
               <Switch
                 disabled={!isTZSwitchable}
                 checkedChildren={
-                  isTZSwitchable
-                    ? 'TZ: System'
-                    : `TZ: UTC${offset < 0 ? '' : '+'}${offset / 60}`
+                  isTZSwitchable ? 'TZ: System' : `TZ: UTC${offset}`
                 }
                 unCheckedChildren={'TZ: User'}
                 checked={!props.state.isUserTZ}

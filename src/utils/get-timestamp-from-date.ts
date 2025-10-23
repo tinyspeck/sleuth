@@ -16,7 +16,7 @@ export const getEpochFromDateString = (
 ): number => {
   let momentValue: number;
   if (timezone) {
-    const offset = getStringTZOffset(timezone);
+    const offset = getUTCOffsetForTZ(timezone);
     momentValue = new Date(`${dateString}${offset}`).valueOf();
   } else {
     momentValue = new Date(dateString).valueOf();
@@ -29,7 +29,7 @@ export const getEpochFromDateString = (
  * @param timezone An IANA timezone string
  * @returns The UTC offset in ±HH:MM format
  */
-export const getStringTZOffset = (timezone: string) => {
+export const getUTCOffsetForTZ = (timezone: string) => {
   const offsetInMinutes = tzOffset(
     timezone,
     // the date in particular doesn't matter here
