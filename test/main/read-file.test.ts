@@ -45,21 +45,23 @@ describe('readFile', () => {
       size: 1713,
     };
 
-    return readLogFile(file, LogType.BROWSER).then(({ entries }) => {
-      expect(entries).toHaveLength(13);
-      expect(entries[0]).toMatchObject({
-        timestamp: '02/22/17, 16:02:32:675',
-        level: 'info',
-        momentValue: expect.any(Number),
-        logType: LogType.BROWSER,
-        index: 0,
-      });
+    return readLogFile(file, { logType: LogType.BROWSER }).then(
+      ({ entries }) => {
+        expect(entries).toHaveLength(13);
+        expect(entries[0]).toMatchObject({
+          timestamp: '02/22/17, 16:02:32:675',
+          level: 'info',
+          momentValue: expect.any(Number),
+          logType: LogType.BROWSER,
+          index: 0,
+        });
 
-      expect(entries[4]).toHaveProperty('meta');
+        expect(entries[4]).toHaveProperty('meta');
 
-      const parsedMeta = dirtyJSON(entries[4].meta);
-      expect(parsedMeta.isDevMode).toBe(true);
-    });
+        const parsedMeta = dirtyJSON(entries[4].meta);
+        expect(parsedMeta.isDevMode).toBe(true);
+      },
+    );
   });
 
   it('should read a webapp.log file and create log entries', () => {
@@ -71,17 +73,19 @@ describe('readFile', () => {
       size: 1713,
     };
 
-    return readLogFile(file, LogType.WEBAPP).then(({ entries }) => {
-      expect(entries).toHaveLength(4);
-      // Can parse JSON meta
-      expect(JSON.parse(entries[3].meta as string)).toEqual({
-        viewSet: {
-          sidebar: { id: 'ChannelList', viewType: 'ChannelList' },
-          primary: { id: 'Punreads', viewType: 'Page' },
-        },
-        nextTab: 'home',
-      });
-    });
+    return readLogFile(file, { logType: LogType.WEBAPP }).then(
+      ({ entries }) => {
+        expect(entries).toHaveLength(4);
+        // Can parse JSON meta
+        expect(JSON.parse(entries[3].meta as string)).toEqual({
+          viewSet: {
+            sidebar: { id: 'ChannelList', viewType: 'ChannelList' },
+            primary: { id: 'Punreads', viewType: 'Page' },
+          },
+          nextTab: 'home',
+        });
+      },
+    );
   });
 });
 
