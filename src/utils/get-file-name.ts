@@ -4,7 +4,6 @@ import {
   isMergedLogFile,
 } from './is-logfile';
 import { SelectableLogFile } from '../interfaces';
-import { capitalize } from './capitalize';
 
 export function getFileName(file: SelectableLogFile): string {
   if (isProcessedLogFile(file)) {
