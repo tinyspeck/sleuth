@@ -4,6 +4,7 @@ coverage
 .DS_Store
 .vite
 /catapult
+.vscode
 
 # Yarn v4
 .pnp.*
