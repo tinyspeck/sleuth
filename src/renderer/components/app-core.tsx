@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import classNames from 'classnames';
+import debug from 'debug';
 
 import { getFirstLogFile } from '../../utils/get-first-logfile';
 import { SleuthState } from '../state/sleuth';
@@ -22,6 +23,8 @@ import { Spotlight } from './spotlight';
 import { rehydrateBookmarks } from '../state/bookmarks';
 import { getTypesForFiles } from '../../utils/get-file-types';
 import { mergeLogFiles, processLogFiles } from '../processor';
+
+const d = debug('sleuth:app-core');
 
 export interface CoreAppProps {
   state: SleuthState;
@@ -137,23 +140,34 @@ export class CoreApplication extends React.Component<
     this.addFilesToState(rawLogFiles);
 
     console.time('process-files');
-    // process log files
-    for (const type of LOG_TYPES_TO_PROCESS) {
-      const preFiles = sortedUnzippedFiles[type];
-      const files = await processLogFiles(preFiles, (loadingMessage) => {
-        this.setState({ loadingMessage });
-      });
-      const delta: Partial<ProcessedLogFiles> = {};
-
-      delta[type] = files as ProcessedLogFile[];
-      this.addFilesToState(delta);
-    }
-    // also process state files
+    // process state files first because we depend on `log-context.json` for log processing
     for (const stateFile of rawLogFiles[STATE]) {
       const content = await window.Sleuth.readStateFile(stateFile);
       if (content) {
         this.props.state.stateFiles[stateFile.fileName] = content;
       }
+    }
+
+    const userTZ = this.props.state.stateFiles['log-context.json']?.data
+      ?.systemTZ as string | undefined;
+    if (typeof userTZ === 'string') {
+      d(`Processing logs with user timezone: ${userTZ}`);
+    }
+
+    // process log files second
+    for (const type of LOG_TYPES_TO_PROCESS) {
+      const preFiles = sortedUnzippedFiles[type];
+      const files = await processLogFiles(
+        preFiles,
+        userTZ,
+        (loadingMessage) => {
+          this.setState({ loadingMessage });
+        },
+      );
+      const delta: Partial<ProcessedLogFiles> = {};
+
+      delta[type] = files as ProcessedLogFile[];
+      this.addFilesToState(delta);
     }
     console.timeEnd('process-files');
 

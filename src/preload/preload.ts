@@ -47,8 +47,9 @@ export const SleuthAPI = {
   readLogFile: (
     logFile: UnzippedFile,
     logType: LogType,
+    userTZ?: string,
   ): Promise<ReadFileResult> =>
-    ipcRenderer.invoke(IpcEvents.READ_LOG_FILE, logFile, logType),
+    ipcRenderer.invoke(IpcEvents.READ_LOG_FILE, logFile, logType, userTZ),
   sendWindowReady: () => ipcRenderer.send(IpcEvents.WINDOW_READY),
   sendDoubleClick: () => ipcRenderer.send(IpcEvents.CLICK_TITLEBAR_MAC),
   showOpenDialog: (): Promise<Electron.OpenDialogReturnValue> =>

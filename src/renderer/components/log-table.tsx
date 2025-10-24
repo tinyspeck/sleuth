@@ -655,7 +655,9 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       ? format(
           new TZDate(
             entry.momentValue,
-            this.props.state.isUserTZ ? this.state.userTZ : undefined,
+            this.props.state.isUserTZ
+              ? this.state.userTZ
+              : Intl.DateTimeFormat().resolvedOptions().timeZone,
           ),
           dateTimeFormat,
         )

@@ -51,7 +51,7 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
   }
 
   public render(): JSX.Element | null {
-    const { selectedLogFile, isLogViewVisible } = this.props.state;
+    const { selectedLogFile, isLogViewVisible, isUserTZ } = this.props.state;
     if (!isLogViewVisible || !selectedLogFile || !isLogFile(selectedLogFile))
       return null;
 
@@ -69,13 +69,21 @@ export class LogTimeView extends React.Component<LogTimeViewProps> {
       const bucketedLogMetricsByTime = Object.entries<LogMetrics>(
         timeBucketedLogMetrics,
       );
+      const systemTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const userTZ =
+        this.props.state.stateFiles['log-context.json']?.data?.systemTZ;
+      const tz = isUserTZ ? userTZ : systemTZ;
       datasets = Object.keys(LogLevel).map((type: LogLevel) => {
         return {
           label: type,
-          data: bucketedLogMetricsByTime.map(([time, buckets]) => ({
-            y: buckets[type],
-            x: new Date(parseInt(time, 10) * 1000),
-          })),
+          data: bucketedLogMetricsByTime.map(([time, buckets]) => {
+            const date = new Date(parseInt(time, 10) * 1000);
+            const dateString = date.toLocaleString('en-US', { timeZone: tz });
+            return {
+              y: buckets[type],
+              x: new Date(dateString),
+            };
+          }),
           backgroundColor: backgroundColors[type],
         };
       });

@@ -13,6 +13,7 @@ import {
 import { getTypeForFile } from '../../utils/get-file-types';
 import debug from 'debug';
 import { StateTableState } from '../../renderer/components/state-table';
+import { TZDate } from '@date-fns/tz';
 
 const d = debug('sleuth:read-file');
 
@@ -115,14 +116,13 @@ export async function readStateFile(
 
 /**
  * Reads a log file line by line, creating logEntries in a somewhat smart way.
- *
- * @param {UnzippedFile} logFile
- * @param {string} [logType='']
- * @returns {Promise<Array<LogEntry>>}
  */
 export function readLogFile(
   logFile: UnzippedFile,
-  logType?: LogType,
+  options: {
+    logType?: LogType;
+    userTZ?: string;
+  },
 ): Promise<ReadFileResult> {
   return new Promise((resolve) => {
     const entries: Array<LogEntry> = [];
@@ -131,7 +131,7 @@ export function readLogFile(
       input: readStream,
       terminal: false,
     });
-    const parsedlogType = logType || getTypeForFile(logFile);
+    const parsedlogType = options.logType || getTypeForFile(logFile);
     const matchFn = getMatchFunction(parsedlogType, logFile);
 
     let lines = 0;
@@ -209,7 +209,7 @@ export function readLogFile(
         return;
       }
 
-      const matched = matchFn(line);
+      const matched = matchFn(line, options.userTZ);
 
       if (matched) {
         // Is there a meta object?
@@ -223,7 +223,7 @@ export function readLogFile(
         current = makeLogEntry(matched, parsedlogType, lines, logFile.fullPath);
       } else {
         // We couldn't match, let's treat it
-        if (logType === 'mobile' && current) {
+        if (parsedlogType === 'mobile' && current) {
           // Android logs do too
           current.message += '\n' + line;
         } else if (
@@ -265,12 +265,11 @@ export function readLogFile(
 
 /**
  * Matches a webapp line
- *
- * @export
- * @param {string} line
- * @returns {(MatchResult | undefined)}
  */
-export function matchLineWebApp(line: string): MatchResult | undefined {
+export function matchLineWebApp(
+  line: string,
+  userTZ?: string,
+): MatchResult | undefined {
   // Matcher for the webapp, which is a bit dirty. This beast of a regex
   // matches three possible timestamps:
   //
@@ -291,9 +290,24 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
 
   // First, try the expected default format
   if (results && results.length === 4) {
-    // Expected format: MM/DD/YY(YY), HH:mm:ss:SSS'
-    const momentValue = new Date(
-      results[1].replace(', 24:', ', 00:'),
+    // Expected format: MM/DD/YY, HH:mm:ss:SSS'
+    const DATE_FORMAT_RGX =
+      /^(\d{2})\/(\d{2})\/(\d{2}), (\d{2}):(\d{2}):(\d{2}):(\d{3})$/;
+    const dateString = results[1].replace(', 24:', ', 00:');
+    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
+    if (parsedDate === null) {
+      throw new Error(`Failed to parse date: ${dateString}`);
+    }
+    const [, month, day, year, hour, minute, second, millisecond] = parsedDate;
+    const momentValue = new TZDate(
+      parseInt(`20${year}`, 10),
+      parseInt(month, 10),
+      parseInt(day, 10),
+      parseInt(hour, 10),
+      parseInt(minute, 10),
+      parseInt(second, 10),
+      parseInt(millisecond, 10),
+      userTZ,
     ).valueOf();
     let message = results[3];
 
@@ -350,12 +364,11 @@ export function matchLineWebApp(line: string): MatchResult | undefined {
 
 /**
  * Matches a line coming from Squirrel
- *
- * @export
- * @param {string} line
- * @returns {(MatchResult | undefined)}
  */
-export function matchLineSquirrel(line: string): MatchResult | undefined {
+export function matchLineSquirrel(
+  line: string,
+  userTZ?: string,
+): MatchResult | undefined {
   if (line.startsWith('   at')) return;
 
   SQUIRREL_RGX.lastIndex = 0;
@@ -363,7 +376,22 @@ export function matchLineSquirrel(line: string): MatchResult | undefined {
 
   if (results && results.length === 3) {
     // Expected format: 2019-01-30 21:08:25
-    const momentValue = new Date(results[1]).valueOf();
+    const DATE_FORMAT_RGX = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/;
+    const dateString = results[1];
+    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
+    if (parsedDate === null) {
+      throw new Error(`Failed to parse date: ${dateString}`);
+    }
+    const [, year, month, day, hour, minute, second] = parsedDate;
+    const momentValue = new TZDate(
+      parseInt(year, 10),
+      parseInt(month, 10),
+      parseInt(day, 10),
+      parseInt(hour, 10),
+      parseInt(minute, 10),
+      parseInt(second, 10),
+      userTZ,
+    ).valueOf();
 
     return {
       timestamp: results[1],
@@ -378,12 +406,11 @@ export function matchLineSquirrel(line: string): MatchResult | undefined {
 
 /**
  * Matches a line coming from a ShipIt log file
- *
- * @export
- * @param {string} line
- * @returns {(MatchResult | undefined)}
  */
-export function matchLineShipItMac(line: string): MatchResult | undefined {
+export function matchLineShipItMac(
+  line: string,
+  userTZ?: string,
+): MatchResult | undefined {
   // If the line does not start with a number, we're taking a shortcut and
   // are expecting data.
   if (!/\d/.test(line[0])) return;
@@ -393,7 +420,24 @@ export function matchLineShipItMac(line: string): MatchResult | undefined {
 
   if (results && results.length === 3) {
     // Expected format: 2019-01-08 08:29:56.504
-    const momentValue = new Date(results[1]).valueOf();
+    const DATE_FORMAT_RGX =
+      /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d{3})$/;
+    const dateString = results[1];
+    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
+    if (parsedDate === null) {
+      throw new Error(`Failed to parse date: ${dateString}`);
+    }
+    const [, year, month, day, hour, minute, second, millisecond] = parsedDate;
+    const momentValue = new TZDate(
+      parseInt(year, 10),
+      parseInt(month, 10),
+      parseInt(day, 10),
+      parseInt(hour, 10),
+      parseInt(minute, 10),
+      parseInt(second, 10),
+      parseInt(millisecond, 10),
+      userTZ,
+    ).valueOf();
     let message = results[2];
 
     // Handle a meta entry
@@ -420,11 +464,11 @@ export function matchLineShipItMac(line: string): MatchResult | undefined {
 
 /**
  * Matches an Electron line (Browser)
- *
- * @param {string} line
- * @returns {(MatchResult | undefined)}
  */
-export function matchLineElectron(line: string): MatchResult | undefined {
+export function matchLineElectron(
+  line: string,
+  userTZ?: string,
+): MatchResult | undefined {
   // If the line starts with a `{`, we're taking a shortcut and are expecting data.
   if (line[0] === '{') return;
 
@@ -434,9 +478,23 @@ export function matchLineElectron(line: string): MatchResult | undefined {
   const results = DESKTOP_RGX.exec(line);
 
   if (results && results.length === 4) {
-    // Expected format: MM/DD/YY, HH:mm:ss:SSS'
-    const momentValue = new Date(
-      results[1].replace(', 24:', ', 00:'),
+    const DATE_FORMAT_RGX =
+      /^(\d{2})\/(\d{2})\/(\d{2}), (\d{2}):(\d{2}):(\d{2}):(\d{3})$/;
+    const dateString = results[1].replace(', 24:', ', 00:');
+    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
+    if (parsedDate === null) {
+      throw new Error(`Failed to parse date: ${dateString}`);
+    }
+    const [, month, day, year, hour, minute, second, millisecond] = parsedDate;
+    const momentValue = new TZDate(
+      parseInt(`20${year}`, 10),
+      parseInt(month, 10),
+      parseInt(day, 10),
+      parseInt(hour, 10),
+      parseInt(minute, 10),
+      parseInt(second, 10),
+      parseInt(millisecond, 10),
+      userTZ,
     ).valueOf();
 
     return {
@@ -501,6 +559,7 @@ export function matchLineConsole(line: string): MatchResult | undefined {
     }
 
     const momentValue = newTimestamp.valueOf();
+
     return {
       timestamp: newTimestamp.toString(),
       level: 'info',
@@ -732,7 +791,10 @@ export function matchLineMobile(line: string): MatchResult | undefined {
   }
 }
 
-export function matchLineChromium(line: string): MatchResult | undefined {
+export function matchLineChromium(
+  line: string,
+  userTZ?: string,
+): MatchResult | undefined {
   // See format: https://support.google.com/chrome/a/answer/6271282
   const results = CHROMIUM_RGX.exec(line);
 
@@ -744,18 +806,26 @@ export function matchLineChromium(line: string): MatchResult | undefined {
   const [pid, timestamp, level, sourceFile] = metadata.split(':');
   const currentDate = new Date();
 
-  // ts format is MMDD/HHmmss.SSS
+  // ts format is MMDD/HHmmss.
+  // https://support.google.com/chrome/a/answer/6271282?hl=en
   // this log format has no year information. Assume that the logs
   // happened in the past year because why would we read stale logs?
-  const [date, time] = timestamp.split('/');
-  const logDate = new Date(
+  const TIMESTAMP_FORMAT_RGX =
+    /^(\d{2})(\d{2})\/(\d{2})(\d{2})(\d{2})\.(\d{3})$/;
+  const parsedTimestamp = TIMESTAMP_FORMAT_RGX.exec(timestamp);
+  if (parsedTimestamp === null) {
+    throw new Error(`Failed to parse Chromium timestamp: ${timestamp}`);
+  }
+  const [, month, day, hour, minute, second, millisecond] = parsedTimestamp;
+  const logDate = new TZDate(
     currentDate.getFullYear(),
-    parseInt(date.slice(0, 2), 10) - 1, // month (0-indexed)
-    parseInt(date.slice(2, 4), 10), // day
-    parseInt(time.slice(0, 2), 10), // hour
-    parseInt(time.slice(2, 4), 10), // minute
-    parseInt(time.slice(4, 6), 10), // second
-    parseInt(time.slice(7, 10), 10), // millisecond
+    parseInt(month, 10), // month
+    parseInt(day, 10),
+    parseInt(hour, 10),
+    parseInt(minute, 10),
+    parseInt(second, 10),
+    parseInt(millisecond, 10),
+    userTZ,
   );
 
   // make sure we aren't time traveling. Maybe this
@@ -793,7 +863,7 @@ export function matchLineChromium(line: string): MatchResult | undefined {
 export function getMatchFunction(
   logType: LogType,
   logFile: UnzippedFile,
-): (line: string) => MatchResult | undefined {
+): (line: string, userTZ?: string) => MatchResult | undefined {
   if (logType === LogType.WEBAPP) {
     if (
       logFile.fileName.startsWith('app.slack') ||
