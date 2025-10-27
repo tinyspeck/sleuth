@@ -108,7 +108,7 @@
       "eslint --fix  --ignore-path .gitignore",
       "prettier --write"
     ],
-    "*.{yml,yaml}": [
+    "*.{yml,yaml,less}": [
       "prettier --write"
     ]
   },
