@@ -301,7 +301,7 @@ export function matchLineWebApp(
     const [, month, day, year, hour, minute, second, millisecond] = parsedDate;
     const momentValue = new TZDate(
       parseInt(`20${year}`, 10),
-      parseInt(month, 10),
+      parseInt(month, 10) - 1,
       parseInt(day, 10),
       parseInt(hour, 10),
       parseInt(minute, 10),
@@ -385,7 +385,7 @@ export function matchLineSquirrel(
     const [, year, month, day, hour, minute, second] = parsedDate;
     const momentValue = new TZDate(
       parseInt(year, 10),
-      parseInt(month, 10),
+      parseInt(month, 10) - 1,
       parseInt(day, 10),
       parseInt(hour, 10),
       parseInt(minute, 10),
@@ -430,7 +430,7 @@ export function matchLineShipItMac(
     const [, year, month, day, hour, minute, second, millisecond] = parsedDate;
     const momentValue = new TZDate(
       parseInt(year, 10),
-      parseInt(month, 10),
+      parseInt(month, 10) - 1,
       parseInt(day, 10),
       parseInt(hour, 10),
       parseInt(minute, 10),
@@ -488,7 +488,7 @@ export function matchLineElectron(
     const [, month, day, year, hour, minute, second, millisecond] = parsedDate;
     const momentValue = new TZDate(
       parseInt(`20${year}`, 10),
-      parseInt(month, 10),
+      parseInt(month, 10) - 1,
       parseInt(day, 10),
       parseInt(hour, 10),
       parseInt(minute, 10),
@@ -819,7 +819,7 @@ export function matchLineChromium(
   const [, month, day, hour, minute, second, millisecond] = parsedTimestamp;
   const logDate = new TZDate(
     currentDate.getFullYear(),
-    parseInt(month, 10), // month
+    parseInt(month, 10) - 1,
     parseInt(day, 10),
     parseInt(hour, 10),
     parseInt(minute, 10),
