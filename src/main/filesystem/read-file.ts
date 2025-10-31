@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import readline from 'readline';
 
+import { getTZDateFromString } from '../../utils/get-tz-date-from-string';
 import { parseJSON } from '../../utils/parse-json';
 
 import {
@@ -289,26 +290,10 @@ export function matchLineWebApp(
   let results = DESKTOP_RGX.exec(line);
 
   // First, try the expected default format
+  // Expected format: MM/DD/YY, HH:mm:ss:SSS'
   if (results && results.length === 4) {
-    // Expected format: MM/DD/YY, HH:mm:ss:SSS'
-    const DATE_FORMAT_RGX =
-      /^(\d{2})\/(\d{2})\/(\d{2}), (\d{2}):(\d{2}):(\d{2}):(\d{3})$/;
     const dateString = results[1].replace(', 24:', ', 00:');
-    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
-    if (parsedDate === null) {
-      throw new Error(`Failed to parse date: ${dateString}`);
-    }
-    const [, month, day, year, hour, minute, second, millisecond] = parsedDate;
-    const momentValue = new TZDate(
-      parseInt(`20${year}`, 10),
-      parseInt(month, 10) - 1,
-      parseInt(day, 10),
-      parseInt(hour, 10),
-      parseInt(minute, 10),
-      parseInt(second, 10),
-      parseInt(millisecond, 10),
-      userTZ,
-    ).valueOf();
+    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
     let message = results[3];
 
     // If we have two timestamps, cut that from the message
@@ -375,23 +360,8 @@ export function matchLineSquirrel(
   const results = SQUIRREL_RGX.exec(line);
 
   if (results && results.length === 3) {
-    // Expected format: 2019-01-30 21:08:25
-    const DATE_FORMAT_RGX = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/;
     const dateString = results[1];
-    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
-    if (parsedDate === null) {
-      throw new Error(`Failed to parse date: ${dateString}`);
-    }
-    const [, year, month, day, hour, minute, second] = parsedDate;
-    const momentValue = new TZDate(
-      parseInt(year, 10),
-      parseInt(month, 10) - 1,
-      parseInt(day, 10),
-      parseInt(hour, 10),
-      parseInt(minute, 10),
-      parseInt(second, 10),
-      userTZ,
-    ).valueOf();
+    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
 
     return {
       timestamp: results[1],
@@ -420,24 +390,8 @@ export function matchLineShipItMac(
 
   if (results && results.length === 3) {
     // Expected format: 2019-01-08 08:29:56.504
-    const DATE_FORMAT_RGX =
-      /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d{3})$/;
     const dateString = results[1];
-    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
-    if (parsedDate === null) {
-      throw new Error(`Failed to parse date: ${dateString}`);
-    }
-    const [, year, month, day, hour, minute, second, millisecond] = parsedDate;
-    const momentValue = new TZDate(
-      parseInt(year, 10),
-      parseInt(month, 10) - 1,
-      parseInt(day, 10),
-      parseInt(hour, 10),
-      parseInt(minute, 10),
-      parseInt(second, 10),
-      parseInt(millisecond, 10),
-      userTZ,
-    ).valueOf();
+    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
     let message = results[2];
 
     // Handle a meta entry
@@ -478,24 +432,8 @@ export function matchLineElectron(
   const results = DESKTOP_RGX.exec(line);
 
   if (results && results.length === 4) {
-    const DATE_FORMAT_RGX =
-      /^(\d{2})\/(\d{2})\/(\d{2}), (\d{2}):(\d{2}):(\d{2}):(\d{3})$/;
     const dateString = results[1].replace(', 24:', ', 00:');
-    const parsedDate = DATE_FORMAT_RGX.exec(dateString);
-    if (parsedDate === null) {
-      throw new Error(`Failed to parse date: ${dateString}`);
-    }
-    const [, month, day, year, hour, minute, second, millisecond] = parsedDate;
-    const momentValue = new TZDate(
-      parseInt(`20${year}`, 10),
-      parseInt(month, 10) - 1,
-      parseInt(day, 10),
-      parseInt(hour, 10),
-      parseInt(minute, 10),
-      parseInt(second, 10),
-      parseInt(millisecond, 10),
-      userTZ,
-    ).valueOf();
+    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
 
     return {
       timestamp: results[1],
