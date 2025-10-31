@@ -28,7 +28,8 @@ import {
 } from '@ant-design/icons';
 import { TZDate, tzOffset } from '@date-fns/tz';
 import dateFnsGenerateConfig from 'rc-picker/lib/generate/dateFns';
-import { LogType } from '../../interfaces';
+
+import { getTZDateFromString } from '../../utils/get-tz-date-from-string';
 
 export interface FilterProps {
   state: SleuthState;
@@ -82,13 +83,20 @@ export const Filter = observer((props: FilterProps) => {
     props.state.search = value;
   }, 500);
 
-  const handleDateRangeChange = (
-    values: [TZDate, TZDate],
-    dateStrings: [string, string],
-  ) => {
+  const handleDateRangeChange = (values: [Date, Date]) => {
+    const systemTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const userTZ = props.state.stateFiles['log-context.json']?.data?.systemTZ;
+    const tz = props.state.isUserTZ ? userTZ : systemTZ;
+
     props.state.dateRange = {
-      from: values && values[0] ? new Date(dateStrings[0]) : null,
-      to: values && values[1] ? new Date(dateStrings[1]) : null,
+      from:
+        values && values[0]
+          ? getTZDateFromString(values[0].toDateString(), tz)
+          : null,
+      to:
+        values && values[1]
+          ? getTZDateFromString(values[1].toDateString(), tz)
+          : null,
     };
   };
 
