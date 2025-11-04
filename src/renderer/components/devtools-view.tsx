@@ -24,6 +24,16 @@ export interface DevtoolsViewProps {
 
 const d = debug('sleuth:devtoolsview');
 
+/**
+ * Loads performance traces into an embedded DevTools iframe.
+ * The iframe loads the frontend directly from https://chrome-devtools-frontend.appspot.com/
+ *
+ *
+ * To update the Chromium version hash:
+ * 1. Navigate to https://chromium.googlesource.com/chromium/src/+refs
+ * 2. Click on a recent tag you want to check out
+ * 3. Copy the `commit` hash
+ */
 export const DevtoolsView = observer((props: DevtoolsViewProps) => {
   const [profilePid, setProfilePid] = useState<number | undefined>();
   const processorRef = useRef<TraceProcessor>(new TraceProcessor(props.file));
@@ -40,36 +50,37 @@ export const DevtoolsView = observer((props: DevtoolsViewProps) => {
   }, [prepare]);
 
   useEffect(() => {
-    if (profilePid) {
-      window.addEventListener(
-        'message',
-        async (event) => {
-          d('Received message event in DevToolsView:', event);
-          const iframe = document.querySelector('iframe');
-          d('Fetching renderer profile for pid:', profilePid);
-          const events = await processorRef.current.getRendererProfile(
-            profilePid,
-          );
-
-          if (!iframe?.contentWindow || event.source !== iframe.contentWindow) {
-            return;
-          }
-          if (event.data && event.data.type === 'REHYDRATING_IFRAME_READY') {
-            // Respond with REHYDRATING_TRACE_FILE message
-            iframe.contentWindow.postMessage(
-              {
-                type: 'REHYDRATING_TRACE_FILE',
-                traceJson: JSON.stringify({
-                  traceEvents: events,
-                }),
-              },
-              '*',
-            );
-          }
-        },
-        { once: true },
+    const messageHandler = async (event) => {
+      const iframe = document.querySelector('iframe');
+      const events = await processorRef.current.getRendererProfile(profilePid);
+      d(
+        `Loaded ${events.length} events for renderer profile with pid: ${profilePid}`,
       );
+
+      if (!iframe?.contentWindow || event.source !== iframe.contentWindow) {
+        return;
+      }
+      if (event.data && event.data.type === 'REHYDRATING_IFRAME_READY') {
+        d('Received REHYDRATING_IFRAME_READY event from DevTools');
+        iframe.contentWindow.postMessage(
+          {
+            type: 'REHYDRATING_TRACE_FILE',
+            traceJson: JSON.stringify({
+              traceEvents: events,
+            }),
+          },
+          '*',
+        );
+      }
+    };
+
+    if (profilePid) {
+      window.addEventListener('message', messageHandler, { once: true });
     }
+
+    return () => {
+      window.removeEventListener('message', messageHandler);
+    };
   }, [profilePid]);
 
   const renderThreads = () => {
@@ -141,7 +152,6 @@ export const DevtoolsView = observer((props: DevtoolsViewProps) => {
                 open: (
                   <Button
                     onClick={() => {
-                      d('Setting profile PID to:', value.processId);
                       setProfilePid(value.processId);
                     }}
                     icon={<AreaChartOutlined />}
