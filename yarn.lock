@@ -4454,13 +4454,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"devtools-frontend-prebuilt@npm:1.2.0-beta3":
-  version: 1.2.0-beta3
-  resolution: "devtools-frontend-prebuilt@npm:1.2.0-beta3"
-  checksum: 10c0/184a725da5df7f7e14ddca2e82cd8cf66e7c1c5c6c74cb29f95b12e4d0b17527e0270cce0ad416d749f81fba589a75095e00763d2ea712aaa9a9bf8682e13561
-  languageName: node
-  linkType: hard
-
 "diff@npm:^4.0.1":
   version: 4.0.2
   resolution: "diff@npm:4.0.2"
@@ -10305,7 +10298,6 @@ __metadata:
     classnames: "npm:2.2.6"
     date-fns: "npm:4.1.0"
     debug: "npm:4.3.1"
-    devtools-frontend-prebuilt: "npm:1.2.0-beta3"
     electron: "npm:38.2.2"
     electron-devtools-installer: "npm:4.0.0"
     electron-squirrel-startup: "npm:1.0.0"

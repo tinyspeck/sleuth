@@ -53,17 +53,6 @@ const config: UserConfig = {
   plugins: [
     copy({
       targets: [
-        {
-          src: path.join(
-            __dirname,
-            './node_modules/devtools-frontend-prebuilt/front_end/*',
-          ),
-          dest: path.join(__dirname, './.vite/devtools-frontend'),
-        },
-        {
-          src: path.join(__dirname, './static/devtools-frontend.html'),
-          dest: path.join(__dirname, './.vite'),
-        },
         ...gitSubmodules,
         {
           src: path.join(__dirname, './static/catapult-overrides/*'),

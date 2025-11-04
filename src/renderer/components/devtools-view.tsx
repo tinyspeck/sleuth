@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { observer } from 'mobx-react';
 
 import {
@@ -12,10 +12,8 @@ import {
   Typography,
 } from 'antd';
 import { SleuthState } from '../state/sleuth';
-import { autorun, IReactionDisposer } from 'mobx';
 import { UnzippedFile } from '../../interfaces';
-import { TraceThreadDescription, TraceProcessor } from '../processor/trace';
-import autoBind from 'react-autobind';
+import { TraceProcessor } from '../processor/trace';
 import debug from 'debug';
 import { AreaChartOutlined } from '@ant-design/icons';
 
@@ -24,47 +22,78 @@ export interface DevtoolsViewProps {
   file: UnzippedFile;
 }
 
-export interface DevtoolsViewState {
-  profilePid?: number;
-  profileType?: TraceThreadDescription['type'];
-}
-
 const d = debug('sleuth:devtoolsview');
 
-@observer
-export class DevtoolsView extends React.Component<
-  DevtoolsViewProps,
-  DevtoolsViewState
-> {
-  private disposeDarkModeAutorun: IReactionDisposer | undefined;
-  private processor: TraceProcessor;
+/**
+ * Loads performance traces into an embedded DevTools iframe.
+ * The iframe loads the frontend directly from https://chrome-devtools-frontend.appspot.com/
+ *
+ *
+ * To update the Chromium version hash:
+ * 1. Navigate to https://chromium.googlesource.com/chromium/src/+refs
+ * 2. Click on a recent tag you want to check out
+ * 3. Copy the `commit` hash
+ */
+export const DevtoolsView = observer((props: DevtoolsViewProps) => {
+  const [profilePid, setProfilePid] = useState<number | undefined>();
+  const processorRef = useRef<TraceProcessor>(new TraceProcessor(props.file));
 
-  constructor(props: DevtoolsViewProps) {
-    super(props);
-    this.processor = new TraceProcessor(this.props.file);
-    autoBind(this);
-    this.state = {};
-    this.prepare();
-  }
-
-  async prepare() {
-    const { state } = this.props;
-    if (!state.traceThreads) {
-      state.traceThreads = await this.processor.getProcesses();
+  const prepare = useCallback(async () => {
+    if (!props.state.traceThreads) {
+      d('Preparing trace threads...');
+      props.state.traceThreads = await processorRef.current.getProcesses();
     }
-  }
+  }, [props.state.traceThreads]);
 
-  private renderThreads() {
-    const { traceThreads } = this.props.state;
+  useEffect(() => {
+    prepare();
+  }, [prepare]);
+
+  useEffect(() => {
+    const messageHandler = async (event) => {
+      const iframe = document.querySelector('iframe');
+      const events = await processorRef.current.getRendererProfile(profilePid);
+      d(
+        `Loaded ${events.length} events for renderer profile with pid: ${profilePid}`,
+      );
+
+      if (!iframe?.contentWindow || event.source !== iframe.contentWindow) {
+        return;
+      }
+      if (event.data && event.data.type === 'REHYDRATING_IFRAME_READY') {
+        d('Received REHYDRATING_IFRAME_READY event from DevTools');
+        iframe.contentWindow.postMessage(
+          {
+            type: 'REHYDRATING_TRACE_FILE',
+            traceJson: JSON.stringify({
+              traceEvents: events,
+            }),
+          },
+          '*',
+        );
+      }
+    };
+
+    if (profilePid) {
+      window.addEventListener('message', messageHandler, { once: true });
+    }
+
+    return () => {
+      window.removeEventListener('message', messageHandler);
+    };
+  }, [profilePid]);
+
+  const renderThreads = () => {
+    const { traceThreads } = props.state;
     const hasThreads = !!traceThreads?.length;
     const isLoading = !traceThreads;
 
     const startTime = parseInt(
-      this.props.file.fileName.split('.')[0]?.split('_')[4] || '0',
+      props.file.fileName.split('.')[0]?.split('_')[4] || '0',
       10,
     );
     const endTime = parseInt(
-      this.props.file.fileName.split('.')[0]?.split('_')[0] || '0',
+      props.file.fileName.split('.')[0]?.split('_')[0] || '0',
       10,
     );
     const duration = endTime - startTime;
@@ -122,12 +151,9 @@ export class DevtoolsView extends React.Component<
                 pid: value.processId,
                 open: (
                   <Button
-                    onClick={() =>
-                      this.setState({
-                        profilePid: value.processId,
-                        profileType: value.type,
-                      })
-                    }
+                    onClick={() => {
+                      setProfilePid(value.processId);
+                    }}
                     icon={<AreaChartOutlined />}
                   >
                     Open
@@ -145,91 +171,21 @@ export class DevtoolsView extends React.Component<
         </Space>
       </Card>
     );
+  };
+
+  if (profilePid) {
+    return (
+      <div className="Devtools">
+        <iframe
+          title="DevTools embed"
+          src={
+            'https://chrome-devtools-frontend.appspot.com/serve_file/@c545657f5084b79e2aa3ea4074ae232ce328ff2d/trace_app.html?panel=timeline'
+          }
+          frameBorder={0}
+        />
+      </div>
+    );
   }
 
-  public render() {
-    if (this.state.profilePid) {
-      return (
-        <div className="Devtools">
-          <iframe
-            title="DevTools embed"
-            src={`oop://oop/devtools-frontend.html?panel=timeline`}
-            onLoad={() => this.loadFile(this.state.profilePid)}
-            frameBorder={0}
-          />
-        </div>
-      );
-    }
-    return <div className="ProcessTableWrapper">{this.renderThreads()}</div>;
-  }
-
-  public componentWillUnmount() {
-    if (this.disposeDarkModeAutorun) {
-      this.disposeDarkModeAutorun();
-    }
-  }
-
-  /**
-   * Loads the currently selected file in catapult
-   *
-   * @memberof NetLogView
-   */
-  public async loadFile(processId?: number) {
-    const isDarkMode = this.props.state.prefersDarkColors;
-    this.setDarkMode(isDarkMode);
-
-    if (!processId) {
-      return;
-    }
-
-    d(`iFrame loaded`);
-    const iframe = document.querySelector('iframe');
-
-    if (iframe) {
-      const events = await this.processor.getRendererProfile(processId);
-
-      // See catapult.html for the postMessage handler
-      const devtoolsWindow = iframe.contentWindow;
-      devtoolsWindow?.postMessage(
-        {
-          instruction: 'load',
-          payload: { events },
-        },
-        'oop://oop/devtools-frontend.html',
-      );
-    }
-
-    this.disposeDarkModeAutorun = autorun(() => {
-      const isDarkMode = this.props.state.prefersDarkColors;
-      this.setDarkMode(isDarkMode);
-    });
-  }
-
-  /**
-   * We have a little bit of css in catapult.html that'll enable a
-   * basic dark mode.
-   *
-   * @param {boolean} enabled
-   * @memberof NetLogView
-   */
-  public setDarkMode(enabled: boolean) {
-    try {
-      const iframe = document.getElementsByTagName('iframe');
-
-      if (iframe && iframe.length > 0) {
-        const devtoolsWindow = iframe[0].contentWindow;
-
-        //custom protocol :// *
-        devtoolsWindow?.postMessage(
-          {
-            instruction: 'dark-mode',
-            payload: enabled,
-          },
-          'oop://oop/devtools-frontend.html',
-        );
-      }
-    } catch (error) {
-      d(`Failed to set dark mode`, error);
-    }
-  }
-}
+  return <div className="ProcessTableWrapper">{renderThreads()}</div>;
+});

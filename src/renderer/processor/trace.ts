@@ -210,6 +210,7 @@ export class TraceProcessor {
   public async getRendererProfile(
     pid?: number,
   ): Promise<Array<ChromiumTraceEvent>> {
+    d('Getting renderer profile for pid:', pid);
     const initialEntry = await this.makeInitialRendererEntry(pid);
     const events = await this.getTraceEvents();
     if (events) {
