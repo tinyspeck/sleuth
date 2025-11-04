@@ -9,7 +9,7 @@ import { createWindow, windows } from './windows';
 import { createMenu } from './menu';
 import { setupUpdates } from './update';
 import { installProtocol } from './protocol';
-import { registerScheme, registerSchemePrivilege } from './scheme';
+import { registerScheme } from './scheme';
 
 if (app.isPackaged) {
   process.env.NODE_ENV = 'production';
@@ -46,8 +46,6 @@ if (startup) {
       openWhenReady();
     });
   });
-
-  registerSchemePrivilege();
 
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
