@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { observer } from 'mobx-react';
+import { toJS } from 'mobx';
 
 import {
   Button,
@@ -12,7 +13,6 @@ import {
   Typography,
 } from 'antd';
 import { SleuthState } from '../state/sleuth';
-import { autorun, IReactionDisposer } from 'mobx';
 import { UnzippedFile } from '../../interfaces';
 import { TraceProcessor } from '../processor/trace';
 import debug from 'debug';
@@ -27,89 +27,51 @@ const d = debug('sleuth:devtoolsview');
 
 export const DevtoolsView = observer((props: DevtoolsViewProps) => {
   const [profilePid, setProfilePid] = useState<number | undefined>();
-  const disposeDarkModeAutorunRef = useRef<IReactionDisposer | undefined>();
   const processorRef = useRef<TraceProcessor>(new TraceProcessor(props.file));
 
-  /**
-   * We have a little bit of css in catapult.html that'll enable a
-   * basic dark mode.
-   *
-   * @param {boolean} enabled
-   */
-  const setDarkMode = useCallback((enabled: boolean) => {
-    try {
-      const iframe = document.getElementsByTagName('iframe');
-
-      if (iframe && iframe.length > 0) {
-        const devtoolsWindow = iframe[0].contentWindow;
-
-        //custom protocol :// *
-        devtoolsWindow?.postMessage(
-          {
-            instruction: 'dark-mode',
-            payload: enabled,
-          },
-          'oop://oop/devtools-frontend.html',
-        );
-      }
-    } catch (error) {
-      d(`Failed to set dark mode`, error);
-    }
-  }, []);
-
-  /**
-   * Loads the currently selected file in catapult
-   */
-  const loadFile = useCallback(
-    async (processId?: number) => {
-      const isDarkMode = props.state.prefersDarkColors;
-      setDarkMode(isDarkMode);
-
-      if (!processId) {
-        return;
-      }
-
-      d(`iFrame loaded`);
-      const iframe = document.querySelector('iframe');
-
-      if (iframe) {
-        const events = await processorRef.current.getRendererProfile(processId);
-
-        // See catapult.html for the postMessage handler
-        const devtoolsWindow = iframe.contentWindow;
-        devtoolsWindow?.postMessage(
-          {
-            instruction: 'load',
-            payload: { events },
-          },
-          'oop://oop/devtools-frontend.html',
-        );
-      }
-
-      disposeDarkModeAutorunRef.current = autorun(() => {
-        const isDarkMode = props.state.prefersDarkColors;
-        setDarkMode(isDarkMode);
-      });
-    },
-    [props.state.prefersDarkColors, setDarkMode],
-  );
-
   const prepare = useCallback(async () => {
-    const { state } = props;
-    if (!state.traceThreads) {
-      state.traceThreads = await processorRef.current.getProcesses();
+    if (!props.state.traceThreads) {
+      d('Preparing trace threads...');
+      props.state.traceThreads = await processorRef.current.getProcesses();
     }
-  }, [props]);
+  }, [props.state.traceThreads]);
 
   useEffect(() => {
     prepare();
-
-    return () => {
-      if (disposeDarkModeAutorunRef.current) {
-        disposeDarkModeAutorunRef.current();
-      }
-    };
   }, [prepare]);
+
+  useEffect(() => {
+    if (profilePid) {
+      window.addEventListener(
+        'message',
+        async (event) => {
+          d('Received message event in DevToolsView:', event);
+          const iframe = document.querySelector('iframe');
+          d('Fetching renderer profile for pid:', profilePid);
+          const events = await processorRef.current.getRendererProfile(
+            profilePid,
+          );
+
+          if (!iframe?.contentWindow || event.source !== iframe.contentWindow) {
+            return;
+          }
+          if (event.data && event.data.type === 'REHYDRATING_IFRAME_READY') {
+            // Respond with REHYDRATING_TRACE_FILE message
+            iframe.contentWindow.postMessage(
+              {
+                type: 'REHYDRATING_TRACE_FILE',
+                traceJson: JSON.stringify({
+                  traceEvents: events,
+                }),
+              },
+              '*',
+            );
+          }
+        },
+        { once: true },
+      );
+    }
+  }, [profilePid]);
 
   const renderThreads = () => {
     const { traceThreads } = props.state;
@@ -180,6 +142,7 @@ export const DevtoolsView = observer((props: DevtoolsViewProps) => {
                 open: (
                   <Button
                     onClick={() => {
+                      d('Setting profile PID to:', value.processId);
                       setProfilePid(value.processId);
                     }}
                     icon={<AreaChartOutlined />}
@@ -206,8 +169,9 @@ export const DevtoolsView = observer((props: DevtoolsViewProps) => {
       <div className="Devtools">
         <iframe
           title="DevTools embed"
-          src={`oop://oop/devtools-frontend.html?panel=timeline`}
-          onLoad={() => loadFile(profilePid)}
+          src={
+            'https://chrome-devtools-frontend.appspot.com/serve_file/@c545657f5084b79e2aa3ea4074ae232ce328ff2d/trace_app.html?panel=timeline'
+          }
           frameBorder={0}
         />
       </div>
