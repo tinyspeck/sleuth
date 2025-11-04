@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { observer } from 'mobx-react';
-import { toJS } from 'mobx';
 
 import {
   Button,
