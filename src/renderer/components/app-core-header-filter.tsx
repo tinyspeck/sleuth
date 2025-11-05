@@ -91,11 +91,11 @@ export const Filter = observer((props: FilterProps) => {
     props.state.dateRange = {
       from:
         values && values[0]
-          ? getTZDateFromString(values[0].toDateString(), tz)
+          ? getTZDateFromString(values[0].toISOString(), tz)
           : null,
       to:
         values && values[1]
-          ? getTZDateFromString(values[1].toDateString(), tz)
+          ? getTZDateFromString(values[1].toISOString(), tz)
           : null,
     };
   };
