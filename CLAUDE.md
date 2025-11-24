@@ -21,7 +21,7 @@ IMPORTANT: Never attempt to run `npm`, instead always run the equivalent `yarn` 
 
 ### Build Commands
 
-note that you (Claude) should avoid running these commands  as they are slow, instead prefer running test, tsc or lint to validate changes rapidly.
+note that you (Claude) should avoid running these commands as they are slow, instead prefer running test, tsc or lint to validate changes rapidly.
 
 - `yarn run package` - Package the app for current platform
 - `yarn run make` - Create distributable for current platform
