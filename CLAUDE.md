@@ -29,7 +29,7 @@ Note that you should avoid running these commands as they are slow. Instead pref
 
 ### Utility Commands
 
-- `yarn run catapult:update` - Update catapult submodule
+- `yarn run catapult:update` - Update the catapult git submodule
 
 ## Architecture
 
