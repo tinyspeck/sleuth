@@ -62,6 +62,7 @@ export const LogTable = observer((props: LogTableProps) => {
     logFile,
     showOnlySearchResults,
     searchIndex,
+    searchList,
     dateRange,
     selectedEntry,
     state,
@@ -577,7 +578,6 @@ export const LogTable = observer((props: LogTableProps) => {
   const rowClassNameGetter = useCallback(
     (input: { index: number }): string => {
       const { index } = input;
-      const { searchList } = props;
       const isSearchIndex =
         !ignoreSearchIndex &&
         searchList.length > 0 &&
@@ -627,8 +627,6 @@ export const LogTable = observer((props: LogTableProps) => {
    */
   const renderTable = useCallback(
     (options: Size): JSX.Element => {
-      const { searchList } = props;
-
       const tableOptions: TableProps = {
         ...options,
         rowHeight: 30,
@@ -693,7 +691,7 @@ export const LogTable = observer((props: LogTableProps) => {
       );
     },
     [
-      props,
+      searchList,
       rowGetter,
       sortedList.length,
       onRowClick,
