@@ -22,7 +22,7 @@ executors:
           password: $JFROG_DOCKER_PASSWD
   macos:
     macos:
-      xcode: 14.0.1
+      xcode: 16.4.0
 
 commands:
   checkout_sleuth:
