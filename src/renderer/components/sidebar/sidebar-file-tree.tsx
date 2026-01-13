@@ -312,7 +312,28 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       ? file.logFile.fileName
       : file.fileName;
     const truncated = truncate(name, 24);
-    return getNode(truncated, { file });
+
+    const options: Partial<TreeDataNode> = {};
+
+    // Check ShipItState.plist for launchAfterInstallation warning
+    if (name.toLowerCase() === 'shipitstate.plist') {
+      const stateData = props.state.stateFiles[name]?.data;
+      if (stateData && stateData.launchAfterInstallation === false) {
+        options.title = (
+          <Space>
+            <span>{truncated}</span>
+            <Tooltip
+              title="launchAfterInstallation is false - Slack may be in an update loop"
+              placement="right"
+            >
+              <WarningFilled style={{ color: 'goldenrod' }} />
+            </Tooltip>
+          </Space>
+        );
+      }
+    }
+
+    return getNode(truncated, { file }, options);
   }
 
   function getLogFileNode(file: ProcessedLogFile): TreeDataNode {

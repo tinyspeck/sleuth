@@ -168,6 +168,21 @@ export class CoreApplication extends React.Component<
 
       delta[type] = files as ProcessedLogFile[];
       this.addFilesToState(delta);
+
+      // ShipItState.plist is a JSON file that should be read as state
+      if (type === LogType.INSTALLER) {
+        for (const file of files) {
+          if (
+            'fullPath' in file &&
+            file.fileName.toLowerCase() === 'shipitstate.plist'
+          ) {
+            const content = await window.Sleuth.readStateFile(file);
+            if (content) {
+              this.props.state.stateFiles[file.fileName] = content;
+            }
+          }
+        }
+      }
     }
     console.timeEnd('process-files');
 
