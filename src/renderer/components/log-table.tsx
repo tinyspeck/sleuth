@@ -329,7 +329,8 @@ export const LogTable = observer((props: LogTableProps) => {
       const sortByKey = options.sortBy || sortBy;
       const range = options.dateRange || dateRange;
       const sortDir = options.sortDirection || sortDirection;
-      const showOnlyResults = options.showOnlySearchResults;
+      const showOnlyResults =
+        options.showOnlySearchResults ?? showOnlySearchResults;
 
       const derivedOptions: SortFilterListOptions = {
         logFile: file,
