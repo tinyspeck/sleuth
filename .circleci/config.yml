@@ -105,7 +105,7 @@ jobs:
           make_flags: --arch << parameters.arch >>
   build-windows:
     machine: true
-    resource_class: tinyspeck/aws-windows-runner
+    resource_class: tinyspeck/aws-windows-runner-prod
     shell: powershell.exe -ExecutionPolicy Bypass
     steps:
       - load_cloudhsm
