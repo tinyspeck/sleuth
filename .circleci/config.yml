@@ -43,20 +43,23 @@ commands:
       - run:
           name: Install Dependencies
           command: yarn install --immutable
-      - save_cache:
-          name: Cache Installed Dependencies
-          paths:
-            - node_modules
-          key: v2-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
-  load_cloudhsm:
+      # - save_cache:
+      #     name: Cache Installed Dependencies
+      #     paths:
+      #       - node_modules
+      #     key: v2-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
+  setup_aws_kms:
     steps:
       - run:
-          # This is a necessary hack to persist environment variables across multiple CircleCI steps
-          name: Load CloudHSM environment variables
+          name: Setup Windows signing (jsign & AWS KMS)
           command: |
-            New-Item $Profile.CurrentUserAllHosts -Force
-            Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:CERT_THUMBPRINT = Get-Childitem -path cert:\LocalMachine\my | select-object -expandproperty thumbprint'
-            Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:n3fips_password = [System.Environment]::GetEnvironmentVariable("n3fips_password","Machine")'
+            try {
+              & .\tools\setup_windows_signing.ps1
+            } catch {
+              Write-Host "Warning: Failed to setup AWS profile. Error: $_"
+            }
+            Write-Host "Refreshing PATH"
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 
   build_sleuth:
     parameters:
@@ -105,10 +108,10 @@ jobs:
           make_flags: --arch << parameters.arch >>
   build-windows:
     machine: true
-    resource_class: tinyspeck/aws-windows-runner
+    resource_class: tinyspeck/aws-windows-runner-prod
     shell: powershell.exe -ExecutionPolicy Bypass
     steps:
-      - load_cloudhsm
+      - setup_aws_kms
       - build_sleuth
   build-ubuntu:
     executor: ubuntu
