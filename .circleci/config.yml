@@ -65,7 +65,6 @@ commands:
             Write-Host "Verifying Java is in PATH..."
             java -version
 
-
   build_sleuth:
     parameters:
       make_flags:
@@ -78,7 +77,7 @@ commands:
           name: Build Packages with flags; << parameters.make_flags >>
           shell: bash
           command: |
-            [ -f $env:CIRCLE_WORKING_DIRECTORY\.circleci-path.ps1 ] && . $env:CIRCLE_WORKING_DIRECTORY\.circleci-path.ps1 || echo "PATH file not found"
+            [ -f C:\temp\.circleci-path.ps1 ] && . C:\temp\.circleci-path.ps1 || echo "PATH file not found"
             yarn run publish --dry-run << parameters.make_flags >>
           no_output_timeout: 30m
       - store_artifacts:
