@@ -61,8 +61,7 @@ commands:
               Write-Host "Script found, executing..."
               & $scriptPath
             } else {
-              Write-Host "ERROR: Script not found at $scriptPath"
-              Get-ChildItem -Path $env:CIRCLE_WORKING_DIRECTORY -Recurse -Filter "setup_windows_signing.ps1" -ErrorAction SilentlyContinue | Select-Object FullName
+              Write-Host "Script not found at $scriptPath"
             }
             
             # Refresh PATH after installation
@@ -74,9 +73,8 @@ commands:
             $envFile = "$env:CIRCLE_WORKING_DIRECTORY\.circleci-path.ps1"
             "`$env:Path = '$refreshedPath'" | Out-File -FilePath $envFile -Encoding utf8
             Write-Host "PATH saved to $envFile"
-            Write-Host "Verifying Java and jsign are in PATH..."
+            Write-Host "Verifying Java is in PATH..."
             java -version
-            jsign --version
   build_sleuth:
     parameters:
       make_flags:
