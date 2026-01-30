@@ -65,7 +65,7 @@ commands:
             Write-Host "Verifying Java is in PATH..."
             java -version
 
-  build_sleuth:
+  build_sleuth_unix:
     parameters:
       make_flags:
         type: string
@@ -73,40 +73,37 @@ commands:
     steps:
       - checkout_sleuth
       - install_deps
-      # - run:
-      #     name: Build Packages with flags; << parameters.make_flags >>
-      #     shell: bash
-      #     command: |
-      #       [ -f "/c/temp/.circleci-path.ps1" ] && . "/c/temp/.circleci-path.ps1" 2>/dev/null || echo "PATH file not found"
-      #       yarn run publish --dry-run << parameters.make_flags >>
-      #     no_output_timeout: 30m
-      - when:
-          condition:
-            not:
-              and:
-                - equal: [ "macos", executor ]
-                - equal: [ "linux", executor ]
-          steps:
-            - run:
-                name: Build Packages with flags; << parameters.make_flags >>
-                shell: powershell.exe -ExecutionPolicy Bypass
-                command: |
-                  # Load Windows PATH
-                  & "C:\temp\.circleci-path.ps1"
-                  # Build
-                  yarn run publish --dry-run << parameters.make_flags >>
-                no_output_timeout: 30m
-      - when:
-          condition:
-            or:
-              - equal: [ "macos", executor ]
-              - equal: [ "linux", executor ]
-          steps:
-            - run:
-                name: Build Packages with flags; << parameters.make_flags >>
-                command: |
-                  yarn run publish --dry-run << parameters.make_flags >>
-                no_output_timeout: 30m
+      - run:
+          name: Build Packages with flags; << parameters.make_flags >>
+          command: |
+            yarn run publish --dry-run << parameters.make_flags >>
+          no_output_timeout: 30m
+      - store_artifacts:
+          path: out/make
+          destination: make
+      - persist_to_workspace:
+          root: out
+          paths:
+            - make
+            - publish-dry-run
+
+  build_sleuth_windows:
+    parameters:
+      make_flags:
+        type: string
+        default: ''
+    steps:
+      - checkout_sleuth
+      - install_deps
+      - run:
+          name: Build Packages with flags; << parameters.make_flags >>
+          shell: powershell.exe -ExecutionPolicy Bypass
+          command: |
+            # Load Windows PATH
+            & "C:\temp\.circleci-path.ps1"
+            # Build
+            yarn run publish --dry-run << parameters.make_flags >>
+          no_output_timeout: 30m
       - store_artifacts:
           path: out/make
           destination: make
@@ -137,7 +134,7 @@ jobs:
     steps:
       - node/install:
           node-version: '22.18.0'
-      - build_sleuth:
+      - build_sleuth_unix:
           make_flags: --arch << parameters.arch >>
   build-windows:
     machine: true
@@ -145,11 +142,11 @@ jobs:
     shell: powershell.exe -ExecutionPolicy Bypass
     steps:
       - setup_aws_kms
-      - build_sleuth
+      - build_sleuth_windows
   build-ubuntu:
     executor: ubuntu
     steps:
-      - build_sleuth:
+      - build_sleuth_unix:
           make_flags: --targets @electron-forge/maker-deb
   code-sign-macos:
     machine: true
