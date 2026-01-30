@@ -53,16 +53,30 @@ commands:
       - run:
           name: Setup Windows signing (jsign & AWS KMS)
           command: |
-            # Verify we're in the right directory and the script exists
-            Write-Host "Current directory: $(Get-Location)"
-            Write-Host "CIRCLE_WORKING_DIRECTORY: $env:CIRCLE_WORKING_DIRECTORY"
-            try {
-              & .\tools\setup_windows_signing.ps1
-            } catch {
-              Write-Host "Warning: Failed to setup AWS profile. Error: $_"
+            # Use absolute path to ensure we find the script
+            $scriptPath = Join-Path $env:CIRCLE_WORKING_DIRECTORY "tools\setup_windows_signing.ps1"
+            Write-Host "Looking for script at: $scriptPath"
+            
+            if (Test-Path $scriptPath) {
+              Write-Host "Script found, executing..."
+              & $scriptPath
+            } else {
+              Write-Host "ERROR: Script not found at $scriptPath"
+              Get-ChildItem -Path $env:CIRCLE_WORKING_DIRECTORY -Recurse -Filter "setup_windows_signing.ps1" -ErrorAction SilentlyContinue | Select-Object FullName
             }
+            
+            # Refresh PATH after installation
             Write-Host "Refreshing PATH"
-            $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+            $refreshedPath = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+            $env:Path = $refreshedPath
+            
+            # Save PATH to file for subsequent steps (escape single quotes in path)
+            $envFile = "$env:CIRCLE_WORKING_DIRECTORY\.circleci-path.ps1"
+            "`$env:Path = '$refreshedPath'" | Out-File -FilePath $envFile -Encoding utf8
+            Write-Host "PATH saved to $envFile"
+            Write-Host "Verifying Java and jsign are in PATH..."
+            java -version
+            jsign --version
   build_sleuth:
     parameters:
       make_flags:
@@ -74,8 +88,7 @@ commands:
       - run:
           name: Build Packages with flags; << parameters.make_flags >>
           command: |
-            Write-Host "Refreshing PATH"
-            $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+            [ -f $env:CIRCLE_WORKING_DIRECTORY\.circleci-path.ps1 ] && . $env:CIRCLE_WORKING_DIRECTORY\.circleci-path.ps1 || echo "PATH file not found"
             yarn run publish --dry-run << parameters.make_flags >>
           no_output_timeout: 30m
       - store_artifacts:
