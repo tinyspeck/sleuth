@@ -53,6 +53,9 @@ commands:
       - run:
           name: Setup Windows signing (jsign & AWS KMS)
           command: |
+            # Verify we're in the right directory and the script exists
+            Write-Host "Current directory: $(Get-Location)"
+            Write-Host "CIRCLE_WORKING_DIRECTORY: $env:CIRCLE_WORKING_DIRECTORY"
             try {
               & .\tools\setup_windows_signing.ps1
             } catch {
@@ -60,7 +63,6 @@ commands:
             }
             Write-Host "Refreshing PATH"
             $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-
   build_sleuth:
     parameters:
       make_flags:
@@ -72,6 +74,8 @@ commands:
       - run:
           name: Build Packages with flags; << parameters.make_flags >>
           command: |
+            Write-Host "Refreshing PATH"
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
             yarn run publish --dry-run << parameters.make_flags >>
           no_output_timeout: 30m
       - store_artifacts:
