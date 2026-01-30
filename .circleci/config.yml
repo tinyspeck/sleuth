@@ -53,18 +53,6 @@ commands:
       - run:
           name: Setup Windows signing (jsign & AWS KMS)
           command: |
-            # Use absolute path to ensure we find the script
-            # bound to fail as this runs before checkout code step 
-            # $scriptPath = Join-Path $env:CIRCLE_WORKING_DIRECTORY "tools\setup_windows_signing.ps1"
-            # Write-Host "Looking for script at: $scriptPath"
-            
-            # if (Test-Path $scriptPath) {
-            #   Write-Host "Script found, executing..."
-            #   & $scriptPath
-            # } else {
-            #   Write-Host "Script not found at $scriptPath"
-            # }
-            
             # Refresh PATH after installation
             Write-Host "Refreshing PATH"
             $refreshedPath = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
@@ -76,6 +64,8 @@ commands:
             Write-Host "PATH saved to $envFile"
             Write-Host "Verifying Java is in PATH..."
             java -version
+
+
   build_sleuth:
     parameters:
       make_flags:
@@ -86,6 +76,7 @@ commands:
       - install_deps
       - run:
           name: Build Packages with flags; << parameters.make_flags >>
+          shell: bash
           command: |
             [ -f $env:CIRCLE_WORKING_DIRECTORY\.circleci-path.ps1 ] && . $env:CIRCLE_WORKING_DIRECTORY\.circleci-path.ps1 || echo "PATH file not found"
             yarn run publish --dry-run << parameters.make_flags >>
