@@ -54,15 +54,16 @@ commands:
           name: Setup Windows signing (jsign & AWS KMS)
           command: |
             # Use absolute path to ensure we find the script
-            $scriptPath = Join-Path $env:CIRCLE_WORKING_DIRECTORY "tools\setup_windows_signing.ps1"
-            Write-Host "Looking for script at: $scriptPath"
+            # bound to fail as this runs before checkout code step 
+            # $scriptPath = Join-Path $env:CIRCLE_WORKING_DIRECTORY "tools\setup_windows_signing.ps1"
+            # Write-Host "Looking for script at: $scriptPath"
             
-            if (Test-Path $scriptPath) {
-              Write-Host "Script found, executing..."
-              & $scriptPath
-            } else {
-              Write-Host "Script not found at $scriptPath"
-            }
+            # if (Test-Path $scriptPath) {
+            #   Write-Host "Script found, executing..."
+            #   & $scriptPath
+            # } else {
+            #   Write-Host "Script not found at $scriptPath"
+            # }
             
             # Refresh PATH after installation
             Write-Host "Refreshing PATH"
@@ -70,7 +71,7 @@ commands:
             $env:Path = $refreshedPath
             
             # Save PATH to file for subsequent steps (escape single quotes in path)
-            $envFile = "$env:CIRCLE_WORKING_DIRECTORY\.circleci-path.ps1"
+            $envFile = "C:\temp\.circleci-path.ps1"
             "`$env:Path = '$refreshedPath'" | Out-File -FilePath $envFile -Encoding utf8
             Write-Host "PATH saved to $envFile"
             Write-Host "Verifying Java is in PATH..."
