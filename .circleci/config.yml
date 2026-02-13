@@ -48,17 +48,21 @@ commands:
           paths:
             - node_modules
           key: v2-dependencies-{{ arch }}-{{ checksum "yarn.lock" }}
-  load_cloudhsm:
+  setup_aws_kms:
     steps:
       - run:
-          # This is a necessary hack to persist environment variables across multiple CircleCI steps
-          name: Load CloudHSM environment variables
+          name: Setup Windows signing (jsign & AWS KMS)
           command: |
-            New-Item $Profile.CurrentUserAllHosts -Force
-            Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:CERT_THUMBPRINT = Get-Childitem -path cert:\LocalMachine\my | select-object -expandproperty thumbprint'
-            Add-Content -Path $Profile.CurrentUserAllHosts -Value '$env:n3fips_password = [System.Environment]::GetEnvironmentVariable("n3fips_password","Machine")'
+            # Refresh PATH after installation
+            $refreshedPath = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+            $env:Path = $refreshedPath
 
-  build_sleuth:
+            # Save PATH to file for subsequent steps (escape single quotes in path)
+            $envFile = "C:\temp\.circleci-path.ps1"
+            "`$env:Path = '$refreshedPath'" | Out-File -FilePath $envFile -Encoding utf8
+            java -version
+
+  build_sleuth_unix:
     parameters:
       make_flags:
         type: string
@@ -69,6 +73,30 @@ commands:
       - run:
           name: Build Packages with flags; << parameters.make_flags >>
           command: |
+            yarn run publish --dry-run << parameters.make_flags >>
+          no_output_timeout: 30m
+      - store_artifacts:
+          path: out/make
+          destination: make
+      - persist_to_workspace:
+          root: out
+          paths:
+            - make
+            - publish-dry-run
+
+  build_sleuth_windows:
+    parameters:
+      make_flags:
+        type: string
+        default: ''
+    steps:
+      - checkout_sleuth
+      - install_deps
+      - run:
+          name: Build Packages with flags; << parameters.make_flags >>
+          shell: powershell.exe -ExecutionPolicy Bypass
+          command: |
+            & "C:\temp\.circleci-path.ps1"
             yarn run publish --dry-run << parameters.make_flags >>
           no_output_timeout: 30m
       - store_artifacts:
@@ -101,19 +129,19 @@ jobs:
     steps:
       - node/install:
           node-version: '22.18.0'
-      - build_sleuth:
+      - build_sleuth_unix:
           make_flags: --arch << parameters.arch >>
   build-windows:
     machine: true
-    resource_class: tinyspeck/aws-windows-runner
+    resource_class: tinyspeck/aws-windows-runner-prod
     shell: powershell.exe -ExecutionPolicy Bypass
     steps:
-      - load_cloudhsm
-      - build_sleuth
+      - setup_aws_kms
+      - build_sleuth_windows
   build-ubuntu:
     executor: ubuntu
     steps:
-      - build_sleuth:
+      - build_sleuth_unix:
           make_flags: --targets @electron-forge/maker-deb
   code-sign-macos:
     machine: true
