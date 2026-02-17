@@ -38,7 +38,7 @@
     "electron-window-state": "5.0.3",
     "fs-extra": "9.0.1",
     "jsonic": "1.0.1",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "lz-string": "^1.4.4",
     "mobx": "5.15.7",
     "mobx-react": "patch:mobx-react@npm%3A6.3.0#~/.yarn/patches/mobx-react-npm-6.3.0-e118b28c32.patch",
