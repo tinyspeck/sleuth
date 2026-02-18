@@ -163,7 +163,7 @@ jobs:
         default: macos
       code_signer:
         type: string
-        default: 'tinyspeck/aws-ansible-code-signer-prod'
+        default: 'tinyspeck/aws-ansible-code-signer-prod-ee'
     steps:
       - run:
           command: |
