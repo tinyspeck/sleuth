@@ -43,9 +43,9 @@ export type StateData = {
     : Record<string, unknown>;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class StateTable extends React.Component<
   StateTableProps,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   StateTableState<any>
 > {
   constructor(props: StateTableProps) {
