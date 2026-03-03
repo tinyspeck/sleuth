@@ -400,7 +400,10 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       }
     }
 
-    if (file.fileName.endsWith('installation')) {
+    if (
+      file.fileName.endsWith('installation') &&
+      props.state.stateFiles['logfiles-shipping-manifest.json']
+    ) {
       const warnings = props.state.stateFiles[
         'logfiles-shipping-manifest.json'
       ].data.files.filter((f) => f.fileName.endsWith('.dmp'));
