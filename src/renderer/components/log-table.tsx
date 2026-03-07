@@ -84,9 +84,10 @@ export const LogTable = observer((props: LogTableProps) => {
     number | undefined
   >(undefined);
   const [scrollToSelection, setScrollToSelection] = useState(false);
-  const [userTZ] = useState(
+  const userTZRef = useRef(
     state.stateFiles['log-context.json']?.data?.systemTZ,
   );
+  const userTZ = userTZRef.current;
 
   const findIndexForSelectedEntry = useCallback(
     (list: Array<LogEntry> | undefined): number => {
@@ -201,17 +202,22 @@ export const LogTable = observer((props: LogTableProps) => {
     [],
   );
 
+  // Auto-switch to momentValue sort for merged log files
+  const effectiveSortBy =
+    isMergedLogFile(logFile) && sortBy === 'index' ? 'momentValue' : sortBy;
+
   /**
    * Sorts the list and filters it by log level and search query.
    * Computed synchronously during render via useMemo to avoid extra render cycles.
    */
-  function sortAndFilterList(
-    options: SortFilterListOptions = {},
-  ): Array<LogEntry> {
+  function sortAndFilterList(options: SortFilterListOptions = {}): {
+    list: Array<LogEntry>;
+    newSearchList: Array<number> | null;
+  } {
     const file = options.logFile || logFile;
     const filter = options.filter || levelFilter;
     const searchText = options.search !== undefined ? options.search : search;
-    const sortByKey = options.sortBy || sortBy;
+    const sortByKey = options.sortBy || effectiveSortBy;
     const range = options.dateRange || dateRange;
     const sortDir = options.sortDirection || sortDirection;
     const showOnlyResults =
@@ -228,7 +234,7 @@ export const LogTable = observer((props: LogTableProps) => {
     };
 
     d(`Starting filter`);
-    if (!file) return [];
+    if (!file) return { list: [], newSearchList: null };
 
     const shouldDoFilter = shouldFilter(filter);
     const noSort =
@@ -236,7 +242,8 @@ export const LogTable = observer((props: LogTableProps) => {
       (!sortDir || sortDir === SORT_DIRECTION.ASC);
 
     // Check if we can bail early and just use the naked logEntries array
-    if (noSort && !shouldDoFilter && !searchText) return file.logEntries;
+    if (noSort && !shouldDoFilter && !searchText)
+      return { list: file.logEntries, newSearchList: null };
 
     let list = file.logEntries.concat();
 
@@ -288,25 +295,21 @@ export const LogTable = observer((props: LogTableProps) => {
 
     // Search
     if (typeof searchText === 'string') {
-      const [rowsToDisplay, newSearchList] = doSearch(list, derivedOptions);
+      const [rowsToDisplay, searchResults] = doSearch(list, derivedOptions);
 
       list = rowsToDisplay;
-      state.searchList = newSearchList;
+      return { list, newSearchList: searchResults };
     }
 
-    return list;
+    return { list, newSearchList: null };
   }
-
-  // Auto-switch to momentValue sort for merged log files
-  const effectiveSortBy =
-    isMergedLogFile(logFile) && sortBy === 'index' ? 'momentValue' : sortBy;
 
   /**
    * sortedList is a derived value from props + sort state.
    * Computing it synchronously in useMemo avoids the extra render cycle
    * that useEffect + useState would cause.
    */
-  const sortedList = useMemo(
+  const { list: sortedList, newSearchList: computedSearchList } = useMemo(
     () => sortAndFilterList(),
     [
       logFile,
@@ -318,6 +321,13 @@ export const LogTable = observer((props: LogTableProps) => {
       showOnlySearchResults,
     ],
   );
+
+  // Sync search list to MobX state in an effect (not during render)
+  useEffect(() => {
+    if (computedSearchList !== null) {
+      state.searchList = computedSearchList;
+    }
+  }, [computedSearchList, state]);
 
   /**
    * Changes the current selection in the table to the target index
@@ -785,7 +795,7 @@ export const LogTable = observer((props: LogTableProps) => {
 
     container.addEventListener('keydown', handleKeyDown);
     return () => container.removeEventListener('keydown', handleKeyDown);
-  }, [sortedList, state]);
+  }, [incrementSelection]);
 
   const typeClassName = logFile.type === 'MergedLogFile' ? 'Merged' : 'Single';
   const className = classNames('LogTable', typeClassName);

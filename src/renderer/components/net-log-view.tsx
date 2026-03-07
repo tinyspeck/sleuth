@@ -60,6 +60,10 @@ export const NetLogView = observer((props: NetLogViewProps) => {
       }
     }
 
+    if (disposerRef.current) {
+      disposerRef.current();
+    }
+
     disposerRef.current = autorun(() => {
       const isDarkMode = props.state.prefersDarkColors;
       setDarkMode(isDarkMode);

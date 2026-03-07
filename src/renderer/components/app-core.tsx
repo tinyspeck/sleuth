@@ -6,7 +6,6 @@ import debug from 'debug';
 import { getFirstLogFile } from '../../utils/get-first-logfile';
 import { SleuthState } from '../state/sleuth';
 import {
-  LevelFilter,
   MergedLogFiles,
   ProcessedLogFiles,
   LogType,
@@ -29,15 +28,6 @@ const d = debug('sleuth:app-core');
 export interface CoreAppProps {
   state: SleuthState;
   unzippedFiles: UnzippedFiles;
-}
-
-export interface CoreAppState {
-  processedLogFiles: ProcessedLogFiles;
-  loadingMessage: string;
-  loadedLogFiles: boolean;
-  loadedMergeFiles: boolean;
-  filter: LevelFilter;
-  search?: string;
 }
 
 export const CoreApplication = observer((props: CoreAppProps) => {

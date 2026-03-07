@@ -26,20 +26,7 @@ export const App = observer(() => {
   const unzippedFilesRef = useRef<UnzippedFiles>([]);
   unzippedFilesRef.current = unzippedFiles;
 
-  const openFile = useCallback(async (url: string) => {
-    setUnzippedFiles([]);
-    setOpenEmpty(false);
-    sleuthStateRef.current.opened = sleuthStateRef.current.opened + 1;
-    sleuthStateRef.current.getSuggestions();
-
-    if (sleuthStateRef.current.opened > 1) {
-      sleuthStateRef.current.reset(false);
-    }
-
-    const files = await window.Sleuth.openFile(url);
-    sleuthStateRef.current.setSource(url);
-    setUnzippedFiles(files);
-  }, []);
+  const sleuthStateRef = useRef<SleuthState>(null!);
 
   const resetApp = useCallback(() => {
     setUnzippedFiles([]);
@@ -53,7 +40,16 @@ export const App = observer(() => {
     sleuthStateRef.current.getSuggestions();
   }, []);
 
-  const sleuthStateRef = useRef<SleuthState>(null!);
+  const openFile = useCallback(
+    async (url: string) => {
+      resetApp();
+      const files = await window.Sleuth.openFile(url);
+      sleuthStateRef.current.setSource(url);
+      setUnzippedFiles(files);
+    },
+    [resetApp],
+  );
+
   if (sleuthStateRef.current === null) {
     localStorage.debug = 'sleuth:*';
     sleuthStateRef.current = new SleuthState(openFile, resetApp);
@@ -69,7 +65,6 @@ export const App = observer(() => {
       if (event.dataTransfer && event.dataTransfer.files.length > 0) {
         let url = window.Sleuth.getPathForFile(event.dataTransfer.files[0]);
         url = url.replace('file:///', '/');
-        resetApp();
         openFile(url);
       }
 
