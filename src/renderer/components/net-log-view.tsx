@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
 import debug from 'debug';
 
 import { SleuthState } from '../state/sleuth';
-import { autorun, IReactionDisposer } from 'mobx';
+import { autorun } from 'mobx';
 import { UnzippedFile } from '../../interfaces';
 
 export interface NetLogViewProps {
@@ -13,39 +13,33 @@ export interface NetLogViewProps {
 
 const d = debug('sleuth:netlogview');
 
-@observer
-export class NetLogView extends React.Component<NetLogViewProps, object> {
-  private disposeDarkModeAutorun: IReactionDisposer | undefined;
+export const NetLogView = observer((props: NetLogViewProps) => {
+  const disposerRef = useRef<(() => void) | undefined>();
 
-  constructor(props: NetLogViewProps) {
-    super(props);
+  const setDarkMode = useCallback((enabled: boolean) => {
+    try {
+      const iframe = document.getElementsByTagName('iframe');
 
-    this.loadFile = this.loadFile.bind(this);
-  }
+      if (iframe && iframe.length > 0) {
+        const catapultWindow = iframe[0].contentWindow;
 
-  public render() {
-    return (
-      <div className="NetLogView">
-        <iframe src="catapult.html" onLoad={this.loadFile} frameBorder={0} />
-      </div>
-    );
-  }
-
-  public componentWillUnmount() {
-    if (this.disposeDarkModeAutorun) {
-      this.disposeDarkModeAutorun();
+        catapultWindow?.postMessage(
+          {
+            instruction: 'dark-mode',
+            payload: enabled,
+          },
+          window.location.href,
+        );
+      }
+    } catch (error) {
+      d(`Failed to set dark mode`, error);
     }
-  }
+  }, []);
 
-  /**
-   * Loads the currently selected file in catapult
-   *
-   * @memberof NetLogView
-   */
-  public async loadFile() {
+  const loadFile = useCallback(async () => {
     d(`iFrame loaded`);
 
-    const { file } = this.props;
+    const { file } = props;
     const iframe = document.getElementsByTagName('iframe');
 
     if (iframe && iframe[0]) {
@@ -66,36 +60,23 @@ export class NetLogView extends React.Component<NetLogViewProps, object> {
       }
     }
 
-    this.disposeDarkModeAutorun = autorun(() => {
-      const isDarkMode = this.props.state.prefersDarkColors;
-      this.setDarkMode(isDarkMode);
+    disposerRef.current = autorun(() => {
+      const isDarkMode = props.state.prefersDarkColors;
+      setDarkMode(isDarkMode);
     });
-  }
+  }, [props, setDarkMode]);
 
-  /**
-   * We have a little bit of css in catapult.html that'll enable a
-   * basic dark mode.
-   *
-   * @param {boolean} enabled
-   * @memberof NetLogView
-   */
-  public setDarkMode(enabled: boolean) {
-    try {
-      const iframe = document.getElementsByTagName('iframe');
-
-      if (iframe && iframe.length > 0) {
-        const catapultWindow = iframe[0].contentWindow;
-
-        catapultWindow?.postMessage(
-          {
-            instruction: 'dark-mode',
-            payload: enabled,
-          },
-          window.location.href,
-        );
+  useEffect(() => {
+    return () => {
+      if (disposerRef.current) {
+        disposerRef.current();
       }
-    } catch (error) {
-      d(`Failed to set dark mode`, error);
-    }
-  }
-}
+    };
+  }, []);
+
+  return (
+    <div className="NetLogView">
+      <iframe src="catapult.html" onLoad={loadFile} frameBorder={0} />
+    </div>
+  );
+});

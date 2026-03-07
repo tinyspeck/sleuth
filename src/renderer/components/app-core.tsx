@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react';
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import debug from 'debug';
 
@@ -40,222 +40,167 @@ export interface CoreAppState {
   search?: string;
 }
 
-@observer
-export class CoreApplication extends React.Component<
-  CoreAppProps,
-  Partial<CoreAppState>
-> {
-  constructor(props: CoreAppProps) {
-    super(props);
+export const CoreApplication = observer((props: CoreAppProps) => {
+  const [processedLogFiles, setProcessedLogFiles] = useState<ProcessedLogFiles>(
+    {
+      browser: [],
+      webapp: [],
+      state: [],
+      installer: [],
+      netlog: [],
+      trace: [],
+      mobile: [],
+      chromium: [],
+    },
+  );
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [loadedLogFiles, setLoadedLogFiles] = useState(false);
 
-    this.state = {
-      processedLogFiles: {
-        browser: [],
-        webapp: [],
-        state: [],
-        installer: [],
-        netlog: [],
-        trace: [],
-        mobile: [],
-        chromium: [],
-      },
-      loadingMessage: '',
-      loadedLogFiles: false,
-      loadedMergeFiles: false,
-    };
-  }
+  // Use a ref to track processedLogFiles inside the async processFiles
+  // since setState is async and we need to accumulate updates
+  const processedLogFilesRef = useRef(processedLogFiles);
 
-  /**
-   * Once the component has mounted, we'll start processing files.
-   */
-  public componentDidMount() {
-    this.processFiles();
-  }
+  const addFilesToState = useCallback(
+    (filesToAdd: Partial<ProcessedLogFiles>) => {
+      const current = processedLogFilesRef.current;
+      const newProcessedLogFiles: ProcessedLogFiles = { ...current };
 
-  public render() {
-    return this.state.loadedLogFiles
-      ? this.renderContent()
-      : this.renderLoading();
-  }
-
-  /**
-   * Take an array of processed files (for logs) or unzipped files (for state files)
-   * and add them to the state of this component.
-   */
-  private addFilesToState(filesToAdd: Partial<ProcessedLogFiles>) {
-    const { processedLogFiles } = this.state;
-
-    if (!processedLogFiles) {
-      return;
-    }
-
-    const newProcessedLogFiles: ProcessedLogFiles = { ...processedLogFiles };
-
-    for (const [type, filesOfType] of Object.entries(filesToAdd)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const currentState = processedLogFiles[
-        type as keyof ProcessedLogFiles
-      ] as Array<any>;
-      newProcessedLogFiles[type as keyof ProcessedLogFiles] =
-        currentState.concat(filesOfType);
-    }
-
-    this.setState({
-      processedLogFiles: newProcessedLogFiles,
-    });
-  }
-
-  /**
-   * Process files - most of the work happens over in ../processor.ts.
-   */
-  private async processFiles() {
-    const { unzippedFiles } = this.props;
-
-    const sortedUnzippedFiles = getTypesForFiles(unzippedFiles);
-    const noFiles = Object.keys(sortedUnzippedFiles)
-      .map((k: keyof SortedUnzippedFiles) => sortedUnzippedFiles[k])
-      .every((s) => s.length === 0);
-
-    if (noFiles) {
-      window.Sleuth.showMessageBox({
-        title: 'Huh, weird logs!',
-        message:
-          'Sorry, Sleuth does not understand the file(s). It seems like there are no Slack logs here.\n\nCheck the #sleuth FAQ for help!',
-        type: 'error',
-      });
-
-      // Reload
-      window.location.reload();
-    }
-
-    // Collect
-    const { STATE, NETLOG, TRACE } = LogType;
-    const { state, netlog, trace } = sortedUnzippedFiles;
-    const rawLogFiles = {
-      [STATE]: state,
-      [NETLOG]: netlog,
-      [TRACE]: trace,
-    };
-
-    this.addFilesToState(rawLogFiles);
-
-    console.time('process-files');
-    // process state files first because we depend on `log-context.json` for log processing
-    for (const stateFile of rawLogFiles[STATE]) {
-      const content = await window.Sleuth.readStateFile(stateFile);
-      if (content) {
-        this.props.state.stateFiles[stateFile.fileName] = content;
+      for (const [type, filesOfType] of Object.entries(filesToAdd)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const currentState = current[
+          type as keyof ProcessedLogFiles
+        ] as Array<any>;
+        newProcessedLogFiles[type as keyof ProcessedLogFiles] =
+          currentState.concat(filesOfType);
       }
-    }
 
-    const userTZ = this.props.state.stateFiles['log-context.json']?.data
-      ?.systemTZ as string | undefined;
-    if (typeof userTZ === 'string') {
-      d(`Processing logs with user timezone: ${userTZ}`);
-    }
+      processedLogFilesRef.current = newProcessedLogFiles;
+      setProcessedLogFiles(newProcessedLogFiles);
+    },
+    [],
+  );
 
-    // process log files second
-    for (const type of LOG_TYPES_TO_PROCESS) {
-      const preFiles = sortedUnzippedFiles[type];
-      const files = await processLogFiles(
-        preFiles,
-        userTZ,
-        (loadingMessage) => {
-          this.setState({ loadingMessage });
-        },
-      );
-      const delta: Partial<ProcessedLogFiles> = {};
+  const getPercentageLoaded = useCallback((): number => {
+    const current = processedLogFilesRef.current;
+    const alreadyLoaded = Object.keys(current)
+      .map((k: keyof ProcessedLogFiles) => current[k])
+      .reduce((p, c) => p + (c ? c.length : 0), 0);
+    const toLoad = props.unzippedFiles.length;
 
-      delta[type] = files as ProcessedLogFile[];
-      this.addFilesToState(delta);
+    return Math.round((alreadyLoaded / toLoad) * 100);
+  }, [props.unzippedFiles]);
 
-      // ShipItState.plist is a JSON file that should be read as state
-      if (type === LogType.INSTALLER) {
-        for (const file of files) {
-          if (
-            'fullPath' in file &&
-            file.fileName.toLowerCase() === 'shipitstate.plist'
-          ) {
-            const content = await window.Sleuth.readStateFile(file);
-            if (content) {
-              this.props.state.stateFiles[file.fileName] = content;
+  useEffect(() => {
+    async function processFiles() {
+      const { unzippedFiles } = props;
+
+      const sortedUnzippedFiles = getTypesForFiles(unzippedFiles);
+      const noFiles = Object.keys(sortedUnzippedFiles)
+        .map((k: keyof SortedUnzippedFiles) => sortedUnzippedFiles[k])
+        .every((s) => s.length === 0);
+
+      if (noFiles) {
+        window.Sleuth.showMessageBox({
+          title: 'Huh, weird logs!',
+          message:
+            'Sorry, Sleuth does not understand the file(s). It seems like there are no Slack logs here.\n\nCheck the #sleuth FAQ for help!',
+          type: 'error',
+        });
+
+        // Reload
+        window.location.reload();
+      }
+
+      // Collect
+      const { STATE, NETLOG, TRACE } = LogType;
+      const { state, netlog, trace } = sortedUnzippedFiles;
+      const rawLogFiles = {
+        [STATE]: state,
+        [NETLOG]: netlog,
+        [TRACE]: trace,
+      };
+
+      addFilesToState(rawLogFiles);
+
+      console.time('process-files');
+      // process state files first because we depend on `log-context.json` for log processing
+      for (const stateFile of rawLogFiles[STATE]) {
+        const content = await window.Sleuth.readStateFile(stateFile);
+        if (content) {
+          props.state.stateFiles[stateFile.fileName] = content;
+        }
+      }
+
+      const userTZ = props.state.stateFiles['log-context.json']?.data
+        ?.systemTZ as string | undefined;
+      if (typeof userTZ === 'string') {
+        d(`Processing logs with user timezone: ${userTZ}`);
+      }
+
+      // process log files second
+      for (const type of LOG_TYPES_TO_PROCESS) {
+        const preFiles = sortedUnzippedFiles[type];
+        const files = await processLogFiles(preFiles, userTZ, (msg) => {
+          setLoadingMessage(msg);
+        });
+        const delta: Partial<ProcessedLogFiles> = {};
+
+        delta[type] = files as ProcessedLogFile[];
+        addFilesToState(delta);
+
+        // ShipItState.plist is a JSON file that should be read as state
+        if (type === LogType.INSTALLER) {
+          for (const file of files) {
+            if (
+              'fullPath' in file &&
+              file.fileName.toLowerCase() === 'shipitstate.plist'
+            ) {
+              const content = await window.Sleuth.readStateFile(file);
+              if (content) {
+                props.state.stateFiles[file.fileName] = content;
+              }
             }
           }
         }
       }
+      console.timeEnd('process-files');
+
+      const currentProcessed = processedLogFilesRef.current;
+      const { selectedLogFile } = props.state;
+
+      props.state.processedLogFiles = currentProcessed;
+
+      if (!selectedLogFile && currentProcessed) {
+        props.state.selectedLogFile = getFirstLogFile(currentProcessed);
+      }
+      setLoadedLogFiles(true);
+
+      // We're done processing the files, so let's get started on the merge files.
+      const { setMergedFile } = props.state;
+
+      if (currentProcessed) {
+        await mergeLogFiles(currentProcessed.browser, LogType.BROWSER).then(
+          setMergedFile,
+        );
+        await mergeLogFiles(currentProcessed.webapp, LogType.WEBAPP).then(
+          setMergedFile,
+        );
+
+        const merged = props.state.mergedLogFiles as MergedLogFiles;
+        const toMerge = [merged.browser, merged.webapp];
+
+        mergeLogFiles(toMerge, LogType.ALL).then((r) => setMergedFile(r));
+      }
+
+      rehydrateBookmarks(props.state);
+      flushLogPerformance();
     }
-    console.timeEnd('process-files');
 
-    const { processedLogFiles } = this.state;
-    const { selectedLogFile } = this.props.state;
+    processFiles();
+  }, []);
 
-    this.props.state.processedLogFiles = processedLogFiles;
-
-    if (!selectedLogFile && processedLogFiles) {
-      this.props.state.selectedLogFile = getFirstLogFile(processedLogFiles);
-    }
-    this.setState({ loadedLogFiles: true });
-
-    // We're done processing the files, so let's get started on the merge files.
-    const { setMergedFile } = this.props.state;
-
-    if (processedLogFiles) {
-      await mergeLogFiles(processedLogFiles.browser, LogType.BROWSER).then(
-        setMergedFile,
-      );
-      await mergeLogFiles(processedLogFiles.webapp, LogType.WEBAPP).then(
-        setMergedFile,
-      );
-
-      const merged = this.props.state.mergedLogFiles as MergedLogFiles;
-      const toMerge = [merged.browser, merged.webapp];
-
-      mergeLogFiles(toMerge, LogType.ALL).then((r) => setMergedFile(r));
-    }
-
-    rehydrateBookmarks(this.props.state);
-    flushLogPerformance();
-  }
-
-  /**
-   * Returns a rounded percentage number for our init process.
-   *
-   * @returns {number} Percentage loaded
-   */
-  private getPercentageLoaded(): number {
-    const { unzippedFiles } = this.props;
-    const processedLogFiles: Partial<ProcessedLogFiles> =
-      this.state.processedLogFiles || {};
-    const alreadyLoaded = Object.keys(processedLogFiles)
-      .map((k: keyof ProcessedLogFiles) => processedLogFiles[k])
-      .reduce((p, c) => p + (c ? c.length : 0), 0);
-    const toLoad = unzippedFiles.length;
-
-    return Math.round((alreadyLoaded / toLoad) * 100);
-  }
-
-  /**
-   * Renders both the sidebar as well as the Spotlight-like omnibar.
-   *
-   * @returns {JSX.Element}
-   */
-  private renderSidebarSpotlight(): JSX.Element {
-    return (
-      <>
-        <Sidebar state={this.props.state} />
-        <Spotlight state={this.props.state} />
-      </>
-    );
-  }
-
-  /**
-   * Render the loading indicator.
-   *
-   * @returns {JSX.Element}
-   */
-  private renderLoading() {
-    const { loadingMessage } = this.state;
-    const percentageLoaded = this.getPercentageLoaded();
+  if (!loadedLogFiles) {
+    const percentageLoaded = getPercentageLoaded();
 
     return (
       <div className="AppCore">
@@ -266,23 +211,17 @@ export class CoreApplication extends React.Component<
     );
   }
 
-  /**
-   * Render the actual content (when loaded).
-   *
-   * @returns {JSX.Element}
-   */
-  private renderContent(): JSX.Element {
-    const { isSidebarOpen } = this.props.state;
-    const logContentClassName = classNames({ isSidebarOpen });
+  const { isSidebarOpen } = props.state;
+  const logContentClassName = classNames({ isSidebarOpen });
 
-    return (
-      <div className="AppCore">
-        {this.renderSidebarSpotlight()}
+  return (
+    <div className="AppCore">
+      <Sidebar state={props.state} />
+      <Spotlight state={props.state} />
 
-        <div id="content" className={logContentClassName}>
-          <LogContent state={this.props.state} />
-        </div>
+      <div id="content" className={logContentClassName}>
+        <LogContent state={props.state} />
       </div>
-    );
-  }
-}
+    </div>
+  );
+});
