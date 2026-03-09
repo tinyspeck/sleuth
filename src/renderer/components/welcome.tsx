@@ -78,7 +78,9 @@ export const Welcome = observer((props: WelcomeProps) => {
   const [downloadsDir, setDownloadsDir] = useState<string | undefined>();
 
   useEffect(() => {
-    window.Sleuth.getPath('downloads').then(setDownloadsDir);
+    window.Sleuth.getPath('downloads')
+      .then(setDownloadsDir)
+      .catch(console.error);
 
     const unmountListener = window.Sleuth.setupSuggestionsUpdated(
       async (_event, suggestions: Suggestion[]) => {
@@ -93,16 +95,24 @@ export const Welcome = observer((props: WelcomeProps) => {
 
   const deleteSuggestion = useCallback(
     async (filePath: string) => {
-      await window.Sleuth.deleteSuggestion(filePath);
-      await props.state.getSuggestions();
+      try {
+        await window.Sleuth.deleteSuggestion(filePath);
+        await props.state.getSuggestions();
+      } catch (error) {
+        console.error('Failed to delete suggestion:', error);
+      }
     },
     [props.state],
   );
 
   const deleteSuggestions = useCallback(
     async (filePaths: string[]) => {
-      await window.Sleuth.deleteSuggestions(filePaths);
-      await props.state.getSuggestions();
+      try {
+        await window.Sleuth.deleteSuggestions(filePaths);
+        await props.state.getSuggestions();
+      } catch (error) {
+        console.error('Failed to delete suggestions:', error);
+      }
     },
     [props.state],
   );

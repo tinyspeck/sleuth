@@ -9369,13 +9369,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-autobind@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "react-autobind@npm:1.0.6"
-  checksum: 10c0/0f8cc12602efbd49742255d69d73774138af3765a591fac73eb5e0d58e8d8782a6e59f0f8c82e55f1d2488b76beb06706422fbe8837dbae92ebf1fd090fb13a4
-  languageName: node
-  linkType: hard
-
 "react-base16-styling@npm:^0.9.1":
   version: 0.9.1
   resolution: "react-base16-styling@npm:0.9.1"
@@ -10300,7 +10293,6 @@ __metadata:
     node-abi: "npm:^3.45.0"
     prettier: "npm:^3.0.0"
     react: "npm:^17.0.1"
-    react-autobind: "npm:^1.0.6"
     react-dom: "npm:^17.0.1"
     react-json-tree: "npm:0.18.0"
     react-virtualized: "patch:react-virtualized@npm%3A9.22.5#~/.yarn/patches/react-virtualized-npm-9.22.5-be95b8e1a8.patch"

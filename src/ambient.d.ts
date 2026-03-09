@@ -1,6 +1,4 @@
 // Ambient type declarations for modules that do not have type definitions
-declare module 'react-keydown';
-declare module 'react-autobind';
 declare module 'jsonic';
 declare module 'electron-window-state';
 declare module 'electron-default-menu';

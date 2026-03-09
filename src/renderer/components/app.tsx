@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
+import debug from 'debug';
 
 import { ConfigProvider, theme } from 'antd';
+
+const d = debug('sleuth:app');
 
 import { Welcome } from './welcome';
 import { CoreApplication } from './app-core';
@@ -26,26 +29,33 @@ export const App = observer(() => {
   const unzippedFilesRef = useRef<UnzippedFiles>([]);
   unzippedFilesRef.current = unzippedFiles;
 
-  const sleuthStateRef = useRef<SleuthState>(null!);
+  const sleuthStateRef = useRef<SleuthState | null>(null);
 
   const resetApp = useCallback(() => {
+    const sleuth = sleuthStateRef.current;
+    if (!sleuth) return;
+
     setUnzippedFiles([]);
     setOpenEmpty(false);
 
-    if (sleuthStateRef.current.opened > 0) {
-      sleuthStateRef.current.reset(false);
+    if (sleuth.opened > 0) {
+      sleuth.reset(false);
     }
 
-    sleuthStateRef.current.opened = sleuthStateRef.current.opened + 1;
-    sleuthStateRef.current.getSuggestions();
+    sleuth.opened = sleuth.opened + 1;
+    sleuth.getSuggestions();
   }, []);
 
   const openFile = useCallback(
     async (url: string) => {
       resetApp();
-      const files = await window.Sleuth.openFile(url);
-      sleuthStateRef.current.setSource(url);
-      setUnzippedFiles(files);
+      try {
+        const files = await window.Sleuth.openFile(url);
+        sleuthStateRef.current?.setSource(url);
+        setUnzippedFiles(files);
+      } catch (error) {
+        d('Failed to open file:', url, error);
+      }
     },
     [resetApp],
   );
@@ -60,8 +70,11 @@ export const App = observer(() => {
     window.Sleuth.sendWindowReady();
 
     // Setup file drop
-    document.ondragover = document.ondrop = (event) => event.preventDefault();
-    document.body.ondrop = (event) => {
+    const preventHandler = (event: Event) => event.preventDefault();
+    document.addEventListener('dragover', preventHandler);
+    document.addEventListener('drop', preventHandler);
+
+    const bodyDropHandler = (event: DragEvent) => {
       if (event.dataTransfer && event.dataTransfer.files.length > 0) {
         let url = window.Sleuth.getPathForFile(event.dataTransfer.files[0]);
         url = url.replace('file:///', '/');
@@ -70,11 +83,14 @@ export const App = observer(() => {
 
       event.preventDefault();
     };
+    document.body.addEventListener('drop', bodyDropHandler);
 
-    window.Sleuth.setupFileDrop((_event, url: string) => openFile(url));
+    const removeFileDrop = window.Sleuth.setupFileDrop((_event, url: string) =>
+      openFile(url),
+    );
 
     // Setup open sentry
-    window.Sleuth.setupOpenSentry((event) => {
+    const removeOpenSentry = window.Sleuth.setupOpenSentry((event) => {
       const installationFile = unzippedFilesRef.current?.find((file) => {
         return file.fileName === 'installation';
       });
@@ -88,6 +104,11 @@ export const App = observer(() => {
     });
 
     return () => {
+      document.removeEventListener('dragover', preventHandler);
+      document.removeEventListener('drop', preventHandler);
+      document.body.removeEventListener('drop', bodyDropHandler);
+      removeFileDrop();
+      removeOpenSentry();
       disposeAutorun();
     };
   }, [openFile, resetApp, sleuthState]);

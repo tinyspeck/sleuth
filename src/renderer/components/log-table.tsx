@@ -80,34 +80,28 @@ export const LogTable = observer((props: LogTableProps) => {
     state.defaultSort || SORT_DIRECTION.DESC,
   );
   const [ignoreSearchIndex, setIgnoreSearchIndex] = useState(false);
-  const [selectedRangeIndex, setSelectedRangeIndex] = useState<
-    number | undefined
-  >(undefined);
-  const [scrollToSelection, setScrollToSelection] = useState(false);
+  const scrollToSelectionRef = useRef(false);
   const userTZRef = useRef(
     state.stateFiles['log-context.json']?.data?.systemTZ,
   );
   const userTZ = userTZRef.current;
 
-  const findIndexForSelectedEntry = useCallback(
-    (list: Array<LogEntry> | undefined): number => {
-      const { selectedEntry } = state;
+  function findIndexForSelectedEntry(
+    list: Array<LogEntry> | undefined,
+  ): number {
+    const { selectedEntry } = state;
 
-      if (selectedEntry && list) {
-        const foundIndex = list.findIndex((v) => {
-          return (
-            v.line === selectedEntry.line &&
-            v.momentValue === selectedEntry.momentValue
-          );
-        });
+    if (selectedEntry && list) {
+      return list.findIndex((v) => {
+        return (
+          v.line === selectedEntry.line &&
+          v.momentValue === selectedEntry.momentValue
+        );
+      });
+    }
 
-        return foundIndex;
-      }
-
-      return -1;
-    },
-    [state],
-  );
+    return -1;
+  }
 
   /**
    * Checks whether or not the table should filter
@@ -308,26 +302,24 @@ export const LogTable = observer((props: LogTableProps) => {
    * sortedList is a derived value from props + sort state.
    * Computing it synchronously in useMemo avoids the extra render cycle
    * that useEffect + useState would cause.
+   * searchList is also synced to MobX state inline to avoid a one-frame delay.
    */
-  const { list: sortedList, newSearchList: computedSearchList } = useMemo(
-    () => sortAndFilterList(),
-    [
-      logFile,
-      levelFilter,
-      search,
-      effectiveSortBy,
-      dateRange,
-      sortDirection,
-      showOnlySearchResults,
-    ],
-  );
-
-  // Sync search list to MobX state in an effect (not during render)
-  useEffect(() => {
-    if (computedSearchList !== null) {
-      state.searchList = computedSearchList;
+  const sortedList = useMemo(() => {
+    const { list, newSearchList } = sortAndFilterList();
+    if (newSearchList !== null) {
+      state.searchList = newSearchList;
     }
-  }, [computedSearchList, state]);
+    return list;
+  }, [
+    logFile,
+    levelFilter,
+    search,
+    effectiveSortBy,
+    dateRange,
+    sortDirection,
+    showOnlySearchResults,
+    state,
+  ]);
 
   /**
    * Changes the current selection in the table to the target index
@@ -345,7 +337,7 @@ export const LogTable = observer((props: LogTableProps) => {
         }
 
         setIgnoreSearchIndex(false);
-        setScrollToSelection(true);
+        scrollToSelectionRef.current = true;
       }
     },
     [sortedList, state],
@@ -375,9 +367,8 @@ export const LogTable = observer((props: LogTableProps) => {
       state.selectedRangeIndex = rangeIndex;
       state.isDetailsVisible = true;
 
-      setSelectedRangeIndex(rangeIndex);
       setIgnoreSearchIndex(true);
-      setScrollToSelection(true);
+      scrollToSelectionRef.current = true;
     },
     [sortedList, state, changeSelection],
   );
@@ -387,40 +378,46 @@ export const LogTable = observer((props: LogTableProps) => {
    */
   const onRowRightClick = useCallback(
     async (params: RowMouseEventHandlerParams) => {
-      const rowData: LogEntry = params.rowData;
-      // type assertion because this component should only appear when you have a LogFile showing
-      const logType = (state.selectedLogFile as LogFile).logType;
-      const response = await window.Sleuth.showLogLineContextMenu(logType);
+      try {
+        const rowData: LogEntry = params.rowData;
+        const selectedLogFile = state.selectedLogFile as LogFile | undefined;
+        if (!selectedLogFile) return;
 
-      switch (response) {
-        case LogLineContextMenuActions.COPY_TO_CLIPBOARD: {
-          let copyText = '';
-          if (state.selectedRangeEntries) {
-            for (const entry of state.selectedRangeEntries) {
-              copyText += getCopyText(entry) + '\n';
+        const logType = selectedLogFile.logType;
+        const response = await window.Sleuth.showLogLineContextMenu(logType);
+
+        switch (response) {
+          case LogLineContextMenuActions.COPY_TO_CLIPBOARD: {
+            let copyText = '';
+            if (state.selectedRangeEntries) {
+              for (const entry of state.selectedRangeEntries) {
+                copyText += getCopyText(entry) + '\n';
+              }
+            } else {
+              copyText = getCopyText(rowData);
             }
-          } else {
-            copyText = getCopyText(rowData);
+            window.Sleuth.clipboard.writeText(copyText);
+            break;
           }
-          window.Sleuth.clipboard.writeText(copyText);
-          break;
-        }
-        case LogLineContextMenuActions.OPEN_SOURCE: {
-          const { line, sourceFile } = rowData;
-          window.Sleuth.openLineInSource(line, sourceFile, {
-            defaultEditor: toJS(state.defaultEditor),
-          });
-          break;
-        }
-        case LogLineContextMenuActions.SHOW_IN_CONTEXT:
-          {
-            state.selectLogFile(null, LogType.ALL);
-            const matchingIndex = sortedList.findIndex(
-              (row) => row.momentValue === rowData.momentValue,
-            );
-            changeSelection(matchingIndex);
+          case LogLineContextMenuActions.OPEN_SOURCE: {
+            const { line, sourceFile } = rowData;
+            window.Sleuth.openLineInSource(line, sourceFile, {
+              defaultEditor: toJS(state.defaultEditor),
+            });
+            break;
           }
-          break;
+          case LogLineContextMenuActions.SHOW_IN_CONTEXT:
+            {
+              state.selectLogFile(null, LogType.ALL);
+              const matchingIndex = sortedList.findIndex(
+                (row) => row.momentValue === rowData.momentValue,
+              );
+              changeSelection(matchingIndex);
+            }
+            break;
+        }
+      } catch (error) {
+        d('Error in context menu handler:', error);
       }
     },
     [state, sortedList, changeSelection],
@@ -578,8 +575,8 @@ export const LogTable = observer((props: LogTableProps) => {
         index === searchList[searchIndex];
       const isRangeActive =
         state.selectedIndex !== undefined &&
-        selectedRangeIndex !== undefined &&
-        between(index, state.selectedIndex, selectedRangeIndex);
+        state.selectedRangeIndex !== undefined &&
+        between(index, state.selectedIndex, state.selectedRangeIndex);
 
       const classes: string[] = [];
 
@@ -611,7 +608,7 @@ export const LogTable = observer((props: LogTableProps) => {
       ignoreSearchIndex,
       searchIndex,
       state.selectedIndex,
-      selectedRangeIndex,
+      state.selectedRangeIndex,
       rowGetter,
     ],
   );
@@ -619,90 +616,71 @@ export const LogTable = observer((props: LogTableProps) => {
   /**
    * Renders the table
    */
-  const renderTable = useCallback(
-    (options: Size): JSX.Element => {
-      const tableOptions: TableProps = {
-        ...options,
-        rowHeight: 30,
-        rowGetter,
-        rowCount: sortedList.length,
-        onRowClick,
-        onRowRightClick,
-        rowClassName: rowClassNameGetter,
-        headerHeight: 30,
-        sort: onSortChange,
-        sortBy,
-        sortDirection,
-      };
-
-      if (scrollToSelection) tableOptions.scrollToIndex = state.selectedIndex;
-
-      if (!ignoreSearchIndex && searchList.length > 0)
-        tableOptions.scrollToIndex = searchList[searchIndex] || 0;
-
-      return (
-        <Table {...tableOptions} ref={tableRef}>
-          <Column
-            label="Index"
-            dataKey="index"
-            width={100}
-            flexGrow={0}
-            flexShrink={1}
-          />
-          <Column label="Line" dataKey="line" width={100} />
-          <Column
-            label="Timestamp"
-            cellRenderer={renderTimestampCell}
-            dataKey="momentValue"
-            width={200}
-            flexGrow={2}
-          />
-          <Column label="Level" dataKey="level" width={100} />
-          {logFile.logType === LogType.ALL ? (
-            <Column
-              label="Process"
-              dataKey="logType"
-              width={120}
-              cellRenderer={({ cellData }: TableCellProps) => (
-                <Tag
-                  color={
-                    logColorMap[cellData as ProcessableLogType] ?? 'default'
-                  }
-                >
-                  {cellData}
-                </Tag>
-              )}
-            />
-          ) : null}
-          <Column
-            label="Message"
-            dataKey="message"
-            cellRenderer={renderMessageCell}
-            width={options.width - 300}
-            flexGrow={2}
-          />
-        </Table>
-      );
-    },
-    [
-      searchList,
+  function renderTable(options: Size): JSX.Element {
+    const tableOptions: TableProps = {
+      ...options,
+      rowHeight: 30,
       rowGetter,
-      sortedList.length,
+      rowCount: sortedList.length,
       onRowClick,
       onRowRightClick,
-      rowClassNameGetter,
-      onSortChange,
+      rowClassName: rowClassNameGetter,
+      headerHeight: 30,
+      sort: onSortChange,
       sortBy,
       sortDirection,
-      scrollToSelection,
-      state.selectedIndex,
-      ignoreSearchIndex,
-      searchIndex,
-      renderTimestampCell,
-      logFile.logType,
-      renderMessageCell,
-    ],
-  );
+    };
+
+    if (scrollToSelectionRef.current) {
+      tableOptions.scrollToIndex = state.selectedIndex;
+      scrollToSelectionRef.current = false;
+    }
+
+    if (!ignoreSearchIndex && searchList.length > 0)
+      tableOptions.scrollToIndex = searchList[searchIndex] || 0;
+
+    return (
+      <Table {...tableOptions} ref={tableRef}>
+        <Column
+          label="Index"
+          dataKey="index"
+          width={100}
+          flexGrow={0}
+          flexShrink={1}
+        />
+        <Column label="Line" dataKey="line" width={100} />
+        <Column
+          label="Timestamp"
+          cellRenderer={renderTimestampCell}
+          dataKey="momentValue"
+          width={200}
+          flexGrow={2}
+        />
+        <Column label="Level" dataKey="level" width={100} />
+        {logFile.logType === LogType.ALL ? (
+          <Column
+            label="Process"
+            dataKey="logType"
+            width={120}
+            cellRenderer={({ cellData }: TableCellProps) => (
+              <Tag
+                color={logColorMap[cellData as ProcessableLogType] ?? 'default'}
+              >
+                {cellData}
+              </Tag>
+            )}
+          />
+        ) : null}
+        <Column
+          label="Message"
+          dataKey="message"
+          cellRenderer={renderMessageCell}
+          width={options.width - 300}
+          flexGrow={2}
+        />
+      </Table>
+    );
+  }
 
   // Use a ref so the searchIndex reaction always reads the latest sortedList
   // without needing to tear down and recreate the reaction.
@@ -742,26 +720,18 @@ export const LogTable = observer((props: LogTableProps) => {
   // Scroll to selection when a bookmark is activated (selectedEntry prop changes)
   useEffect(() => {
     if (selectedEntry !== state.selectedEntry) {
-      setScrollToSelection(true);
+      scrollToSelectionRef.current = true;
     }
   }, [selectedEntry, state]);
 
   // Reset range selection when the file changes
-  const prevLogFileRef = useRef(logFile);
   useEffect(() => {
-    if (prevLogFileRef.current !== logFile) {
-      setSelectedRangeIndex(undefined);
-      prevLogFileRef.current = logFile;
-    }
-  }, [logFile]);
+    state.selectedRangeIndex = undefined;
+  }, [logFile, state]);
 
   // Reset ignoreSearchIndex when searchIndex prop changes
-  const prevSearchIndexRef = useRef(searchIndex);
   useEffect(() => {
-    if (prevSearchIndexRef.current !== searchIndex) {
-      setIgnoreSearchIndex(false);
-      prevSearchIndexRef.current = searchIndex;
-    }
+    setIgnoreSearchIndex(false);
   }, [searchIndex]);
 
   // Auto-select first search result when search list populates with no selection
@@ -772,12 +742,12 @@ export const LogTable = observer((props: LogTableProps) => {
     ) {
       changeSelection(state.searchList[0]);
     }
-  }, [state.searchList.length, state.selectedIndex]);
+  }, [state.searchList, state.selectedIndex, changeSelection]);
 
   // Scroll to selection on mount if there's already a selected entry
   useEffect(() => {
     if (state.selectedEntry) {
-      setScrollToSelection(true);
+      scrollToSelectionRef.current = true;
     }
   }, []);
 

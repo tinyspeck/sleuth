@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { SleuthState } from '../state/sleuth';
 import { getWindowTitle } from '../../utils/get-window-title';
 
@@ -7,9 +7,9 @@ interface TitlebarProps {
 }
 
 export const MacTitlebar: React.FC<TitlebarProps> = ({ state }) => {
-  const handleDoubleClick = useCallback(() => {
+  function handleDoubleClick() {
     window.Sleuth.sendDoubleClick();
-  }, []);
+  }
 
   return (
     <div className="MacTitlebar" onDoubleClick={handleDoubleClick}>
