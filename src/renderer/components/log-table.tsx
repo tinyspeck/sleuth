@@ -669,21 +669,24 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
       prefix = (
         <i
           title="Browser Log"
-          className="Meta Color-Browser ts_icon ts_icon_power_off"
+          className="Meta ts_icon ts_icon_power_off"
+          style={{ color: 'var(--color-browser)' }}
         />
       );
     } else if (entry.logType === 'webapp') {
       prefix = (
         <i
           title="Webapp Log"
-          className="Meta Color-Webapp ts_icon ts_icon_globe"
+          className="Meta ts_icon ts_icon_globe"
+          style={{ color: 'var(--color-webapp)' }}
         />
       );
     } else if (entry.logType === 'mobile') {
       prefix = (
         <i
           title="Mobile Log"
-          className="Meta Color-Mobile ts_icon ts_icon_phone"
+          className="Meta ts_icon ts_icon_phone"
+          style={{ color: 'var(--color-mobile)' }}
         />
       );
     }

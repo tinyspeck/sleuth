@@ -1,5 +1,6 @@
 .SidebarWrapper {
   max-height: calc(100vh - var(--ant-control-height));
+
   .Darwin & {
     max-height: calc(
       100vh - var(--ant-control-height) - var(--sleuth-darwin-titlebar-height)
