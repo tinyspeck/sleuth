@@ -4696,7 +4696,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^41.0.0":
+"electron@npm:41.0.0":
   version: 41.0.0
   resolution: "electron@npm:41.0.0"
   dependencies:
@@ -10300,7 +10300,7 @@ __metadata:
     classnames: "npm:2.2.6"
     date-fns: "npm:4.1.0"
     debug: "npm:4.3.1"
-    electron: "npm:^41.0.0"
+    electron: "npm:41.0.0"
     electron-devtools-installer: "npm:4.0.0"
     electron-squirrel-startup: "npm:1.0.0"
     electron-window-state: "npm:5.0.3"
