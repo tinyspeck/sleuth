@@ -117,50 +117,45 @@ export const Welcome = observer((props: WelcomeProps) => {
     [props.state],
   );
 
-  const logFileDescription = useCallback(
-    (item: ValidSuggestion): React.ReactNode => {
-      let appVersionToUse = item.appVersion;
-      if (item.platform === 'android') {
-        appVersionToUse = appVersionToUse.split('.', 3).join('.');
-      }
+  function logFileDescription(item: ValidSuggestion): React.ReactNode {
+    let appVersionToUse = item.appVersion;
+    if (item.platform === 'android') {
+      appVersionToUse = appVersionToUse.split('.', 3).join('.');
+    }
 
-      let appVersionElem = <>Slack v{appVersionToUse}</>;
-      if (appVersionToUse !== item.appVersion) {
-        appVersionElem = (
-          <Tooltip title={`Slack@${item.appVersion}`}>
-            <span className="welcome__suggestion-details">
-              {appVersionElem}
-            </span>
-          </Tooltip>
-        );
-      }
+    let appVersionElem = <>Slack v{appVersionToUse}</>;
+    if (appVersionToUse !== item.appVersion) {
+      appVersionElem = (
+        <Tooltip title={`Slack@${item.appVersion}`}>
+          <span className="welcome__suggestion-details">{appVersionElem}</span>
+        </Tooltip>
+      );
+    }
 
-      if (item.platform !== 'unknown') {
-        return (
-          <>
-            {prettyPlatform(item.platform)} • {appVersionElem} •{' '}
-            <span title={new Date(item.mtimeMs).toLocaleString()}>
-              {item.age} old
-            </span>
-          </>
-        );
-      }
+    if (item.platform !== 'unknown') {
+      return (
+        <>
+          {prettyPlatform(item.platform)} • {appVersionElem} •{' '}
+          <span title={new Date(item.mtimeMs).toLocaleString()}>
+            {item.age} old
+          </span>
+        </>
+      );
+    }
 
-      if (item.appVersion !== '0.0.0') {
-        return (
-          <>
-            unknown platform • {appVersionElem} •{' '}
-            <span title={new Date(item.mtimeMs).toLocaleString()}>
-              {item.age} old
-            </span>
-          </>
-        );
-      }
+    if (item.appVersion !== '0.0.0') {
+      return (
+        <>
+          unknown platform • {appVersionElem} •{' '}
+          <span title={new Date(item.mtimeMs).toLocaleString()}>
+            {item.age} old
+          </span>
+        </>
+      );
+    }
 
-      return `Unknown logs, ${item.age} old`;
-    },
-    [],
-  );
+    return `Unknown logs, ${item.age} old`;
+  }
 
   const renderSuggestions = (): JSX.Element | null => {
     const today: Suggestion[] = [];

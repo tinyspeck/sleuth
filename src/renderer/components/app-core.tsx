@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import debug from 'debug';
 
@@ -50,8 +50,20 @@ export const CoreApplication = observer((props: CoreAppProps) => {
   // since setState is async and we need to accumulate updates
   const processedLogFilesRef = useRef(processedLogFiles);
 
-  const addFilesToState = useCallback(
-    (filesToAdd: Partial<ProcessedLogFiles>) => {
+  function getPercentageLoaded(): number {
+    const current = processedLogFilesRef.current;
+    const alreadyLoaded = Object.keys(current)
+      .map((k: keyof ProcessedLogFiles) => current[k])
+      .reduce((p, c) => p + (c ? c.length : 0), 0);
+    const toLoad = props.unzippedFiles.length;
+
+    return Math.round((alreadyLoaded / toLoad) * 100);
+  }
+
+  // Process files on mount. This intentionally runs once (like componentDidMount).
+  // The props are captured at mount time and are stable for this component's lifetime.
+  useEffect(() => {
+    function addFilesToState(filesToAdd: Partial<ProcessedLogFiles>) {
       const current = processedLogFilesRef.current;
       const newProcessedLogFiles: ProcessedLogFiles = { ...current };
 
@@ -66,21 +78,8 @@ export const CoreApplication = observer((props: CoreAppProps) => {
 
       processedLogFilesRef.current = newProcessedLogFiles;
       setProcessedLogFiles(newProcessedLogFiles);
-    },
-    [],
-  );
+    }
 
-  const getPercentageLoaded = useCallback((): number => {
-    const current = processedLogFilesRef.current;
-    const alreadyLoaded = Object.keys(current)
-      .map((k: keyof ProcessedLogFiles) => current[k])
-      .reduce((p, c) => p + (c ? c.length : 0), 0);
-    const toLoad = props.unzippedFiles.length;
-
-    return Math.round((alreadyLoaded / toLoad) * 100);
-  }, [props.unzippedFiles]);
-
-  useEffect(() => {
     async function processFiles() {
       try {
         const { unzippedFiles } = props;

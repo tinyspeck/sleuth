@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
+import { observer } from 'mobx-react';
 
 import { SelectableLogFile, UnzippedFile } from '../../interfaces';
 import { SleuthState } from '../state/sleuth';
@@ -107,20 +108,13 @@ function getFileType(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const StateTable: React.FC<StateTableProps> = ({ state }) => {
-  const [fileState, setFileState] = useState<{
-    data?: any;
-    path?: string;
-    raw?: string;
-  }>({});
-
-  useEffect(() => {
+export const StateTable = observer(({ state }: StateTableProps) => {
+  const fileState = useMemo(() => {
     const { selectedLogFile } = state;
-
     if (isStateFile(selectedLogFile)) {
-      const s = state.stateFiles[selectedLogFile.fileName];
-      setFileState(s);
+      return state.stateFiles[selectedLogFile.fileName] ?? {};
     }
+    return {};
   }, [state, state.selectedLogFile]);
 
   const { data, path, raw } = fileState;
@@ -249,10 +243,11 @@ export const StateTable: React.FC<StateTableProps> = ({ state }) => {
     }
   };
 
-  const onIFrameLoad = function (this: HTMLIFrameElement) {
-    if (this?.contentWindow) {
-      const { document: idoc } = this.contentWindow;
-      this.height = `${idoc.body.scrollHeight}px`;
+  const onIFrameLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
+    const iframe = e.currentTarget;
+    if (iframe?.contentWindow) {
+      const { document: idoc } = iframe.contentWindow;
+      iframe.height = `${idoc.body.scrollHeight}px`;
     }
   };
 
@@ -284,4 +279,4 @@ export const StateTable: React.FC<StateTableProps> = ({ state }) => {
       </div>
     </div>
   );
-};
+});

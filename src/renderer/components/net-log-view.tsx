@@ -13,7 +13,7 @@ export interface NetLogViewProps {
 
 const d = debug('sleuth:netlogview');
 
-export const NetLogView = observer((props: NetLogViewProps) => {
+export const NetLogView = observer(({ file, state }: NetLogViewProps) => {
   const disposerRef = useRef<(() => void) | undefined>();
 
   const setDarkMode = useCallback((enabled: boolean) => {
@@ -39,7 +39,6 @@ export const NetLogView = observer((props: NetLogViewProps) => {
   const loadFile = useCallback(async () => {
     d(`iFrame loaded`);
 
-    const { file } = props;
     const iframe = document.getElementsByTagName('iframe');
 
     if (iframe && iframe[0]) {
@@ -65,10 +64,10 @@ export const NetLogView = observer((props: NetLogViewProps) => {
     }
 
     disposerRef.current = autorun(() => {
-      const isDarkMode = props.state.prefersDarkColors;
+      const isDarkMode = state.prefersDarkColors;
       setDarkMode(isDarkMode);
     });
-  }, [props, setDarkMode]);
+  }, [file, state, setDarkMode]);
 
   useEffect(() => {
     return () => {

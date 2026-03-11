@@ -17,14 +17,8 @@ import { getWindowTitle } from '../../utils/get-window-title';
 import { IpcEvents } from '../../ipc-events';
 import { observer } from 'mobx-react';
 
-export interface AppState {
-  unzippedFiles: UnzippedFiles;
-  openEmpty?: boolean;
-}
-
 export const App = observer(() => {
   const [unzippedFiles, setUnzippedFiles] = useState<UnzippedFiles>([]);
-  const [openEmpty, setOpenEmpty] = useState(false);
 
   const unzippedFilesRef = useRef<UnzippedFiles>([]);
   unzippedFilesRef.current = unzippedFiles;
@@ -36,7 +30,6 @@ export const App = observer(() => {
     if (!sleuth) return;
 
     setUnzippedFiles([]);
-    setOpenEmpty(false);
 
     if (sleuth.opened > 0) {
       sleuth.reset(false);
@@ -60,9 +53,19 @@ export const App = observer(() => {
     [resetApp],
   );
 
+  // Use refs so SleuthState always calls through the latest closures,
+  // even though it only receives them once in the constructor.
+  const openFileRef = useRef(openFile);
+  openFileRef.current = openFile;
+  const resetAppRef = useRef(resetApp);
+  resetAppRef.current = resetApp;
+
   if (sleuthStateRef.current === null) {
     localStorage.debug = 'sleuth:*';
-    sleuthStateRef.current = new SleuthState(openFile, resetApp);
+    sleuthStateRef.current = new SleuthState(
+      (url: string) => openFileRef.current(url),
+      () => resetAppRef.current(),
+    );
   }
   const sleuthState = sleuthStateRef.current;
 
@@ -128,7 +131,7 @@ export const App = observer(() => {
       ''
     );
   const content =
-    unzippedFiles && (unzippedFiles.length || openEmpty) ? (
+    unzippedFiles && unzippedFiles.length ? (
       <CoreApplication state={sleuthState} unzippedFiles={unzippedFiles} />
     ) : (
       <Welcome state={sleuthState} />

@@ -74,7 +74,6 @@ export const LogTable = observer((props: LogTableProps) => {
   } = props;
 
   const tableRef = useRef<Table>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [sortBy, setSortBy] = useState<string>('index');
   const [sortDirection, setSortDirection] = useState<SORT_DIRECTION>(
     state.defaultSort || SORT_DIRECTION.DESC,
@@ -88,113 +87,97 @@ export const LogTable = observer((props: LogTableProps) => {
 
   function findIndexForSelectedEntry(
     list: Array<LogEntry> | undefined,
+    entry: LogEntry | undefined,
   ): number {
-    const { selectedEntry } = state;
-
-    if (selectedEntry && list) {
+    if (entry && list) {
       return list.findIndex((v) => {
-        return (
-          v.line === selectedEntry.line &&
-          v.momentValue === selectedEntry.momentValue
-        );
+        return v.line === entry.line && v.momentValue === entry.momentValue;
       });
     }
 
     return -1;
   }
 
-  /**
-   * Checks whether or not the table should filter
-   */
-  const shouldFilter = useCallback(
-    (filter?: LevelFilter): boolean => {
-      const filterOrDefault = filter || levelFilter;
+  function shouldFilter(filter?: LevelFilter): boolean {
+    const filterOrDefault = filter || levelFilter;
 
-      if (!filterOrDefault) return false;
-      const allEnabled = Object.keys(filterOrDefault).every(
-        (k: keyof LevelFilter) => filterOrDefault[k],
-      );
-      const allDisabled = Object.keys(filterOrDefault).every(
-        (k: keyof LevelFilter) => !filterOrDefault[k],
-      );
+    if (!filterOrDefault) return false;
+    const allEnabled = Object.keys(filterOrDefault).every(
+      (k: keyof LevelFilter) => filterOrDefault[k],
+    );
+    const allDisabled = Object.keys(filterOrDefault).every(
+      (k: keyof LevelFilter) => !filterOrDefault[k],
+    );
 
-      return !(allEnabled || allDisabled);
-    },
-    [levelFilter],
-  );
+    return !(allEnabled || allDisabled);
+  }
 
-  /**
-   * Performs a search operation
-   */
-  const doSearch = useCallback(
-    (
-      list: Array<LogEntry>,
-      searchOptions: SortFilterListOptions,
-    ): [Array<LogEntry>, Array<number>] => {
-      if (searchOptions.search?.length === 0) {
-        return [list, []];
-      }
+  function doSearch(
+    list: Array<LogEntry>,
+    searchOptions: SortFilterListOptions,
+  ): [Array<LogEntry>, Array<number>] {
+    if (searchOptions.search?.length === 0) {
+      return [list, []];
+    }
 
-      const searchParams = searchOptions.search?.split(' ') ?? [];
-      let searchRegex = getRegExpMaybeSafe(searchOptions.search);
+    const searchParams = searchOptions.search?.split(' ') ?? [];
+    let searchRegex = getRegExpMaybeSafe(searchOptions.search);
 
-      function _match(a: LogEntry) {
-        return !searchRegex || searchRegex.test(a.message);
-      }
-      function _exclude(a: LogEntry) {
-        return !searchRegex || !searchRegex.test(a.message);
-      }
+    function _match(a: LogEntry) {
+      return !searchRegex || searchRegex.test(a.message);
+    }
+    function _exclude(a: LogEntry) {
+      return !searchRegex || !searchRegex.test(a.message);
+    }
 
-      let rowsToDisplay = list;
-      let foundIndices: Array<number> = [];
+    let rowsToDisplay = list;
+    let foundIndices: Array<number> = [];
 
-      if (searchOptions.showOnlySearchResults) {
-        searchParams.forEach((param) => {
-          if (param.startsWith('!') && param.length > 1) {
-            d(`Filter-Excluding ${param.slice(1)}`);
-            searchRegex = new RegExp(param.slice(1) || '', 'i');
-            rowsToDisplay = rowsToDisplay.filter(_exclude);
-          } else {
-            d(`Filter-Searching for ${param}`);
-            rowsToDisplay = list.filter(_match);
-          }
-        });
-        foundIndices = Array.from(rowsToDisplay.keys());
-      } else {
-        foundIndices = Array.from(Array(list.length).keys());
-        searchParams.forEach((param) => {
-          if (param.startsWith('!') && param.length > 1) {
-            d(`Filter-Excluding ${param.slice(1)}`);
-            searchRegex = new RegExp(param.slice(1) || '', 'i');
-            foundIndices = foundIndices.filter((idx) => _exclude(list[idx]));
-          } else {
-            d(`Filter-Searching for ${param}`);
-            foundIndices = foundIndices.filter((idx) => _match(list[idx]));
-          }
-        });
-      }
-
-      return [rowsToDisplay, foundIndices];
-    },
-    [],
-  );
-
-  const doRangeFilter = useCallback(
-    ({ from, to }: DateRange, list: Array<LogEntry>): Array<LogEntry> => {
-      if (!from && !to) return list;
-
-      const fromTs = from ? from.getTime() : null;
-      const toTs = to ? to.getTime() : null;
-
-      return list.filter((e) => {
-        const ts = e.momentValue || 0;
-        if (fromTs && ts < fromTs) return false;
-        if (toTs && ts > toTs) return false;
-        return true;
+    if (searchOptions.showOnlySearchResults) {
+      searchParams.forEach((param) => {
+        if (param.startsWith('!') && param.length > 1) {
+          d(`Filter-Excluding ${param.slice(1)}`);
+          searchRegex = new RegExp(param.slice(1) || '', 'i');
+          rowsToDisplay = rowsToDisplay.filter(_exclude);
+        } else {
+          d(`Filter-Searching for ${param}`);
+          rowsToDisplay = list.filter(_match);
+        }
       });
-    },
-    [],
-  );
+      foundIndices = Array.from(rowsToDisplay.keys());
+    } else {
+      foundIndices = Array.from(Array(list.length).keys());
+      searchParams.forEach((param) => {
+        if (param.startsWith('!') && param.length > 1) {
+          d(`Filter-Excluding ${param.slice(1)}`);
+          searchRegex = new RegExp(param.slice(1) || '', 'i');
+          foundIndices = foundIndices.filter((idx) => _exclude(list[idx]));
+        } else {
+          d(`Filter-Searching for ${param}`);
+          foundIndices = foundIndices.filter((idx) => _match(list[idx]));
+        }
+      });
+    }
+
+    return [rowsToDisplay, foundIndices];
+  }
+
+  function doRangeFilter(
+    { from, to }: DateRange,
+    list: Array<LogEntry>,
+  ): Array<LogEntry> {
+    if (!from && !to) return list;
+
+    const fromTs = from ? from.getTime() : null;
+    const toTs = to ? to.getTime() : null;
+
+    return list.filter((e) => {
+      const ts = e.momentValue || 0;
+      if (fromTs && ts < fromTs) return false;
+      if (toTs && ts > toTs) return false;
+      return true;
+    });
+  }
 
   // Auto-switch to momentValue sort for merged log files
   const effectiveSortBy =
@@ -302,14 +285,10 @@ export const LogTable = observer((props: LogTableProps) => {
    * sortedList is a derived value from props + sort state.
    * Computing it synchronously in useMemo avoids the extra render cycle
    * that useEffect + useState would cause.
-   * searchList is also synced to MobX state inline to avoid a one-frame delay.
    */
-  const sortedList = useMemo(() => {
+  const { sortedList, newSearchList } = useMemo(() => {
     const { list, newSearchList } = sortAndFilterList();
-    if (newSearchList !== null) {
-      state.searchList = newSearchList;
-    }
-    return list;
+    return { sortedList: list, newSearchList };
   }, [
     logFile,
     levelFilter,
@@ -320,6 +299,13 @@ export const LogTable = observer((props: LogTableProps) => {
     showOnlySearchResults,
     state,
   ]);
+
+  // Sync searchList to MobX state as a side effect (not inside useMemo)
+  useEffect(() => {
+    if (newSearchList !== null) {
+      state.searchList = newSearchList;
+    }
+  }, [newSearchList, state]);
 
   /**
    * Changes the current selection in the table to the target index
@@ -447,12 +433,10 @@ export const LogTable = observer((props: LogTableProps) => {
       sortBy: string;
       sortDirection: SORT_DIRECTION;
     }) => {
-      if (sortBy !== newSortBy || sortDirection !== newSortDirection) {
-        setSortBy(newSortBy);
-        setSortDirection(newSortDirection);
-      }
+      setSortBy(newSortBy);
+      setSortDirection(newSortDirection);
     },
-    [sortBy, sortDirection],
+    [],
   );
 
   /**
@@ -714,8 +698,11 @@ export const LogTable = observer((props: LogTableProps) => {
 
   // Keep selectedIndex in sync with the current sortedList
   useEffect(() => {
-    state.selectedIndex = findIndexForSelectedEntry(sortedList);
-  }, [sortedList, state]);
+    state.selectedIndex = findIndexForSelectedEntry(
+      sortedList,
+      state.selectedEntry,
+    );
+  }, [sortedList, state, state.selectedEntry]);
 
   // Scroll to selection when a bookmark is activated (selectedEntry prop changes)
   useEffect(() => {
@@ -751,11 +738,9 @@ export const LogTable = observer((props: LogTableProps) => {
     }
   }, []);
 
-  // Keyboard navigation handler — scoped to the container element
+  // Keyboard navigation handler — listen on document to match
+  // the previous global behavior (react-keydown listened globally)
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
@@ -763,15 +748,15 @@ export const LogTable = observer((props: LogTableProps) => {
       }
     };
 
-    container.addEventListener('keydown', handleKeyDown);
-    return () => container.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [incrementSelection]);
 
   const typeClassName = logFile.type === 'MergedLogFile' ? 'Merged' : 'Single';
   const className = classNames('LogTable', typeClassName);
 
   return (
-    <div className={className} ref={containerRef} tabIndex={0}>
+    <div className={className}>
       <div className="Sizer">
         <AutoSizer>{(options) => renderTable(options)}</AutoSizer>
       </div>

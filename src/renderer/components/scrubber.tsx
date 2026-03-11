@@ -11,19 +11,8 @@ export const Scrubber: React.FC<ScrubberProps> = ({
 }) => {
   const startYRef = useRef(0);
   const startHeightRef = useRef(0);
-
-  const mouseMoveHandler = useCallback(
-    (e: MouseEvent) => {
-      const newHeight = startHeightRef.current + e.clientY - startYRef.current;
-      onResizeHandler(newHeight);
-    },
-    [onResizeHandler],
-  );
-
-  const mouseUpHandler = useCallback(() => {
-    document.removeEventListener('mousemove', mouseMoveHandler, false);
-    document.removeEventListener('mouseup', mouseUpHandler, false);
-  }, [mouseMoveHandler]);
+  const onResizeRef = useRef(onResizeHandler);
+  onResizeRef.current = onResizeHandler;
 
   const mouseDownHandler = useCallback(
     (e: React.MouseEvent) => {
@@ -37,10 +26,21 @@ export const Scrubber: React.FC<ScrubberProps> = ({
         10,
       );
 
-      document.addEventListener('mousemove', mouseMoveHandler, false);
-      document.addEventListener('mouseup', mouseUpHandler, false);
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const newHeight =
+          startHeightRef.current + moveEvent.clientY - startYRef.current;
+        onResizeRef.current(newHeight);
+      };
+
+      const handleMouseUp = () => {
+        document.removeEventListener('mousemove', handleMouseMove, false);
+        document.removeEventListener('mouseup', handleMouseUp, false);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove, false);
+      document.addEventListener('mouseup', handleMouseUp, false);
     },
-    [elementSelector, mouseMoveHandler, mouseUpHandler],
+    [elementSelector],
   );
 
   return <div className="Scrubber" onMouseDown={mouseDownHandler} />;

@@ -1,6 +1,6 @@
 import { SleuthState } from '../state/sleuth';
 import { observer } from 'mobx-react';
-import React, { useCallback } from 'react';
+import React from 'react';
 import Chart, { InteractionItem } from 'chart.js/auto';
 import { ChartJSChart } from './chart-js';
 import { parse } from 'date-fns';
@@ -14,41 +14,34 @@ export interface LogTimeViewProps {
 }
 
 export const LogTimeView = observer((props: LogTimeViewProps) => {
-  const onChartClick = useCallback(
-    (chartElements: Array<InteractionItem>) => {
-      if (!chartElements.length) return;
+  function onChartClick(chartElements: Array<InteractionItem>) {
+    if (!chartElements.length) return;
 
-      const [first] = chartElements;
-      const { element }: { element: any } = first;
-      const chart = element.$context.chart;
+    const [first] = chartElements;
+    const { element }: { element: any } = first;
+    const chart = element.$context.chart;
 
-      const canvasPosition = element.getCenterPoint();
+    const canvasPosition = element.getCenterPoint();
 
-      const dataX = chart.scales.x.getValueForPixel(canvasPosition.x);
+    const dataX = chart.scales.x.getValueForPixel(canvasPosition.x);
 
-      const { selectedLogFile } = props.state;
-      if (isLogFile(selectedLogFile)) {
-        const { logEntries } = selectedLogFile;
-        const selectedEntry = logEntries.find((entry) => {
-          return (
-            parse(entry.timestamp, 'MM/dd/yy, HH:mm:ss:SSS', new Date()) >=
-            dataX
-          );
-        });
-        props.state.selectedEntry = selectedEntry;
-      }
-    },
-    [props.state],
-  );
+    const { selectedLogFile } = props.state;
+    if (isLogFile(selectedLogFile)) {
+      const { logEntries } = selectedLogFile;
+      const selectedEntry = logEntries.find((entry) => {
+        return (
+          parse(entry.timestamp, 'MM/dd/yy, HH:mm:ss:SSS', new Date()) >= dataX
+        );
+      });
+      props.state.selectedEntry = selectedEntry;
+    }
+  }
 
-  const onZoomComplete = useCallback(
-    ({ chart }: { chart: Chart }) => {
-      const from = chart.scales.x.min;
-      const until = chart.scales.x.max;
-      props.state.customTimeViewRange = until - from;
-    },
-    [props.state],
-  );
+  function onZoomComplete({ chart }: { chart: Chart }) {
+    const from = chart.scales.x.min;
+    const until = chart.scales.x.max;
+    props.state.customTimeViewRange = until - from;
+  }
 
   const { selectedLogFile, isLogViewVisible, isUserTZ } = props.state;
   if (!isLogViewVisible || !selectedLogFile || !isLogFile(selectedLogFile))
