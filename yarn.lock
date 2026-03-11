@@ -435,7 +435,7 @@ __metadata:
     electron-forge: dist/electron-forge.js
     electron-forge-vscode-nix: script/vscode.sh
     electron-forge-vscode-win: script/vscode.cmd
-  checksum: 10c0/b325966caee4a5e8378693cebee93b7c24992c724c72483854ddb3ce6ff9253a1636b1af08989ac48c71257d45fa346b91d93d1e49996c39f06a5f666795e688
+  checksum: 10c0/1f53c985e3406589e8bed3b2a423c0fa8af20d3ea9a85064e4aee20e965b011a986295fc62de739855a2b8770afd3b26e8c3caeaf80de31df936ad8c213ae774
   languageName: node
   linkType: hard
 
@@ -453,7 +453,7 @@ __metadata:
     log-symbols: "npm:^4.0.0"
     parse-author: "npm:^2.0.0"
     semver: "npm:^7.2.1"
-  checksum: 10c0/a67c52ca77a93ecb6b03fc577143c2978726066039d5094475d94ddc1c397723660db0aede37ced322c0b84989023b7553a2799265145d86241a9c59c6edbeba
+  checksum: 10c0/4561af46d1184e094b6e9658f3e6352748c887f8a47186681ce10a6c9b169e9ccea140195405ef5adaf30ddde619e9367104459cb33cb16d134b56887d424c84
   languageName: node
   linkType: hard
 
@@ -494,7 +494,7 @@ __metadata:
     semver: "npm:^7.2.1"
     source-map-support: "npm:^0.5.13"
     username: "npm:^5.1.0"
-  checksum: 10c0/fb3b2698c813c4b193451e4c7fbd9d1dfd98fc21ab7b161d2d714b30a4cd6f500f6237e05e7e2fceff7c4436510efbc14729f2ea2affba32997c737b8dfe8e52
+  checksum: 10c0/1ad1441253d90b83c98e141f1b8771fa8ec697f92847e20c399d4c5dd6ea6ae3378178aaf537a5d1f7a4104e2c76acf8a6514bcea3813f7ec54aaf068d1319cc
   languageName: node
   linkType: hard
 
@@ -505,7 +505,7 @@ __metadata:
     "@electron-forge/shared-types": "npm:8.0.0-alpha.4"
     fs-extra: "npm:^10.0.0"
     which: "npm:^2.0.2"
-  checksum: 10c0/00f088b9c60cdaa2990b10ec911b49a3e72d745f42ec8ab8103e9e1d9d3394a2e124e09fb28def0a94db84dd73225e87605d725b6ed4dc3d7fac534773f46f84
+  checksum: 10c0/9d2e5cd9250c0b6c0d10ff00fae018d0171ea9ee3eb734806aaf26e26713c6ff6582fefa9a04c1d61151d8dc78bc66f79a44e74de800edbf1bd72ad698fabb68
   languageName: node
   linkType: hard
 
@@ -519,7 +519,7 @@ __metadata:
   dependenciesMeta:
     electron-installer-debian:
       optional: true
-  checksum: 10c0/d843b3e5589fc9d543f7a106b5bea42ae8e738d2437944c45d18ccd98ad5a725fc211278b675f5085cf72c726579ec0bf1622358d0bdc57c68d0919f93dc1ea5
+  checksum: 10c0/7f71cde96faa55d6bea64f543daff59b1210acf713106217a71d64332d3b22949d786f9f774ec09f7357c96efe066fbcd0f32412db54912da279f8303c7f8264
   languageName: node
   linkType: hard
 
@@ -533,7 +533,7 @@ __metadata:
   dependenciesMeta:
     electron-installer-redhat:
       optional: true
-  checksum: 10c0/cd98b056c2db6a8bc53a59449e02831f84c6bd1a43ff3e165949db1674b06579411da48be461f0d1981a0b45f6253da00e538a868ccebf8025d761f6c2e176bf
+  checksum: 10c0/dd12345c08626218569e43d1c058dbf1233966bc93747044ff6eb346bbb36522b1cd0027d340712cfcd36bbb1e657124ed08a734164f9c53f69d92071bc07fa7
   languageName: node
   linkType: hard
 
@@ -548,7 +548,7 @@ __metadata:
   dependenciesMeta:
     electron-winstaller:
       optional: true
-  checksum: 10c0/900fdc2f33401b91bacd324b644df8b0186cf96de830c8add76ed902ce80a1273f8b2b4b808edbac5dc7eef751a2cb033660791e8fa279e0baa7810a5b0d1da3
+  checksum: 10c0/e446ed59bda3cd1b8724ece1974fc53cc232e16e5e6e81fd30e555e7a779b2dc5de999fb80910c2b570ce83c4f951623093bfa6267340645db6f73c7987a7bee
   languageName: node
   linkType: hard
 
@@ -561,7 +561,7 @@ __metadata:
     cross-zip: "npm:^4.0.0"
     fs-extra: "npm:^10.0.0"
     got: "npm:^11.8.5"
-  checksum: 10c0/b0152e942859ad695c5fb76d04637df83b8c21225481c3e7907bc0244bca58b62a6b0541c82084cd2c0ad973fb0a9edd588702e9aba727b15f7496fd99bcdefe
+  checksum: 10c0/fcf7dd69a30bcf4bc1ffce2e5c7615ce99e083cb005c93a4806db9cb397b05f69885d35ef2dc81fba1eba354802abb1f78257f8d414ede322b363f10d7742fa7
   languageName: node
   linkType: hard
 
@@ -571,7 +571,7 @@ __metadata:
   dependencies:
     "@electron-forge/plugin-base": "npm:8.0.0-alpha.4"
     "@electron-forge/shared-types": "npm:8.0.0-alpha.4"
-  checksum: 10c0/dde14711fef540a8dfdebc53e0ccace03dfbf152e316988fb449f8c5683cab577390e07c2d1b68ef0f1808411ba4212eb310e7d739ac3b848014e4be59b2c31a
+  checksum: 10c0/d3150b6be71633a5449812b635745ca9870dde9c0784b30a56115278382256b281e50303fe4db4fd122e524fae00dfcd52cd1ee4ef98ba96ba1608b7e7fe30fb
   languageName: node
   linkType: hard
 
@@ -580,7 +580,7 @@ __metadata:
   resolution: "@electron-forge/plugin-base@npm:8.0.0-alpha.4"
   dependencies:
     "@electron-forge/shared-types": "npm:8.0.0-alpha.4"
-  checksum: 10c0/c298604e901e84ba2b4df272b02482e085d47cd8dfe203a93e952b64fe8d249511f319a8938f2214208ea61a10b4ce474ada59bf26380f320eab4b20b30fcfc8
+  checksum: 10c0/e2cc7ffb305ef2b1cc53d5612261b8b6eba4e6bad6e3d04a9a664abce6d51bbc26c849723e51fa94cea1c390aef5bb40fdf84849fc759c2fc8f636597ec15e21
   languageName: node
   linkType: hard
 
@@ -594,7 +594,7 @@ __metadata:
     debug: "npm:^4.3.1"
     fs-extra: "npm:^10.0.0"
     listr2: "npm:^7.0.2"
-  checksum: 10c0/2b4b60b66584ea42057a89955d876a3382dcae8b09ee679530e272e92f2be95a63d06202ec91c0459cbe95fe745985301da655a5e8f7792cc5a3e9867f32c462
+  checksum: 10c0/def0b31e78ff52617eaa8f24af6b7e0cfa278c13f2aaa107fbeb3d50fb8d8b13d61a5c6942b1fd1d3f75710c7b0b4a03262f4247e24188570011dfe75b15369a
   languageName: node
   linkType: hard
 
@@ -603,7 +603,7 @@ __metadata:
   resolution: "@electron-forge/publisher-base@npm:8.0.0-alpha.4"
   dependencies:
     "@electron-forge/shared-types": "npm:8.0.0-alpha.4"
-  checksum: 10c0/bcf8ae45a06a889b88cc085e5f4c7c9d951a6bf3aee4dbe718814e06db866dfd35ad175231cd3469cbca5e907b561cb3f29519be53b7361f63d0e5ecd201ad72
+  checksum: 10c0/138f654132c6928e6de373be0e34880dff3709513b6f50ce53ab4029322cab7ce65f82322b148c14d6ffcf0b88a51d1ea7cfb06d4e5a27ee2d0765b56a090801
   languageName: node
   linkType: hard
 
@@ -635,7 +635,7 @@ __metadata:
     "@electron/packager": "npm:^18.3.5"
     "@electron/rebuild": "npm:^3.7.0"
     listr2: "npm:^7.0.2"
-  checksum: 10c0/fbfab57f7987ccca8d7fccd84ea9681e4dc80241994d9ba50266828f881db423f211d019d55de5d7ca9587a539873c08cdd45561630122b637d623311219b47a
+  checksum: 10c0/fae7954b57525d24a1c39c0e4264863f7d75391a58e808417b1d6f903aec918e8f19074d8e7e87c366dcc5ab78293f905a1ee8ac2e0c76028dbdc1d2600f306b
   languageName: node
   linkType: hard
 
@@ -650,7 +650,7 @@ __metadata:
     fs-extra: "npm:^10.0.0"
     semver: "npm:^7.2.1"
     username: "npm:^5.1.0"
-  checksum: 10c0/d554bcaf7b2f9d8f6472d896676b9f048322d4aea328e6dcef9a20e354103b1bc8649e3444402130b78c56d6d48a02ada39f26eab920254fb9ea0a5e17aff439
+  checksum: 10c0/1b1dae8cf98a481f1b457c7edee31d97e54977e5ecf5ae3d3c8103fe0c077659b5b096a01c347db5e4f44234f677403686fda6173ddee13638f741b826f13cbc
   languageName: node
   linkType: hard
 
@@ -661,7 +661,7 @@ __metadata:
     "@electron-forge/shared-types": "npm:8.0.0-alpha.4"
     "@electron-forge/template-base": "npm:8.0.0-alpha.4"
     fs-extra: "npm:^10.0.0"
-  checksum: 10c0/12da258c59b3471813e5b83ccad58a92a265880667a8f00a7be8374a0045e3391f588d79e8a870c6501249132886303f1dcd2b46dc83519bb3af9ee9973b260c
+  checksum: 10c0/e4758a482259554bcf05daeba1751c39cc66f3ea50938db1f7de759de1e49712125474d76ed105529d8abe98c07e1ec3f72465d926920697beba66289a4d4405
   languageName: node
   linkType: hard
 
@@ -672,7 +672,7 @@ __metadata:
     "@electron-forge/shared-types": "npm:8.0.0-alpha.4"
     "@electron-forge/template-base": "npm:8.0.0-alpha.4"
     fs-extra: "npm:^10.0.0"
-  checksum: 10c0/a111cc05a0e5ddd649a272c4c910cca68adde6d3bddb8ed207fa317103420bde77fc6420db63965a0fde6f0ca182aaeca31b83241df049d31907dd50cc955a53
+  checksum: 10c0/ccdd8a68aab31cbe5f30e28a5f581695300fe6031a764f8afe4f77a600c7561c61c256fe5324608feb27368c9a0c397bed563cd00dfdf71a00085c8eab90e439
   languageName: node
   linkType: hard
 
@@ -685,7 +685,7 @@ __metadata:
     fs-extra: "npm:^10.0.0"
     typescript: "npm:~5.4.5"
     webpack: "npm:^5.69.1"
-  checksum: 10c0/a8d289e364e87731546e79723a1995005d53960d78701f6394a34ddd3545b8c55614ee92c0536faa33662d7ef3dc67c4cb592bb089e3e7d140708f8eaa7acd11
+  checksum: 10c0/086eee607cf9d3a63b0837801529a8790e08408e515b6ee1a0c04b3324840c254d55225c5cfd1598a777159aa34c54186d219fd54792ed069a8786eb801f63ed
   languageName: node
   linkType: hard
 
@@ -696,7 +696,7 @@ __metadata:
     "@electron-forge/shared-types": "npm:8.0.0-alpha.4"
     "@electron-forge/template-base": "npm:8.0.0-alpha.4"
     fs-extra: "npm:^10.0.0"
-  checksum: 10c0/517d5d624b54c596198e6f2a01cf87cb045325d74386f4c44ee0f3b5ac74ae98aa214f056f3bcf76944d118234eeb2d966c7986f5612072d2b851b518b100f0b
+  checksum: 10c0/e11326a4eacdbfea4421c88db541d508195ce7443ebba71557e340b4e46b7486725edf97b0e969fb30053912057150598bebf168b2464d22345cfd33fbbed1e0
   languageName: node
   linkType: hard
 
@@ -705,7 +705,7 @@ __metadata:
   resolution: "@electron-forge/tracer@npm:8.0.0-alpha.4"
   dependencies:
     chrome-trace-event: "npm:^1.0.3"
-  checksum: 10c0/91f61911c76acad862895f411abeaf0aca616fbd5deb8821d7e8e6665568e624946379ae2cc61b200031ec3786d3e3a68bfce292f241e41950b4ef6e1fcc8707
+  checksum: 10c0/917a8801a44f60db9fc40a45b8dfa49d4aa55b5283584564361b7e8bf0c27b172ea64393b7c0d1111c986cf1813688dc5ca034af057256996682786b9282ba48
   languageName: node
   linkType: hard
 
