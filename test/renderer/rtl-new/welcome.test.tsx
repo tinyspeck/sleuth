@@ -27,7 +27,7 @@ describe('Welcome', () => {
       setupSuggestionsUpdated: () => vi.fn(),
       deleteSuggestion: mockDeleteSuggestion,
       deleteSuggestions: vi.fn(),
-      getPath: vi.fn(),
+      getPath: vi.fn().mockResolvedValue('/mock/downloads'),
     };
   });
 

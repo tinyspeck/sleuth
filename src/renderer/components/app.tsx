@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
+import debug from 'debug';
 
 import { ConfigProvider, theme } from 'antd';
+
+const d = debug('sleuth:app');
 
 import { Welcome } from './welcome';
 import { CoreApplication } from './app-core';
@@ -14,149 +17,144 @@ import { getWindowTitle } from '../../utils/get-window-title';
 import { IpcEvents } from '../../ipc-events';
 import { observer } from 'mobx-react';
 
-export interface AppState {
-  unzippedFiles: UnzippedFiles;
-  openEmpty?: boolean;
-}
+export const App = observer(() => {
+  const [unzippedFiles, setUnzippedFiles] = useState<UnzippedFiles>([]);
 
-@observer
-export class App extends React.Component<object, Partial<AppState>> {
-  public readonly sleuthState: SleuthState;
+  const unzippedFilesRef = useRef<UnzippedFiles>([]);
+  unzippedFilesRef.current = unzippedFiles;
 
-  constructor(props: object) {
-    super(props);
+  const sleuthStateRef = useRef<SleuthState | null>(null);
 
-    this.state = {
-      unzippedFiles: [],
-    };
+  const resetApp = useCallback(() => {
+    const sleuth = sleuthStateRef.current;
+    if (!sleuth) return;
 
-    localStorage.debug = 'sleuth:*';
+    setUnzippedFiles([]);
 
-    this.openFile = this.openFile.bind(this);
-    this.resetApp = this.resetApp.bind(this);
-    this.sleuthState = new SleuthState(this.openFile, this.resetApp);
-  }
-
-  /**
-   * Alright, time to show the window!
-   */
-  public componentDidMount() {
-    window.Sleuth.sendWindowReady();
-
-    this.setupFileDrop();
-    this.setupOpenSentry();
-    this.setupWindowTitle();
-  }
-
-  public resetApp() {
-    this.setState({ unzippedFiles: [], openEmpty: false });
-
-    if (this.sleuthState.opened > 0) {
-      this.sleuthState.reset(false);
+    if (sleuth.opened > 0) {
+      sleuth.reset(false);
     }
 
-    this.sleuthState.opened = this.sleuthState.opened + 1;
-    this.sleuthState.getSuggestions();
-  }
+    sleuth.opened = sleuth.opened + 1;
+    sleuth.getSuggestions();
+  }, []);
 
-  /**
-   * Let's render this!
-   *
-   * @returns {JSX.Element}
-   */
-  public render(): JSX.Element {
-    const { unzippedFiles, openEmpty } = this.state;
-    const className = classNames(
-      'App',
-      {
-        // eslint-disable-next-line no-restricted-globals
-        Darwin: window.Sleuth.platform === 'darwin',
-      },
-      'antd',
-    );
-    const titleBar =
-      window.Sleuth.platform === 'darwin' ? (
-        <MacTitlebar state={this.sleuthState} />
-      ) : (
-        ''
-      );
-    const content =
-      unzippedFiles && (unzippedFiles.length || openEmpty) ? (
-        <CoreApplication
-          state={this.sleuthState}
-          unzippedFiles={unzippedFiles}
-        />
-      ) : (
-        <Welcome state={this.sleuthState} />
-      );
+  const openFile = useCallback(
+    async (url: string) => {
+      resetApp();
+      try {
+        const files = await window.Sleuth.openFile(url);
+        sleuthStateRef.current?.setSource(url);
+        setUnzippedFiles(files);
+      } catch (error) {
+        d('Failed to open file:', url, error);
+      }
+    },
+    [resetApp],
+  );
 
-    return (
-      <ConfigProvider
-        theme={{
-          algorithm: this.sleuthState.prefersDarkColors
-            ? theme.darkAlgorithm
-            : theme.defaultAlgorithm,
-          cssVar: { key: 'antd' },
-          token: {
-            colorPrimary: '#137cbd',
-            colorBgBase: this.sleuthState.prefersDarkColors
-              ? '#2f343c'
-              : '#ffffff',
-          },
-        }}
-      >
-        <div className={className}>
-          <Preferences state={this.sleuthState} />
-          {titleBar}
-          {content}
-        </div>
-      </ConfigProvider>
+  // Use refs so SleuthState always calls through the latest closures,
+  // even though it only receives them once in the constructor.
+  const openFileRef = useRef(openFile);
+  openFileRef.current = openFile;
+  const resetAppRef = useRef(resetApp);
+  resetAppRef.current = resetApp;
+
+  if (sleuthStateRef.current === null) {
+    localStorage.debug = 'sleuth:*';
+    sleuthStateRef.current = new SleuthState(
+      (url: string) => openFileRef.current(url),
+      () => resetAppRef.current(),
     );
   }
+  const sleuthState = sleuthStateRef.current;
 
-  /**
-   * Automatically update the Window title
-   */
-  private setupWindowTitle() {
-    autorun(() => {
-      document.title = getWindowTitle(this.sleuthState.source);
-    });
-  }
+  useEffect(() => {
+    window.Sleuth.sendWindowReady();
 
-  /**
-   * Whenever a file is dropped into the window, we'll try to open it
-   */
-  private setupFileDrop() {
-    document.ondragover = document.ondrop = (event) => event.preventDefault();
-    document.body.ondrop = (event) => {
+    // Setup file drop
+    const preventHandler = (event: Event) => event.preventDefault();
+    document.addEventListener('dragover', preventHandler);
+    document.addEventListener('drop', preventHandler);
+
+    const bodyDropHandler = (event: DragEvent) => {
       if (event.dataTransfer && event.dataTransfer.files.length > 0) {
         let url = window.Sleuth.getPathForFile(event.dataTransfer.files[0]);
         url = url.replace('file:///', '/');
-        this.resetApp();
-        this.openFile(url);
+        openFile(url);
       }
 
       event.preventDefault();
     };
+    document.body.addEventListener('drop', bodyDropHandler);
 
-    window.Sleuth.setupFileDrop((_event, url: string) => this.openFile(url));
-  }
+    const removeFileDrop = window.Sleuth.setupFileDrop((_event, url: string) =>
+      openFile(url),
+    );
 
-  private setupOpenSentry() {
-    window.Sleuth.setupOpenSentry((event) => {
-      // Get the file path to the installation file. Only app-* classes know.
-      const installationFile = this.state.unzippedFiles?.find((file) => {
+    // Setup open sentry
+    const removeOpenSentry = window.Sleuth.setupOpenSentry((event) => {
+      const installationFile = unzippedFilesRef.current?.find((file) => {
         return file.fileName === 'installation';
       });
 
       event.sender.send(IpcEvents.OPEN_SENTRY, installationFile?.fullPath);
     });
-  }
 
-  private async openFile(url: string) {
-    this.resetApp();
-    const files = await window.Sleuth.openFile(url);
-    this.sleuthState.setSource(url);
-    this.setState({ unzippedFiles: files });
-  }
-}
+    // Setup window title
+    const disposeAutorun = autorun(() => {
+      document.title = getWindowTitle(sleuthState.source);
+    });
+
+    return () => {
+      document.removeEventListener('dragover', preventHandler);
+      document.removeEventListener('drop', preventHandler);
+      document.body.removeEventListener('drop', bodyDropHandler);
+      removeFileDrop();
+      removeOpenSentry();
+      disposeAutorun();
+    };
+  }, [openFile, resetApp, sleuthState]);
+
+  const className = classNames(
+    'App',
+    {
+      // eslint-disable-next-line no-restricted-globals
+      Darwin: window.Sleuth.platform === 'darwin',
+    },
+    'antd',
+  );
+  const titleBar =
+    window.Sleuth.platform === 'darwin' ? (
+      <MacTitlebar state={sleuthState} />
+    ) : (
+      ''
+    );
+  const content =
+    unzippedFiles && unzippedFiles.length ? (
+      <CoreApplication state={sleuthState} unzippedFiles={unzippedFiles} />
+    ) : (
+      <Welcome state={sleuthState} />
+    );
+
+  return (
+    <ConfigProvider
+      theme={{
+        algorithm: sleuthState.prefersDarkColors
+          ? theme.darkAlgorithm
+          : theme.defaultAlgorithm,
+        cssVar: { key: 'antd' },
+        token: {
+          colorPrimary: '#137cbd',
+          colorBgBase: sleuthState.prefersDarkColors ? '#2f343c' : '#ffffff',
+        },
+      }}
+    >
+      <div className={className}>
+        <Preferences state={sleuthState} />
+        {titleBar}
+        {content}
+      </div>
+    </ConfigProvider>
+  );
+});

@@ -6,21 +6,14 @@ interface TitlebarProps {
   state: SleuthState;
 }
 
-export class MacTitlebar extends React.Component<TitlebarProps> {
-  constructor(props: TitlebarProps) {
-    super(props);
-  }
-
-  private handleDoubleClick = () => {
+export const MacTitlebar: React.FC<TitlebarProps> = ({ state }) => {
+  function handleDoubleClick() {
     window.Sleuth.sendDoubleClick();
-  };
-
-  render() {
-    const { source } = this.props.state;
-    return (
-      <div className="MacTitlebar" onDoubleClick={this.handleDoubleClick}>
-        <span>{getWindowTitle(source)}</span>
-      </div>
-    );
   }
-}
+
+  return (
+    <div className="MacTitlebar" onDoubleClick={handleDoubleClick}>
+      <span>{getWindowTitle(state.source)}</span>
+    </div>
+  );
+};

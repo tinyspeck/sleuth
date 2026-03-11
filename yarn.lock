@@ -4153,13 +4153,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.1.2":
-  version: 3.6.5
-  resolution: "core-js@npm:3.6.5"
-  checksum: 10c0/ab5f869adda3d4dfa8e8753f5b6e6990196f585e701c5fdb2bfd780bdc57235ceefdcd156f557faf9c2d3ed6010383870d3082318f8eda3218b1908413477a04
-  languageName: node
-  linkType: hard
-
 "core-util-is@npm:~1.0.0":
   version: 1.0.3
   resolution: "core-util-is@npm:1.0.3"
@@ -9362,13 +9355,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-autobind@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "react-autobind@npm:1.0.6"
-  checksum: 10c0/0f8cc12602efbd49742255d69d73774138af3765a591fac73eb5e0d58e8d8782a6e59f0f8c82e55f1d2488b76beb06706422fbe8837dbae92ebf1fd090fb13a4
-  languageName: node
-  linkType: hard
-
 "react-base16-styling@npm:^0.9.1":
   version: 0.9.1
   resolution: "react-base16-styling@npm:0.9.1"
@@ -9429,18 +9415,6 @@ __metadata:
     "@types/react": ^16.8.0 || ^17.0.0 || ^18.0.0
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
   checksum: 10c0/628c76339bd47dee0dbc378d57eb07051b4e2cd52f8b0794f640bed8fd33a64b2573035e298cae6ca8a8b3e969eb122fc74d2fabe738be10080f8cd5e0497589
-  languageName: node
-  linkType: hard
-
-"react-keydown@npm:1.9.12":
-  version: 1.9.12
-  resolution: "react-keydown@npm:1.9.12"
-  dependencies:
-    core-js: "npm:^3.1.2"
-  peerDependencies:
-    react: ">= 0.14.0"
-    react-dom: ">= 0.14.0"
-  checksum: 10c0/f0b45a3d97d1abf8ef894e3823a0b563079140a7884f88b320522d944bc296bd1d40d8527a7cfd9f53d7a3edfea54e2cd493894ca906f066000573eeb164a913
   languageName: node
   linkType: hard
 
@@ -10311,10 +10285,8 @@ __metadata:
     node-abi: "npm:^3.45.0"
     prettier: "npm:^3.0.0"
     react: "npm:^17.0.1"
-    react-autobind: "npm:^1.0.6"
     react-dom: "npm:^17.0.1"
     react-json-tree: "npm:0.18.0"
-    react-keydown: "npm:1.9.12"
     react-virtualized: "patch:react-virtualized@npm%3A9.22.5#~/.yarn/patches/react-virtualized-npm-9.22.5-be95b8e1a8.patch"
     rollup-plugin-copy: "npm:^3.5.0"
     tmp: "npm:0.2.4"
