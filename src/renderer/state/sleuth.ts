@@ -1,4 +1,11 @@
-import { observable, action, autorun, computed, toJS, reaction } from 'mobx';
+import {
+  observable,
+  action,
+  autorun,
+  computed,
+  toJS,
+  makeObservable,
+} from 'mobx';
 import debug from 'debug';
 
 import { testDateTimeFormat } from '../../utils/test-date-time';
@@ -147,6 +154,8 @@ export class SleuthState {
     public readonly openFile: (file: string) => void,
     public readonly resetApp: () => void,
   ) {
+    makeObservable(this);
+
     this.getSuggestions();
     window.Sleuth.setupDarkModeUpdate((prefersDarkColors) => {
       this.prefersDarkColors = prefersDarkColors;

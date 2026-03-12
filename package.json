@@ -40,8 +40,8 @@
     "jsonic": "1.0.1",
     "lodash": "^4.17.23",
     "lz-string": "^1.4.4",
-    "mobx": "5.15.7",
-    "mobx-react": "patch:mobx-react@npm%3A6.3.0#~/.yarn/patches/mobx-react-npm-6.3.0-e118b28c32.patch",
+    "mobx": "^6.15.0",
+    "mobx-react": "^7.6.0",
     "react": "^17.0.1",
     "react-autobind": "^1.0.6",
     "react-dom": "^17.0.1",
@@ -71,7 +71,7 @@
     "@types/fs-extra": "^9.0.4",
     "@types/lz-string": "^1.3.34",
     "@types/node": "^22.14.0",
-    "@types/react": "^16.9.56",
+    "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/react-virtualized": "^9.21.10",
     "@types/semver": "^7.3.4",
@@ -95,9 +95,8 @@
     "vite": "^5.4.21"
   },
   "resolutions": {
-    "@types/react": "16.14.43",
-    "mobx-react-lite": "2.2.0",
-    "@electron/rebuild": "3.6.2"
+    "@electron/rebuild": "3.6.2",
+    "@types/react-virtualized/@types/react": "^17.0.0"
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx}": [
