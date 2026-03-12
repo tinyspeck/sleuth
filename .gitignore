@@ -16,3 +16,4 @@ coverage
 !.yarn/versions
 
 .claude/local/*
+test-results
