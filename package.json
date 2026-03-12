@@ -10,14 +10,14 @@
   },
   "scripts": {
     "tsc": "tsc -p tsconfig.json --noEmit",
-    "lint": "npm run tsc && eslint .  --ignore-path .gitignore && prettier --check .",
+    "lint": "npm run tsc && oxlint && prettier --check .",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "start": "electron-forge start",
     "test": "vitest",
     "catapult:update": "git submodule foreach git pull origin master",
-    "lint:fix": "npm run tsc && eslint . --fix  --ignore-path .gitignore && prettier . --write",
+    "lint:fix": "npm run tsc && oxlint --fix && prettier . --write",
     "prepare": "husky"
   },
   "keywords": [],
@@ -77,17 +77,13 @@
     "@types/semver": "^7.3.4",
     "@types/tmp": "0.2.0",
     "@types/yauzl": "^2.10.0",
-    "@typescript-eslint/eslint-plugin": "^5.60.1",
-    "@typescript-eslint/parser": "^5.60.1",
     "@vitejs/plugin-react": "^4.5.0",
     "electron": "38.2.2",
-    "eslint": "^8.43.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-react": "^7.32.2",
     "husky": "^9.0.0",
     "jsdom": "^26.1.0",
     "lint-staged": "^15.2.11",
     "node-abi": "^3.45.0",
+    "oxlint": "^1.0.0",
     "prettier": "^3.0.0",
     "rollup-plugin-copy": "^3.5.0",
     "ts-node": "^10.9.2",
@@ -101,7 +97,7 @@
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx}": [
-      "eslint --fix  --ignore-path .gitignore",
+      "oxlint --fix",
       "prettier --write"
     ],
     "*.{yml,yaml,css}": [

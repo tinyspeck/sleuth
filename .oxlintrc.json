@@ -1,0 +1,66 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react"],
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "ignorePatterns": [
+    "public/catapult/**/*.js",
+    "static/catapult-overrides/**/*.js"
+  ],
+  "settings": {
+    "react": {
+      "version": "17"
+    }
+  },
+  "categories": {
+    "correctness": "warn"
+  },
+  "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["src/renderer/**/*.{js,ts,jsx,tsx}", "src/utils/**/*.{js,ts}"],
+      "env": {
+        "browser": true
+      },
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              "fs",
+              "fs-extra",
+              "os",
+              "path",
+              "child_process",
+              "stream",
+              "util",
+              "electron"
+            ]
+          }
+        ],
+        "no-restricted-globals": [
+          "error",
+          {
+            "restrictedGlobals": {
+              "process": "Node.js globals are not allowed in the renderer process.",
+              "require": "Node.js globals are not allowed in the renderer process.",
+              "__dirname": "Node.js globals are not allowed in the renderer process."
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

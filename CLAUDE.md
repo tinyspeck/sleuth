@@ -16,7 +16,7 @@ IMPORTANT: Never attempt to run `npm`, instead always run the equivalent `yarn` 
 - `yarn start` - Start development build with Electron
 - `yarn test` - Run tests with Vitest
 - `yarn run tsc` - TypeScript type checking
-- `yarn run lint` - Run linting (includes TypeScript check, ESLint, and Prettier)
+- `yarn run lint` - Run linting (includes TypeScript check, oxlint, and Prettier)
 - `yarn run lint:fix` - Fix linting issues automatically
 
 ### Build Commands
@@ -91,11 +91,13 @@ The app follows standard Electron patterns with three main processes:
 
 ## Code Conventions
 
-### ESLint Rules
+### Oxlint Rules
 
+- Linting is handled by [oxlint](https://oxc.rs/docs/guide/usage/linter/) (configured in `.oxlintrc.json`)
 - Strict separation: renderer code cannot import Node.js modules (fs, path, etc.)
-- Use `@typescript-eslint` for TypeScript-specific rules
+- Uses `typescript` and `react` oxlint plugins for TypeScript and React-specific rules
 - Unused vars prefixed with `_` are ignored
+- Disable comments use `// oxlint-disable-next-line` format
 
 ### File Organization
 
