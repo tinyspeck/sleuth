@@ -22,7 +22,7 @@ export function Timestamp(props: TimestampProps) {
 
   useEffect(() => {
     setLabel(datetime);
-  }, [momentValues, timestamps]);
+  }, [datetime, momentValues, timestamps]);
 
   return <Tag>{label}</Tag>;
 }

@@ -44,7 +44,7 @@ export class SettingsFileManager {
 
     try {
       settings = fs.readJSONSync(this.settingsFilePath);
-    } catch (error) {
+    } catch (_error) {
       settings = {};
     }
 

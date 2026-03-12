@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Sidebar } from '../../../src/renderer/components/sidebar/sidebar';
 import { render, screen } from '@testing-library/react';
 import { SleuthState } from '../../../src/renderer/state/sleuth';
