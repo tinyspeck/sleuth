@@ -5,13 +5,16 @@ export function useRefReRender<T>(
   teardown?: (current: T | null) => void,
 ): [() => T | null, (ref: T) => void] {
   const ref = useRef<T | null>(initialValue);
-  const setRef = useCallback((value) => {
-    if (ref.current && teardown) {
-      teardown(ref.current);
-    }
+  const setRef = useCallback(
+    (value) => {
+      if (ref.current && teardown) {
+        teardown(ref.current);
+      }
 
-    ref.current = value;
-  }, []);
+      ref.current = value;
+    },
+    [teardown],
+  );
 
   const getRef = useCallback(() => {
     return ref.current;

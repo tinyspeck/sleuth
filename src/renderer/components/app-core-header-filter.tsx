@@ -101,8 +101,8 @@ export const Filter = observer((props: FilterProps) => {
   };
 
   useEffect(() => {
-    const destructor = window.Sleuth.focusFind(
-      () => searchRef.current?.focus(),
+    const destructor = window.Sleuth.focusFind(() =>
+      searchRef.current?.focus(),
     );
     return () => {
       destructor();

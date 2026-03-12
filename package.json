@@ -10,14 +10,14 @@
   },
   "scripts": {
     "tsc": "tsc -p tsconfig.json --noEmit",
-    "lint": "npm run tsc && oxlint && prettier --check .",
+    "lint": "oxlint && oxfmt --check",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "start": "electron-forge start",
     "test": "vitest",
     "catapult:update": "git submodule foreach git pull origin master",
-    "lint:fix": "npm run tsc && oxlint --fix && prettier . --write",
+    "lint:fix": "oxlint --fix && oxfmt",
     "prepare": "husky"
   },
   "keywords": [],
@@ -83,8 +83,8 @@
     "jsdom": "^26.1.0",
     "lint-staged": "^15.2.11",
     "node-abi": "^3.45.0",
+    "oxfmt": "^0.36.0",
     "oxlint": "^1.0.0",
-    "prettier": "^3.0.0",
     "rollup-plugin-copy": "^3.5.0",
     "ts-node": "^10.9.2",
     "typescript": "5.1.6",
@@ -98,10 +98,10 @@
   "lint-staged": {
     "*.{js,ts,jsx,tsx}": [
       "oxlint --fix",
-      "prettier --write"
+      "oxfmt"
     ],
     "*.{yml,yaml,css}": [
-      "prettier --write"
+      "oxfmt"
     ]
   },
   "packageManager": "yarn@4.12.0",
