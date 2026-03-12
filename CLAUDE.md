@@ -16,7 +16,7 @@ IMPORTANT: Never attempt to run `npm`, instead always run the equivalent `yarn` 
 - `yarn start` - Start development build with Electron
 - `yarn test` - Run tests with Vitest
 - `yarn run tsc` - TypeScript type checking
-- `yarn run lint` - Run linting (includes TypeScript check, oxlint, and Prettier)
+- `yarn run lint` - Run linting (oxlint and oxfmt)
 - `yarn run lint:fix` - Fix linting issues automatically
 
 ### Build Commands
