@@ -81,7 +81,7 @@
     "electron": "38.2.2",
     "husky": "^9.0.0",
     "jsdom": "^26.1.0",
-    "lint-staged": "^15.2.11",
+    "lint-staged": "^16.3.2",
     "node-abi": "^3.45.0",
     "oxfmt": "^0.36.0",
     "oxlint": "^1.0.0",
