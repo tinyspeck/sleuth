@@ -18,7 +18,7 @@ export interface PerfettoViewProps {
  *
  * @see https://perfetto.dev/docs/visualization/deep-linking-to-perfetto-ui
  */
-export const PerfettoView = observer(({ state, file }: PerfettoViewProps) => {
+export const PerfettoView = observer(({ file }: PerfettoViewProps) => {
   const perfettoRef = useRef<HTMLIFrameElement>(null);
   const controllerRef = useRef<AbortController>(new AbortController());
 
@@ -47,7 +47,7 @@ export const PerfettoView = observer(({ state, file }: PerfettoViewProps) => {
       signal: controllerRef.current.signal,
     });
     return () => controllerRef.current.abort();
-  }, []);
+  }, [file]);
 
   useEffect(() => {
     if (perfettoRef.current?.contentWindow) {

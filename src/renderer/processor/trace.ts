@@ -71,11 +71,8 @@ export class TraceProcessor {
     const discovered: { [processId: number]: RendererThread } = {};
     // Search (sometimes missing) ParseHTML events
     const parseEvents = events.filter((e) => e.name === 'ParseHTML');
-    const clientParseEvent = parseEvents.find(
-      (event) =>
-        event?.args?.beginData?.url?.startsWith?.(
-          'https://app.slack.com/client',
-        ),
+    const clientParseEvent = parseEvents.find((event) =>
+      event?.args?.beginData?.url?.startsWith?.('https://app.slack.com/client'),
     );
     // Search any renderer event
     const rendererThreadsEvents = threads.filter(
