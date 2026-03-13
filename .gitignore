@@ -15,5 +15,5 @@ coverage
 !.yarn/sdks
 !.yarn/versions
 
-.claude/local/*
+.claude/*local*
 test-results

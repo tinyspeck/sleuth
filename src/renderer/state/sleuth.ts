@@ -106,8 +106,8 @@ export class SleuthState {
     'isOpenMostRecent',
     { parse: true, fallback: false },
   );
-  @observable public dateTimeFormat_v3: string = testDateTimeFormat(
-    this.retrieve<string>('dateTimeFormat_v3', {
+  @observable public dateTimeFormat_v4: string = testDateTimeFormat(
+    this.retrieve<string>('dateTimeFormat_v4', {
       parse: false,
       fallback: 'HH:mm:ss (dd/MM)',
     }),
@@ -153,7 +153,7 @@ export class SleuthState {
     });
 
     // Setup autoruns
-    autorun(() => this.save('dateTimeFormat_v3', this.dateTimeFormat_v3));
+    autorun(() => this.save('dateTimeFormat_v4', this.dateTimeFormat_v4));
     autorun(() => this.save('font', this.font));
     autorun(() => this.save('isOpenMostRecent', this.isOpenMostRecent));
     autorun(() => this.save('isSmartCopy', this.isSmartCopy));

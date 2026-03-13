@@ -54,7 +54,7 @@ export const Preferences = observer((props: PreferencesProps) => {
 
   const {
     colorTheme,
-    dateTimeFormat_v3,
+    dateTimeFormat_v4,
     defaultEditor,
     defaultSort,
     font,
@@ -138,13 +138,13 @@ export const Preferences = observer((props: PreferencesProps) => {
           <Select
             prefix={<FieldTimeOutlined />}
             style={{ width: 200 }}
-            defaultValue={dateTimeFormat_v3}
+            defaultValue={dateTimeFormat_v4}
             options={DATE_TIME_FORMATS.map((f) => ({
               value: f,
               label: <span>{dateFormatter(1647029957123, f)}</span>,
             }))}
             onChange={(value) => {
-              props.state.dateTimeFormat_v3 = value;
+              props.state.dateTimeFormat_v4 = value;
             }}
           />
           <Typography.Text type="secondary">
