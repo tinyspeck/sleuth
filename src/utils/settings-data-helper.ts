@@ -48,12 +48,12 @@ function getPlatform(data?: Record<string, any>): string {
 }
 
 function getWindowsVersion({
-  major,
-  minor,
+  _major,
+  _minor,
   build,
 }: {
-  major: number;
-  minor: number;
+  _major: number;
+  _minor: number;
   build: number;
 }): string {
   const windowsVersions: Record<string, { os: number; version: string }> = {

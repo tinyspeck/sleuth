@@ -1,4 +1,4 @@
-import { observable, action, autorun, computed, toJS, reaction } from 'mobx';
+import { observable, action, autorun, computed, toJS } from 'mobx';
 import debug from 'debug';
 
 import { testDateTimeFormat } from '../../utils/test-date-time';

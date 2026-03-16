@@ -8,7 +8,7 @@ export function getRegExpMaybeSafe(exp = ''): RegExp {
 
     try {
       return new RegExp(withoutSlashes);
-    } catch (error) {
+    } catch (_error) {
       return getRegExpSafe(withoutSlashes);
     }
   }

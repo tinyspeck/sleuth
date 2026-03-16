@@ -12,14 +12,6 @@ export default defineConfig({
       },
     }),
   ],
-  css: {
-    preprocessorOptions: {
-      less: {
-        math: 'always',
-        relativeUrls: true,
-      },
-    },
-  },
   define: {
     global: {},
   },

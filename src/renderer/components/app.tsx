@@ -69,7 +69,7 @@ export class App extends React.Component<object, Partial<AppState>> {
     const className = classNames(
       'App',
       {
-        // eslint-disable-next-line no-restricted-globals
+        // oxlint-disable-next-line no-restricted-globals
         Darwin: window.Sleuth.platform === 'darwin',
       },
       'antd',
