@@ -109,9 +109,9 @@ export class SleuthState {
   @observable public dateTimeFormat_v4: string = testDateTimeFormat(
     this.retrieve<string>('dateTimeFormat_v4', {
       parse: false,
-      fallback: 'HH:mm:ss (dd/MM)',
+      fallback: 'yyyy-MM-dd HH:mm:ss',
     }),
-    'HH:mm:ss (dd/MM)',
+    'yyyy-MM-dd HH:mm:ss',
   );
   @observable public font: string = this.retrieve<string>('font', {
     parse: false,
