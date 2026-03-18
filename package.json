@@ -55,7 +55,7 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
-    "@electron-forge/cli": "8.0.0-alpha.5",
+    "@electron-forge/cli": "patch:@electron-forge/cli@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-cli-npm-8.0.0-alpha.5-da41416971.patch",
     "@electron-forge/maker-deb": "8.0.0-alpha.5",
     "@electron-forge/maker-rpm": "8.0.0-alpha.5",
     "@electron-forge/maker-squirrel": "8.0.0-alpha.5",

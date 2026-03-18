@@ -437,6 +437,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@electron-forge/cli@patch:@electron-forge/cli@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-cli-npm-8.0.0-alpha.5-da41416971.patch":
+  version: 8.0.0-alpha.5
+  resolution: "@electron-forge/cli@patch:@electron-forge/cli@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-cli-npm-8.0.0-alpha.5-da41416971.patch::version=8.0.0-alpha.5&hash=98088a"
+  dependencies:
+    "@electron-forge/core": "npm:8.0.0-alpha.5"
+    "@electron-forge/core-utils": "npm:8.0.0-alpha.5"
+    "@electron-forge/shared-types": "npm:8.0.0-alpha.5"
+    "@electron/get": "npm:^4.0.2"
+    chalk: "npm:^4.0.0"
+    commander: "npm:^11.1.0"
+    debug: "npm:^4.3.1"
+    fs-extra: "npm:^10.0.0"
+    listr2: "npm:^7.0.2"
+    log-symbols: "npm:^4.0.0"
+    semver: "npm:^7.2.1"
+  bin:
+    electron-forge: dist/electron-forge.js
+    electron-forge-vscode-nix: script/vscode.sh
+    electron-forge-vscode-win: script/vscode.cmd
+  checksum: 10c0/7ada10137f155472fd57298ae2cf8ec9b895ebff97e6d702168e40049e41deabc8832a7c7dcf532552c58b22a2168e242fcc47c7e19661b887b707bfd75a79e4
+  languageName: node
+  linkType: hard
+
 "@electron-forge/core-utils@npm:8.0.0-alpha.5":
   version: 8.0.0-alpha.5
   resolution: "@electron-forge/core-utils@npm:8.0.0-alpha.5"
@@ -8554,7 +8577,7 @@ __metadata:
   dependencies:
     "@ant-design/icons": "npm:^5.6.1"
     "@date-fns/tz": "npm:^1.4.1"
-    "@electron-forge/cli": "npm:8.0.0-alpha.5"
+    "@electron-forge/cli": "patch:@electron-forge/cli@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-cli-npm-8.0.0-alpha.5-da41416971.patch"
     "@electron-forge/maker-deb": "npm:8.0.0-alpha.5"
     "@electron-forge/maker-rpm": "npm:8.0.0-alpha.5"
     "@electron-forge/maker-squirrel": "npm:8.0.0-alpha.5"
