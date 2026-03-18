@@ -11,7 +11,9 @@ anchors:
 parameters:
   build_image_tag_ubuntu:
     type: string
-    default: slack-desktop-docker.jfrog.io/desktop-base-ubuntu-focal:6d241c4e-2092
+    # To update the Node.js version running on Ubuntu, check the updated images on
+    # `desktop-docker`, or create one if needed.
+    default: slack-desktop-docker.jfrog.io/desktop-base-ubuntu-jammy:a1afbadb-2358
 
 executors:
   ubuntu:
