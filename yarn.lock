@@ -439,7 +439,7 @@ __metadata:
 
 "@electron-forge/cli@patch:@electron-forge/cli@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-cli-npm-8.0.0-alpha.5-da41416971.patch":
   version: 8.0.0-alpha.5
-  resolution: "@electron-forge/cli@patch:@electron-forge/cli@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-cli-npm-8.0.0-alpha.5-da41416971.patch::version=8.0.0-alpha.5&hash=98088a"
+  resolution: "@electron-forge/cli@patch:@electron-forge/cli@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-cli-npm-8.0.0-alpha.5-da41416971.patch::version=8.0.0-alpha.5&hash=87b09e"
   dependencies:
     "@electron-forge/core": "npm:8.0.0-alpha.5"
     "@electron-forge/core-utils": "npm:8.0.0-alpha.5"
@@ -456,7 +456,7 @@ __metadata:
     electron-forge: dist/electron-forge.js
     electron-forge-vscode-nix: script/vscode.sh
     electron-forge-vscode-win: script/vscode.cmd
-  checksum: 10c0/7ada10137f155472fd57298ae2cf8ec9b895ebff97e6d702168e40049e41deabc8832a7c7dcf532552c58b22a2168e242fcc47c7e19661b887b707bfd75a79e4
+  checksum: 10c0/627123d5271268cc9ee74723640b91f999ea80d427a6adb13e77f210e67c6744ca28751d397a2a8d8189a6baec613e1bd5d6956509353df784f800d37ee734a3
   languageName: node
   linkType: hard
 
