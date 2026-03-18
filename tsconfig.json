@@ -4,6 +4,7 @@
     "allowJs": true,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
+    "useDefineForClassFields": true,
     "removeComments": false,
     "preserveConstEnums": true,
     "sourceMap": true,

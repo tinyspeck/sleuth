@@ -2770,14 +2770,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:16.14.43":
-  version: 16.14.43
-  resolution: "@types/react@npm:16.14.43"
+"@types/react@npm:^17, @types/react@npm:^17.0.0":
+  version: 17.0.91
+  resolution: "@types/react@npm:17.0.91"
   dependencies:
     "@types/prop-types": "npm:*"
-    "@types/scheduler": "npm:*"
-    csstype: "npm:^3.0.2"
-  checksum: 10c0/1878039ed0d81bcfcdb7e389e221f7e3f0470e82007c60e58196b160c733ff194f6784e104e8071a96ec93d14998875c88c2dcf48aa49b73d16c5fc75d1bb602
+    "@types/scheduler": "npm:^0.16"
+    csstype: "npm:^3.2.2"
+  checksum: 10c0/f1a5f77dbe6d62c04bfa2692d1204fd537e5fb15461a10673fa116a4b211f8ebaf426a4b1b95da04d38cea47dfc77c4d403f0850db7d9853298248a54478cc60
   languageName: node
   linkType: hard
 
@@ -2790,10 +2790,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/scheduler@npm:*":
-  version: 0.16.3
-  resolution: "@types/scheduler@npm:0.16.3"
-  checksum: 10c0/c249d4b96fa05165ac22c214f94a045ee0af8beedefdbc54b769febd0044cab3a874e55419841a0dcc76439e379a63e257f3253c87168e3261e7bc783d623302
+"@types/scheduler@npm:^0.16":
+  version: 0.16.8
+  resolution: "@types/scheduler@npm:0.16.8"
+  checksum: 10c0/f86de504945b8fc41b1f391f847444d542e2e4067cf7e5d9bfeb5d2d2393d3203b1161bc0ef3b1e104d828dabfb60baf06e8d2c27e27ff7e8258e6e618d8c4ec
   languageName: node
   linkType: hard
 
@@ -4245,6 +4245,13 @@ __metadata:
   version: 3.0.3
   resolution: "csstype@npm:3.0.3"
   checksum: 10c0/20f2e9f5cc3c419a9f110f45a8e1e8c653159cb8b403715bbbab7bd113b3f7d519d3c8efc587221d02900d76b7dc3c8c3110d4c7bd84a9e0b2bd421488ca6bdb
+  languageName: node
+  linkType: hard
+
+"csstype@npm:^3.2.2":
+  version: 3.2.3
+  resolution: "csstype@npm:3.2.3"
+  checksum: 10c0/cd29c51e70fa822f1cecd8641a1445bed7063697469d35633b516e60fe8c1bde04b08f6c5b6022136bb669b64c63d4173af54864510fbb4ee23281801841a3ce
   languageName: node
   linkType: hard
 
@@ -7143,49 +7150,42 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mobx-react-lite@npm:2.2.0":
-  version: 2.2.0
-  resolution: "mobx-react-lite@npm:2.2.0"
+"mobx-react-lite@npm:^3.4.0":
+  version: 3.4.3
+  resolution: "mobx-react-lite@npm:3.4.3"
   peerDependencies:
-    mobx: ^4.0.0 || ^5.0.0
-    react: ^16.8.0
+    mobx: ^6.1.0
+    react: ^16.8.0 || ^17 || ^18
   peerDependenciesMeta:
     react-dom:
       optional: true
     react-native:
       optional: true
-  checksum: 10c0/8336786bdaef33a0f518d3e5f02bd15c9a2262bcd24889a372cd001540f09d368eddf811d9ff56868f6c58f2784724c641b3e4f86ba89ecb0765dd3b07661c59
+  checksum: 10c0/c58692751ac69b4e9fcf840c43b3aac99869b0268aa8ba06189de5737a8ad27b1d3a2ec20699554e7e5a670e6957d22e3cb0f451448491a640240d7b9e98325a
   languageName: node
   linkType: hard
 
-"mobx-react@npm:6.3.0":
-  version: 6.3.0
-  resolution: "mobx-react@npm:6.3.0"
+"mobx-react@npm:^7.6.0":
+  version: 7.6.0
+  resolution: "mobx-react@npm:7.6.0"
   dependencies:
-    mobx-react-lite: "npm:>=2.2.0"
+    mobx-react-lite: "npm:^3.4.0"
   peerDependencies:
-    mobx: ^5.15.4 || ^4.15.4
-    react: ^16.8.0 || 16.9.0-alpha.0
-  checksum: 10c0/bd2e06b0ab37607d20519574551250f3ebedc678deccceacb39ca1dc52cb8fcea369ffeb364c3b88a62c1b928010a39689f4389e8b0d5bfb1071b5ddcc4de76b
+    mobx: ^6.1.0
+    react: ^16.8.0 || ^17 || ^18
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 10c0/60f619edb999b9c66a86baa7ab5cf8b1f3651c85c16f2aa8adf3c0c553d52bc0ec083bbd42e8fe0c785f2435a7b1afdf20f103553b80bbf6d28616f160baa144
   languageName: node
   linkType: hard
 
-"mobx-react@patch:mobx-react@npm%3A6.3.0#~/.yarn/patches/mobx-react-npm-6.3.0-e118b28c32.patch":
-  version: 6.3.0
-  resolution: "mobx-react@patch:mobx-react@npm%3A6.3.0#~/.yarn/patches/mobx-react-npm-6.3.0-e118b28c32.patch::version=6.3.0&hash=f2b3be"
-  dependencies:
-    mobx-react-lite: "npm:>=2.2.0"
-  peerDependencies:
-    mobx: ^5.15.4 || ^4.15.4
-    react: ^16.8.0 || 16.9.0-alpha.0
-  checksum: 10c0/2b288b31fb18cfb323d724bfae7e60949785b47195b55c87f61a4b266c661a8f02557b6a1628468e182653dbd496a8cddbd4e5fc77c3aaedf143956f37f65f27
-  languageName: node
-  linkType: hard
-
-"mobx@npm:5.15.7":
-  version: 5.15.7
-  resolution: "mobx@npm:5.15.7"
-  checksum: 10c0/ff493828f21e92470e21e294b8d3e5663d030cde78c10cd99e1d5f9154eeecd1e37b15b3fa377ea44ac3d81009fcaf6d48210a016c268a6cfc52399f4e1fd026
+"mobx@npm:^6.15.0":
+  version: 6.15.0
+  resolution: "mobx@npm:6.15.0"
+  checksum: 10c0/afbfdc5659caac4ba620d1caca8eb471bbe56746403a8023ae402e27f9e04856394e1529ccf46feb7fdad0c6d695fa1972e8421e7fbfcb1cf453131739a12ac4
   languageName: node
   linkType: hard
 
@@ -9582,7 +9582,7 @@ __metadata:
     "@types/fs-extra": "npm:^9.0.4"
     "@types/lz-string": "npm:^1.3.34"
     "@types/node": "npm:^22.14.0"
-    "@types/react": "npm:^16.9.56"
+    "@types/react": "npm:^17.0.0"
     "@types/react-dom": "npm:^17.0.0"
     "@types/react-virtualized": "npm:^9.21.10"
     "@types/semver": "npm:^7.3.4"
@@ -9607,8 +9607,8 @@ __metadata:
     lint-staged: "npm:^16.3.2"
     lodash: "npm:^4.17.23"
     lz-string: "npm:^1.4.4"
-    mobx: "npm:5.15.7"
-    mobx-react: "patch:mobx-react@npm%3A6.3.0#~/.yarn/patches/mobx-react-npm-6.3.0-e118b28c32.patch"
+    mobx: "npm:^6.15.0"
+    mobx-react: "npm:^7.6.0"
     node-abi: "npm:^3.45.0"
     oxfmt: "npm:^0.36.0"
     oxlint: "npm:^1.0.0"
