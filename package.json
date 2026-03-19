@@ -55,14 +55,14 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
-    "@electron-forge/cli": "patch:@electron-forge/cli@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-cli-npm-8.0.0-alpha.5-da41416971.patch",
-    "@electron-forge/maker-deb": "8.0.0-alpha.5",
-    "@electron-forge/maker-rpm": "8.0.0-alpha.5",
-    "@electron-forge/maker-squirrel": "8.0.0-alpha.5",
-    "@electron-forge/maker-zip": "8.0.0-alpha.5",
-    "@electron-forge/plugin-auto-unpack-natives": "8.0.0-alpha.5",
-    "@electron-forge/plugin-vite": "8.0.0-alpha.5",
-    "@electron-forge/publisher-github": "8.0.0-alpha.5",
+    "@electron-forge/cli": "8.0.0-alpha.6",
+    "@electron-forge/maker-deb": "8.0.0-alpha.6",
+    "@electron-forge/maker-rpm": "8.0.0-alpha.6",
+    "@electron-forge/maker-squirrel": "8.0.0-alpha.6",
+    "@electron-forge/maker-zip": "8.0.0-alpha.6",
+    "@electron-forge/plugin-auto-unpack-natives": "8.0.0-alpha.6",
+    "@electron-forge/plugin-vite": "8.0.0-alpha.6",
+    "@electron-forge/publisher-github": "8.0.0-alpha.6",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^12.1.2",
     "@types/classnames": "^2.2.11",
@@ -91,8 +91,7 @@
     "vite": "^7.0.0"
   },
   "resolutions": {
-    "@types/react-virtualized/@types/react": "^17.0.0",
-    "@electron-forge/maker-base@npm:8.0.0-alpha.5": "patch:@electron-forge/maker-base@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-maker-base-npm-8.0.0-alpha.5-5691c2ee51.patch"
+    "@types/react-virtualized/@types/react": "^17.0.0"
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx}": [
