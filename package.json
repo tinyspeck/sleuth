@@ -91,7 +91,8 @@
     "vite": "^7.0.0"
   },
   "resolutions": {
-    "@types/react-virtualized/@types/react": "^17.0.0"
+    "@types/react-virtualized/@types/react": "^17.0.0",
+    "@electron-forge/maker-base@npm:8.0.0-alpha.5": "patch:@electron-forge/maker-base@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-maker-base-npm-8.0.0-alpha.5-5691c2ee51.patch"
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx}": [

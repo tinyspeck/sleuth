@@ -521,6 +521,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@electron-forge/maker-base@patch:@electron-forge/maker-base@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-maker-base-npm-8.0.0-alpha.5-5691c2ee51.patch":
+  version: 8.0.0-alpha.5
+  resolution: "@electron-forge/maker-base@patch:@electron-forge/maker-base@npm%3A8.0.0-alpha.5#~/.yarn/patches/@electron-forge-maker-base-npm-8.0.0-alpha.5-5691c2ee51.patch::version=8.0.0-alpha.5&hash=f6528a"
+  dependencies:
+    "@electron-forge/shared-types": "npm:8.0.0-alpha.5"
+    fs-extra: "npm:^10.0.0"
+    which: "npm:^2.0.2"
+  checksum: 10c0/58f629d5f0349acc6ea5aa6f02b4d315567a16a8f237f73bd52f09603df283f4c2e110a086c626f0616cb25deffb68fd6e0480e038412c969f60e5f01601eff0
+  languageName: node
+  linkType: hard
+
 "@electron-forge/maker-deb@npm:8.0.0-alpha.5":
   version: 8.0.0-alpha.5
   resolution: "@electron-forge/maker-deb@npm:8.0.0-alpha.5"

@@ -1,0 +1,13 @@
+diff --git a/dist/Maker.js b/dist/Maker.js
+index 89d554a97f12e4a4eb97903a75bfb207eeb00ec1..dce6bd05642538f80e2119d4ad02696558ab6a2a 100644
+--- a/dist/Maker.js
++++ b/dist/Maker.js
+@@ -113,7 +113,7 @@ export default class Maker {
+      */
+     isInstalled(module) {
+         try {
+-            require(module);
++            import.meta.resolve(module);
+             return true;
+         }
+         catch {
