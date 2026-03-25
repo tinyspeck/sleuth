@@ -81,7 +81,7 @@ export const App = observer(() => {
       if (event.dataTransfer && event.dataTransfer.files.length > 0) {
         let url = window.Sleuth.getPathForFile(event.dataTransfer.files[0]);
         url = url.replace('file:///', '/');
-        openFile(url);
+        openFileRef.current(url);
       }
 
       event.preventDefault();
@@ -89,7 +89,7 @@ export const App = observer(() => {
     document.body.addEventListener('drop', bodyDropHandler);
 
     const removeFileDrop = window.Sleuth.setupFileDrop((_event, url: string) =>
-      openFile(url),
+      openFileRef.current(url),
     );
 
     // Setup open sentry
@@ -114,7 +114,7 @@ export const App = observer(() => {
       removeOpenSentry();
       disposeAutorun();
     };
-  }, [openFile, resetApp, sleuthState]);
+  }, []);
 
   const className = classNames(
     'App',
