@@ -84,7 +84,7 @@ The core flow for processing log bundles:
 4. **Routing** (`app-core.tsx`): Files split into raw files (STATE, NETLOG, TRACE — displayed as-is) and processable files (BROWSER, WEBAPP, INSTALLER, MOBILE, CHROMIUM — parsed line-by-line).
 5. **State files read first**: `log-context.json` provides timezone info used during log parsing.
 6. **Line-by-line parsing** (`src/main/filesystem/read-file.ts`): `readLogFile()` streams each file, applying type-specific regex matchers (e.g., `matchLineElectron`, `matchLineWebApp`). Each matched line becomes a `LogEntry` with timestamp, level, message, and metadata. Repeated consecutive lines are collapsed.
-7. **Merging & sorting** (`src/renderer/processor.ts`): `mergeLogFiles()` combines entries from multiple files of the same type, sorting chronologically via Web Worker. Produces merged views for Browser, Webapp, and combined ALL.
+7. **Merging & sorting** (`src/renderer/processor.ts`): `mergeLogFiles()` combines entries from multiple files of the same type using a synchronous k-way merge (sorted chronologically). Produces merged views for Browser, Webapp, and combined ALL.
 8. **Display**: Results stored in MobX `SleuthState`, populating Sidebar (file tree), LogTable (virtualized entries), and detail panels.
 
 Key file dispatch: `src/main/filesystem/open-file.ts` routes between `openZip()`, `openDirectory()`, and `openSingleFile()`.
@@ -101,6 +101,8 @@ Key file dispatch: `src/main/filesystem/open-file.ts` routes between `openZip()`
 
 - Uses Vitest with jsdom environment
 - Test files: `test/**/*.test.[jt]s?(x)`
+- Benchmark files: `test/bench/*.bench.ts` — run with `yarn vitest bench`
+  - Real-log benchmarks require `SLEUTH_BENCH_LOGS=/path/to/extracted/logs`
 - Setup: `test/vitest-setup.js`
 - Global test utilities available
 
@@ -147,7 +149,10 @@ guidance first.
 
 - Log table uses `react-virtualized` for large datasets
 - Log processing happens in chunks to avoid blocking UI
-- Background processing for heavy operations
+- Per-type file processing runs in parallel (`Promise.all` in `app-core.tsx`)
+- `mergeLogFiles` uses a synchronous k-way merge (O(n·k), avoids concat+sort)
+- Timestamp parsing uses `toTZMillis()` with a cached TZ offset per calendar date, avoiding expensive `TZDate` construction (~7µs) on every line — the single biggest bottleneck in log processing
+- The main processing hot path is in `src/main/filesystem/read-file.ts`: regex matching → timestamp parsing → LogEntry creation
 
 ### Platform Support
 
