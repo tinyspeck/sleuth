@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 import readline from 'readline';
 
-import { getTZDateFromString } from '../../utils/get-tz-date-from-string';
 import { parseJSON } from '../../utils/parse-json';
 
 import {
@@ -57,6 +56,46 @@ const SQUIRREL_RGX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})> (.*)$/;
 // [70491:0302/160742.806582:WARNING:gpu_process_host.cc(1303)] The GPU process has crashed 1 time(s)
 const CHROMIUM_RGX =
   /^\[(\d+:\d{4}\/\d{6}\.\d{3,6}:[a-zA-Z]+:.*\(\d+\))\] (.*)$/;
+
+/**
+ * Parses a desktop timestamp directly into a TZDate valueOf, avoiding
+ * the intermediate `new Date()` parse + 7 getter calls in getTZDateFromString.
+ *
+ * Handles both 2-digit and 4-digit years:
+ *   "02/22/17, 16:02:33:371"   (22 chars)
+ *   "01/12/2021, 13:05:05:353" (24 chars)
+ */
+function parseDesktopTimestamp(ts: string, tz?: string): number {
+  const month = parseInt(ts.substring(0, 2), 10) - 1;
+  const day = parseInt(ts.substring(3, 5), 10);
+  const commaIdx = ts.indexOf(',');
+  let year = parseInt(ts.substring(6, commaIdx), 10);
+  if (year < 100) year += 2000;
+  const t = commaIdx + 2;
+  const hour = parseInt(ts.substring(t, t + 2), 10);
+  const minute = parseInt(ts.substring(t + 3, t + 5), 10);
+  const second = parseInt(ts.substring(t + 6, t + 8), 10);
+  const ms = parseInt(ts.substring(t + 9, t + 12), 10);
+  return new TZDate(year, month, day, hour, minute, second, ms, tz).valueOf();
+}
+
+/**
+ * Parses an ISO-ish timestamp directly into a TZDate valueOf.
+ *
+ * Handles with and without milliseconds:
+ *   "2019-01-30 21:08:25"     (Squirrel)
+ *   "2019-01-08 08:29:56.504" (ShipIt)
+ */
+function parseISOTimestamp(ts: string, tz?: string): number {
+  const year = parseInt(ts.substring(0, 4), 10);
+  const month = parseInt(ts.substring(5, 7), 10) - 1;
+  const day = parseInt(ts.substring(8, 10), 10);
+  const hour = parseInt(ts.substring(11, 13), 10);
+  const minute = parseInt(ts.substring(14, 16), 10);
+  const second = parseInt(ts.substring(17, 19), 10);
+  const ms = ts.length > 19 ? parseInt(ts.substring(20, 23), 10) : 0;
+  return new TZDate(year, month, day, hour, minute, second, ms, tz).valueOf();
+}
 
 function isHtmlFile(file: UnzippedFile) {
   return file.fullPath.endsWith('.html');
@@ -293,7 +332,7 @@ export function matchLineWebApp(
   // Expected format: MM/DD/YY, HH:mm:ss:SSS'
   if (results && results.length === 4) {
     const dateString = results[1].replace(', 24:', ', 00:');
-    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
+    const momentValue = parseDesktopTimestamp(dateString, userTZ);
     let message = results[3];
 
     // If we have two timestamps, cut that from the message
@@ -360,8 +399,7 @@ export function matchLineSquirrel(
   const results = SQUIRREL_RGX.exec(line);
 
   if (results && results.length === 3) {
-    const dateString = results[1];
-    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
+    const momentValue = parseISOTimestamp(results[1], userTZ);
 
     return {
       timestamp: results[1],
@@ -390,8 +428,7 @@ export function matchLineShipItMac(
 
   if (results && results.length === 3) {
     // Expected format: 2019-01-08 08:29:56.504
-    const dateString = results[1];
-    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
+    const momentValue = parseISOTimestamp(results[1], userTZ);
     let message = results[2];
 
     // Handle a meta entry
@@ -433,7 +470,7 @@ export function matchLineElectron(
 
   if (results && results.length === 4) {
     const dateString = results[1].replace(', 24:', ', 00:');
-    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
+    const momentValue = parseDesktopTimestamp(dateString, userTZ);
 
     return {
       timestamp: results[1],
