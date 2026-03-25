@@ -68,7 +68,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
       const newProcessedLogFiles: ProcessedLogFiles = { ...current };
 
       for (const [type, filesOfType] of Object.entries(filesToAdd)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // oxlint-disable-next-line @typescript-eslint/no-explicit-any
         const currentState = current[
           type as keyof ProcessedLogFiles
         ] as Array<any>;

@@ -32,7 +32,7 @@ export const LogContent = observer((props: LogContentProps) => {
     selectedLogFile,
     levelFilter,
     search,
-    dateTimeFormat_v3: dateTimeFormat,
+    dateTimeFormat_v4: dateTimeFormat,
     font,
     showOnlySearchResults,
     searchIndex,

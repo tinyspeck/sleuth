@@ -107,7 +107,7 @@ function getFileType(
   return StateType.unknown;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export const StateTable = observer(({ state }: StateTableProps) => {
   const fileState = useMemo(() => {
     const { selectedLogFile } = state;

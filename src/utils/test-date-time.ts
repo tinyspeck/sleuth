@@ -13,7 +13,7 @@ export function testDateTimeFormat(input: string, fallback: string): string {
     format(Date.now(), input);
 
     return input;
-  } catch (error) {
+  } catch (_error) {
     return fallback;
   }
 }

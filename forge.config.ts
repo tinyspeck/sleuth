@@ -1,10 +1,9 @@
-import fs from 'fs-extra';
-import httpProxy from 'http-proxy';
-import http from 'node:http';
-import os from 'node:os';
 import path from 'node:path';
 
-import type { ForgeConfig } from '@electron-forge/shared-types';
+import type {
+  ForgeConfig,
+  ForgeMakeResult,
+} from '@electron-forge/shared-types';
 import { MakerDeb } from '@electron-forge/maker-deb';
 import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 import { MakerRpm } from '@electron-forge/maker-rpm';
@@ -14,50 +13,32 @@ import { PublisherGithub } from '@electron-forge/publisher-github';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 
 import { version } from './package.json';
-import { vendorSignTool } from './tools/vendor-signtool';
+import { signFileWithJsign } from './tools/sign-with-jsign';
 
 const iconDir = path.join(__dirname, 'public/img');
 
-let server: http.Server;
-const PORT = 37492;
-
 const options: ForgeConfig = {
   hooks: {
-    preMake: async () => {
+    postMake: async (
+      _forgeConfig: ForgeConfig,
+      makeResults: ForgeMakeResult[],
+    ) => {
+      // Sign Windows artifacts with AWS KMS using jsign
       if (process.platform === 'win32') {
-        // Use signtool.exe from the `node_modules` folder
-        await vendorSignTool();
-
-        let dir: string | undefined = undefined;
-        try {
-          const timestampProxiedProxy = httpProxy.createProxyServer({});
-
-          server = http.createServer((req, res) => {
-            return timestampProxiedProxy.web(req, res, {
-              target: 'http://timestamp.digicert.com',
-            });
-          });
-
-          await new Promise((resolve) => {
-            server.listen(PORT, () => {
-              resolve(null);
-            });
-            console.log(`server listening on port ${PORT}`);
-          });
-
-          dir = await fs.mkdtemp(
-            path.resolve(os.tmpdir(), 'slack-builder-folder-'),
-          );
-        } finally {
-          if (dir) await fs.remove(dir);
+        for (const result of makeResults) {
+          for (const artifact of result.artifacts) {
+            if (artifact.endsWith('.exe')) {
+              const signResult = await signFileWithJsign(artifact);
+              if (!signResult.success) {
+                throw new Error(
+                  `Failed to sign ${artifact}: ${signResult.error}`,
+                );
+              }
+            }
+          }
         }
       }
-    },
-    postMake: async () => {
-      if (process.platform === 'win32') {
-        server.close();
-        console.log(`server closing`);
-      }
+      return makeResults;
     },
   },
   packagerConfig: {
@@ -75,14 +56,6 @@ const options: ForgeConfig = {
   },
   makers: [
     new MakerSquirrel((arch) => {
-      const certThumbPrint = process.env.CERT_THUMBPRINT;
-      const intermediateCert = path.resolve(
-        __dirname,
-        'tools',
-        'certs',
-        'DigiCertCA2.cer',
-      );
-
       return {
         name: 'sleuth',
         authors: 'Slack Technologies, Inc.',
@@ -90,7 +63,7 @@ const options: ForgeConfig = {
         noMsi: true,
         setupExe: `sleuth-${version}-${arch}-setup.exe`,
         setupIcon: path.resolve(iconDir, 'sleuth-icon.ico'),
-        signWithParams: `/v /debug /a /sm /fd sha256 /sha1 ${certThumbPrint} /tr http://localhost:${PORT} /td sha256 /ac ${intermediateCert}`,
+        // Signing is handled in postMake hook using jsign with AWS KMS
       };
     }),
     new MakerZIP({}, ['darwin']),

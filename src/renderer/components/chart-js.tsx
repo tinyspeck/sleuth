@@ -15,9 +15,8 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
   const { data, type, options, plugins, getElementAtEvent } = props;
 
   const [getCanvas, setCanvas] = useRefReRender<HTMLCanvasElement>(null);
-  const [getChart, setChart] = useRefReRender<Chart | null>(
-    null,
-    (chart) => chart?.destroy(),
+  const [getChart, setChart] = useRefReRender<Chart | null>(null, (chart) =>
+    chart?.destroy(),
   );
 
   useEffect(() => {
@@ -30,7 +29,7 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
       plugins,
     });
     setChart(chart);
-  }, []);
+  }, [plugins, getCanvas, type, setChart, options, data]);
 
   useEffect(() => {
     const chart = getChart();
@@ -50,7 +49,7 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
       }
     }
     chart.update('none');
-  }, [data]);
+  }, [data, getChart]);
 
   const onClick = useCallback(
     (e) => {
@@ -67,7 +66,7 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
         );
       }
     },
-    [getElementAtEvent],
+    [getChart, getElementAtEvent],
   );
   return <canvas ref={setCanvas} role="img" onClick={onClick} />;
 });

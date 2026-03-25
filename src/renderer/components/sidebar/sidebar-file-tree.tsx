@@ -188,7 +188,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       setExpandedKeys(visibleNodes.map((node) => node.key as Key));
     }
     fetchTree();
-  }, []);
+  }, [props.state.processedLogFiles]);
 
   const onSelect = useCallback(
     (selectedKeys: string[]) => {

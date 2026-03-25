@@ -1,0 +1,33 @@
+diff --git a/package.json b/package.json
+index 22b38ff2cd142b65e5b88a58f08a102a47e583d2..1142833ace77b238475490c9ba5af1faae70ef89 100644
+--- a/package.json
++++ b/package.json
+@@ -10,11 +10,16 @@
+   },
+   "author": "caoxiemeihao",
+   "license": "MIT",
+-  "exports": "./dist/VitePlugin.js",
+-  "typings": "dist/VitePlugin.d.ts",
++  "exports": {
++    ".": {
++      "types": "./dist/VitePlugin.d.ts",
++      "default": "./dist/VitePlugin.js"
++    },
++    "./forge-vite-env": "./forge-vite-env.d.ts"
++  },
+   "dependencies": {
+-    "@electron-forge/plugin-base": "8.0.0-alpha.6",
+-    "@electron-forge/shared-types": "8.0.0-alpha.6",
++    "@electron-forge/plugin-base": "workspace:*",
++    "@electron-forge/shared-types": "workspace:*",
+     "chalk": "^4.0.0",
+     "debug": "^4.3.1",
+     "fs-extra": "^10.0.0",
+@@ -39,6 +44,5 @@
+     "dist",
+     "src",
+     "forge-vite-env.d.ts"
+-  ],
+-  "gitHead": "5663b5277a9be2506f2b605be5f4cc1143a4b670"
++  ]
+ }

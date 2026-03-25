@@ -1,4 +1,11 @@
-import { observable, action, autorun, computed, toJS, reaction } from 'mobx';
+import {
+  observable,
+  action,
+  autorun,
+  computed,
+  toJS,
+  makeObservable,
+} from 'mobx';
 import debug from 'debug';
 
 import { testDateTimeFormat } from '../../utils/test-date-time';
@@ -106,12 +113,12 @@ export class SleuthState {
     'isOpenMostRecent',
     { parse: true, fallback: false },
   );
-  @observable public dateTimeFormat_v3: string = testDateTimeFormat(
-    this.retrieve<string>('dateTimeFormat_v3', {
+  @observable public dateTimeFormat_v4: string = testDateTimeFormat(
+    this.retrieve<string>('dateTimeFormat_v4', {
       parse: false,
-      fallback: 'HH:mm:ss (dd/MM)',
+      fallback: 'yyyy-MM-dd HH:mm:ss',
     }),
-    'HH:mm:ss (dd/MM)',
+    'yyyy-MM-dd HH:mm:ss',
   );
   @observable public font: string = this.retrieve<string>('font', {
     parse: false,
@@ -147,13 +154,15 @@ export class SleuthState {
     public readonly openFile: (file: string) => void,
     public readonly resetApp: () => void,
   ) {
+    makeObservable(this);
+
     this.getSuggestions();
     window.Sleuth.setupDarkModeUpdate((prefersDarkColors) => {
       this.prefersDarkColors = prefersDarkColors;
     });
 
     // Setup autoruns
-    autorun(() => this.save('dateTimeFormat_v3', this.dateTimeFormat_v3));
+    autorun(() => this.save('dateTimeFormat_v4', this.dateTimeFormat_v4));
     autorun(() => this.save('font', this.font));
     autorun(() => this.save('isOpenMostRecent', this.isOpenMostRecent));
     autorun(() => this.save('isSmartCopy', this.isSmartCopy));
