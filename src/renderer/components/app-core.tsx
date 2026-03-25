@@ -83,25 +83,25 @@ export class CoreApplication extends React.Component<
    * and add them to the state of this component.
    */
   private addFilesToState(filesToAdd: Partial<ProcessedLogFiles>) {
-    const { processedLogFiles } = this.state;
+    this.setState((prevState) => {
+      const { processedLogFiles } = prevState;
 
-    if (!processedLogFiles) {
-      return;
-    }
+      if (!processedLogFiles) {
+        return null;
+      }
 
-    const newProcessedLogFiles: ProcessedLogFiles = { ...processedLogFiles };
+      const newProcessedLogFiles: ProcessedLogFiles = { ...processedLogFiles };
 
-    for (const [type, filesOfType] of Object.entries(filesToAdd)) {
-      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-      const currentState = processedLogFiles[
-        type as keyof ProcessedLogFiles
-      ] as Array<any>;
-      newProcessedLogFiles[type as keyof ProcessedLogFiles] =
-        currentState.concat(filesOfType);
-    }
+      for (const [type, filesOfType] of Object.entries(filesToAdd)) {
+        // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+        const currentState = processedLogFiles[
+          type as keyof ProcessedLogFiles
+        ] as Array<any>;
+        newProcessedLogFiles[type as keyof ProcessedLogFiles] =
+          currentState.concat(filesOfType);
+      }
 
-    this.setState({
-      processedLogFiles: newProcessedLogFiles,
+      return { processedLogFiles: newProcessedLogFiles };
     });
   }
 
@@ -154,8 +154,9 @@ export class CoreApplication extends React.Component<
       d(`Processing logs with user timezone: ${userTZ}`);
     }
 
-    // process all log types in parallel
-    await Promise.all(
+    // process all log types in parallel — use allSettled so one failure
+    // doesn't prevent the remaining types from loading
+    const results = await Promise.allSettled(
       LOG_TYPES_TO_PROCESS.map(async (type) => {
         const preFiles = sortedUnzippedFiles[type];
         const files = await processLogFiles(
@@ -184,6 +185,16 @@ export class CoreApplication extends React.Component<
         }
       }),
     );
+
+    for (let i = 0; i < results.length; i++) {
+      if (results[i].status === 'rejected') {
+        const type = LOG_TYPES_TO_PROCESS[i];
+        d(
+          `Failed to process ${type} log files:`,
+          (results[i] as PromiseRejectedResult).reason,
+        );
+      }
+    }
     console.timeEnd('process-files');
 
     const { processedLogFiles } = this.state;
