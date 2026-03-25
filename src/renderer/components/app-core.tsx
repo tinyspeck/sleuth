@@ -154,36 +154,36 @@ export class CoreApplication extends React.Component<
       d(`Processing logs with user timezone: ${userTZ}`);
     }
 
-    // process log files second
-    for (const type of LOG_TYPES_TO_PROCESS) {
-      const preFiles = sortedUnzippedFiles[type];
-      const files = await processLogFiles(
-        preFiles,
-        userTZ,
-        (loadingMessage) => {
-          this.setState({ loadingMessage });
-        },
-      );
-      const delta: Partial<ProcessedLogFiles> = {};
+    // process all log types in parallel
+    await Promise.all(
+      LOG_TYPES_TO_PROCESS.map(async (type) => {
+        const preFiles = sortedUnzippedFiles[type];
+        const files = await processLogFiles(
+          preFiles,
+          userTZ,
+          (loadingMessage) => {
+            this.setState({ loadingMessage });
+          },
+        );
 
-      delta[type] = files as ProcessedLogFile[];
-      this.addFilesToState(delta);
+        this.addFilesToState({ [type]: files as ProcessedLogFile[] });
 
-      // ShipItState.plist is a JSON file that should be read as state
-      if (type === LogType.INSTALLER) {
-        for (const file of files) {
-          if (
-            'fullPath' in file &&
-            file.fileName.toLowerCase() === 'shipitstate.plist'
-          ) {
-            const content = await window.Sleuth.readStateFile(file);
-            if (content) {
-              this.props.state.stateFiles[file.fileName] = content;
+        // ShipItState.plist is a JSON file that should be read as state
+        if (type === LogType.INSTALLER) {
+          for (const file of files) {
+            if (
+              'fullPath' in file &&
+              file.fileName.toLowerCase() === 'shipitstate.plist'
+            ) {
+              const content = await window.Sleuth.readStateFile(file);
+              if (content) {
+                this.props.state.stateFiles[file.fileName] = content;
+              }
             }
           }
         }
-      }
-    }
+      }),
+    );
     console.timeEnd('process-files');
 
     const { processedLogFiles } = this.state;
