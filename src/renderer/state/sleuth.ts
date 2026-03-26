@@ -9,7 +9,7 @@ import {
 import debug from 'debug';
 
 import { testDateTimeFormat } from '../../utils/test-date-time';
-import { SORT_DIRECTION } from '../components/log-table-constants';
+import { SortDirection, SortDirectionType } from 'react-virtualized';
 import { setSetting } from '../settings';
 import { isProcessedLogFile } from '../../utils/is-logfile';
 import { getFileName } from '../../utils/get-file-name';
@@ -129,10 +129,10 @@ export class SleuthState {
     'defaultEditor',
     { parse: true, fallback: EDITORS[0] },
   );
-  @observable public defaultSort: SORT_DIRECTION =
-    this.retrieve<SORT_DIRECTION>('defaultSort', {
+  @observable public defaultSort: SortDirectionType =
+    this.retrieve<SortDirectionType>('defaultSort', {
       parse: false,
-      fallback: SORT_DIRECTION.DESC,
+      fallback: SortDirection.DESC,
     });
   @observable public isMarkIcon = !!this.retrieve<boolean>('isMarkIcon', {
     parse: true,
