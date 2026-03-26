@@ -16,6 +16,8 @@ import {
   RowMouseEventHandlerParams,
   Size,
   TableProps,
+  SortDirection,
+  SortDirectionType,
 } from 'react-virtualized';
 import debug from 'debug';
 
@@ -29,17 +31,13 @@ import {
   LogFile,
 } from '../../interfaces';
 import { isReduxAction } from '../../utils/is-redux-action';
-import {
-  LogTableProps,
-  SORT_DIRECTION,
-  SortFilterListOptions,
-} from './log-table-constants';
+import { LogTableProps, SortFilterListOptions } from './log-table-constants';
 import { isMergedLogFile } from '../../utils/is-logfile';
 import { getRegExpMaybeSafe } from '../../utils/regexp';
 import { between } from '../../utils/is-between';
 import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
-import { reaction, toJS } from 'mobx';
+import { reaction, runInAction, toJS } from 'mobx';
 import { Tag } from 'antd';
 import { observer } from 'mobx-react';
 import { getCopyText } from '../state/copy';
@@ -75,8 +73,8 @@ export const LogTable = observer((props: LogTableProps) => {
 
   const tableRef = useRef<Table>(null);
   const [sortBy, setSortBy] = useState<string>('index');
-  const [sortDirection, setSortDirection] = useState<SORT_DIRECTION>(
-    state.defaultSort || SORT_DIRECTION.DESC,
+  const [sortDirection, setSortDirection] = useState<SortDirectionType>(
+    state.defaultSort || SortDirection.DESC,
   );
   const [ignoreSearchIndex, setIgnoreSearchIndex] = useState(false);
   const scrollToSelectionRef = useRef(false);
@@ -98,87 +96,6 @@ export const LogTable = observer((props: LogTableProps) => {
     return -1;
   }
 
-  function shouldFilter(filter?: LevelFilter): boolean {
-    const filterOrDefault = filter || levelFilter;
-
-    if (!filterOrDefault) return false;
-    const allEnabled = Object.keys(filterOrDefault).every(
-      (k: keyof LevelFilter) => filterOrDefault[k],
-    );
-    const allDisabled = Object.keys(filterOrDefault).every(
-      (k: keyof LevelFilter) => !filterOrDefault[k],
-    );
-
-    return !(allEnabled || allDisabled);
-  }
-
-  function doSearch(
-    list: Array<LogEntry>,
-    searchOptions: SortFilterListOptions,
-  ): [Array<LogEntry>, Array<number>] {
-    if (searchOptions.search?.length === 0) {
-      return [list, []];
-    }
-
-    const searchParams = searchOptions.search?.split(' ') ?? [];
-    let searchRegex = getRegExpMaybeSafe(searchOptions.search);
-
-    function _match(a: LogEntry) {
-      return !searchRegex || searchRegex.test(a.message);
-    }
-    function _exclude(a: LogEntry) {
-      return !searchRegex || !searchRegex.test(a.message);
-    }
-
-    let rowsToDisplay = list;
-    let foundIndices: Array<number> = [];
-
-    if (searchOptions.showOnlySearchResults) {
-      searchParams.forEach((param) => {
-        if (param.startsWith('!') && param.length > 1) {
-          d(`Filter-Excluding ${param.slice(1)}`);
-          searchRegex = new RegExp(param.slice(1) || '', 'i');
-          rowsToDisplay = rowsToDisplay.filter(_exclude);
-        } else {
-          d(`Filter-Searching for ${param}`);
-          rowsToDisplay = list.filter(_match);
-        }
-      });
-      foundIndices = Array.from(rowsToDisplay.keys());
-    } else {
-      foundIndices = Array.from(Array(list.length).keys());
-      searchParams.forEach((param) => {
-        if (param.startsWith('!') && param.length > 1) {
-          d(`Filter-Excluding ${param.slice(1)}`);
-          searchRegex = new RegExp(param.slice(1) || '', 'i');
-          foundIndices = foundIndices.filter((idx) => _exclude(list[idx]));
-        } else {
-          d(`Filter-Searching for ${param}`);
-          foundIndices = foundIndices.filter((idx) => _match(list[idx]));
-        }
-      });
-    }
-
-    return [rowsToDisplay, foundIndices];
-  }
-
-  function doRangeFilter(
-    { from, to }: DateRange,
-    list: Array<LogEntry>,
-  ): Array<LogEntry> {
-    if (!from && !to) return list;
-
-    const fromTs = from ? from.getTime() : null;
-    const toTs = to ? to.getTime() : null;
-
-    return list.filter((e) => {
-      const ts = e.momentValue || 0;
-      if (fromTs && ts < fromTs) return false;
-      if (toTs && ts > toTs) return false;
-      return true;
-    });
-  }
-
   // Auto-switch to momentValue sort for merged log files
   const effectiveSortBy =
     isMergedLogFile(logFile) && sortBy === 'index' ? 'momentValue' : sortBy;
@@ -187,99 +104,199 @@ export const LogTable = observer((props: LogTableProps) => {
    * Sorts the list and filters it by log level and search query.
    * Computed synchronously during render via useMemo to avoid extra render cycles.
    */
-  function sortAndFilterList(options: SortFilterListOptions = {}): {
-    list: Array<LogEntry>;
-    newSearchList: Array<number> | null;
-  } {
-    const file = options.logFile || logFile;
-    const filter = options.filter || levelFilter;
-    const searchText = options.search !== undefined ? options.search : search;
-    const sortByKey = options.sortBy || effectiveSortBy;
-    const range = options.dateRange || dateRange;
-    const sortDir = options.sortDirection || sortDirection;
-    const showOnlyResults =
-      options.showOnlySearchResults ?? showOnlySearchResults;
+  const sortAndFilterList = useCallback(
+    (
+      options: SortFilterListOptions = {},
+    ): {
+      list: Array<LogEntry>;
+      newSearchList: Array<number> | null;
+    } => {
+      function shouldFilter(filter?: LevelFilter): boolean {
+        const filterOrDefault = filter ?? levelFilter;
 
-    const derivedOptions: SortFilterListOptions = {
-      logFile: file,
-      filter,
-      search: searchText,
-      sortBy: sortByKey,
-      dateRange: range,
-      sortDirection: sortDir,
-      showOnlySearchResults: showOnlyResults,
-    };
+        if (!filterOrDefault) return false;
+        const allEnabled =
+          filterOrDefault.debug === true &&
+          filterOrDefault.info === true &&
+          filterOrDefault.warn === true &&
+          filterOrDefault.error === true;
+        const allDisabled =
+          filterOrDefault.debug === false &&
+          filterOrDefault.info === false &&
+          filterOrDefault.warn === false &&
+          filterOrDefault.error === false;
 
-    d(`Starting filter`);
-    if (!file) return { list: [], newSearchList: null };
+        return !(allEnabled || allDisabled);
+      }
 
-    const shouldDoFilter = shouldFilter(filter);
-    const noSort =
-      (!sortByKey || sortByKey === 'index') &&
-      (!sortDir || sortDir === SORT_DIRECTION.ASC);
+      function doSearch(
+        list: Array<LogEntry>,
+        searchOptions: SortFilterListOptions,
+      ): [Array<LogEntry>, Array<number>] {
+        if (searchOptions.search?.length === 0) {
+          return [list, []];
+        }
 
-    // Check if we can bail early and just use the naked logEntries array
-    if (noSort && !shouldDoFilter && !searchText)
-      return { list: file.logEntries, newSearchList: null };
+        const searchParams = searchOptions.search?.split(' ') ?? [];
+        let searchRegex = getRegExpMaybeSafe(searchOptions.search);
 
-    let list = file.logEntries.concat();
+        function _match(a: LogEntry) {
+          return !searchRegex || searchRegex.test(a.message);
+        }
+        function _exclude(a: LogEntry) {
+          return !searchRegex || !searchRegex.test(a.message);
+        }
 
-    // Named definition here allows V8 to go craaaaaazy, speed-wise.
-    function doSortByMessage(a: LogEntry, b: LogEntry) {
-      return a.message.localeCompare(b.message);
-    }
-    function doSortByLevel(a: LogEntry, b: LogEntry) {
-      return a.level.localeCompare(b.level);
-    }
-    function doSortByLine(a: LogEntry, b: LogEntry) {
-      return a.line > b.line ? 1 : -1;
-    }
-    function doSortByTimestamp(a: LogEntry, b: LogEntry) {
-      if (a.momentValue === b.momentValue) return 0;
-      return (a.momentValue || 0) > (b.momentValue || 0) ? 1 : -1;
-    }
-    function doFilter(a: LogEntry) {
-      return a.level && filter[a.level];
-    }
+        let rowsToDisplay = list;
+        let foundIndices: Array<number> = [];
 
-    // Filter
-    if (shouldDoFilter) {
-      list = list.filter(doFilter);
-    }
+        if (searchOptions.showOnlySearchResults) {
+          searchParams.forEach((param) => {
+            if (param.startsWith('!') && param.length > 1) {
+              d(`Filter-Excluding ${param.slice(1)}`);
+              searchRegex = new RegExp(param.slice(1) || '', 'i');
+              rowsToDisplay = rowsToDisplay.filter(_exclude);
+            } else {
+              d(`Filter-Searching for ${param}`);
+              rowsToDisplay = list.filter(_match);
+            }
+          });
+          foundIndices = Array.from(rowsToDisplay.keys());
+        } else {
+          foundIndices = Array.from(Array(list.length).keys());
+          searchParams.forEach((param) => {
+            if (param.startsWith('!') && param.length > 1) {
+              d(`Filter-Excluding ${param.slice(1)}`);
+              searchRegex = new RegExp(param.slice(1) || '', 'i');
+              foundIndices = foundIndices.filter((idx) => _exclude(list[idx]));
+            } else {
+              d(`Filter-Searching for ${param}`);
+              foundIndices = foundIndices.filter((idx) => _match(list[idx]));
+            }
+          });
+        }
 
-    // DateRange
-    if (range) {
-      d(`Performing date range filter (from: ${range.from}, to: ${range.to})`);
-      list = doRangeFilter(range, list);
-    }
+        return [rowsToDisplay, foundIndices];
+      }
 
-    // Sort
-    d(`Sorting by ${sortByKey}`);
-    if (sortByKey === 'message') {
-      list = list.sort(doSortByMessage);
-    } else if (sortByKey === 'level') {
-      list = list.sort(doSortByLevel);
-    } else if (sortByKey === 'line') {
-      list = list.sort(doSortByLine);
-    } else if (sortByKey === 'momentValue') {
-      list = list.sort(doSortByTimestamp);
-    }
+      function doRangeFilter(
+        { from, to }: DateRange,
+        list: Array<LogEntry>,
+      ): Array<LogEntry> {
+        if (!from && !to) return list;
 
-    if (sortDir === SORT_DIRECTION.DESC) {
-      d('Reversing');
-      list.reverse();
-    }
+        const fromTs = from ? from.getTime() : null;
+        const toTs = to ? to.getTime() : null;
 
-    // Search
-    if (typeof searchText === 'string') {
-      const [rowsToDisplay, searchResults] = doSearch(list, derivedOptions);
+        return list.filter((e) => {
+          const ts = e.momentValue || 0;
+          if (fromTs && ts < fromTs) return false;
+          if (toTs && ts > toTs) return false;
+          return true;
+        });
+      }
 
-      list = rowsToDisplay;
-      return { list, newSearchList: searchResults };
-    }
+      const file = options.logFile || logFile;
+      const filter = options.filter || levelFilter;
+      const searchText = options.search !== undefined ? options.search : search;
+      const sortByKey = options.sortBy || effectiveSortBy;
+      const range = options.dateRange || dateRange;
+      const sortDir = options.sortDirection || sortDirection;
+      const showOnlyResults =
+        options.showOnlySearchResults ?? showOnlySearchResults;
 
-    return { list, newSearchList: null };
-  }
+      const derivedOptions: SortFilterListOptions = {
+        logFile: file,
+        filter,
+        search: searchText,
+        sortBy: sortByKey,
+        dateRange: range,
+        sortDirection: sortDir,
+        showOnlySearchResults: showOnlyResults,
+      };
+
+      d(`Starting filter`);
+      if (!file) return { list: [], newSearchList: null };
+
+      const shouldDoFilter = shouldFilter(filter);
+      const noSort =
+        (!sortByKey || sortByKey === 'index') &&
+        (!sortDir || sortDir === SortDirection.ASC);
+
+      // Check if we can bail early and just use the naked logEntries array
+      if (noSort && !shouldDoFilter && !searchText)
+        return { list: file.logEntries, newSearchList: null };
+
+      let list = file.logEntries.concat();
+
+      // Named definition here allows V8 to go craaaaaazy, speed-wise.
+      function doSortByMessage(a: LogEntry, b: LogEntry) {
+        return a.message.localeCompare(b.message);
+      }
+      function doSortByLevel(a: LogEntry, b: LogEntry) {
+        return a.level.localeCompare(b.level);
+      }
+      function doSortByLine(a: LogEntry, b: LogEntry) {
+        return a.line > b.line ? 1 : -1;
+      }
+      function doSortByTimestamp(a: LogEntry, b: LogEntry) {
+        if (a.momentValue === b.momentValue) return 0;
+        return (a.momentValue || 0) > (b.momentValue || 0) ? 1 : -1;
+      }
+      function doFilter(a: LogEntry) {
+        return a.level && filter[a.level];
+      }
+
+      // Filter
+      if (shouldDoFilter) {
+        list = list.filter(doFilter);
+      }
+
+      // DateRange
+      if (range) {
+        d(
+          `Performing date range filter (from: ${range.from}, to: ${range.to})`,
+        );
+        list = doRangeFilter(range, list);
+      }
+
+      // Sort
+      d(`Sorting by ${sortByKey}`);
+      if (sortByKey === 'message') {
+        list = list.sort(doSortByMessage);
+      } else if (sortByKey === 'level') {
+        list = list.sort(doSortByLevel);
+      } else if (sortByKey === 'line') {
+        list = list.sort(doSortByLine);
+      } else if (sortByKey === 'momentValue') {
+        list = list.sort(doSortByTimestamp);
+      }
+
+      if (sortDir === SortDirection.DESC) {
+        d('Reversing');
+        list.reverse();
+      }
+
+      // Search
+      if (typeof searchText === 'string') {
+        const [rowsToDisplay, searchResults] = doSearch(list, derivedOptions);
+
+        list = rowsToDisplay;
+        return { list, newSearchList: searchResults };
+      }
+
+      return { list, newSearchList: null };
+    },
+    [
+      logFile,
+      levelFilter,
+      search,
+      effectiveSortBy,
+      dateRange,
+      sortDirection,
+      showOnlySearchResults,
+    ],
+  );
 
   /**
    * sortedList is a derived value from props + sort state.
@@ -289,22 +306,15 @@ export const LogTable = observer((props: LogTableProps) => {
   const { sortedList, newSearchList } = useMemo(() => {
     const { list, newSearchList } = sortAndFilterList();
     return { sortedList: list, newSearchList };
-  }, [
-    logFile,
-    levelFilter,
-    search,
-    effectiveSortBy,
-    dateRange,
-    sortDirection,
-    showOnlySearchResults,
-    state,
-  ]);
+  }, [sortAndFilterList]);
 
   // Sync searchList to MobX state as a side effect (not inside useMemo)
   useEffect(() => {
-    if (newSearchList !== null) {
-      state.searchList = newSearchList;
-    }
+    runInAction(() => {
+      if (newSearchList !== null) {
+        state.searchList = newSearchList;
+      }
+    });
   }, [newSearchList, state]);
 
   /**
@@ -315,12 +325,14 @@ export const LogTable = observer((props: LogTableProps) => {
       const nextEntry = sortedList[newIndex] || null;
 
       if (nextEntry) {
-        state.selectedEntry = nextEntry;
-        state.selectedIndex = newIndex;
+        runInAction(() => {
+          state.selectedEntry = nextEntry;
+          state.selectedIndex = newIndex;
 
-        if (!state.isDetailsVisible) {
-          state.isDetailsVisible = true;
-        }
+          if (!state.isDetailsVisible) {
+            state.isDetailsVisible = true;
+          }
+        });
 
         setIgnoreSearchIndex(false);
         scrollToSelectionRef.current = true;
@@ -347,11 +359,13 @@ export const LogTable = observer((props: LogTableProps) => {
         changeSelection(selectedIdx);
       }
 
-      state.selectedRangeEntries = selectedRange;
-      state.selectedIndex = selectedIdx;
-      state.selectedEntry = sortedList[selectedIdx];
-      state.selectedRangeIndex = rangeIndex;
-      state.isDetailsVisible = true;
+      runInAction(() => {
+        state.selectedRangeEntries = selectedRange;
+        state.selectedIndex = selectedIdx;
+        state.selectedEntry = sortedList[selectedIdx];
+        state.selectedRangeIndex = rangeIndex;
+        state.isDetailsVisible = true;
+      });
 
       setIgnoreSearchIndex(true);
       scrollToSelectionRef.current = true;
@@ -431,7 +445,7 @@ export const LogTable = observer((props: LogTableProps) => {
       sortDirection: newSortDirection,
     }: {
       sortBy: string;
-      sortDirection: SORT_DIRECTION;
+      sortDirection: SortDirectionType;
     }) => {
       setSortBy(newSortBy);
       setSortDirection(newSortDirection);
@@ -701,10 +715,12 @@ export const LogTable = observer((props: LogTableProps) => {
 
   // Keep selectedIndex in sync with the current sortedList
   useEffect(() => {
-    state.selectedIndex = findIndexForSelectedEntry(
-      sortedList,
-      state.selectedEntry,
-    );
+    runInAction(() => {
+      state.selectedIndex = findIndexForSelectedEntry(
+        sortedList,
+        state.selectedEntry,
+      );
+    });
   }, [sortedList, state, state.selectedEntry]);
 
   // Scroll to selection when a bookmark is activated (selectedEntry prop changes)
@@ -716,7 +732,9 @@ export const LogTable = observer((props: LogTableProps) => {
 
   // Reset range selection when the file changes
   useEffect(() => {
-    state.selectedRangeIndex = undefined;
+    runInAction(() => {
+      state.selectedRangeIndex = undefined;
+    });
   }, [logFile, state]);
 
   // Reset ignoreSearchIndex when searchIndex prop changes

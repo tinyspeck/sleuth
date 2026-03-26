@@ -7,11 +7,6 @@ import {
 } from '../../interfaces';
 import { SleuthState } from '../state/sleuth';
 
-export enum SORT_DIRECTION {
-  ASC = 'ASC',
-  DESC = 'DESC',
-}
-
 export interface LogTableColumnWidths {
   index: number;
   line: number;
