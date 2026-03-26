@@ -160,12 +160,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
 
         props.state.processedLogFiles = currentProcessed;
 
-        if (!selectedLogFile && currentProcessed) {
-          props.state.selectedLogFile = getFirstLogFile(currentProcessed);
-        }
-        setLoadedLogFiles(true);
-
-        // We're done processing the files, so let's get started on the merge files.
+        // Merge log files before showing the UI
         const { setMergedFile } = props.state;
 
         if (currentProcessed) {
@@ -179,8 +174,14 @@ export const CoreApplication = observer((props: CoreAppProps) => {
           const merged = props.state.mergedLogFiles as MergedLogFiles;
           const toMerge = [merged.browser, merged.webapp];
 
-          mergeLogFiles(toMerge, LogType.ALL).then((r) => setMergedFile(r));
+          await mergeLogFiles(toMerge, LogType.ALL).then(setMergedFile);
+
+          props.state.selectLogFile(null, LogType.ALL);
+        } else if (!selectedLogFile && currentProcessed) {
+          props.state.selectedLogFile = getFirstLogFile(currentProcessed);
         }
+
+        setLoadedLogFiles(true);
 
         rehydrateBookmarks(props.state);
         flushLogPerformance();
