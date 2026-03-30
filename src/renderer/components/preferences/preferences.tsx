@@ -11,7 +11,7 @@ import {
   FONTS,
   getFontForCSS,
 } from './preferences-utils';
-import { SORT_DIRECTION } from '../log-table-constants';
+import { SortDirection } from 'react-virtualized';
 import {
   Alert,
   Checkbox,
@@ -158,8 +158,8 @@ export const Preferences = observer((props: PreferencesProps) => {
           <Radio.Group
             value={defaultSort}
             options={[
-              { value: SORT_DIRECTION.ASC, label: 'Ascending' },
-              { value: SORT_DIRECTION.DESC, label: 'Descending' },
+              { value: SortDirection.ASC, label: 'Ascending' },
+              { value: SortDirection.DESC, label: 'Descending' },
             ]}
             onChange={(event) => {
               props.state.defaultSort = event.target.value;

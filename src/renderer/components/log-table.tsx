@@ -1,9 +1,13 @@
-import React from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import classNames from 'classnames';
 import { format } from 'date-fns';
 import { TZDate } from '@date-fns/tz';
-import { default as keydown } from 'react-keydown';
-import autoBind from 'react-autobind';
 import {
   Table,
   AutoSizer,
@@ -12,6 +16,8 @@ import {
   RowMouseEventHandlerParams,
   Size,
   TableProps,
+  SortDirection,
+  SortDirectionType,
 } from 'react-virtualized';
 import debug from 'debug';
 
@@ -24,20 +30,14 @@ import {
   LogLineContextMenuActions,
   LogFile,
 } from '../../interfaces';
-import { didFilterChange } from '../../utils/did-filter-change';
 import { isReduxAction } from '../../utils/is-redux-action';
-import {
-  LogTableProps,
-  LogTableState,
-  SORT_DIRECTION,
-  SortFilterListOptions,
-} from './log-table-constants';
+import { LogTableProps, SortFilterListOptions } from './log-table-constants';
 import { isMergedLogFile } from '../../utils/is-logfile';
 import { getRegExpMaybeSafe } from '../../utils/regexp';
 import { between } from '../../utils/is-between';
 import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
-import { reaction, toJS } from 'mobx';
+import { reaction, runInAction, toJS } from 'mobx';
 import { Tag } from 'antd';
 import { observer } from 'mobx-react';
 import { getCopyText } from '../state/copy';
@@ -54,691 +54,594 @@ export const logColorMap: Record<ProcessableLogType, string> = {
 };
 
 /**
- * Welcome! This is the biggest class in this application - it's the table that displays logging
- * information. This is also the class that could most easily destroy performance, so be careful
+ * Welcome! This is the biggest component in this application - it's the table that displays logging
+ * information. This is also the component that could most easily destroy performance, so be careful
  * here!
  */
-@observer
-export class LogTable extends React.Component<LogTableProps, LogTableState> {
-  private tableRef = React.createRef<Table>();
+export const LogTable = observer((props: LogTableProps) => {
+  const {
+    levelFilter,
+    search,
+    logFile,
+    showOnlySearchResults,
+    searchIndex,
+    searchList,
+    dateRange,
+    selectedEntry,
+    state,
+  } = props;
 
-  constructor(props: LogTableProps) {
-    super(props);
+  const tableRef = useRef<Table>(null);
+  const [sortBy, setSortBy] = useState<string>('index');
+  const [sortDirection, setSortDirection] = useState<SortDirectionType>(
+    state.defaultSort || SortDirection.DESC,
+  );
+  const [ignoreSearchIndex, setIgnoreSearchIndex] = useState(false);
+  const scrollToSelectionRef = useRef(false);
+  const userTZRef = useRef(
+    state.stateFiles['log-context.json']?.data?.systemTZ,
+  );
+  const userTZ = userTZRef.current;
 
-    this.state = {
-      sortedList: [],
-      sortBy: 'index',
-      sortDirection: props.state.defaultSort || SORT_DIRECTION.DESC,
-      ignoreSearchIndex: false,
-      userTZ: props.state.stateFiles['log-context.json']?.data?.systemTZ,
-    };
-
-    autoBind(this);
-    this.selectSearchIndex();
-    this.setupTimezoneReaction();
-  }
-
-  /**
-   * If we update the `searchIndex` variable by any means, we should
-   * select the appropriate searchIndex.
-   */
-  private selectSearchIndex() {
-    reaction(
-      () => this.props.state.searchIndex,
-      (searchIndex) => {
-        this.props.state.selectedIndex =
-          this.props.state.searchList[searchIndex];
-        this.props.state.selectedEntry =
-          this.state.sortedList[this.props.state.selectedIndex];
-      },
-    );
-  }
-
-  /**
-   * Sets up a reaction to force update the grid when timezone setting changes.
-   *
-   * @see https://github.com/bvaughn/react-virtualized/blob/master/docs/Table.md#forceupdategrid
-   */
-  private setupTimezoneReaction() {
-    reaction(
-      () => this.props.state.isUserTZ,
-      () => {
-        if (this.tableRef.current) {
-          this.tableRef.current.forceUpdateGrid();
-        }
-      },
-    );
-  }
-
-  public componentDidUpdate() {
-    if (
-      this.props.state.searchList.length > 0 &&
-      (typeof this.props.state.selectedIndex === 'undefined' ||
-        this.props.state.selectedIndex < 0)
-    ) {
-      this.changeSelection(this.props.state.searchList[0]);
-    }
-  }
-
-  /**
-   * React's componentWillReceiveProps
-   *
-   * @param {LogTableProps} nextProps
-   */
-  public UNSAFE_componentWillReceiveProps(nextProps: LogTableProps): void {
-    const {
-      levelFilter,
-      search,
-      logFile,
-      showOnlySearchResults,
-      searchIndex,
-      dateRange,
-    } = this.props;
-
-    // Next props
-    const nextShowOnlySearchResults = nextProps.showOnlySearchResults;
-    const nextFile = nextProps.logFile;
-    const nextLevelFilter = nextProps.levelFilter;
-    const nextSearch = nextProps.search;
-    const nextEntry = nextProps.selectedEntry;
-
-    // Filter or search changed
-    const entryChanged = nextEntry !== this.props.state.selectedEntry;
-    const filterChanged = didFilterChange(levelFilter, nextLevelFilter);
-    const searchChanged =
-      search !== nextProps.search ||
-      showOnlySearchResults !== nextShowOnlySearchResults;
-    const fileChanged =
-      (!logFile && nextFile) ||
-      (logFile &&
-        nextFile &&
-        logFile.logEntries.length !== nextFile.logEntries.length) ||
-      (logFile && nextFile && logFile.logType !== nextFile.logType);
-
-    // Date range changed
-    const rangeChanged = dateRange !== nextProps.dateRange;
-    const nextRange = nextProps.dateRange;
-
-    // This should only happen if a bookmark was activated
-    if (entryChanged) {
-      this.setState({
-        scrollToSelection: true,
-      });
-    }
-
-    if (
-      filterChanged ||
-      searchChanged ||
-      fileChanged ||
-      rangeChanged ||
-      entryChanged
-    ) {
-      const sortOptions: SortFilterListOptions = {
-        showOnlySearchResults: nextShowOnlySearchResults,
-        filter: nextLevelFilter,
-        search: nextSearch,
-        logFile: nextFile,
-        dateRange: nextRange,
-      };
-      const sortedList = this.sortAndFilterList(sortOptions);
-
-      // Get correct selected index
-      this.props.state.selectedIndex =
-        this.findIndexForSelectedEntry(sortedList);
-
-      this.setState({
-        sortedList,
-      });
-    }
-
-    if (fileChanged) {
-      this.setState({ selectedRangeIndex: undefined });
-    }
-
-    if (isMergedLogFile(nextFile) && this.state.sortBy === 'index') {
-      this.setState({ sortBy: 'momentValue' });
-    }
-
-    if (searchIndex !== nextProps.searchIndex) {
-      this.setState({ ignoreSearchIndex: false });
-    }
-  }
-
-  /**
-   * React's componentDidMount
-   */
-  public componentDidMount() {
-    const sortedList = this.sortAndFilterList();
-    const { selectedEntry } = this.props.state;
-    const update: Pick<LogTableState, 'sortedList' | 'scrollToSelection'> = {
-      sortedList,
-    };
-
-    if (selectedEntry) {
-      update.scrollToSelection = true;
-    }
-
-    this.setState(update);
-  }
-
-  /**
-   * Enables keyboard navigation of the table
-   */
-  @keydown('down', 'up')
-  public onKeyboardNavigate(e: React.KeyboardEvent) {
-    e.preventDefault();
-    this.incrementSelection(e.key === 'ArrowDown' ? 1 : -1);
-  }
-
-  public render(): JSX.Element | null {
-    const { logFile } = this.props;
-
-    const typeClassName =
-      logFile.type === 'MergedLogFile' ? 'Merged' : 'Single';
-    const className = classNames('LogTable', typeClassName);
-
-    return (
-      <div className={className}>
-        <div className="Sizer">
-          <AutoSizer>{(options) => this.renderTable(options)}</AutoSizer>
-        </div>
-      </div>
-    );
-  }
-
-  private findIndexForSelectedEntry(
-    sortedList: Array<LogEntry> | undefined,
+  function findIndexForSelectedEntry(
+    list: Array<LogEntry> | undefined,
+    entry: LogEntry | undefined,
   ): number {
-    const { selectedEntry } = this.props.state;
-
-    if (selectedEntry && sortedList) {
-      const foundIndex = sortedList.findIndex((v) => {
-        return (
-          v.line === selectedEntry.line &&
-          v.momentValue === selectedEntry.momentValue
-        );
+    if (entry && list) {
+      return list.findIndex((v) => {
+        return v.line === entry.line && v.momentValue === entry.momentValue;
       });
-
-      return foundIndex;
     }
 
     return -1;
   }
 
+  // Auto-switch to momentValue sort for merged log files
+  const effectiveSortBy =
+    isMergedLogFile(logFile) && sortBy === 'index' ? 'momentValue' : sortBy;
+
+  /**
+   * Sorts the list and filters it by log level and search query.
+   * Computed synchronously during render via useMemo to avoid extra render cycles.
+   */
+  const sortAndFilterList = useCallback(
+    (
+      options: SortFilterListOptions = {},
+    ): {
+      list: Array<LogEntry>;
+      newSearchList: Array<number> | null;
+    } => {
+      function shouldFilter(filter?: LevelFilter): boolean {
+        const filterOrDefault = filter ?? levelFilter;
+
+        if (!filterOrDefault) return false;
+        const allEnabled =
+          filterOrDefault.debug === true &&
+          filterOrDefault.info === true &&
+          filterOrDefault.warn === true &&
+          filterOrDefault.error === true;
+        const allDisabled =
+          filterOrDefault.debug === false &&
+          filterOrDefault.info === false &&
+          filterOrDefault.warn === false &&
+          filterOrDefault.error === false;
+
+        return !(allEnabled || allDisabled);
+      }
+
+      function doSearch(
+        list: Array<LogEntry>,
+        searchOptions: SortFilterListOptions,
+      ): [Array<LogEntry>, Array<number>] {
+        if (searchOptions.search?.length === 0) {
+          return [list, []];
+        }
+
+        const searchParams = searchOptions.search?.split(' ') ?? [];
+        let searchRegex = getRegExpMaybeSafe(searchOptions.search);
+
+        function _match(a: LogEntry) {
+          return !searchRegex || searchRegex.test(a.message);
+        }
+        function _exclude(a: LogEntry) {
+          return !searchRegex || !searchRegex.test(a.message);
+        }
+
+        let rowsToDisplay = list;
+        let foundIndices: Array<number> = [];
+
+        if (searchOptions.showOnlySearchResults) {
+          searchParams.forEach((param) => {
+            if (param.startsWith('!') && param.length > 1) {
+              d(`Filter-Excluding ${param.slice(1)}`);
+              searchRegex = new RegExp(param.slice(1) || '', 'i');
+              rowsToDisplay = rowsToDisplay.filter(_exclude);
+            } else {
+              d(`Filter-Searching for ${param}`);
+              rowsToDisplay = list.filter(_match);
+            }
+          });
+          foundIndices = Array.from(rowsToDisplay.keys());
+        } else {
+          foundIndices = Array.from(Array(list.length).keys());
+          searchParams.forEach((param) => {
+            if (param.startsWith('!') && param.length > 1) {
+              d(`Filter-Excluding ${param.slice(1)}`);
+              searchRegex = new RegExp(param.slice(1) || '', 'i');
+              foundIndices = foundIndices.filter((idx) => _exclude(list[idx]));
+            } else {
+              d(`Filter-Searching for ${param}`);
+              foundIndices = foundIndices.filter((idx) => _match(list[idx]));
+            }
+          });
+        }
+
+        return [rowsToDisplay, foundIndices];
+      }
+
+      function doRangeFilter(
+        { from, to }: DateRange,
+        list: Array<LogEntry>,
+      ): Array<LogEntry> {
+        if (!from && !to) return list;
+
+        const fromTs = from ? from.getTime() : null;
+        const toTs = to ? to.getTime() : null;
+
+        return list.filter((e) => {
+          const ts = e.momentValue || 0;
+          if (fromTs && ts < fromTs) return false;
+          if (toTs && ts > toTs) return false;
+          return true;
+        });
+      }
+
+      const file = options.logFile || logFile;
+      const filter = options.filter || levelFilter;
+      const searchText = options.search !== undefined ? options.search : search;
+      const sortByKey = options.sortBy || effectiveSortBy;
+      const range = options.dateRange || dateRange;
+      const sortDir = options.sortDirection || sortDirection;
+      const showOnlyResults =
+        options.showOnlySearchResults ?? showOnlySearchResults;
+
+      const derivedOptions: SortFilterListOptions = {
+        logFile: file,
+        filter,
+        search: searchText,
+        sortBy: sortByKey,
+        dateRange: range,
+        sortDirection: sortDir,
+        showOnlySearchResults: showOnlyResults,
+      };
+
+      d(`Starting filter`);
+      if (!file) return { list: [], newSearchList: null };
+
+      const shouldDoFilter = shouldFilter(filter);
+      const noSort =
+        (!sortByKey || sortByKey === 'index') &&
+        (!sortDir || sortDir === SortDirection.ASC);
+
+      // Check if we can bail early and just use the naked logEntries array
+      if (noSort && !shouldDoFilter && !searchText)
+        return { list: file.logEntries, newSearchList: null };
+
+      let list = file.logEntries.concat();
+
+      // Named definition here allows V8 to go craaaaaazy, speed-wise.
+      function doSortByMessage(a: LogEntry, b: LogEntry) {
+        return a.message.localeCompare(b.message);
+      }
+      function doSortByLevel(a: LogEntry, b: LogEntry) {
+        return a.level.localeCompare(b.level);
+      }
+      function doSortByLine(a: LogEntry, b: LogEntry) {
+        return a.line > b.line ? 1 : -1;
+      }
+      function doSortByTimestamp(a: LogEntry, b: LogEntry) {
+        if (a.momentValue === b.momentValue) return 0;
+        return (a.momentValue || 0) > (b.momentValue || 0) ? 1 : -1;
+      }
+      function doFilter(a: LogEntry) {
+        return a.level && filter[a.level];
+      }
+
+      // Filter
+      if (shouldDoFilter) {
+        list = list.filter(doFilter);
+      }
+
+      // DateRange
+      if (range) {
+        d(
+          `Performing date range filter (from: ${range.from}, to: ${range.to})`,
+        );
+        list = doRangeFilter(range, list);
+      }
+
+      // Sort
+      d(`Sorting by ${sortByKey}`);
+      if (sortByKey === 'message') {
+        list = list.sort(doSortByMessage);
+      } else if (sortByKey === 'level') {
+        list = list.sort(doSortByLevel);
+      } else if (sortByKey === 'line') {
+        list = list.sort(doSortByLine);
+      } else if (sortByKey === 'momentValue') {
+        list = list.sort(doSortByTimestamp);
+      }
+
+      if (sortDir === SortDirection.DESC) {
+        d('Reversing');
+        list.reverse();
+      }
+
+      // Search
+      if (typeof searchText === 'string') {
+        const [rowsToDisplay, searchResults] = doSearch(list, derivedOptions);
+
+        list = rowsToDisplay;
+        return { list, newSearchList: searchResults };
+      }
+
+      return { list, newSearchList: null };
+    },
+    [
+      logFile,
+      levelFilter,
+      search,
+      effectiveSortBy,
+      dateRange,
+      sortDirection,
+      showOnlySearchResults,
+    ],
+  );
+
+  /**
+   * sortedList is a derived value from props + sort state.
+   * Computing it synchronously in useMemo avoids the extra render cycle
+   * that useEffect + useState would cause.
+   */
+  const { sortedList, newSearchList } = useMemo(() => {
+    const { list, newSearchList } = sortAndFilterList();
+    return { sortedList: list, newSearchList };
+  }, [sortAndFilterList]);
+
+  // Sync searchList to MobX state as a side effect (not inside useMemo)
+  useEffect(() => {
+    runInAction(() => {
+      if (newSearchList !== null) {
+        state.searchList = newSearchList;
+      }
+    });
+  }, [newSearchList, state]);
+
+  /**
+   * Changes the current selection in the table to the target index
+   */
+  const changeSelection = useCallback(
+    (newIndex: number) => {
+      const nextEntry = sortedList[newIndex] || null;
+
+      if (nextEntry) {
+        runInAction(() => {
+          state.selectedEntry = nextEntry;
+          state.selectedIndex = newIndex;
+
+          if (!state.isDetailsVisible) {
+            state.isDetailsVisible = true;
+          }
+        });
+
+        setIgnoreSearchIndex(false);
+        scrollToSelectionRef.current = true;
+      }
+    },
+    [sortedList, state],
+  );
+
   /**
    * Handles a single click onto a row
    */
-  private onRowClick({ index, event }: RowMouseEventHandlerParams) {
-    const { sortedList } = this.state;
+  const onRowClick = useCallback(
+    ({ index, event }: RowMouseEventHandlerParams) => {
+      let selectedRange: Array<LogEntry> | undefined;
+      let selectedIdx: number;
+      let rangeIndex: number | undefined;
+      // If the user held shift and we have a previous index selected, we want to do a "from-to" selection
+      if (event.shiftKey && state.selectedIndex) {
+        selectedIdx = state.selectedIndex;
+        rangeIndex = index;
+        selectedRange = getRangeEntries(rangeIndex, selectedIdx, sortedList);
+      } else {
+        selectedIdx = index;
+        changeSelection(selectedIdx);
+      }
 
-    let selectedRange, selectedIndex, selectedRangeIndex;
-    // If the user held shift and we have a previous index selected, we want to do a "from-to" selection
-    if (event.shiftKey && this.props.state.selectedIndex) {
-      selectedIndex = this.props.state.selectedIndex;
-      selectedRangeIndex = index;
-      selectedRange = getRangeEntries(
-        selectedRangeIndex,
-        selectedIndex,
-        sortedList,
-      );
-    } else {
-      selectedIndex = index;
-      this.changeSelection(selectedIndex);
-    }
+      runInAction(() => {
+        state.selectedRangeEntries = selectedRange;
+        state.selectedIndex = selectedIdx;
+        state.selectedEntry = sortedList[selectedIdx];
+        state.selectedRangeIndex = rangeIndex;
+        state.isDetailsVisible = true;
+      });
 
-    this.props.state.selectedRangeEntries = selectedRange;
-    this.props.state.selectedIndex = selectedIndex;
-    this.props.state.selectedEntry = sortedList[selectedIndex];
-    this.props.state.selectedRangeIndex = selectedRangeIndex;
-    this.props.state.isDetailsVisible = true;
-
-    this.setState({
-      selectedRangeIndex,
-      ignoreSearchIndex: true,
-      scrollToSelection: true,
-    });
-  }
+      setIgnoreSearchIndex(true);
+      scrollToSelectionRef.current = true;
+    },
+    [sortedList, state, changeSelection],
+  );
 
   /**
    * Show a context menu for the individual log lines in the table
    */
-  private async onRowRightClick(params: RowMouseEventHandlerParams) {
-    const rowData: LogEntry = params.rowData;
-    // type assertion because this component should only appear when you have a LogFile showing
-    const logType = (this.props.state.selectedLogFile as LogFile).logType;
-    const response = await window.Sleuth.showLogLineContextMenu(logType);
+  const onRowRightClick = useCallback(
+    async (params: RowMouseEventHandlerParams) => {
+      try {
+        const rowData: LogEntry = params.rowData;
+        const selectedLogFile = state.selectedLogFile as LogFile | undefined;
+        if (!selectedLogFile) return;
 
-    switch (response) {
-      case LogLineContextMenuActions.COPY_TO_CLIPBOARD: {
-        let copyText = '';
-        if (this.props.state.selectedRangeEntries) {
-          for (const entry of this.props.state.selectedRangeEntries) {
-            copyText += getCopyText(entry) + '\n';
+        const logType = selectedLogFile.logType;
+        const response = await window.Sleuth.showLogLineContextMenu(logType);
+
+        switch (response) {
+          case LogLineContextMenuActions.COPY_TO_CLIPBOARD: {
+            let copyText = '';
+            if (state.selectedRangeEntries) {
+              for (const entry of state.selectedRangeEntries) {
+                copyText += getCopyText(entry) + '\n';
+              }
+            } else {
+              copyText = getCopyText(rowData);
+            }
+            window.Sleuth.clipboard.writeText(copyText);
+            break;
           }
-        } else {
-          copyText = getCopyText(rowData);
+          case LogLineContextMenuActions.OPEN_SOURCE: {
+            const { line, sourceFile } = rowData;
+            window.Sleuth.openLineInSource(line, sourceFile, {
+              defaultEditor: toJS(state.defaultEditor),
+            });
+            break;
+          }
+          case LogLineContextMenuActions.SHOW_IN_CONTEXT:
+            {
+              state.selectLogFile(null, LogType.ALL);
+              const matchingIndex = sortedList.findIndex(
+                (row) => row.momentValue === rowData.momentValue,
+              );
+              changeSelection(matchingIndex);
+            }
+            break;
         }
-        window.Sleuth.clipboard.writeText(copyText);
-        break;
+      } catch (error) {
+        d('Error in context menu handler:', error);
       }
-      case LogLineContextMenuActions.OPEN_SOURCE: {
-        const { line, sourceFile } = rowData;
-        window.Sleuth.openLineInSource(line, sourceFile, {
-          defaultEditor: toJS(this.props.state.defaultEditor),
-        });
-        break;
+    },
+    [state, sortedList, changeSelection],
+  );
+
+  const incrementSelection = useCallback(
+    (count: number) => {
+      const { selectedIndex } = state;
+
+      if (typeof selectedIndex === 'number') {
+        const nextIndex = selectedIndex + count;
+        changeSelection(nextIndex);
       }
-      case LogLineContextMenuActions.SHOW_IN_CONTEXT:
-        {
-          this.props.state.selectLogFile(null, LogType.ALL);
-          const matchingIndex = this.state.sortedList.findIndex(
-            (row) => row.momentValue === rowData.momentValue,
-          );
-          this.changeSelection(matchingIndex);
-        }
-        break;
-    }
-  }
+    },
+    [state, changeSelection],
+  );
 
   /**
    * Handles the change of sorting direction. This method is passed to the LogTableHeaderCell
    * components, who call it once the user changes sorting.
    */
-  private onSortChange({
-    sortBy,
-    sortDirection,
-  }: {
-    sortBy: string;
-    sortDirection: SORT_DIRECTION;
-  }) {
-    const currentState = this.state;
-    const newSort =
-      currentState.sortBy !== sortBy ||
-      currentState.sortDirection !== sortDirection;
-
-    if (newSort) {
-      const sortedList = this.sortAndFilterList({ sortBy, sortDirection });
-
-      // Get correct selected index
-      this.props.state.selectedIndex =
-        this.findIndexForSelectedEntry(sortedList);
-
-      this.setState({
-        sortBy,
-        sortDirection,
-        sortedList,
-      });
-    }
-  }
-
-  /**
-   * Changes the current selection in the table to the target index
-   *
-   * @param {number} newIndex
-   */
-  private changeSelection(newIndex: number) {
-    const nextIndex = newIndex;
-    const nextEntry = this.state.sortedList[nextIndex] || null;
-
-    if (nextEntry) {
-      this.props.state.selectedEntry = nextEntry;
-      this.props.state.selectedIndex = nextIndex;
-
-      if (!this.props.state.isDetailsVisible) {
-        this.props.state.isDetailsVisible = true;
-      }
-
-      this.setState({
-        ignoreSearchIndex: false,
-        scrollToSelection: true,
-      });
-    }
-  }
-
-  private incrementSelection(count: number) {
-    const { selectedIndex } = this.props.state;
-
-    if (typeof selectedIndex === 'number') {
-      const nextIndex = selectedIndex + count;
-      console.log({ nextIndex });
-      this.changeSelection(nextIndex);
-    }
-  }
-
-  /**
-   * Checks whether or not the table should filter
-   *
-   * @returns {boolean}
-   */
-  private shouldFilter(filter?: LevelFilter): boolean {
-    const filterOrDefault = filter || this.props.levelFilter;
-
-    if (!filterOrDefault) return false;
-    const allEnabled = Object.keys(filterOrDefault).every(
-      (k: keyof LevelFilter) => filterOrDefault[k],
-    );
-    const allDisabled = Object.keys(filterOrDefault).every(
-      (k: keyof LevelFilter) => !filterOrDefault[k],
-    );
-
-    return !(allEnabled || allDisabled);
-  }
-
-  /**
-   * Performs a search operation
-   */
-  private doSearch(
-    list: Array<LogEntry>,
-    searchOptions: SortFilterListOptions,
-  ): [Array<LogEntry>, Array<number>] {
-    if (searchOptions.search?.length === 0) {
-      return [list, []];
-    }
-
-    const searchParams = searchOptions.search?.split(' ') ?? [];
-    let searchRegex = getRegExpMaybeSafe(searchOptions.search);
-
-    function _match(a: LogEntry) {
-      return !searchRegex || searchRegex.test(a.message);
-    }
-    function _exclude(a: LogEntry) {
-      return !searchRegex || !searchRegex.test(a.message);
-    }
-
-    let rowsToDisplay = list;
-    let foundIndices: Array<number> = [];
-
-    if (searchOptions.showOnlySearchResults) {
-      searchParams.forEach((param) => {
-        if (param.startsWith('!') && param.length > 1) {
-          d(`Filter-Excluding ${param.slice(1)}`);
-          searchRegex = new RegExp(param.slice(1) || '', 'i');
-          rowsToDisplay = rowsToDisplay.filter(_exclude);
-        } else {
-          d(`Filter-Searching for ${param}`);
-          rowsToDisplay = list.filter(_match);
-        }
-      });
-      foundIndices = Array.from(rowsToDisplay.keys());
-    } else {
-      foundIndices = Array.from(Array(list.length).keys());
-      searchParams.forEach((param) => {
-        if (param.startsWith('!') && param.length > 1) {
-          d(`Filter-Excluding ${param.slice(1)}`);
-          searchRegex = new RegExp(param.slice(1) || '', 'i');
-          foundIndices = foundIndices.filter((idx) => _exclude(list[idx]));
-        } else {
-          d(`Filter-Searching for ${param}`);
-          foundIndices = foundIndices.filter((idx) => _match(list[idx]));
-        }
-      });
-    }
-
-    return [rowsToDisplay, foundIndices];
-  }
-
-  private doRangeFilter(
-    { from, to }: DateRange,
-    list: Array<LogEntry>,
-  ): Array<LogEntry> {
-    if (!from && !to) return list;
-
-    const fromTs = from ? from.getTime() : null;
-    const toTs = to ? to.getTime() : null;
-
-    return list.filter((e) => {
-      const ts = e.momentValue || 0;
-      if (fromTs && ts < fromTs) return false;
-      if (toTs && ts > toTs) return false;
-      return true;
-    });
-  }
-
-  /**
-   * Sorts the list and filters it by log level and search query
-   */
-  private sortAndFilterList(
-    options: SortFilterListOptions = {},
-  ): Array<LogEntry> {
-    const logFile = options.logFile || this.props.logFile;
-    const filter = options.filter || this.props.levelFilter;
-    const search =
-      options.search !== undefined ? options.search : this.props.search;
-    const sortBy = options.sortBy || this.state.sortBy;
-    const dateRange = options.dateRange || this.props.dateRange;
-    const sortDirection = options.sortDirection || this.state.sortDirection;
-    const showOnlySearchResults =
-      options.showOnlySearchResults ?? this.props.showOnlySearchResults;
-
-    const derivedOptions: SortFilterListOptions = {
-      logFile,
-      filter,
-      search,
-      sortBy,
-      dateRange,
-      sortDirection,
-      showOnlySearchResults,
-    };
-
-    d(`Starting filter`);
-    if (!logFile) return [];
-
-    const shouldFilter = this.shouldFilter(filter);
-    const noSort =
-      (!sortBy || sortBy === 'index') &&
-      (!sortDirection || sortDirection === SORT_DIRECTION.ASC);
-
-    // Check if we can bail early and just use the naked logEntries array
-    if (noSort && !shouldFilter && !search) return logFile.logEntries;
-
-    let sortedList = logFile.logEntries.concat();
-
-    // Named definition here allows V8 to go craaaaaazy, speed-wise.
-    function doSortByMessage(a: LogEntry, b: LogEntry) {
-      return a.message.localeCompare(b.message);
-    }
-    function doSortByLevel(a: LogEntry, b: LogEntry) {
-      return a.level.localeCompare(b.level);
-    }
-    function doSortByLine(a: LogEntry, b: LogEntry) {
-      return a.line > b.line ? 1 : -1;
-    }
-    function doSortByTimestamp(a: LogEntry, b: LogEntry) {
-      if (a.momentValue === b.momentValue) return 0;
-      return (a.momentValue || 0) > (b.momentValue || 0) ? 1 : -1;
-    }
-    function doFilter(a: LogEntry) {
-      return a.level && filter[a.level];
-    }
-
-    // Filter
-    if (shouldFilter) {
-      sortedList = sortedList.filter(doFilter);
-    }
-
-    // DateRange
-    if (dateRange) {
-      d(
-        `Performing date range filter (from: ${dateRange.from}, to: ${dateRange.to})`,
-      );
-      sortedList = this.doRangeFilter(dateRange, sortedList);
-    }
-
-    // Sort
-    d(`Sorting by ${sortBy}`);
-    if (sortBy === 'message') {
-      sortedList = sortedList.sort(doSortByMessage);
-    } else if (sortBy === 'level') {
-      sortedList = sortedList.sort(doSortByLevel);
-    } else if (sortBy === 'line') {
-      sortedList = sortedList.sort(doSortByLine);
-    } else if (sortBy === 'momentValue') {
-      sortedList = sortedList.sort(doSortByTimestamp);
-    }
-
-    if (sortDirection === SORT_DIRECTION.DESC) {
-      d('Reversing');
-      sortedList.reverse();
-    }
-
-    // Search
-    if (typeof search === 'string') {
-      const [rowsToDisplay, searchList] = this.doSearch(
-        sortedList,
-        derivedOptions,
-      );
-
-      sortedList = rowsToDisplay;
-      this.props.state.searchList = searchList;
-    }
-
-    return sortedList;
-  }
+  const onSortChange = useCallback(
+    ({
+      sortBy: newSortBy,
+      sortDirection: newSortDirection,
+    }: {
+      sortBy: string;
+      sortDirection: SortDirectionType;
+    }) => {
+      setSortBy(newSortBy);
+      setSortDirection(newSortDirection);
+    },
+    [],
+  );
 
   /**
    * Renders the "message" cell
-   *
-   * @param {any} { cellData, columnData, dataKey, rowData, rowIndex }
-   * @returns {(JSX.Element | string)}
    */
-  private renderMessageCell({
-    rowData: entry,
-  }: TableCellProps): JSX.Element | string {
-    const message = entry.highlightMessage ?? entry.message;
+  const renderMessageCell = useCallback(
+    ({ rowData: entry }: TableCellProps): JSX.Element | string => {
+      const message = entry.highlightMessage ?? entry.message;
 
-    if (entry && entry.meta) {
-      const icon = isReduxAction(entry.message) ? (
-        <PartitionOutlined />
-      ) : (
-        <PaperClipOutlined />
-      );
-      return (
-        <div style={{ display: 'flex', gap: '0.25rem' }}>
-          <span title={entry.message}>{icon}</span>
-          <span title={entry.message}>{message}</span>
-        </div>
-      );
-    } else if (entry && entry.repeated) {
-      const count = entry.repeated.length;
-      let emoji = '';
+      if (entry && entry.meta) {
+        const icon = isReduxAction(entry.message) ? (
+          <PartitionOutlined />
+        ) : (
+          <PaperClipOutlined />
+        );
+        return (
+          <div style={{ display: 'flex', gap: '0.25rem' }}>
+            <span title={entry.message}>{icon}</span>
+            <span title={entry.message}>{message}</span>
+          </div>
+        );
+      } else if (entry && entry.repeated) {
+        const count = entry.repeated.length;
+        let emoji = '';
 
-      if (count > RepeatedLevels.NOTIFY) {
-        emoji = '🛑';
-      } else if (count > RepeatedLevels.WARNING) {
-        emoji = '🌶';
-      } else if (count > RepeatedLevels.ERROR) {
-        emoji = '🔥';
+        if (count > RepeatedLevels.NOTIFY) {
+          emoji = '🛑';
+        } else if (count > RepeatedLevels.WARNING) {
+          emoji = '🌶';
+        } else if (count > RepeatedLevels.ERROR) {
+          emoji = '🔥';
+        }
+
+        const emojiMessage = `(${emoji} Repeated ${entry.repeated.length} times)`;
+        return (
+          <div style={{ display: 'flex', gap: '0.25rem' }}>
+            <span>{emojiMessage}</span>
+            <span>{message}</span>
+          </div>
+        );
+      } else {
+        return message;
       }
-
-      const emojiMessage = `(${emoji} Repeated ${entry.repeated.length} times)`;
-      return (
-        <div style={{ display: 'flex', gap: '0.25rem' }}>
-          <span>{emojiMessage}</span>
-          <span>{message}</span>
-        </div>
-      );
-    } else {
-      return message;
-    }
-  }
+    },
+    [],
+  );
 
   /**
    * Renders a cell, prefixing the log entries type.
-   *
-   * @param {any} { cellData, columnData, dataKey, rowData, rowIndex }
-   * @returns {JSX.Element}
    */
-  private renderTimestampCell({
-    rowData: entry,
-  }: TableCellProps): JSX.Element | string {
-    const { dateTimeFormat } = this.props;
-    const timestamp = entry.momentValue
-      ? format(
-          new TZDate(
-            entry.momentValue,
-            this.props.state.isUserTZ
-              ? this.state.userTZ
-              : Intl.DateTimeFormat().resolvedOptions().timeZone,
-          ),
-          dateTimeFormat,
-        )
-      : entry.timestamp;
-    let prefix = <i className="Meta ts_icon ts_icon_question" />;
+  const renderTimestampCell = useCallback(
+    ({ rowData: entry }: TableCellProps): JSX.Element | string => {
+      const { dateTimeFormat } = props;
+      const timestamp = entry.momentValue
+        ? format(
+            new TZDate(
+              entry.momentValue,
+              state.isUserTZ
+                ? userTZ
+                : Intl.DateTimeFormat().resolvedOptions().timeZone,
+            ),
+            dateTimeFormat,
+          )
+        : entry.timestamp;
+      let prefix = <i className="Meta ts_icon ts_icon_question" />;
 
-    if (entry.logType === 'browser') {
-      prefix = (
-        <i
-          title="Browser Log"
-          className="Meta ts_icon ts_icon_power_off"
-          style={{ color: 'var(--color-browser)' }}
-        />
-      );
-    } else if (entry.logType === 'webapp') {
-      prefix = (
-        <i
-          title="Webapp Log"
-          className="Meta ts_icon ts_icon_globe"
-          style={{ color: 'var(--color-webapp)' }}
-        />
-      );
-    } else if (entry.logType === 'mobile') {
-      prefix = (
-        <i
-          title="Mobile Log"
-          className="Meta ts_icon ts_icon_phone"
-          style={{ color: 'var(--color-mobile)' }}
-        />
-      );
-    }
+      if (entry.logType === 'browser') {
+        prefix = (
+          <i
+            title="Browser Log"
+            className="Meta ts_icon ts_icon_power_off"
+            style={{ color: 'var(--color-browser)' }}
+          />
+        );
+      } else if (entry.logType === 'webapp') {
+        prefix = (
+          <i
+            title="Webapp Log"
+            className="Meta ts_icon ts_icon_globe"
+            style={{ color: 'var(--color-webapp)' }}
+          />
+        );
+      } else if (entry.logType === 'mobile') {
+        prefix = (
+          <i
+            title="Mobile Log"
+            className="Meta ts_icon ts_icon_phone"
+            style={{ color: 'var(--color-mobile)' }}
+          />
+        );
+      }
 
-    return (
-      <span title={entry.timestamp}>
-        {prefix}
-        {timestamp}
-      </span>
-    );
-  }
+      return (
+        <span title={entry.timestamp}>
+          {prefix}
+          {timestamp}
+        </span>
+      );
+    },
+    [props, state.isUserTZ, userTZ],
+  );
 
   /**
    * Get the row data for the table
-   *
-   * @param {{ index: number }} { index }
-   * @returns
-   * @memberof LogTable
    */
-  private rowGetter({ index }: { index: number }): LogEntry {
-    return this.state.sortedList[index];
-  }
+  const rowGetter = useCallback(
+    ({ index }: { index: number }): LogEntry => {
+      return sortedList[index];
+    },
+    [sortedList],
+  );
+
+  /**
+   * Used by the table to get the className for a given row.
+   * Called for each row.
+   */
+  const rowClassNameGetter = useCallback(
+    (input: { index: number }): string => {
+      const { index } = input;
+      const isSearchIndex =
+        !ignoreSearchIndex &&
+        searchList.length > 0 &&
+        index === searchList[searchIndex];
+      const isRangeActive =
+        state.selectedIndex !== undefined &&
+        state.selectedRangeIndex !== undefined &&
+        between(index, state.selectedIndex, state.selectedRangeIndex);
+
+      const classes: string[] = [];
+
+      if (isSearchIndex || state.selectedIndex === index || isRangeActive) {
+        classes.push('ActiveRow');
+      }
+
+      if (Array.isArray(searchList) && searchList.includes(index)) {
+        classes.push('HighlightRow');
+      }
+
+      const row = rowGetter(input);
+      if (
+        row?.level === 'error' ||
+        (row?.repeated?.length || 0) > RepeatedLevels.ERROR
+      ) {
+        classes.push('ErrorRow');
+      } else if (
+        row?.level === 'warn' ||
+        (row?.repeated?.length || 0) > RepeatedLevels.WARNING
+      ) {
+        classes.push('WarnRow');
+      }
+
+      return classNames(...classes);
+    },
+    [
+      searchList,
+      ignoreSearchIndex,
+      searchIndex,
+      state.selectedIndex,
+      state.selectedRangeIndex,
+      rowGetter,
+    ],
+  );
 
   /**
    * Renders the table
    */
-  private renderTable(options: Size): JSX.Element {
-    const { sortedList, ignoreSearchIndex, scrollToSelection } = this.state;
-    const { logFile, searchIndex, searchList } = this.props;
-
+  function renderTable(options: Size): JSX.Element {
     const tableOptions: TableProps = {
       ...options,
       rowHeight: 30,
-      rowGetter: this.rowGetter,
+      rowGetter,
       rowCount: sortedList.length,
-      onRowClick: this.onRowClick,
-      onRowRightClick: this.onRowRightClick,
-      rowClassName: this.rowClassNameGetter,
+      onRowClick,
+      onRowRightClick,
+      rowClassName: rowClassNameGetter,
       headerHeight: 30,
-      sort: this.onSortChange,
-      sortBy: this.state.sortBy,
-      sortDirection: this.state.sortDirection,
+      sort: onSortChange,
+      sortBy,
+      sortDirection,
     };
 
-    if (scrollToSelection)
-      tableOptions.scrollToIndex = this.props.state.selectedIndex;
+    if (scrollToSelectionRef.current) {
+      tableOptions.scrollToIndex = state.selectedIndex;
+      scrollToSelectionRef.current = false;
+    }
 
     if (!ignoreSearchIndex && searchList.length > 0)
       tableOptions.scrollToIndex = searchList[searchIndex] || 0;
 
     return (
-      <Table {...tableOptions} ref={this.tableRef}>
+      <Table {...tableOptions} ref={tableRef}>
         <Column
           label="Index"
           dataKey="index"
@@ -749,7 +652,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         <Column label="Line" dataKey="line" width={100} />
         <Column
           label="Timestamp"
-          cellRenderer={this.renderTimestampCell}
+          cellRenderer={renderTimestampCell}
           dataKey="momentValue"
           width={200}
           flexGrow={2}
@@ -772,7 +675,7 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
         <Column
           label="Message"
           dataKey="message"
-          cellRenderer={this.renderMessageCell}
+          cellRenderer={renderMessageCell}
           width={options.width - 300}
           flexGrow={2}
         />
@@ -780,51 +683,104 @@ export class LogTable extends React.Component<LogTableProps, LogTableState> {
     );
   }
 
-  /**
-   * Used by the table to get the className for a given row.
-   * Called for each row.
-   * @private
-   */
-  private rowClassNameGetter(input: { index: number }): string {
-    const { index } = input;
-    const { searchList } = this.props;
-    const { selectedRangeIndex, ignoreSearchIndex } = this.state;
-    const isSearchIndex =
-      !ignoreSearchIndex &&
-      searchList.length > 0 &&
-      index === searchList[this.props.searchIndex];
-    const isRangeActive =
-      this.props.state.selectedIndex !== undefined &&
-      selectedRangeIndex !== undefined &&
-      between(index, this.props.state.selectedIndex, selectedRangeIndex);
+  // Use a ref so the searchIndex reaction always reads the latest sortedList
+  // without needing to tear down and recreate the reaction.
+  const sortedListRef = useRef(sortedList);
+  sortedListRef.current = sortedList;
 
-    const classes: string[] = [];
+  // Setup MobX reaction for searchIndex changes (once)
+  useEffect(() => {
+    const dispose = reaction(
+      () => state.searchIndex,
+      (newSearchIndex) => {
+        state.selectedIndex = state.searchList[newSearchIndex];
+        state.selectedEntry = sortedListRef.current[state.selectedIndex];
+      },
+    );
+    return dispose;
+  }, [state]);
 
+  // Setup MobX reaction for timezone changes (once)
+  useEffect(() => {
+    const dispose = reaction(
+      () => state.isUserTZ,
+      () => {
+        if (tableRef.current) {
+          tableRef.current.forceUpdateGrid();
+        }
+      },
+    );
+    return dispose;
+  }, [state]);
+
+  // Keep selectedIndex in sync with the current sortedList
+  useEffect(() => {
+    runInAction(() => {
+      state.selectedIndex = findIndexForSelectedEntry(
+        sortedList,
+        state.selectedEntry,
+      );
+    });
+  }, [sortedList, state, state.selectedEntry]);
+
+  // Scroll to selection when a bookmark is activated (selectedEntry prop changes)
+  useEffect(() => {
+    if (selectedEntry !== state.selectedEntry) {
+      scrollToSelectionRef.current = true;
+    }
+  }, [selectedEntry, state]);
+
+  // Reset range selection when the file changes
+  useEffect(() => {
+    runInAction(() => {
+      state.selectedRangeIndex = undefined;
+    });
+  }, [logFile, state]);
+
+  // Reset ignoreSearchIndex when searchIndex prop changes
+  useEffect(() => {
+    setIgnoreSearchIndex(false);
+  }, [searchIndex]);
+
+  // Auto-select first search result when search list populates with no selection
+  useEffect(() => {
     if (
-      isSearchIndex ||
-      this.props.state.selectedIndex === index ||
-      isRangeActive
+      state.searchList.length > 0 &&
+      (typeof state.selectedIndex === 'undefined' || state.selectedIndex < 0)
     ) {
-      classes.push('ActiveRow');
+      changeSelection(state.searchList[0]);
     }
+  }, [state.searchList, state.selectedIndex, changeSelection]);
 
-    if (Array.isArray(searchList) && searchList.includes(index)) {
-      classes.push('HighlightRow');
+  // Scroll to selection on mount if there's already a selected entry
+  useEffect(() => {
+    if (state.selectedEntry) {
+      scrollToSelectionRef.current = true;
     }
+  }, []);
 
-    const row = this.rowGetter(input);
-    if (
-      row?.level === 'error' ||
-      (row?.repeated?.length || 0) > RepeatedLevels.ERROR
-    ) {
-      classes.push('ErrorRow');
-    } else if (
-      row?.level === 'warn' ||
-      (row?.repeated?.length || 0) > RepeatedLevels.WARNING
-    ) {
-      classes.push('WarnRow');
-    }
+  // Keyboard navigation handler — listen on document to match
+  // the previous global behavior (react-keydown listened globally)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        incrementSelection(e.key === 'ArrowDown' ? 1 : -1);
+      }
+    };
 
-    return classNames(...classes);
-  }
-}
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [incrementSelection]);
+
+  const typeClassName = logFile.type === 'MergedLogFile' ? 'Merged' : 'Single';
+  const className = classNames('LogTable', typeClassName);
+
+  return (
+    <div className={className}>
+      <div className="Sizer">
+        <AutoSizer>{(options) => renderTable(options)}</AutoSizer>
+      </div>
+    </div>
+  );
+});

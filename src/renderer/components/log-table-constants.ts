@@ -7,11 +7,6 @@ import {
 } from '../../interfaces';
 import { SleuthState } from '../state/sleuth';
 
-export enum SORT_DIRECTION {
-  ASC = 'ASC',
-  DESC = 'DESC',
-}
-
 export interface LogTableColumnWidths {
   index: number;
   line: number;
@@ -31,19 +26,6 @@ export interface LogTableProps {
   showOnlySearchResults: boolean | undefined;
   dateRange?: DateRange;
   selectedEntry?: LogEntry;
-}
-
-export interface LogTableState {
-  sortedList: Array<LogEntry>;
-  /**
-   * If not undefined, the user selected a range of log lines.
-   */
-  selectedRangeIndex?: number;
-  sortBy?: string;
-  sortDirection?: SORT_DIRECTION;
-  ignoreSearchIndex?: boolean;
-  scrollToSelection?: boolean;
-  userTZ?: string;
 }
 
 export interface SortFilterListOptions {
