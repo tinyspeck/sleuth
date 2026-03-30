@@ -64,20 +64,36 @@ const CHROMIUM_RGX =
  * timestamps on the same date. This turns ~7µs/call into ~0.01µs/call
  * for the >99% of lines that share a date with their predecessor.
  *
- * DST correctness: offset is revalidated whenever the date changes,
- * so DST transitions are handled correctly unless two entries fall on
- * opposite sides of a 2 AM transition *within the same calendar day*
- * (a ±1h error for at most a handful of entries).
+ * DST correctness: on a cache miss the offset at hour 0 and hour 23 are
+ * compared. If they differ (DST transition day), a binary search finds
+ * the transition hour and both offsets are cached. On cache hit the
+ * entry's hour selects the correct offset, so all hours are exact.
  */
 let _cachedTZ: string | undefined | null = null;
 let _cachedDateKey = -1;
-let _cachedOffset = 0;
+let _cachedPreOffset = 0;
+let _cachedPostOffset = 0;
+let _cachedTransitionHour = 24; // 24 = no transition (use preOffset for all hours)
 
 /** Reset the TZ offset cache — exported for testing only. */
 export function _resetTZCache() {
   _cachedTZ = null;
   _cachedDateKey = -1;
-  _cachedOffset = 0;
+  _cachedPreOffset = 0;
+  _cachedPostOffset = 0;
+  _cachedTransitionHour = 24;
+}
+
+function resolveOffset(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  tz: string,
+): number {
+  const utcMs = Date.UTC(year, month, day, hour, 0, 0, 0);
+  const tzMs = new TZDate(year, month, day, hour, 0, 0, 0, tz).valueOf();
+  return tzMs - utcMs;
 }
 
 export function toTZMillis(
@@ -95,25 +111,43 @@ export function toTZMillis(
 
   const dateKey = year * 10000 + month * 100 + day;
   if (tz === _cachedTZ && dateKey === _cachedDateKey) {
-    return utcMs + _cachedOffset;
+    const offset =
+      hour < _cachedTransitionHour ? _cachedPreOffset : _cachedPostOffset;
+    return utcMs + offset;
   }
 
-  // Cache miss — resolve offset via TZDate
-  const tzMs = new TZDate(
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    second,
-    ms,
-    tz,
-  ).valueOf();
-  _cachedOffset = tzMs - utcMs;
-  _cachedDateKey = dateKey;
-  _cachedTZ = tz;
+  // Cache miss — check for DST transition on this date
+  const offset0 = resolveOffset(year, month, day, 0, tz);
+  const offset23 = resolveOffset(year, month, day, 23, tz);
 
-  return tzMs;
+  _cachedTZ = tz;
+  _cachedDateKey = dateKey;
+
+  if (offset0 === offset23) {
+    // No DST transition on this date
+    _cachedPreOffset = offset0;
+    _cachedPostOffset = offset0;
+    _cachedTransitionHour = 24;
+  } else {
+    // DST transition — binary search for the transition hour
+    let lo = 0;
+    let hi = 23;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (resolveOffset(year, month, day, mid, tz) === offset0) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    _cachedPreOffset = offset0;
+    _cachedPostOffset = offset23;
+    _cachedTransitionHour = lo;
+  }
+
+  const offset =
+    hour < _cachedTransitionHour ? _cachedPreOffset : _cachedPostOffset;
+  return utcMs + offset;
 }
 
 /**

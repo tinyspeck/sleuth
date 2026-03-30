@@ -151,23 +151,49 @@ describe('toTZMillis cached offset correctness', () => {
     }
   });
 
-  it('has known ±1h imprecision for same-day DST transitions', () => {
-    // The cache stores one offset per calendar date, so entries before and
-    // after a 2 AM DST transition on the *same* day may be off by ±1h.
-    // This test documents that known trade-off.
+  it('spring-forward: exact for every hour on DST transition day', () => {
+    // March 10, 2024: spring-forward at 2:00 AM EST → 3:00 AM EDT
     const tz = 'America/New_York';
-    // March 10, 2024: spring-forward at 2:00 AM (EST→EDT)
-    _resetTZCache();
-    // First call caches the EST offset for this date
-    const beforeDST = toTZMillis(2024, 2, 10, 1, 0, 0, 0, tz);
-    const beforeRef = referenceTZMillis(2024, 2, 10, 1, 0, 0, 0, tz);
-    expect(beforeDST).toBe(beforeRef); // cache miss — exact
 
-    // Second call on same date uses cached EST offset, but real offset is now EDT
-    const afterDST = toTZMillis(2024, 2, 10, 3, 0, 0, 0, tz);
-    const afterRef = referenceTZMillis(2024, 2, 10, 3, 0, 0, 0, tz);
-    const errorMs = Math.abs(afterDST - afterRef);
-    expect(errorMs).toBeLessThanOrEqual(3600000); // at most 1 hour off
+    for (const hour of [0, 1, 3, 4, 8, 12, 18, 23]) {
+      _resetTZCache();
+      const result = toTZMillis(2024, 2, 10, hour, 30, 0, 0, tz);
+      const expected = referenceTZMillis(2024, 2, 10, hour, 30, 0, 0, tz);
+      expect(result).toBe(expected);
+    }
+  });
+
+  it('spring-forward: exact across sequential hours (simulating log order)', () => {
+    // Process hours in order as real log processing would — cache is NOT reset
+    const tz = 'America/New_York';
+
+    for (const hour of [0, 1, 3, 4, 8, 12, 18, 23]) {
+      const result = toTZMillis(2024, 2, 10, hour, 15, 45, 500, tz);
+      const expected = referenceTZMillis(2024, 2, 10, hour, 15, 45, 500, tz);
+      expect(result).toBe(expected);
+    }
+  });
+
+  it('fall-back: exact for every hour on DST transition day', () => {
+    // November 3, 2024: fall-back at 2:00 AM PDT → 1:00 AM PST
+    const tz = 'America/Los_Angeles';
+
+    for (const hour of [0, 1, 3, 4, 8, 12, 18, 23]) {
+      _resetTZCache();
+      const result = toTZMillis(2024, 10, 3, hour, 30, 0, 0, tz);
+      const expected = referenceTZMillis(2024, 10, 3, hour, 30, 0, 0, tz);
+      expect(result).toBe(expected);
+    }
+  });
+
+  it('fall-back: exact across sequential hours (simulating log order)', () => {
+    const tz = 'America/Los_Angeles';
+
+    for (const hour of [0, 1, 3, 4, 8, 12, 18, 23]) {
+      const result = toTZMillis(2024, 10, 3, hour, 15, 45, 500, tz);
+      const expected = referenceTZMillis(2024, 10, 3, hour, 15, 45, 500, tz);
+      expect(result).toBe(expected);
+    }
   });
 
   it('matches reference across DST fall-back boundary (different days)', () => {
