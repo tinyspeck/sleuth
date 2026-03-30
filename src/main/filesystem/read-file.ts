@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 import readline from 'readline';
 
-import { getTZDateFromString } from '../../utils/get-tz-date-from-string';
 import { parseJSON } from '../../utils/parse-json';
 
 import {
@@ -57,6 +56,154 @@ const SQUIRREL_RGX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})> (.*)$/;
 // [70491:0302/160742.806582:WARNING:gpu_process_host.cc(1303)] The GPU process has crashed 1 time(s)
 const CHROMIUM_RGX =
   /^\[(\d+:\d{4}\/\d{6}\.\d{3,6}:[a-zA-Z]+:.*\(\d+\))\] (.*)$/;
+
+/**
+ * Converts local-time components to UTC epoch millis, respecting the
+ * user's timezone. Uses a single-slot cache: the TZ offset is resolved
+ * via TZDate once per calendar date, then reused for all subsequent
+ * timestamps on the same date. This turns ~7µs/call into ~0.01µs/call
+ * for the >99% of lines that share a date with their predecessor.
+ *
+ * DST correctness: on a cache miss the offset at hour 0 and hour 23 are
+ * compared. If they differ (DST transition day), a binary search finds
+ * the transition hour and both offsets are cached. On cache hit the
+ * entry's hour selects the correct offset, so all hours are exact.
+ * Assumes at most one DST transition per calendar day (true for all
+ * known timezone rules).
+ */
+let _cachedTZ: string | undefined | null = null;
+let _cachedDateKey = -1;
+let _cachedPreOffset = 0;
+let _cachedPostOffset = 0;
+let _cachedTransitionHour = 24; // 24 = sentinel: since hour < 24 is always true, preOffset applies to all hours
+
+/** Reset the TZ offset cache — exported for testing only. */
+export function _resetTZCache() {
+  _cachedTZ = null;
+  _cachedDateKey = -1;
+  _cachedPreOffset = 0;
+  _cachedPostOffset = 0;
+  _cachedTransitionHour = 24;
+}
+
+// offset is negative for zones behind UTC: adding it to Date.UTC(wall-clock) yields the true UTC epoch
+function resolveOffset(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  tz: string,
+): number {
+  const utcMs = Date.UTC(year, month, day, hour, 0, 0, 0);
+  const tzMs = new TZDate(year, month, day, hour, 0, 0, 0, tz).valueOf();
+  return tzMs - utcMs;
+}
+
+export function toTZMillis(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number,
+  ms: number,
+  tz?: string,
+): number {
+  const utcMs = Date.UTC(year, month, day, hour, minute, second, ms);
+  if (!tz) return utcMs;
+
+  const dateKey = year * 10000 + month * 100 + day;
+  if (tz === _cachedTZ && dateKey === _cachedDateKey) {
+    const offset =
+      hour < _cachedTransitionHour ? _cachedPreOffset : _cachedPostOffset;
+    return utcMs + offset;
+  }
+
+  // Cache miss — resolve the TZ offset. If the timezone string is invalid,
+  // fall back to UTC so processing can continue.
+  let offset0: number;
+  let offset23: number;
+  try {
+    offset0 = resolveOffset(year, month, day, 0, tz);
+    offset23 = resolveOffset(year, month, day, 23, tz);
+  } catch (err) {
+    d(`Invalid timezone "${tz}", falling back to UTC:`, err);
+    _cachedTZ = tz;
+    _cachedDateKey = dateKey;
+    _cachedPreOffset = 0;
+    _cachedPostOffset = 0;
+    _cachedTransitionHour = 24;
+    return utcMs;
+  }
+
+  _cachedTZ = tz;
+  _cachedDateKey = dateKey;
+
+  if (offset0 === offset23) {
+    // No DST transition on this date
+    _cachedPreOffset = offset0;
+    _cachedPostOffset = offset0;
+    _cachedTransitionHour = 24;
+  } else {
+    // DST transition — binary search for the transition hour
+    let lo = 0;
+    let hi = 23;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (resolveOffset(year, month, day, mid, tz) === offset0) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    _cachedPreOffset = offset0;
+    _cachedPostOffset = offset23;
+    _cachedTransitionHour = lo;
+  }
+
+  const offset =
+    hour < _cachedTransitionHour ? _cachedPreOffset : _cachedPostOffset;
+  return utcMs + offset;
+}
+
+/**
+ * Parses a desktop timestamp directly into epoch millis.
+ *
+ * Handles both 2-digit and 4-digit years:
+ *   "02/22/17, 16:02:33:371"   (22 chars)
+ *   "01/12/2021, 13:05:05:353" (24 chars)
+ */
+function parseDesktopTimestamp(ts: string, tz?: string): number {
+  const month = parseInt(ts.substring(0, 2), 10) - 1;
+  const day = parseInt(ts.substring(3, 5), 10);
+  const commaIdx = ts.indexOf(',');
+  let year = parseInt(ts.substring(6, commaIdx), 10);
+  if (year < 100) year += 2000;
+  const t = commaIdx + 2;
+  const hour = parseInt(ts.substring(t, t + 2), 10);
+  const minute = parseInt(ts.substring(t + 3, t + 5), 10);
+  const second = parseInt(ts.substring(t + 6, t + 8), 10);
+  const ms = parseInt(ts.substring(t + 9, t + 12), 10);
+  return toTZMillis(year, month, day, hour, minute, second, ms, tz);
+}
+
+/**
+ * Parses an ISO-ish timestamp directly into epoch millis.
+ *
+ * Handles with and without milliseconds:
+ *   "2019-01-30 21:08:25"     (Squirrel — 19 chars, no ms)
+ *   "2019-01-08 08:29:56.504" (ShipIt — 23 chars, period at index 19)
+ */
+function parseISOTimestamp(ts: string, tz?: string): number {
+  const year = parseInt(ts.substring(0, 4), 10);
+  const month = parseInt(ts.substring(5, 7), 10) - 1;
+  const day = parseInt(ts.substring(8, 10), 10);
+  const hour = parseInt(ts.substring(11, 13), 10);
+  const minute = parseInt(ts.substring(14, 16), 10);
+  const second = parseInt(ts.substring(17, 19), 10);
+  const ms = ts.length > 19 ? parseInt(ts.substring(20, 23), 10) : 0;
+  return toTZMillis(year, month, day, hour, minute, second, ms, tz);
+}
 
 function isHtmlFile(file: UnzippedFile) {
   return file.fullPath.endsWith('.html');
@@ -125,9 +272,12 @@ export function readLogFile(
     userTZ?: string;
   },
 ): Promise<ReadFileResult> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const entries: Array<LogEntry> = [];
     const readStream = fs.createReadStream(logFile.fullPath);
+    readStream.on('error', (err) => {
+      reject(new Error(`Failed to read ${logFile.fullPath}: ${err.message}`));
+    });
     const readInterface = readline.createInterface({
       input: readStream,
       terminal: false,
@@ -293,7 +443,7 @@ export function matchLineWebApp(
   // Expected format: MM/DD/YY, HH:mm:ss:SSS'
   if (results && results.length === 4) {
     const dateString = results[1].replace(', 24:', ', 00:');
-    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
+    const momentValue = parseDesktopTimestamp(dateString, userTZ);
     let message = results[3];
 
     // If we have two timestamps, cut that from the message
@@ -360,8 +510,7 @@ export function matchLineSquirrel(
   const results = SQUIRREL_RGX.exec(line);
 
   if (results && results.length === 3) {
-    const dateString = results[1];
-    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
+    const momentValue = parseISOTimestamp(results[1], userTZ);
 
     return {
       timestamp: results[1],
@@ -390,8 +539,7 @@ export function matchLineShipItMac(
 
   if (results && results.length === 3) {
     // Expected format: 2019-01-08 08:29:56.504
-    const dateString = results[1];
-    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
+    const momentValue = parseISOTimestamp(results[1], userTZ);
     let message = results[2];
 
     // Handle a meta entry
@@ -433,7 +581,7 @@ export function matchLineElectron(
 
   if (results && results.length === 4) {
     const dateString = results[1].replace(', 24:', ', 00:');
-    const momentValue = getTZDateFromString(dateString, userTZ).valueOf();
+    const momentValue = parseDesktopTimestamp(dateString, userTZ);
 
     return {
       timestamp: results[1],
@@ -755,21 +903,38 @@ export function matchLineChromium(
     throw new Error(`Failed to parse Chromium timestamp: ${timestamp}`);
   }
   const [, month, day, hour, minute, second, millisecond] = parsedTimestamp;
-  const logDate = new TZDate(
-    currentDate.getFullYear(),
-    parseInt(month, 10) - 1,
-    parseInt(day, 10),
-    parseInt(hour, 10),
-    parseInt(minute, 10),
-    parseInt(second, 10),
-    parseInt(millisecond, 10),
+  const curYear = currentDate.getFullYear();
+  const pMonth = parseInt(month, 10) - 1;
+  const pDay = parseInt(day, 10);
+  const pHour = parseInt(hour, 10);
+  const pMinute = parseInt(minute, 10);
+  const pSecond = parseInt(second, 10);
+  const pMs = parseInt(millisecond, 10);
+
+  let momentValue = toTZMillis(
+    curYear,
+    pMonth,
+    pDay,
+    pHour,
+    pMinute,
+    pSecond,
+    pMs,
     userTZ,
   );
 
   // make sure we aren't time traveling. Maybe this
   // log happened in the last calendar year?
-  if (logDate > currentDate) {
-    logDate.setFullYear(logDate.getFullYear() - 1);
+  if (momentValue > currentDate.valueOf()) {
+    momentValue = toTZMillis(
+      curYear - 1,
+      pMonth,
+      pDay,
+      pHour,
+      pMinute,
+      pSecond,
+      pMs,
+      userTZ,
+    );
   }
 
   // FIXME: make this more robust for all chromium log levels
@@ -782,7 +947,7 @@ export function matchLineChromium(
   return {
     level: LEVEL_MAP[level],
     message,
-    momentValue: logDate.valueOf(),
+    momentValue,
     meta: {
       sourceFile: sourceFile.split('(')[0],
       pid,

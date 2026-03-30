@@ -97,99 +97,107 @@ export async function processLogFile(
 }
 
 /**
- * Sort an array, but do it on a different thread
+ * Merges k sorted arrays into a single sorted array using a linear-scan
+ * k-way merge. O(n*k) per step — for the small k typical in log bundles
+ * (2-5 files), this outperforms both a heap-based O(n log k) merge (lower
+ * constant overhead) and concat+sort O(n log n) (no intermediate copies).
+ *
+ * Entries with falsy momentValue (0, undefined) are sorted to the end.
  */
-export function sortWithWebWorker(
-  data: unknown[],
-  sortFn: string,
-): Promise<LogEntry[]> {
-  return new Promise((resolve) => {
-    // For test cases only
-    if (!window.Worker) {
-      const sortedData = data.sort(
-        new Function(`return ${sortFn}`)(),
-      ) as Array<LogEntry>;
-      resolve(sortedData);
-      return;
+function kWayMerge(arrays: Array<LogEntry>[]): Array<LogEntry> {
+  const k = arrays.length;
+  const pointers = new Array<number>(k).fill(0);
+  let totalLength = 0;
+  for (let i = 0; i < k; i++) {
+    totalLength += arrays[i].length;
+  }
+  const result = new Array<LogEntry>(totalLength);
+
+  for (let i = 0; i < totalLength; i++) {
+    let minIdx = -1;
+    let minValue = Infinity;
+
+    for (let j = 0; j < k; j++) {
+      if (pointers[j] < arrays[j].length) {
+        const value = arrays[j][pointers[j]].momentValue || Infinity;
+        if (value < minValue) {
+          minValue = value;
+          minIdx = j;
+        }
+      }
     }
 
-    const code = `onmessage = function (evt) {evt.data.sort(${sortFn}); postMessage(evt.data)}`;
-    const worker = new Worker(URL.createObjectURL(new Blob([code])));
+    // All remaining entries have falsy momentValue; pick the first available
+    if (minIdx === -1) {
+      for (let j = 0; j < k; j++) {
+        if (pointers[j] < arrays[j].length) {
+          minIdx = j;
+          break;
+        }
+      }
+    }
 
-    worker.onmessage = (data: MessageEvent) => resolve(data.data);
-    worker.postMessage(data);
-  });
+    result[i] = arrays[minIdx][pointers[minIdx]];
+    pointers[minIdx]++;
+  }
+
+  return result;
 }
 
 /**
  * Takes a bunch of processed log files and merges all the entries into one sorted
  * array.
  *
- * @param {ProcessedLogFiles} logFiles
+ * @param {Array<ProcessedLogFile> | Array<MergedLogFile>} logFiles
  */
 export function mergeLogFiles(
   logFiles: Array<ProcessedLogFile> | Array<MergedLogFile>,
   logType: SelectableLogType,
 ): Promise<MergedLogFile> {
-  return new Promise((resolve) => {
-    let logEntries: Array<LogEntry> = [];
-    const start = performance.now();
-    const performanceData = {
-      type: logType,
-      name: `Merged ${logType}`,
+  const start = performance.now();
+  const performanceData = {
+    type: logType,
+    name: `Merged ${logType}`,
+  };
+
+  // Single file? Cool, shortcut!
+  if (logFiles.length === 1) {
+    const singleResult: MergedLogFile = {
+      logFiles: logFiles as Array<ProcessedLogFile>,
+      logEntries: logFiles[0].logEntries,
+      type: 'MergedLogFile',
+      logType,
+      // The id just needs to be unique
+      id: (logFiles as Array<ProcessedLogFile>).map(({ id }) => id).join(','),
     };
 
-    // Single file? Cool, shortcut!
-    if (logFiles.length === 1) {
-      const singleResult: MergedLogFile = {
-        logFiles: logFiles as Array<ProcessedLogFile>,
-        logEntries: logFiles[0].logEntries,
-        type: 'MergedLogFile',
-        logType,
-        // The id just needs to be unique
-        id: (logFiles as Array<ProcessedLogFile>).map(({ id }) => id).join(','),
-      };
-
-      logPerformance({
-        ...performanceData,
-        entries: singleResult.logEntries.length,
-        lines: 0,
-        processingTime: performance.now() - start,
-      });
-
-      return resolve(singleResult);
-    }
-
-    // Alright, let's do this
-    (logFiles as Array<ProcessedLogFile>).forEach((logFile) => {
-      logEntries = logEntries.concat(logFile.logEntries);
+    logPerformance({
+      ...performanceData,
+      entries: singleResult.logEntries.length,
+      lines: 0,
+      processingTime: performance.now() - start,
     });
 
-    const sortFn = `function sort(a, b) {
-      if (a.momentValue && b.momentValue) {
-        return a.momentValue - b.momentValue;
-      } else {
-        return 1;
-      }
-    }`;
+    return Promise.resolve(singleResult);
+  }
 
-    sortWithWebWorker(logEntries, sortFn).then((sortedLogEntries) => {
-      const multiResult: MergedLogFile = {
-        logFiles: logFiles as Array<ProcessedLogFile>,
-        logEntries: sortedLogEntries,
-        logType,
-        type: 'MergedLogFile',
-        id: getIdForLogFiles(logFiles),
-      };
+  const arrays = (logFiles as Array<ProcessedLogFile>).map((f) => f.logEntries);
+  const logEntries = kWayMerge(arrays);
 
-      logPerformance({
-        ...performanceData,
-        entries: multiResult.logEntries.length,
-        lines: 0,
-        processingTime: performance.now() - start,
-      });
+  const multiResult: MergedLogFile = {
+    logFiles: logFiles as Array<ProcessedLogFile>,
+    logEntries,
+    logType,
+    type: 'MergedLogFile',
+    id: getIdForLogFiles(logFiles),
+  };
 
-      resolve(multiResult);
-    });
+  logPerformance({
+    ...performanceData,
+    entries: multiResult.logEntries.length,
+    lines: 0,
+    processingTime: performance.now() - start,
   });
+
+  return Promise.resolve(multiResult);
 }

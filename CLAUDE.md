@@ -74,6 +74,21 @@ The app follows standard Electron patterns with three main processes:
 - **IPC Manager** (`src/main/ipc.ts`): Handles main process IPC routing
 - **SleuthAPI** (preload): Exposed renderer API with type safety
 
+### Zip Bundle Processing Pipeline
+
+The core flow for processing log bundles:
+
+1. **Reception**: Files enter via drag-drop (`app.tsx`), OS file open (`app.on('open-file')` in `index.ts`), or IPC. All paths call `window.Sleuth.openFile(url)`.
+2. **Unzipping** (`src/main/unzip.ts`): `Unzipper` class uses `yauzl` (lazy mode) to extract to a temp directory, returning `UnzippedFile[]`. System files filtered by `src/utils/should-ignore-file.ts`.
+3. **Type categorization** (`src/utils/get-file-types.ts`): `getTypesForFiles()` classifies each file by filename pattern into `LogType` (BROWSER, WEBAPP, NETLOG, INSTALLER, MOBILE, CHROMIUM, STATE, TRACE, UNKNOWN).
+4. **Routing** (`app-core.tsx`): Files split into raw files (STATE, NETLOG, TRACE — displayed as-is) and processable files (BROWSER, WEBAPP, INSTALLER, MOBILE, CHROMIUM — parsed line-by-line).
+5. **State files read first**: `log-context.json` provides timezone info used during log parsing.
+6. **Line-by-line parsing** (`src/main/filesystem/read-file.ts`): `readLogFile()` streams each file, applying type-specific regex matchers (e.g., `matchLineElectron`, `matchLineWebApp`). Each matched line becomes a `LogEntry` with timestamp, level, message, and metadata. Repeated consecutive lines are collapsed.
+7. **Merging & sorting** (`src/renderer/processor.ts`): `mergeLogFiles()` combines entries from multiple files of the same type using a synchronous k-way merge (sorted chronologically). Produces merged views for Browser, Webapp, and combined ALL.
+8. **Display**: Results stored in MobX `SleuthState`, populating Sidebar (file tree), LogTable (virtualized entries), and detail panels.
+
+Key file dispatch: `src/main/filesystem/open-file.ts` routes between `openZip()`, `openDirectory()`, and `openSingleFile()`.
+
 ### Specialized Features
 
 - **Trace Analysis**: Chrome DevTools and Perfetto trace file support
@@ -86,6 +101,8 @@ The app follows standard Electron patterns with three main processes:
 
 - Uses Vitest with jsdom environment
 - Test files: `test/**/*.test.[jt]s?(x)`
+- Benchmark files: `test/bench/*.bench.ts` — run with `yarn vitest bench`
+  - Real-log benchmarks require `SLEUTH_BENCH_LOGS=/path/to/extracted/logs`
 - Setup: `test/vitest-setup.js`
 - Global test utilities available
 
@@ -132,7 +149,10 @@ guidance first.
 
 - Log table uses `react-virtualized` for large datasets
 - Log processing happens in chunks to avoid blocking UI
-- Background processing for heavy operations
+- Per-type file processing runs in parallel (`Promise.allSettled` in `app-core.tsx`)
+- `mergeLogFiles` uses a synchronous k-way merge (O(n·k), avoids concat+sort)
+- Timestamp parsing uses `toTZMillis()` with a cached TZ offset per calendar date, avoiding expensive `TZDate` construction (~7µs) on every line — the single biggest bottleneck in log processing
+- The main processing hot path is in `src/main/filesystem/read-file.ts`: regex matching → timestamp parsing → LogEntry creation
 
 ### Platform Support
 
