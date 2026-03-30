@@ -73,7 +73,14 @@ let _cachedTZ: string | undefined | null = null;
 let _cachedDateKey = -1;
 let _cachedOffset = 0;
 
-function toTZMillis(
+/** Reset the TZ offset cache — exported for testing only. */
+export function _resetTZCache() {
+  _cachedTZ = null;
+  _cachedDateKey = -1;
+  _cachedOffset = 0;
+}
+
+export function toTZMillis(
   year: number,
   month: number,
   day: number,

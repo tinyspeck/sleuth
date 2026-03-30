@@ -22,6 +22,8 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
   useEffect(() => {
     const canvas = getCanvas();
     if (!canvas) return;
+    // Destroy the previous chart before creating a new one on the same canvas
+    getChart()?.destroy();
     const chart = new Chart(canvas, {
       type,
       data,
@@ -29,7 +31,7 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
       plugins,
     });
     setChart(chart);
-  }, [plugins, getCanvas, type, setChart, options, data]);
+  }, [plugins, getCanvas, type, setChart, options, data, getChart]);
 
   useEffect(() => {
     const chart = getChart();
