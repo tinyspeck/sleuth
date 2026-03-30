@@ -127,15 +127,25 @@ export const CoreApplication = observer((props: CoreAppProps) => {
           d(`Processing logs with user timezone: ${userTZ}`);
         }
 
-        // process all log types in parallel — use allSettled so one failure
-        // doesn't prevent the remaining types from loading
+        // Process all log types in parallel — use allSettled so one failure
+        // doesn't prevent the remaining types from loading.
+        // State updates are applied sequentially after all processing completes
+        // to avoid a read-modify-write race on processedLogFilesRef.
         const results = await Promise.allSettled(
           LOG_TYPES_TO_PROCESS.map(async (type) => {
             const preFiles = sortedUnzippedFiles[type];
             const files = await processLogFiles(preFiles, userTZ, (msg) => {
               setLoadingMessage(msg);
             });
+            return { type, files };
+          }),
+        );
 
+        const failedTypes: string[] = [];
+        for (let i = 0; i < results.length; i++) {
+          const r = results[i];
+          if (r.status === 'fulfilled') {
+            const { type, files } = r.value;
             addFilesToState({ [type]: files as ProcessedLogFile[] });
 
             // ShipItState.plist is a JSON file that should be read as state
@@ -152,17 +162,21 @@ export const CoreApplication = observer((props: CoreAppProps) => {
                 }
               }
             }
-          }),
-        );
-
-        for (let i = 0; i < results.length; i++) {
-          if (results[i].status === 'rejected') {
+          } else {
             const type = LOG_TYPES_TO_PROCESS[i];
-            d(
-              `Failed to process ${type} log files:`,
-              (results[i] as PromiseRejectedResult).reason,
-            );
+            const reason = r.reason;
+            console.error(`Failed to process ${type} log files:`, reason);
+            d(`Failed to process ${type} log files:`, reason);
+            failedTypes.push(type);
           }
+        }
+
+        if (failedTypes.length > 0) {
+          window.Sleuth.showMessageBox({
+            title: 'Some logs failed to process',
+            message: `The following log types could not be processed: ${failedTypes.join(', ')}. Some data may be missing.`,
+            type: 'warning',
+          });
         }
         console.timeEnd('process-files');
 

@@ -97,10 +97,10 @@ export async function processLogFile(
 }
 
 /**
- * Merges k sorted arrays into a single sorted array using a pointer-based
- * k-way merge. O(n*k) which is effectively O(n) for the small k (2-5 files)
- * typical in log bundles. Avoids the concat + full sort approach which is
- * O(n log n) and requires intermediate array copies.
+ * Merges k sorted arrays into a single sorted array using a linear-scan
+ * k-way merge. O(n*k) per step — for the small k typical in log bundles
+ * (2-5 files), this outperforms both a heap-based O(n log k) merge (lower
+ * constant overhead) and concat+sort O(n log n) (no intermediate copies).
  *
  * Entries with falsy momentValue (0, undefined) are sorted to the end.
  */
@@ -148,7 +148,7 @@ function kWayMerge(arrays: Array<LogEntry>[]): Array<LogEntry> {
  * Takes a bunch of processed log files and merges all the entries into one sorted
  * array.
  *
- * @param {ProcessedLogFiles} logFiles
+ * @param {Array<ProcessedLogFile> | Array<MergedLogFile>} logFiles
  */
 export function mergeLogFiles(
   logFiles: Array<ProcessedLogFile> | Array<MergedLogFile>,

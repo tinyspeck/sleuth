@@ -147,8 +147,8 @@ describe('matchLineWebApp (additional)', () => {
     const result = matchLineWebApp(line);
 
     expect(result).toBeDefined();
-    expect(result!.momentValue).toEqual(expect.any(Number));
-    expect(Number.isNaN(result!.momentValue)).toBe(false);
+    // 24: is replaced with 00: → Date.UTC(2021, 0, 12, 0, 13, 5, 353)
+    expect(result!.momentValue).toBe(Date.UTC(2021, 0, 12, 0, 13, 5, 353));
   });
 });
 
@@ -163,8 +163,8 @@ describe('matchLineElectron (additional)', () => {
     const result = matchLineElectron(line);
 
     expect(result).toBeDefined();
-    expect(result!.momentValue).toEqual(expect.any(Number));
-    expect(Number.isNaN(result!.momentValue)).toBe(false);
+    // 24: is replaced with 00: → Date.UTC(2021, 0, 12, 0, 13, 5, 353)
+    expect(result!.momentValue).toBe(Date.UTC(2021, 0, 12, 0, 13, 5, 353));
   });
 });
 
@@ -366,8 +366,8 @@ describe('matchLineSquirrel', () => {
     expect(result!.timestamp).toBe('2019-01-30 21:08:25');
     expect(result!.level).toBe('info');
     expect(result!.message).toContain('Program: Starting install');
-    expect(result!.momentValue).toEqual(expect.any(Number));
-    expect(Number.isNaN(result!.momentValue)).toBe(false);
+    // No TZ passed → Date.UTC(2019, 0, 30, 21, 8, 25, 0)
+    expect(result!.momentValue).toBe(Date.UTC(2019, 0, 30, 21, 8, 25, 0));
   });
 
   it('should skip stack trace lines starting with "   at"', () => {
@@ -390,8 +390,8 @@ describe('matchLineShipItMac', () => {
     expect(result).toBeDefined();
     expect(result!.timestamp).toBe('2019-01-08 08:29:56.504');
     expect(result!.level).toBe('info');
-    expect(result!.momentValue).toEqual(expect.any(Number));
-    expect(Number.isNaN(result!.momentValue)).toBe(false);
+    // No TZ passed → Date.UTC(2019, 0, 8, 8, 29, 56, 504)
+    expect(result!.momentValue).toBe(Date.UTC(2019, 0, 8, 8, 29, 56, 504));
   });
 
   it('should split inline meta at comma-space', () => {
@@ -418,8 +418,15 @@ describe('matchLineChromium', () => {
     expect(result).toBeDefined();
     expect(result!.level).toBe('warn');
     expect(result!.message).toBe('The GPU process has crashed');
-    expect(result!.momentValue).toEqual(expect.any(Number));
-    expect(Number.isNaN(result!.momentValue)).toBe(false);
+    // Chromium uses current year; if the resulting date is in the future, year is decremented
+    const now = new Date();
+    let expectedYear = now.getFullYear();
+    if (Date.UTC(expectedYear, 2, 2, 16, 7, 42, 806) > now.valueOf()) {
+      expectedYear -= 1;
+    }
+    expect(result!.momentValue).toBe(
+      Date.UTC(expectedYear, 2, 2, 16, 7, 42, 806),
+    );
     expect(result!.meta).toMatchObject({
       sourceFile: 'gpu_process_host.cc',
       pid: '70491',

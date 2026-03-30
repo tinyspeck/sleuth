@@ -68,12 +68,14 @@ const CHROMIUM_RGX =
  * compared. If they differ (DST transition day), a binary search finds
  * the transition hour and both offsets are cached. On cache hit the
  * entry's hour selects the correct offset, so all hours are exact.
+ * Assumes at most one DST transition per calendar day (true for all
+ * known timezone rules).
  */
 let _cachedTZ: string | undefined | null = null;
 let _cachedDateKey = -1;
 let _cachedPreOffset = 0;
 let _cachedPostOffset = 0;
-let _cachedTransitionHour = 24; // 24 = no transition (use preOffset for all hours)
+let _cachedTransitionHour = 24; // 24 = sentinel: since hour < 24 is always true, preOffset applies to all hours
 
 /** Reset the TZ offset cache — exported for testing only. */
 export function _resetTZCache() {
@@ -84,6 +86,7 @@ export function _resetTZCache() {
   _cachedTransitionHour = 24;
 }
 
+// offset is negative for zones behind UTC: adding it to Date.UTC(wall-clock) yields the true UTC epoch
 function resolveOffset(
   year: number,
   month: number,
@@ -116,9 +119,22 @@ export function toTZMillis(
     return utcMs + offset;
   }
 
-  // Cache miss — check for DST transition on this date
-  const offset0 = resolveOffset(year, month, day, 0, tz);
-  const offset23 = resolveOffset(year, month, day, 23, tz);
+  // Cache miss — resolve the TZ offset. If the timezone string is invalid,
+  // fall back to UTC so processing can continue.
+  let offset0: number;
+  let offset23: number;
+  try {
+    offset0 = resolveOffset(year, month, day, 0, tz);
+    offset23 = resolveOffset(year, month, day, 23, tz);
+  } catch (err) {
+    d(`Invalid timezone "${tz}", falling back to UTC:`, err);
+    _cachedTZ = tz;
+    _cachedDateKey = dateKey;
+    _cachedPreOffset = 0;
+    _cachedPostOffset = 0;
+    _cachedTransitionHour = 24;
+    return utcMs;
+  }
 
   _cachedTZ = tz;
   _cachedDateKey = dateKey;
@@ -175,8 +191,8 @@ function parseDesktopTimestamp(ts: string, tz?: string): number {
  * Parses an ISO-ish timestamp directly into epoch millis.
  *
  * Handles with and without milliseconds:
- *   "2019-01-30 21:08:25"     (Squirrel)
- *   "2019-01-08 08:29:56.504" (ShipIt)
+ *   "2019-01-30 21:08:25"     (Squirrel — 19 chars, no ms)
+ *   "2019-01-08 08:29:56.504" (ShipIt — 23 chars, period at index 19)
  */
 function parseISOTimestamp(ts: string, tz?: string): number {
   const year = parseInt(ts.substring(0, 4), 10);
@@ -256,9 +272,12 @@ export function readLogFile(
     userTZ?: string;
   },
 ): Promise<ReadFileResult> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const entries: Array<LogEntry> = [];
     const readStream = fs.createReadStream(logFile.fullPath);
+    readStream.on('error', (err) => {
+      reject(new Error(`Failed to read ${logFile.fullPath}: ${err.message}`));
+    });
     const readInterface = readline.createInterface({
       input: readStream,
       terminal: false,

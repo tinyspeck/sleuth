@@ -149,7 +149,7 @@ guidance first.
 
 - Log table uses `react-virtualized` for large datasets
 - Log processing happens in chunks to avoid blocking UI
-- Per-type file processing runs in parallel (`Promise.all` in `app-core.tsx`)
+- Per-type file processing runs in parallel (`Promise.allSettled` in `app-core.tsx`)
 - `mergeLogFiles` uses a synchronous k-way merge (O(n·k), avoids concat+sort)
 - Timestamp parsing uses `toTZMillis()` with a cached TZ offset per calendar date, avoiding expensive `TZDate` construction (~7µs) on every line — the single biggest bottleneck in log processing
 - The main processing hot path is in `src/main/filesystem/read-file.ts`: regex matching → timestamp parsing → LogEntry creation
