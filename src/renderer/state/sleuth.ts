@@ -62,6 +62,14 @@ export class SleuthState {
   @observable.ref public selectedRangeEntries?: Array<LogEntry>;
   // The custom range of the log time view
   @observable public customTimeViewRange: number | undefined;
+  // When set, the log table should scroll to the entry with this momentValue
+  @observable public pendingScrollToMoment?: number;
+
+  @action
+  public setPendingScrollToMoment(moment: number | undefined) {
+    this.pendingScrollToMoment = moment;
+  }
+
   // Path to the source directory (zip file, folder path, etc)
   @observable public source?: string;
   // A reference to the selected log file

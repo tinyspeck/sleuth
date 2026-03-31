@@ -407,20 +407,15 @@ export const LogTable = observer((props: LogTableProps) => {
             break;
           }
           case LogLineContextMenuActions.SHOW_IN_CONTEXT:
-            {
-              state.selectLogFile(null, LogType.ALL);
-              const matchingIndex = sortedList.findIndex(
-                (row) => row.momentValue === rowData.momentValue,
-              );
-              changeSelection(matchingIndex);
-            }
+            state.setPendingScrollToMoment(rowData.momentValue);
+            state.selectLogFile(null, LogType.ALL);
             break;
         }
       } catch (error) {
         d('Error in context menu handler:', error);
       }
     },
-    [state, sortedList, changeSelection],
+    [state],
   );
 
   const incrementSelection = useCallback(
@@ -758,6 +753,25 @@ export const LogTable = observer((props: LogTableProps) => {
       scrollToSelectionRef.current = true;
     }
   }, []);
+
+  // Handle pending scroll-to-moment (e.g. from "Show in All Desktop Logs").
+  // When the user triggers "Show in Context", we set the pending moment and
+  // switch to the ALL view. The sortedList may not yet reflect the new file,
+  // so we wait until the list is populated before attempting to find the entry.
+  useEffect(() => {
+    const { pendingScrollToMoment } = state;
+    if (pendingScrollToMoment === undefined) return;
+    if (sortedList.length === 0) return;
+
+    const matchingIndex = sortedList.findIndex(
+      (row) => row.momentValue === pendingScrollToMoment,
+    );
+
+    if (matchingIndex >= 0) {
+      changeSelection(matchingIndex);
+    }
+    state.setPendingScrollToMoment(undefined);
+  }, [state.pendingScrollToMoment, sortedList, changeSelection]);
 
   // Keyboard navigation handler — listen on document to match
   // the previous global behavior (react-keydown listened globally)

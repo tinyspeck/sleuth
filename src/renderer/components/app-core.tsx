@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import debug from 'debug';
 
-import { getFirstLogFile } from '../../utils/get-first-logfile';
 import { SleuthState } from '../state/sleuth';
 import {
   MergedLogFiles,
@@ -181,7 +180,6 @@ export const CoreApplication = observer((props: CoreAppProps) => {
         console.timeEnd('process-files');
 
         const currentProcessed = processedLogFilesRef.current;
-        const { selectedLogFile } = props.state;
 
         props.state.processedLogFiles = currentProcessed;
 
@@ -189,21 +187,56 @@ export const CoreApplication = observer((props: CoreAppProps) => {
         const { setMergedFile } = props.state;
 
         if (currentProcessed) {
-          await mergeLogFiles(currentProcessed.browser, LogType.BROWSER).then(
-            setMergedFile,
-          );
-          await mergeLogFiles(currentProcessed.webapp, LogType.WEBAPP).then(
-            setMergedFile,
-          );
+          const MERGE_TYPES = ['browser', 'webapp'] as const;
+          const mergeResults = await Promise.allSettled([
+            mergeLogFiles(currentProcessed.browser, LogType.BROWSER),
+            mergeLogFiles(currentProcessed.webapp, LogType.WEBAPP),
+          ]);
 
-          const merged = props.state.mergedLogFiles as MergedLogFiles;
-          const toMerge = [merged.browser, merged.webapp];
+          const failedMergeTypes: string[] = [];
+          for (let i = 0; i < mergeResults.length; i++) {
+            const result = mergeResults[i];
+            if (result.status === 'fulfilled') {
+              setMergedFile(result.value);
+            } else {
+              const type = MERGE_TYPES[i];
+              console.error(
+                `Failed to merge ${type} log files:`,
+                result.reason,
+              );
+              failedMergeTypes.push(type);
+            }
+          }
 
-          await mergeLogFiles(toMerge, LogType.ALL).then(setMergedFile);
+          if (failedMergeTypes.length > 0) {
+            window.Sleuth.showMessageBox({
+              title: 'Some logs failed to merge',
+              message: `The following log types could not be merged: ${failedMergeTypes.join(', ')}. The combined view may be incomplete.`,
+              type: 'warning',
+            });
+          }
 
-          props.state.selectLogFile(null, LogType.ALL);
-        } else if (!selectedLogFile && currentProcessed) {
-          props.state.selectedLogFile = getFirstLogFile(currentProcessed);
+          const merged = props.state.mergedLogFiles;
+          const toMerge = [merged?.browser, merged?.webapp].filter(
+            Boolean,
+          ) as MergedLogFiles[keyof MergedLogFiles][];
+
+          if (toMerge.length > 0) {
+            const allMerged = await mergeLogFiles(toMerge, LogType.ALL);
+            setMergedFile(allMerged);
+            props.state.selectLogFile(null, LogType.ALL);
+          } else {
+            // No browser/webapp logs to merge — select first available file
+            const firstFile =
+              currentProcessed.installer[0] ??
+              currentProcessed.mobile[0] ??
+              currentProcessed.chromium[0] ??
+              currentProcessed.netlog[0] ??
+              currentProcessed.state[0];
+            if (firstFile) {
+              props.state.selectLogFile(firstFile);
+            }
+          }
         }
 
         setLoadedLogFiles(true);

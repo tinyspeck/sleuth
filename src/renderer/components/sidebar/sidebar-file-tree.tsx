@@ -68,6 +68,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
   const [files, setFiles] = useState<
     Map<string, ProcessedLogFile | UnzippedFile>
   >(new Map());
+  const [manualTab, setManualTab] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchTree() {
@@ -78,12 +79,10 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       const filesMap = new Map<string, ProcessedLogFile | UnzippedFile>();
 
       const stateFileNodes = await Promise.all(
-        [...processedLogFiles.state]
-          .sort((a, b) => a.fileName.localeCompare(b.fileName))
-          .map(async (file) => {
-            filesMap.set(file.id, file);
-            return await getStateFileNode(file);
-          }),
+        processedLogFiles.state.map((file) => {
+          filesMap.set(file.id, file);
+          return getStateFileNode(file);
+        }),
       );
 
       const LOG_NODES: TreeDataNode[] = [
@@ -151,15 +150,10 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
             return getInstallerFileNode(file);
           }),
         },
-        {
-          key: LogType.NETLOG,
-          icon: <WifiOutlined />,
-          title: <Typography.Text strong>Network</Typography.Text>,
-          children: processedLogFiles.netlog.map((file, i) => {
-            filesMap.set(file.id, file);
-            return getNetlogFileNode(file, i);
-          }),
-        },
+        ...processedLogFiles.netlog.map((file, i) => {
+          filesMap.set(file.id, file);
+          return getNetlogFileNode(file, i, processedLogFiles.netlog.length);
+        }),
         {
           key: LogType.MOBILE,
           icon: <MobileOutlined />,
@@ -171,18 +165,15 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
         },
       ];
 
-      const visibleLogNodes = LOG_NODES.filter((node) => {
-        if (node.key === LogType.ALL) {
-          const main = LOG_NODES.find((n) => n.key === LogType.BROWSER);
-          const renderer = LOG_NODES.find((n) => n.key === LogType.WEBAPP);
+      const hasDesktopLogs =
+        processedLogFiles.browser.length > 0 ||
+        processedLogFiles.webapp.length > 0;
 
-          return (
-            (main?.children?.length && main?.children?.length > 0) ||
-            (renderer?.children?.length && renderer?.children?.length > 0)
-          );
-        } else {
-          return node.children?.length && node.children?.length > 0;
-        }
+      const visibleLogNodes = LOG_NODES.filter((node) => {
+        if (node.key === LogType.ALL) return hasDesktopLogs;
+        // Leaf nodes (no children array) are always visible
+        if (!node.children) return true;
+        return node.children.length > 0;
       });
 
       setFiles(filesMap);
@@ -190,13 +181,16 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       setLogNodes(visibleLogNodes);
       setExpandedLogKeys(visibleLogNodes.map((node) => node.key as Key));
     }
-    fetchTree();
+    fetchTree().catch((error) => {
+      console.error('Failed to build sidebar file tree:', error);
+    });
   }, [props.state.processedLogFiles]);
 
   const onSelect = useCallback(
-    (selectedKeys: string[]) => {
-      // only one node can be selected at atime
-      const selected = selectedKeys[0];
+    (selectedKeys: Key[]) => {
+      // only one node can be selected at a time
+      const selected = String(selectedKeys[0]);
+      setManualTab(null);
 
       if (selected === TRACE_VIEWER.CHROME_DEVTOOLS) {
         props.state.openTraceViewer(TRACE_VIEWER.CHROME_DEVTOOLS);
@@ -229,6 +223,12 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
   }
 
   const selectedKey = getSelectedKey();
+
+  const isStateFileSelected = selectedKey
+    ? stateNodes.some((node) => node.key === selectedKey)
+    : false;
+  const derivedTab = isStateFileSelected ? 'state' : 'logs';
+  const activeTab = manualTab ?? derivedTab;
 
   function getNode(
     id: string,
@@ -288,8 +288,20 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     return getNode(label, { file }, options);
   }
 
-  function getNetlogFileNode(file: UnzippedFile, i: number): TreeDataNode {
-    return getNode(`Net Log ${i + 1}`, { file });
+  function getNetlogFileNode(
+    file: UnzippedFile,
+    i: number,
+    total: number,
+  ): TreeDataNode {
+    const text = total > 1 ? `Net Log ${i + 1}` : 'Net Log';
+    return getNode(
+      text,
+      { file },
+      {
+        icon: <WifiOutlined />,
+        title: <Typography.Text strong>{text}</Typography.Text>,
+      },
+    );
   }
 
   function getInstallerFileNode(
@@ -458,7 +470,8 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
   return (
     <div className={classNames('SidebarFileTree', { Open: isSidebarOpen })}>
       <Tabs
-        defaultActiveKey="logs"
+        activeKey={activeTab}
+        onChange={setManualTab}
         size="small"
         items={[
           {
