@@ -217,7 +217,7 @@ jobs:
       - run:
           name: Publish
           command: |
-            node tools/fix-publish-paths.js
+            node tools/fix-publish-paths.cjs
             yarn run publish --from-dry-run
 
 workflows:
