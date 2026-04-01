@@ -17,6 +17,7 @@ import {
   ArrowDownOutlined,
   ArrowUpOutlined,
   BugOutlined,
+  DesktopOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
   FilterOutlined,
@@ -109,7 +110,23 @@ export const Filter = observer((props: FilterProps) => {
     };
   }, []);
 
-  const { showOnlySearchResults, searchIndex, searchList } = props.state;
+  const {
+    showOnlySearchResults,
+    searchIndex,
+    searchList,
+    sessionList,
+    sessionIndex,
+  } = props.state;
+
+  const handleSessionIndexChange = (change: number) => {
+    if (sessionList.length === 0) return;
+
+    let newIndex = sessionIndex + change;
+    if (newIndex >= sessionList.length) newIndex = 0;
+    else if (newIndex < 0) newIndex = sessionList.length - 1;
+
+    props.state.sessionIndex = newIndex;
+  };
 
   const showOnlySearchResultsButton = (
     <Button
@@ -130,7 +147,7 @@ export const Filter = observer((props: FilterProps) => {
 
     const selectedKeys: string[] = [];
 
-    for (const level of ['debug', 'info', 'warn', 'error']) {
+    for (const level of ['debug', 'info', 'warn', 'error'] as const) {
       if (props.state.levelFilter[level]) {
         selectedKeys.push(level);
       }
@@ -282,6 +299,26 @@ export const Filter = observer((props: FilterProps) => {
         {renderFilter()}
         {showOnlySearchResultsButton}
       </Space>
+      {sessionList.length > 0 && (
+        <>
+          <Divider type="vertical" />
+          <Space.Compact>
+            <Tooltip title="App sessions (Cmd+Shift+Arrow)">
+              <Button icon={<DesktopOutlined />}>
+                {sessionIndex + 1} / {sessionList.length}
+              </Button>
+            </Tooltip>
+            <Button
+              icon={<ArrowUpOutlined />}
+              onClick={() => handleSessionIndexChange(-1)}
+            />
+            <Button
+              icon={<ArrowDownOutlined />}
+              onClick={() => handleSessionIndexChange(1)}
+            />
+          </Space.Compact>
+        </>
+      )}
       <Divider type="vertical" />
       <Space.Compact className="SearchInputGroup">
         <Input

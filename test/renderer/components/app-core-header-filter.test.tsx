@@ -52,6 +52,8 @@ describe('Filter', () => {
           } as any,
         },
         searchList: [],
+        sessionList: [],
+        sessionIndex: 0,
         levelFilter: { error: true, warn: true, info: true, debug: true },
         dateRange: { from: null, to: null },
       };
@@ -73,6 +75,8 @@ describe('Filter', () => {
           } as any,
         },
         searchList: [],
+        sessionList: [],
+        sessionIndex: 0,
         levelFilter: { error: true, warn: true, info: true, debug: true },
         dateRange: { from: null, to: null },
       };
@@ -110,6 +114,8 @@ describe('Filter', () => {
           } as any,
         },
         searchList: [],
+        sessionList: [],
+        sessionIndex: 0,
         levelFilter: { error: true, warn: true, info: true, debug: true },
         dateRange: { from: null, to: null },
       };
@@ -149,6 +155,8 @@ describe('Filter', () => {
           } as any,
         },
         searchList: [],
+        sessionList: [],
+        sessionIndex: 0,
         levelFilter: { error: true, warn: true, info: true, debug: true },
         dateRange: { from: null, to: null },
       };
@@ -190,6 +198,8 @@ describe('Filter', () => {
           } as any,
         },
         searchList: [],
+        sessionList: [],
+        sessionIndex: 0,
         levelFilter: { error: true, warn: true, info: true, debug: true },
         dateRange: { from: null, to: null },
       };
@@ -227,6 +237,8 @@ describe('Filter', () => {
           } as any,
         },
         searchList: [],
+        sessionList: [],
+        sessionIndex: 0,
         levelFilter: { error: true, warn: true, info: true, debug: true },
         dateRange: { from: null, to: null },
       };
@@ -266,6 +278,8 @@ describe('Filter', () => {
           } as any,
         },
         searchList: [],
+        sessionList: [],
+        sessionIndex: 0,
         levelFilter: { error: true, warn: true, info: true, debug: true },
         dateRange: {
           from: new Date('2024-01-15T10:00:00Z'),
@@ -291,6 +305,8 @@ describe('Filter', () => {
           } as any,
         },
         searchList: [],
+        sessionList: [],
+        sessionIndex: 0,
         levelFilter: { error: true, warn: true, info: true, debug: true },
         dateRange: { from: null, to: null },
       };
@@ -312,6 +328,8 @@ describe('Filter', () => {
           } as any,
         },
         searchList: [],
+        sessionList: [],
+        sessionIndex: 0,
         levelFilter: { error: true, warn: true, info: true, debug: true },
         dateRange: {
           from: new Date('2024-01-15T10:00:00Z'),
@@ -337,6 +355,8 @@ describe('Filter', () => {
           } as any,
         },
         searchList: [],
+        sessionList: [],
+        sessionIndex: 0,
         levelFilter: { error: true, warn: true, info: true, debug: true },
         dateRange: {
           from: new Date('2024-01-15T10:00:00Z'),
@@ -380,6 +400,8 @@ describe('Filter', () => {
           } as any,
         },
         searchList: [],
+        sessionList: [],
+        sessionIndex: 0,
         levelFilter: { error: true, warn: true, info: true, debug: true },
         dateRange: { from: null, to: null },
       };

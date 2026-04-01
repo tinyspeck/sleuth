@@ -66,6 +66,11 @@
       background-color: rgba(255, 200, 0, 0.2);
     }
   }
+
+  .SessionStartRow {
+    border-top: 2px solid rgba(100, 100, 255, 0.5);
+    background-color: rgba(100, 100, 255, 0.05);
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -83,5 +88,10 @@
 
   .ActiveRow {
     background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .SessionStartRow {
+    border-top: 2px solid rgba(140, 140, 255, 0.5);
+    background-color: rgba(140, 140, 255, 0.08);
   }
 }

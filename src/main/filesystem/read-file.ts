@@ -366,6 +366,16 @@ export function readLogFile(
         // Is there a meta object?
         if (current && toParse && toParse.length > 0) {
           current.meta = toParse;
+
+          // If meta contains an app startup banner, extract the version
+          // info into the message so it's visible in the log table.
+          // Banner format: ║  Slack 4.50.40, darwin 25.4.0 on arm64  ║
+          if (toParse.includes('╔═')) {
+            const bannerMatch = toParse.match(/║\s+(.+?)\s+║/);
+            if (bannerMatch) {
+              current.message = `Session start: ${bannerMatch[1]}`;
+            }
+          }
         }
         pushEntry(current);
 

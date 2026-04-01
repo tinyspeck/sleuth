@@ -79,6 +79,10 @@ export class SleuthState {
   @observable public search = '';
   @observable public showOnlySearchResults: boolean | undefined;
 
+  // ** Session navigation **
+  @observable public sessionIndex = 0;
+  @observable public sessionList: number[] = [];
+
   // ** Various "what are we showing" properties **
   @observable public suggestions: Suggestion[] = [];
   @observable public suggestionsLoaded = false;
@@ -312,6 +316,8 @@ export class SleuthState {
     this.levelFilter.warn = false;
     this.searchIndex = 0;
     this.showOnlySearchResults = undefined;
+    this.sessionIndex = 0;
+    this.sessionList = [];
     this.isSpotlightOpen = false;
     this.isDetailsVisible = false;
     this.dateRange = { from: null, to: null };
@@ -337,6 +343,8 @@ export class SleuthState {
     this.selectedRangeIndex = undefined;
     this.selectedIndex = undefined;
     this.customTimeViewRange = undefined;
+    this.sessionIndex = 0;
+    this.sessionList = [];
 
     if (logFile) {
       const name = isProcessedLogFile(logFile)

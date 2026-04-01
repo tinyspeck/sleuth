@@ -317,6 +317,34 @@ export const LogTable = observer((props: LogTableProps) => {
     });
   }, [newSearchList, state]);
 
+  // Derive session boundary indices from sortedList.
+  // Detection: synthetic "Session start:" message (injected during parsing),
+  // inline "╔═" in message (older logs), or "╔═" in meta (fallback).
+  const sessionList = useMemo(() => {
+    const indices: number[] = [];
+    for (let i = 0; i < sortedList.length; i++) {
+      const entry = sortedList[i];
+      if (
+        entry.message.startsWith('Session start:') ||
+        entry.message.includes('╔═') ||
+        (typeof entry.meta === 'string' && entry.meta.includes('╔═'))
+      ) {
+        indices.push(i);
+      }
+    }
+    return indices;
+  }, [sortedList]);
+
+  // Sync sessionList to MobX state
+  useEffect(() => {
+    runInAction(() => {
+      state.sessionList = sessionList;
+      if (state.sessionIndex >= sessionList.length) {
+        state.sessionIndex = 0;
+      }
+    });
+  }, [sessionList, state]);
+
   /**
    * Changes the current selection in the table to the target index
    */
@@ -602,6 +630,14 @@ export const LogTable = observer((props: LogTableProps) => {
         classes.push('WarnRow');
       }
 
+      if (
+        row?.message?.startsWith('Session start:') ||
+        row?.message?.includes('╔═') ||
+        (typeof row?.meta === 'string' && row.meta.includes('╔═'))
+      ) {
+        classes.push('SessionStartRow');
+      }
+
       return classNames(...classes);
     },
     [
@@ -700,6 +736,22 @@ export const LogTable = observer((props: LogTableProps) => {
     return dispose;
   }, [state]);
 
+  // Setup MobX reaction for sessionIndex changes (once)
+  useEffect(() => {
+    const dispose = reaction(
+      () => state.sessionIndex,
+      (newSessionIndex) => {
+        const targetIndex = state.sessionList[newSessionIndex];
+        if (targetIndex !== undefined) {
+          state.selectedIndex = targetIndex;
+          state.selectedEntry = sortedListRef.current[targetIndex];
+          scrollToSelectionRef.current = true;
+        }
+      },
+    );
+    return dispose;
+  }, [state]);
+
   // Setup MobX reaction for timezone changes (once)
   useEffect(() => {
     const dispose = reaction(
@@ -763,6 +815,22 @@ export const LogTable = observer((props: LogTableProps) => {
   // the previous global behavior (react-keydown listened globally)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e.shiftKey &&
+        (e.key === 'ArrowDown' || e.key === 'ArrowUp')
+      ) {
+        e.preventDefault();
+        if (state.sessionList.length === 0) return;
+        let newIndex = state.sessionIndex + (e.key === 'ArrowDown' ? 1 : -1);
+        if (newIndex >= state.sessionList.length) newIndex = 0;
+        else if (newIndex < 0) newIndex = state.sessionList.length - 1;
+        runInAction(() => {
+          state.sessionIndex = newIndex;
+        });
+        return;
+      }
+
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         incrementSelection(e.key === 'ArrowDown' ? 1 : -1);
