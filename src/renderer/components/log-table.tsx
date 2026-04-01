@@ -71,6 +71,15 @@ export const LogTable = observer((props: LogTableProps) => {
     state,
   } = props;
 
+  // Destructure filter booleans so useCallback depends on primitives, not
+  // the object reference (which MobX may recreate on every render).
+  const {
+    debug: filterDebug,
+    info: filterInfo,
+    warn: filterWarn,
+    error: filterError,
+  } = levelFilter;
+
   const tableRef = useRef<Table>(null);
   const [sortBy, setSortBy] = useState<string>('index');
   const [sortDirection, setSortDirection] = useState<SortDirectionType>(
@@ -111,8 +120,15 @@ export const LogTable = observer((props: LogTableProps) => {
       list: Array<LogEntry>;
       newSearchList: Array<number> | null;
     } => {
+      const defaultFilter: LevelFilter = {
+        debug: filterDebug,
+        info: filterInfo,
+        warn: filterWarn,
+        error: filterError,
+      };
+
       function shouldFilter(filter?: LevelFilter): boolean {
-        const filterOrDefault = filter ?? levelFilter;
+        const filterOrDefault = filter ?? defaultFilter;
 
         if (!filterOrDefault) return false;
         const allEnabled =
@@ -197,7 +213,7 @@ export const LogTable = observer((props: LogTableProps) => {
       }
 
       const file = options.logFile || logFile;
-      const filter = options.filter || levelFilter;
+      const filter = options.filter || defaultFilter;
       const searchText = options.search !== undefined ? options.search : search;
       const sortByKey = options.sortBy || effectiveSortBy;
       const range = options.dateRange || dateRange;
@@ -289,7 +305,10 @@ export const LogTable = observer((props: LogTableProps) => {
     },
     [
       logFile,
-      levelFilter,
+      filterDebug,
+      filterInfo,
+      filterWarn,
+      filterError,
       search,
       effectiveSortBy,
       dateRange,
