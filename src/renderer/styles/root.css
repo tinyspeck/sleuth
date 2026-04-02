@@ -7,7 +7,7 @@ body {
 }
 
 .Monospace {
-  font-family: 'Inconsolata', monospace;
+  font-family: 'Fira Code', monospace;
   white-space: pre-wrap;
 }
 

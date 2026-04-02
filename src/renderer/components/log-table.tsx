@@ -38,12 +38,87 @@ import { between } from '../../utils/is-between';
 import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
 import { reaction, runInAction, toJS } from 'mobx';
-import { Tag } from 'antd';
+import { Tag, Tooltip } from 'antd';
 import { observer } from 'mobx-react';
 import { getCopyText } from '../state/copy';
-import { PaperClipOutlined, PartitionOutlined } from '@ant-design/icons';
+import { PartitionOutlined } from '@ant-design/icons';
 
 const d = debug('sleuth:logtable');
+
+/**
+ * Something like `[HUDDLES]` in webapp logs
+ */
+const WEBAPP_TAG_RGX = /^\s*\[([A-Za-z][A-Za-z0-9_ -]+)\]/;
+/**
+ * Something like `Store:` in desktop logs
+ */
+const BROWSER_PREFIX_RGX = /^\s*([A-Za-z][A-Za-z0-9_-]*(?:\s*\[[^\]]+\])?):/;
+/**
+ * Something like `Tag = fooBarEpic;` for rxjs-spy debug logs
+ */
+const BROWSER_EPIC_TAG_PREFIX = /^\s*Tag = ([A-Za-z][A-Za-z0-9_]*);/;
+
+const tagColorCache = new Map<string, string>();
+
+/**
+ * Maps a string to a hex code
+ */
+function hashTagColor(tag: string, dark: boolean): string {
+  const key = `${dark ? 'd' : 'l'}:${tag}`;
+  const cached = tagColorCache.get(key);
+  if (cached) return cached;
+
+  let hash = 0;
+  for (let i = 0; i < tag.length; i++) {
+    hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = ((hash % 360) + 360) % 360;
+  // Yellow-green (40–160) needs lower lightness for contrast on white backgrounds
+  // Blue-purple (220–310) needs higher lightness for contrast on dark backgrounds
+  const l = dark
+    ? h >= 220 && h < 310
+      ? 78
+      : 65
+    : h >= 40 && h < 160
+      ? 32
+      : 45;
+  const s = dark && h >= 220 && h < 310 ? 95 : 80;
+  const color = `hsl(${h}, ${s}%, ${l}%)`;
+  tagColorCache.set(key, color);
+  return color;
+}
+
+function matchTag(msg: string): RegExpExecArray | null {
+  return (
+    WEBAPP_TAG_RGX.exec(msg) ||
+    BROWSER_PREFIX_RGX.exec(msg) ||
+    BROWSER_EPIC_TAG_PREFIX.exec(msg)
+  );
+}
+
+const MSG_ICON_STYLE = {
+  flexShrink: 0,
+  width: '1.25em',
+  textAlign: 'center' as const,
+};
+const MSG_TEXT_STYLE = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap' as const,
+  minWidth: 0,
+};
+const MSG_ROW_STYLE = {
+  display: 'flex',
+  gap: '0.25rem',
+  overflow: 'hidden',
+  minWidth: 0,
+  alignItems: 'center' as const,
+};
+const PROCESS_TAG_STYLE = {
+  fontFamily: "'Fira Code', monospace",
+  width: 80,
+  textAlign: 'center' as const,
+};
 
 export const logColorMap: Record<ProcessableLogType, string> = {
   [LogType.BROWSER]: 'cyan',
@@ -453,24 +528,35 @@ export const LogTable = observer((props: LogTableProps) => {
    */
   const renderMessageCell = useCallback(
     ({ rowData: entry }: TableCellProps): JSX.Element | string => {
-      const message = entry.highlightMessage ?? entry.message;
+      const display = entry.highlightMessage ?? entry.message;
 
-      if (entry && entry.meta) {
-        const icon = isReduxAction(entry.message) ? (
-          <PartitionOutlined />
-        ) : (
-          <PaperClipOutlined />
-        );
-        return (
-          <div style={{ display: 'flex', gap: '0.25rem' }}>
-            <span title={entry.message}>{icon}</span>
-            <span title={entry.message}>{message}</span>
-          </div>
-        );
-      } else if (entry && entry.repeated) {
+      // Always extract tag from the raw message so it works with highlight elements too
+      const tagMatch = matchTag(entry.message);
+      const tag = tagMatch ? tagMatch[1] : null;
+      const tagDisplay = tagMatch ? tagMatch[0].trim() : null;
+      const msgAfterTag = tagMatch
+        ? typeof display === 'string'
+          ? display.slice(tagMatch[0].length)
+          : display
+        : display;
+
+      const tagSpan = tag ? (
+        <span
+          style={{
+            color: hashTagColor(tag, state.prefersDarkColors),
+            flexShrink: 0,
+          }}
+        >
+          {tagDisplay}
+        </span>
+      ) : null;
+
+      // Determine icon: repeated-entry emoji or meta attachment icon
+      let icon: JSX.Element | null = null;
+      let iconTitle: string | undefined;
+      if (entry?.repeated) {
         const count = entry.repeated.length;
         let emoji = '';
-
         if (count > RepeatedLevels.NOTIFY) {
           emoji = '🛑';
         } else if (count > RepeatedLevels.WARNING) {
@@ -478,19 +564,37 @@ export const LogTable = observer((props: LogTableProps) => {
         } else if (count > RepeatedLevels.ERROR) {
           emoji = '🔥';
         }
-
-        const emojiMessage = `(${emoji} Repeated ${entry.repeated.length} times)`;
-        return (
-          <div style={{ display: 'flex', gap: '0.25rem' }}>
-            <span>{emojiMessage}</span>
-            <span>{message}</span>
-          </div>
+        icon = (
+          <Tooltip title={`Repeated ${count} times`}>
+            <span>{emoji || '🔁'}</span>
+          </Tooltip>
         );
-      } else {
-        return message;
+      } else if (entry?.meta) {
+        iconTitle = entry.message;
+        icon = isReduxAction(entry.message) ? (
+          <Tooltip title="Redux action">
+            <PartitionOutlined />
+          </Tooltip>
+        ) : (
+          <Tooltip title="Contains JSON metadata">
+            <span>{'{}'}</span>
+          </Tooltip>
+        );
       }
+
+      return (
+        <div style={MSG_ROW_STYLE}>
+          <span style={MSG_ICON_STYLE} title={iconTitle}>
+            {icon}
+          </span>
+          {tagSpan}
+          <span style={MSG_TEXT_STYLE} title={entry?.message}>
+            {msgAfterTag}
+          </span>
+        </div>
+      );
     },
-    [],
+    [state.prefersDarkColors],
   );
 
   /**
@@ -640,27 +744,27 @@ export const LogTable = observer((props: LogTableProps) => {
         <Column
           label="Index"
           dataKey="index"
-          width={100}
+          width={75}
           flexGrow={0}
           flexShrink={1}
         />
-        <Column label="Line" dataKey="line" width={100} />
         <Column
           label="Timestamp"
           cellRenderer={renderTimestampCell}
           dataKey="momentValue"
           width={200}
-          flexGrow={2}
+          flexGrow={0}
         />
-        <Column label="Level" dataKey="level" width={100} />
+        <Column label="Level" dataKey="level" width={80} />
         {logFile.logType === LogType.ALL ? (
           <Column
             label="Process"
             dataKey="logType"
-            width={120}
+            width={100}
             cellRenderer={({ cellData }: TableCellProps) => (
               <Tag
                 color={logColorMap[cellData as ProcessableLogType] ?? 'default'}
+                style={PROCESS_TAG_STYLE}
               >
                 {cellData}
               </Tag>
