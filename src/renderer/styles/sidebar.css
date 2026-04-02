@@ -1,5 +1,6 @@
 .SidebarWrapper {
   max-height: calc(100vh - var(--ant-control-height));
+  overflow: hidden;
 
   .Darwin & {
     max-height: calc(
@@ -12,6 +13,9 @@
   gap: var(--sleuth-sidebar-gap);
   padding: var(--sleuth-sidebar-gap);
   width: calc(var(--ant-control-height) + 2 * var(--sleuth-sidebar-gap));
+  background: var(--ant-color-bg-layout);
+  position: relative;
+  z-index: 1;
 }
 
 .SidebarTreeToggle {
@@ -21,10 +25,14 @@
   border-top-right-radius: var(--ant-border-radius);
   height: calc(var(--ant-control-height) + var(--overlap-height));
   margin-top: calc(-1 * var(--overlap-height));
+  background: var(--ant-color-bg-layout);
+  position: relative;
+  z-index: 2;
 }
 
 .SidebarFileTree {
   overflow-x: hidden;
+  white-space: nowrap;
   width: 0;
   opacity: 0;
   transition: 0.2s ease-in all;
@@ -37,9 +45,22 @@
   padding: var(--ant-border-radius) 0;
 
   &.Open {
+    overflow-y: auto;
     width: var(--sleuth-sidebar-open-width);
     border: 1px solid var(--ant-color-border);
     padding: var(--ant-border-radius);
     opacity: 1;
+  }
+
+  .ant-tabs {
+    padding: 0 var(--ant-padding-xs);
+  }
+
+  .ant-tabs-nav {
+    height: 45px;
+  }
+
+  .ant-tree {
+    background: transparent;
   }
 }

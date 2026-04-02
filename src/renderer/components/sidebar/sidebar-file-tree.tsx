@@ -1,4 +1,12 @@
-import { Badge, Space, Tooltip, Tree, TreeDataNode, Typography } from 'antd';
+import {
+  Badge,
+  Space,
+  Tabs,
+  Tooltip,
+  Tree,
+  TreeDataNode,
+  Typography,
+} from 'antd';
 import classNames from 'classnames';
 import { observer } from 'mobx-react';
 import React, { Key, useCallback, useEffect, useState } from 'react';
@@ -6,7 +14,6 @@ import { SleuthState } from '../../state/sleuth';
 import {
   LogType,
   ProcessedLogFile,
-  SelectableLogFile,
   SelectableLogType,
   TRACE_VIEWER,
   UnzippedFile,
@@ -30,14 +37,13 @@ import {
   MobileOutlined,
   NotificationOutlined,
   PictureOutlined,
-  SettingFilled,
   SettingOutlined,
   SlidersOutlined,
   WarningFilled,
   WifiOutlined,
 } from '@ant-design/icons';
 import { truncate } from '../../../utils/truncate-string';
-import { isProcessedLogFile } from '../../../utils/is-logfile';
+import { isMergedLogFile, isProcessedLogFile } from '../../../utils/is-logfile';
 import { getEnvironmentWarnings } from '../../analytics/environment-analytics';
 import { getRootStateWarnings } from '../../analytics/root-state-analytics';
 import { levelsHave } from '../../../utils/level-counts';
@@ -55,11 +61,14 @@ interface SidebarNodeData {
 }
 
 const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
-  const [nodes, setNodes] = useState<TreeDataNode[]>([]);
-  const [expandedKeys, setExpandedKeys] = useState<Key[]>();
+  const [stateNodes, setStateNodes] = useState<TreeDataNode[]>([]);
+  const [logNodes, setLogNodes] = useState<TreeDataNode[]>([]);
+  const [expandedStateKeys, setExpandedStateKeys] = useState<Key[]>();
+  const [expandedLogKeys, setExpandedLogKeys] = useState<Key[]>();
   const [files, setFiles] = useState<
     Map<string, ProcessedLogFile | UnzippedFile>
   >(new Map());
+  const [manualTab, setManualTab] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchTree() {
@@ -69,19 +78,14 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
 
       const filesMap = new Map<string, ProcessedLogFile | UnzippedFile>();
 
-      const AVAILABLE_NODES: TreeDataNode[] = [
-        {
-          key: LogType.STATE,
-          icon: <SettingFilled />,
-          selectable: false,
-          title: <Typography.Text strong>State & Settings</Typography.Text>,
-          children: await Promise.all(
-            processedLogFiles.state.map(async (file) => {
-              filesMap.set(file.id, file);
-              return await getStateFileNode(file);
-            }),
-          ),
-        },
+      const stateFileNodes = await Promise.all(
+        processedLogFiles.state.map((file) => {
+          filesMap.set(file.id, file);
+          return getStateFileNode(file);
+        }),
+      );
+
+      const LOG_NODES: TreeDataNode[] = [
         {
           key: LogType.ALL,
           title: <Typography.Text strong>All Desktop Logs</Typography.Text>,
@@ -146,15 +150,10 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
             return getInstallerFileNode(file);
           }),
         },
-        {
-          key: LogType.NETLOG,
-          icon: <WifiOutlined />,
-          title: <Typography.Text strong>Network</Typography.Text>,
-          children: processedLogFiles.netlog.map((file, i) => {
-            filesMap.set(file.id, file);
-            return getNetlogFileNode(file, i);
-          }),
-        },
+        ...processedLogFiles.netlog.map((file, i) => {
+          filesMap.set(file.id, file);
+          return getNetlogFileNode(file, i, processedLogFiles.netlog.length);
+        }),
         {
           key: LogType.MOBILE,
           icon: <MobileOutlined />,
@@ -166,34 +165,32 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
         },
       ];
 
-      const visibleNodes = AVAILABLE_NODES.filter((node) => {
-        // Show "All Desktop Logs" if there are any browser or webapp logs
-        if (node.key === LogType.ALL) {
-          const main = AVAILABLE_NODES.find((n) => n.key === LogType.BROWSER);
-          const renderer = AVAILABLE_NODES.find(
-            (n) => n.key === LogType.WEBAPP,
-          );
+      const hasDesktopLogs =
+        processedLogFiles.browser.length > 0 ||
+        processedLogFiles.webapp.length > 0;
 
-          return (
-            (main?.children?.length && main?.children?.length > 0) ||
-            (renderer?.children?.length && renderer?.children?.length > 0)
-          );
-        } else {
-          return node.children?.length && node.children?.length > 0;
-        }
+      const visibleLogNodes = LOG_NODES.filter((node) => {
+        if (node.key === LogType.ALL) return hasDesktopLogs;
+        // Leaf nodes (no children array) are always visible
+        if (!node.children) return true;
+        return node.children.length > 0;
       });
 
       setFiles(filesMap);
-      setNodes(visibleNodes);
-      setExpandedKeys(visibleNodes.map((node) => node.key as Key));
+      setStateNodes(stateFileNodes);
+      setLogNodes(visibleLogNodes);
+      setExpandedLogKeys(visibleLogNodes.map((node) => node.key as Key));
     }
-    fetchTree();
+    fetchTree().catch((error) => {
+      console.error('Failed to build sidebar file tree:', error);
+    });
   }, [props.state.processedLogFiles]);
 
   const onSelect = useCallback(
-    (selectedKeys: string[]) => {
-      // only one node can be selected at atime
-      const selected = selectedKeys[0];
+    (selectedKeys: Key[]) => {
+      // only one node can be selected at a time
+      const selected = String(selectedKeys[0]);
+      setManualTab(null);
 
       if (selected === TRACE_VIEWER.CHROME_DEVTOOLS) {
         props.state.openTraceViewer(TRACE_VIEWER.CHROME_DEVTOOLS);
@@ -218,16 +215,20 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
 
   const { isSidebarOpen, selectedLogFile } = props.state;
 
-  function isLogFile(
-    file: SelectableLogFile | undefined,
-  ): file is ProcessedLogFile | UnzippedFile {
-    if (!file) return false;
-    return (file as any).id !== undefined;
+  function getSelectedKey(): string | undefined {
+    if (!selectedLogFile) return undefined;
+    if (isMergedLogFile(selectedLogFile)) return selectedLogFile.logType;
+    if ('id' in selectedLogFile) return selectedLogFile.id;
+    return undefined;
   }
 
-  const defaultSelectedLog = isLogFile(selectedLogFile)
-    ? selectedLogFile.id
-    : 'browser.log';
+  const selectedKey = getSelectedKey();
+
+  const isStateFileSelected = selectedKey
+    ? stateNodes.some((node) => node.key === selectedKey)
+    : false;
+  const derivedTab = isStateFileSelected ? 'state' : 'logs';
+  const activeTab = manualTab ?? derivedTab;
 
   function getNode(
     id: string,
@@ -243,45 +244,31 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
   }
 
   async function getStateFileNode(file: UnzippedFile) {
-    let label: string;
+    const label = file.fileName;
     let icon: React.ReactNode = <FileTextOutlined />;
     if (
       file.fileName.endsWith('gpu-info.json') ||
       file.fileName.endsWith('gpu-info.html')
     ) {
-      label = 'GPU';
       icon = <PictureOutlined />;
     } else if (file.fileName.endsWith('notification-warnings.json')) {
-      label = 'Notification Warnings';
       icon = <NotificationOutlined />;
     } else if (file.fileName.endsWith('environment.json')) {
-      label = 'Environment';
       icon = <MacCommandOutlined />;
     } else if (file.fileName.endsWith('local-settings.json')) {
-      label = 'Local Settings';
       icon = <SettingOutlined />;
-    } else if (file.fileName.endsWith('.trace')) {
-      label = 'Performance Profile';
     } else if (file.fileName.endsWith('root-state.json')) {
-      label = 'Root State';
       icon = <ApartmentOutlined />;
     } else if (file.fileName.endsWith('external-config.json')) {
-      label = 'External Config';
       icon = <SettingOutlined />;
     } else if (file.fileName.endsWith('logfiles-shipping-manifest.json')) {
-      label = 'Log Manifest';
       icon = <FileZipOutlined />;
     } else if (file.fileName.endsWith('log-context.json')) {
-      label = 'Log Context';
       icon = <GlobalOutlined />;
     } else if (file.fileName.endsWith('installation')) {
-      label = 'Installation';
       icon = <ExceptionOutlined />;
     } else if (file.fileName.endsWith('diagnostic.json')) {
-      label = 'System Diagnostics';
       icon = <HeartOutlined />;
-    } else {
-      label = file.fileName;
     }
 
     const options: Partial<TreeDataNode> = {
@@ -301,8 +288,20 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     return getNode(label, { file }, options);
   }
 
-  function getNetlogFileNode(file: UnzippedFile, i: number): TreeDataNode {
-    return getNode(`Net Log ${i + 1}`, { file });
+  function getNetlogFileNode(
+    file: UnzippedFile,
+    i: number,
+    total: number,
+  ): TreeDataNode {
+    const text = total > 1 ? `Net Log ${i + 1}` : 'Net Log';
+    return getNode(
+      text,
+      { file },
+      {
+        icon: <WifiOutlined />,
+        title: <Typography.Text strong>{text}</Typography.Text>,
+      },
+    );
   }
 
   function getInstallerFileNode(
@@ -459,23 +458,51 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     );
   }
 
+  const treeProps = {
+    showLine: true,
+    onSelect,
+    showIcon: true,
+    blockNode: true,
+    switcherIcon: <DownOutlined />,
+    selectedKeys: selectedKey ? [selectedKey] : [],
+  };
+
   return (
-    <Tree
-      showLine={true}
-      onSelect={onSelect}
-      onExpand={(keys) => {
-        setExpandedKeys(keys);
-      }}
-      expandedKeys={expandedKeys}
-      className={classNames('SidebarFileTree', { Open: isSidebarOpen })}
-      // apply style to child so that hiding the parent looks smoother with overflow-x: hidden
-      style={{ width: '286px' }}
-      defaultSelectedKeys={[defaultSelectedLog]}
-      showIcon={true}
-      blockNode={true}
-      switcherIcon={<DownOutlined />}
-      treeData={nodes}
-    />
+    <div className={classNames('SidebarFileTree', { Open: isSidebarOpen })}>
+      <Tabs
+        activeKey={activeTab}
+        onChange={setManualTab}
+        size="small"
+        items={[
+          {
+            key: 'logs',
+            label: 'Logs',
+            icon: <FileTextOutlined />,
+            children: (
+              <Tree
+                {...treeProps}
+                onExpand={(keys) => setExpandedLogKeys(keys)}
+                expandedKeys={expandedLogKeys}
+                treeData={logNodes}
+              />
+            ),
+          },
+          {
+            key: 'state',
+            label: 'State & Settings',
+            icon: <SettingOutlined />,
+            children: (
+              <Tree
+                {...treeProps}
+                onExpand={(keys) => setExpandedStateKeys(keys)}
+                expandedKeys={expandedStateKeys}
+                treeData={stateNodes}
+              />
+            ),
+          },
+        ]}
+      />
+    </div>
   );
 });
 

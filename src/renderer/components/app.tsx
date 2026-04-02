@@ -145,8 +145,8 @@ export const App = observer(() => {
           : theme.defaultAlgorithm,
         cssVar: { key: 'antd' },
         token: {
-          colorPrimary: '#137cbd',
-          colorBgBase: sleuthState.prefersDarkColors ? '#2f343c' : '#ffffff',
+          colorPrimary: sleuthState.prefersDarkColors ? '#6bb8e0' : '#137cbd',
+          colorBgBase: sleuthState.prefersDarkColors ? '#272b31' : '#ffffff',
         },
       }}
     >
