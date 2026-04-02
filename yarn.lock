@@ -1214,6 +1214,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/fira-code@npm:^5.2.7":
+  version: 5.2.7
+  resolution: "@fontsource/fira-code@npm:5.2.7"
+  checksum: 10c0/389d1356def9018da529bf6055af9d41d6f6ae9ee2ff804a9b0e3bd2f8cf2754967e2b4a25e267d21215278849fb13711b9fe9573c051a1e191ad737e55f125f
+  languageName: node
+  linkType: hard
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -8550,6 +8557,7 @@ __metadata:
     "@electron-forge/plugin-auto-unpack-natives": "npm:8.0.0-alpha.6"
     "@electron-forge/plugin-vite": "patch:@electron-forge/plugin-vite@npm%3A8.0.0-alpha.6#~/.yarn/patches/@electron-forge-plugin-vite-npm-8.0.0-alpha.6-eae1e3d3c3.patch"
     "@electron-forge/publisher-github": "npm:8.0.0-alpha.6"
+    "@fontsource/fira-code": "npm:^5.2.7"
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@testing-library/react": "npm:^12.1.2"
     "@types/classnames": "npm:^2.2.11"

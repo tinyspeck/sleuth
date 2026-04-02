@@ -11,6 +11,8 @@
   flex-grow: 1;
   padding-top: 1rem;
   user-select: none;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
 
   &.Single {
     .Meta {
@@ -36,52 +38,88 @@
     border-bottom: 1px solid rgba(16, 22, 26, 0.05);
   }
 
-  .ReactVirtualized__Table__row:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+  .ReactVirtualized__Table__rowColumn {
+    overflow: hidden !important;
   }
 
-  .HighlightRow {
+  .ReactVirtualized__Table__row:hover {
     background-color: rgba(0, 0, 0, 0.1);
   }
 
+  .HighlightRow {
+    background-color: rgba(0, 0, 0, 0.15);
+  }
+
   .ActiveRow {
-    font-weight: 700;
-    background-color: rgba(0, 0, 0, 0.3);
+    font-weight: 500;
+    background-color: rgba(0, 0, 0, 0.15);
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.15);
+    }
   }
 
   .ErrorRow {
-    background-color: rgba(255, 0, 0, 0.2);
+    background-color: rgba(255, 0, 0, 0.25);
 
     &.HighlightRow,
-    &.ActiveRow {
-      background-color: rgba(255, 0, 0, 0.3);
+    &.ActiveRow,
+    &.ActiveRow:hover {
+      background-color: rgba(255, 0, 0, 0.35);
     }
   }
 
   .WarnRow {
-    background-color: rgba(255, 200, 0, 0.1);
+    background-color: rgba(255, 200, 0, 0.15);
 
     &.HighlightRow,
-    &.ActiveRow {
-      background-color: rgba(255, 200, 0, 0.2);
+    &.ActiveRow,
+    &.ActiveRow:hover {
+      background-color: rgba(255, 200, 0, 0.25);
     }
   }
-}
 
-@media (prefers-color-scheme: dark) {
-  .ReactVirtualized__Table__row {
-    border-bottom: 1px solid rgba(137, 191, 226, 0.05);
-  }
+  @media (prefers-color-scheme: dark) {
+    .ReactVirtualized__Table__row {
+      border-bottom: 1px solid rgba(137, 191, 226, 0.08);
+    }
 
-  .ReactVirtualized__Table__row:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-  }
+    .ReactVirtualized__Table__row:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
 
-  .HighlightRow {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
+    .HighlightRow {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
 
-  .ActiveRow {
-    background-color: rgba(255, 255, 255, 0.2);
+    .ActiveRow {
+      background-color: rgba(255, 255, 255, 0.15);
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+    }
+
+    .ErrorRow {
+      color: rgb(255, 120, 120);
+      background-color: rgba(255, 0, 0, 0.2);
+
+      &.HighlightRow,
+      &.ActiveRow,
+      &.ActiveRow:hover {
+        background-color: rgba(255, 0, 0, 0.45);
+      }
+    }
+
+    .WarnRow {
+      color: rgb(255, 210, 80);
+      background-color: rgba(255, 200, 0, 0.12);
+
+      &.HighlightRow,
+      &.ActiveRow,
+      &.ActiveRow:hover {
+        background-color: rgba(255, 200, 0, 0.35);
+      }
+    }
   }
 }

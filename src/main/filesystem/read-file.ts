@@ -17,6 +17,8 @@ import { TZDate } from '@date-fns/tz';
 
 const d = debug('sleuth:read-file');
 
+const MAX_TO_PARSE = 100_000; // 100 KB cap on multi-line meta accumulation
+
 const DESKTOP_RGX = /^\s*\[([\d/,\s:]{22,24})\] ([A-Za-z]{0,20}):?(.*)$/g;
 
 const WEBAPP_A_RGX = /^(\w*): (.{3}-\d{1,2} \d{2}:\d{2}:\d{2}.\d{0,3}) (.*)$/;
@@ -383,22 +385,31 @@ export function readLogFile(
             logFile.fileName.startsWith('console-export-'))
         ) {
           // For console logs which are typed as webapp so we can't just detect using type:
-          if (toParse && toParse.length > 0) {
+          if (toParse && toParse.length > 0 && toParse.length < MAX_TO_PARSE) {
             // If there's already a meta, just add to the meta
             toParse += line + '\n';
           } else if (
-            line.includes('@') ||
-            line.includes('(async)') ||
-            line.match(/Show [\d]+ more frames/)
+            toParse.length < MAX_TO_PARSE &&
+            (line.includes('@') ||
+              line.includes('(async)') ||
+              line.match(/Show [\d]+ more frames/))
           ) {
             // This is part of a stack trace - I could add it to the above line but that's a mouthful
             toParse += line + '\n';
           } else {
             current.message += '\n' + line;
           }
-        } else {
+        } else if (toParse.length < MAX_TO_PARSE) {
           // This is (hopefully) part of a meta object
           toParse += line + '\n';
+        } else if (!toParse.endsWith('[truncated]\n')) {
+          d(
+            'Meta accumulation exceeded %d bytes for entry at line %d in %s, truncating',
+            MAX_TO_PARSE,
+            current?.line,
+            logFile.fileName,
+          );
+          toParse += '[truncated]\n';
         }
       }
     }
@@ -453,12 +464,26 @@ export function matchLineWebApp(
     }
 
     let meta: string | undefined = undefined;
+    let toParseHead: string | undefined = undefined;
 
     // As a shortcut, detect `{` as the start of some JSON and store it into the meta
     const indexOfJSON = message.indexOf('{');
     if (indexOfJSON > -1) {
-      meta = message.slice(indexOfJSON);
+      const jsonPart = message.slice(indexOfJSON);
       message = message.slice(0, indexOfJSON);
+      // If the JSON braces are balanced on this line, store as meta directly.
+      // Otherwise, seed the multi-line accumulator so subsequent lines
+      // are concatenated into a complete object.
+      let depth = 0;
+      for (let i = 0; i < jsonPart.length; i++) {
+        if (jsonPart[i] === '{') depth++;
+        else if (jsonPart[i] === '}') depth--;
+      }
+      if (depth <= 0) {
+        meta = jsonPart;
+      } else {
+        toParseHead = jsonPart + '\n';
+      }
     }
 
     return {
@@ -467,6 +492,7 @@ export function matchLineWebApp(
       message,
       momentValue,
       meta,
+      toParseHead,
     };
   }
 
@@ -1009,11 +1035,12 @@ export function makeLogEntry(
   line: number,
   sourceFile: string,
 ): LogEntry {
-  options.message = options.message || '';
-  options.timestamp = options.timestamp || '';
-  options.level = options.level || '';
+  const { toParseHead: _, ...rest } = options;
+  rest.message = rest.message || '';
+  rest.timestamp = rest.timestamp || '';
+  rest.level = rest.level || '';
 
-  const logEntry = { ...options, logType, line, sourceFile };
+  const logEntry = { ...rest, logType, line, sourceFile };
   return logEntry as LogEntry;
 }
 
