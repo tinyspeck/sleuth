@@ -47,7 +47,9 @@ const d = debug('sleuth:logtable');
 
 export const logColorMap: Record<ProcessableLogType, string> = {
   [LogType.BROWSER]: 'cyan',
+  [LogType.EPIC_TRACES]: 'purple',
   [LogType.WEBAPP]: 'magenta',
+  [LogType.SERVICE_WORKER]: 'orange',
   [LogType.INSTALLER]: 'green',
   [LogType.CHROMIUM]: 'geekblue',
   [LogType.MOBILE]: 'lime',
@@ -224,7 +226,11 @@ export const LogTable = observer((props: LogTableProps) => {
         (!sortDir || sortDir === SortDirection.ASC);
 
       // Check if we can bail early and just use the naked logEntries array
-      if (noSort && !shouldDoFilter && !searchText)
+      const hasLogTypeFilter =
+        isMergedLogFile(file) &&
+        file.logType === LogType.ALL &&
+        !Object.values(state.logTypeFilter).every(Boolean);
+      if (noSort && !shouldDoFilter && !searchText && !hasLogTypeFilter)
         return { list: file.logEntries, newSearchList: null };
 
       let list = file.logEntries.concat();
@@ -250,6 +256,17 @@ export const LogTable = observer((props: LogTableProps) => {
       // Filter
       if (shouldDoFilter) {
         list = list.filter(doFilter);
+      }
+
+      // LogType filter (for merged ALL view)
+      if (isMergedLogFile(file) && file.logType === LogType.ALL) {
+        const { logTypeFilter } = state;
+        const allEnabled = Object.values(logTypeFilter).every(Boolean);
+        if (!allEnabled) {
+          list = list.filter(
+            (entry) => logTypeFilter[entry.logType as ProcessableLogType],
+          );
+        }
       }
 
       // DateRange
@@ -290,6 +307,7 @@ export const LogTable = observer((props: LogTableProps) => {
     [
       logFile,
       levelFilter,
+      state.logTypeFilter,
       search,
       effectiveSortBy,
       dateRange,

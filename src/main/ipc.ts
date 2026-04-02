@@ -235,7 +235,10 @@ export class IpcManager {
     ipcMain.handle(IpcEvents.OPEN_LOG_CONTEXT_MENU, (event, type: LogType) => {
       return new Promise((resolve) => {
         const maybeShowInContext: MenuItemConstructorOptions[] =
-          type === LogType.BROWSER || type === LogType.WEBAPP
+          type === LogType.BROWSER ||
+          type === LogType.EPIC_TRACES ||
+          type === LogType.WEBAPP ||
+          type === LogType.SERVICE_WORKER
             ? [
                 {
                   type: 'separator',

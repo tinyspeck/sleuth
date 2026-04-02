@@ -10,7 +10,9 @@ export type RepeatedCounts = Record<string, number>;
 export enum LogType {
   ALL = 'all',
   BROWSER = 'browser',
+  EPIC_TRACES = 'epic_traces',
   WEBAPP = 'webapp',
+  SERVICE_WORKER = 'service_worker',
   STATE = 'state',
   NETLOG = 'netlog',
   TRACE = 'trace',
@@ -25,7 +27,9 @@ export type SelectableLogType = Exclude<LogType, LogType.UNKNOWN>;
 
 export const LOG_TYPES_TO_PROCESS = [
   LogType.BROWSER,
+  LogType.EPIC_TRACES,
   LogType.WEBAPP,
+  LogType.SERVICE_WORKER,
   LogType.INSTALLER,
   LogType.MOBILE,
   LogType.CHROMIUM,
@@ -154,6 +158,7 @@ export enum LogLevel {
 }
 
 export type LevelFilter = Record<LogLevel, boolean>;
+export type LogTypeFilter = Record<ProcessableLogType, boolean>;
 export type LogMetrics = Record<LogLevel, number>;
 export type TimeBucketedLogMetrics = Record<number, LogMetrics>;
 

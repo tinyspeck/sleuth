@@ -17,6 +17,7 @@ import { getFileName } from '../../utils/get-file-name';
 import {
   LevelFilter,
   LogEntry,
+  LogTypeFilter,
   MergedLogFile,
   ProcessedLogFile,
   DateRange,
@@ -81,6 +82,15 @@ export class SleuthState {
     error: false,
     info: false,
     warn: false,
+  };
+  @observable public logTypeFilter: LogTypeFilter = {
+    browser: true,
+    epic_traces: true,
+    webapp: true,
+    service_worker: true,
+    chromium: true,
+    installer: true,
+    mobile: true,
   };
   @observable public searchIndex = 0;
   @observable public searchList: number[] = [];
@@ -318,6 +328,13 @@ export class SleuthState {
     this.levelFilter.error = false;
     this.levelFilter.info = false;
     this.levelFilter.warn = false;
+    this.logTypeFilter.browser = true;
+    this.logTypeFilter.epic_traces = true;
+    this.logTypeFilter.webapp = true;
+    this.logTypeFilter.service_worker = true;
+    this.logTypeFilter.chromium = true;
+    this.logTypeFilter.installer = true;
+    this.logTypeFilter.mobile = true;
     this.searchIndex = 0;
     this.showOnlySearchResults = undefined;
     this.isSpotlightOpen = false;
@@ -369,6 +386,11 @@ export class SleuthState {
   @action
   public setFilterLogLevels(levels: Partial<LevelFilter>) {
     this.levelFilter = { ...this.levelFilter, ...levels };
+  }
+
+  @action
+  public setLogTypeFilter(types: Partial<LogTypeFilter>) {
+    this.logTypeFilter = { ...this.logTypeFilter, ...types };
   }
 
   /**

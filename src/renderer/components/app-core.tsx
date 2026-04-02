@@ -33,7 +33,9 @@ export const CoreApplication = observer((props: CoreAppProps) => {
   const [processedLogFiles, setProcessedLogFiles] = useState<ProcessedLogFiles>(
     {
       browser: [],
+      epic_traces: [],
       webapp: [],
+      service_worker: [],
       state: [],
       installer: [],
       netlog: [],
@@ -187,11 +189,25 @@ export const CoreApplication = observer((props: CoreAppProps) => {
         const { setMergedFile } = props.state;
 
         if (currentProcessed) {
-          const MERGE_TYPES = ['browser', 'webapp'] as const;
-          const mergeResults = await Promise.allSettled([
-            mergeLogFiles(currentProcessed.browser, LogType.BROWSER),
-            mergeLogFiles(currentProcessed.webapp, LogType.WEBAPP),
-          ]);
+          const MERGE_CANDIDATES = [
+            { key: 'browser', type: LogType.BROWSER },
+            { key: 'epic_traces', type: LogType.EPIC_TRACES },
+            { key: 'webapp', type: LogType.WEBAPP },
+            { key: 'service_worker', type: LogType.SERVICE_WORKER },
+            { key: 'chromium', type: LogType.CHROMIUM },
+            { key: 'installer', type: LogType.INSTALLER },
+          ] as const;
+          const toProcess = MERGE_CANDIDATES.map(({ key, type }) => {
+            const files = (
+              currentProcessed[
+                key as keyof typeof currentProcessed
+              ] as ProcessedLogFile[]
+            ).filter((f) => 'logEntries' in f);
+            return { key, type, files };
+          }).filter(({ files }) => files.length > 0);
+          const mergeResults = await Promise.allSettled(
+            toProcess.map(({ files, type }) => mergeLogFiles(files, type)),
+          );
 
           const failedMergeTypes: string[] = [];
           for (let i = 0; i < mergeResults.length; i++) {
@@ -199,7 +215,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
             if (result.status === 'fulfilled') {
               setMergedFile(result.value);
             } else {
-              const type = MERGE_TYPES[i];
+              const type = toProcess[i].key;
               console.error(
                 `Failed to merge ${type} log files:`,
                 result.reason,
@@ -217,9 +233,14 @@ export const CoreApplication = observer((props: CoreAppProps) => {
           }
 
           const merged = props.state.mergedLogFiles;
-          const toMerge = [merged?.browser, merged?.webapp].filter(
-            Boolean,
-          ) as MergedLogFiles[keyof MergedLogFiles][];
+          const toMerge = [
+            merged?.browser,
+            merged?.epic_traces,
+            merged?.webapp,
+            merged?.service_worker,
+            merged?.chromium,
+            merged?.installer,
+          ].filter(Boolean) as MergedLogFiles[keyof MergedLogFiles][];
 
           if (toMerge.length > 0) {
             const allMerged = await mergeLogFiles(toMerge, LogType.ALL);

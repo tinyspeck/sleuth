@@ -967,7 +967,9 @@ export function getMatchFunction(
   logType: LogType,
   logFile: UnzippedFile,
 ): (line: string, userTZ?: string) => MatchResult | undefined {
-  if (logType === LogType.WEBAPP) {
+  if (logType === LogType.SERVICE_WORKER) {
+    return matchLineWebApp;
+  } else if (logType === LogType.WEBAPP) {
     if (
       logFile.fileName.startsWith('app.slack') ||
       logFile.fileName.startsWith('console')

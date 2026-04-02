@@ -114,6 +114,28 @@ describe('getTypeForFile', () => {
     ).toEqual('browser');
   });
 
+  it('should get the type for browser-epics-trace.log as epic_traces', () => {
+    expect(
+      getTypeForFile({
+        ...base,
+        fileName: 'browser-epics-trace.log',
+        fullPath: '_',
+        size: 0,
+      }),
+    ).toEqual('epic_traces');
+  });
+
+  it('should get the type for webapp-service-worker-console.log as service_worker', () => {
+    expect(
+      getTypeForFile({
+        ...base,
+        fileName: 'webapp-service-worker-console.log',
+        fullPath: '_',
+        size: 0,
+      }),
+    ).toEqual('service_worker');
+  });
+
   it('should get the type for trace files', () => {
     expect(
       getTypeForFile({

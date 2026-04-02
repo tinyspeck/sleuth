@@ -31,6 +31,16 @@ vi.mock(
   },
 );
 
+const defaultLogTypeFilter = {
+  browser: true,
+  epic_traces: true,
+  webapp: true,
+  service_worker: true,
+  chromium: true,
+  installer: true,
+  mobile: true,
+};
+
 const fakeFile1: ProcessedLogFile = {
   repeatedCounts: {},
   id: '123',
@@ -63,11 +73,13 @@ const fakeFile3: ProcessedLogFile = {
 
 describe('Sidebar', () => {
   describe('File Tree', () => {
-    it('hides the sidebar log types that dont have files in them', async () => {
+    it('shows checkboxes only for log types that have files', async () => {
       const state: Partial<SleuthState> = {
         processedLogFiles: {
           browser: [fakeFile1],
+          epic_traces: [],
           webapp: [fakeFile3],
+          service_worker: [],
           state: [],
           netlog: [],
           installer: [],
@@ -75,6 +87,7 @@ describe('Sidebar', () => {
           mobile: [],
           chromium: [fakeFile2],
         },
+        logTypeFilter: defaultLogTypeFilter,
         bookmarks: [],
       };
 
@@ -89,53 +102,44 @@ describe('Sidebar', () => {
       const browser = await screen.findByText('Browser Process');
       expect(browser).toBeInTheDocument();
 
-      const all = await screen.findByText('All Desktop Logs');
-      expect(all).toBeInTheDocument();
-
-      const mobile = screen.queryByText('Mobile');
-      expect(mobile).not.toBeInTheDocument();
-
       const installer = screen.queryByText('Installer');
       expect(installer).not.toBeInTheDocument();
     });
 
-    it('does not show "All Desktop Logs" if none exist', async () => {
+    it('shows no log type checkboxes when no processable files exist', async () => {
       const state: Partial<SleuthState> = {
         processedLogFiles: {
           browser: [],
+          epic_traces: [],
           webapp: [],
+          service_worker: [],
           state: [],
           netlog: [],
           installer: [],
           trace: [],
-          mobile: [
-            {
-              repeatedCounts: {},
-              id: '12345',
-              logEntries: [],
-              logFile: fakeUnzippedFile,
-              logType: LogType.MOBILE,
-              type: 'ProcessedLogFile',
-              levelCounts: {},
-            },
-          ],
+          mobile: [],
           chromium: [],
         },
+        logTypeFilter: defaultLogTypeFilter,
         bookmarks: [],
       };
 
       render(<Sidebar state={state as SleuthState} />);
 
-      await expect(
-        screen.findByText('All Desktop Logs', {}, { timeout: 500 }),
-      ).rejects.toThrow();
+      const browser = screen.queryByText('Browser Process');
+      expect(browser).not.toBeInTheDocument();
+
+      const webapp = screen.queryByText('WebApp');
+      expect(webapp).not.toBeInTheDocument();
     });
 
     it('is hidden if `isSidebarOpen` is false', async () => {
       const state: Partial<SleuthState> = {
         processedLogFiles: {
           browser: [fakeFile1],
+          epic_traces: [],
           webapp: [],
+          service_worker: [],
           state: [],
           netlog: [],
           installer: [],
@@ -143,29 +147,42 @@ describe('Sidebar', () => {
           mobile: [],
           chromium: [],
         },
+        logTypeFilter: defaultLogTypeFilter,
         bookmarks: [],
         isSidebarOpen: false,
       };
 
       render(<Sidebar state={state as SleuthState} />);
-      const fileTreeInner = screen.queryByRole('tree');
-      expect(fileTreeInner).toBeInTheDocument();
-      const fileTreeOuter = fileTreeInner?.parentElement;
-      expect(fileTreeOuter).not.toHaveClass('Open');
+      const fileTree = document.querySelector('.SidebarFileTree');
+      expect(fileTree).toBeInTheDocument();
+      expect(fileTree).not.toHaveClass('Open');
     });
 
-    it('does not show Trace section when no trace files exist', async () => {
+    it('shows all four desktop log types when files exist for each', async () => {
+      const installerFile: ProcessedLogFile = {
+        repeatedCounts: {},
+        id: 'inst1',
+        logEntries: [],
+        logFile: fakeUnzippedFile,
+        logType: LogType.INSTALLER,
+        type: 'ProcessedLogFile',
+        levelCounts: {},
+      };
+
       const state: Partial<SleuthState> = {
         processedLogFiles: {
           browser: [fakeFile1],
+          epic_traces: [],
           webapp: [fakeFile3],
+          service_worker: [],
           state: [],
           netlog: [],
-          installer: [],
+          installer: [installerFile],
           trace: [],
           mobile: [],
           chromium: [fakeFile2],
         },
+        logTypeFilter: defaultLogTypeFilter,
         bookmarks: [],
       };
 
@@ -174,38 +191,7 @@ describe('Sidebar', () => {
       expect(await screen.findByText('Browser Process')).toBeInTheDocument();
       expect(await screen.findByText('WebApp')).toBeInTheDocument();
       expect(await screen.findByText('Chromium')).toBeInTheDocument();
-
-      const trace = screen.queryByText('Trace');
-      expect(trace).not.toBeInTheDocument();
-    });
-
-    it('shows Trace section when trace files exist', async () => {
-      const traceFile = {
-        fileName: 'performance.trace',
-        size: 1000,
-        fullPath: '/mock/path/asdf.trace',
-        id: 'trace1',
-        type: 'UnzippedFile' as const,
-      };
-
-      const state: Partial<SleuthState> = {
-        processedLogFiles: {
-          browser: [],
-          webapp: [],
-          state: [],
-          netlog: [],
-          installer: [],
-          trace: [traceFile],
-          mobile: [],
-          chromium: [],
-        },
-        bookmarks: [],
-      };
-
-      render(<Sidebar state={state as SleuthState} />);
-
-      const trace = await screen.findByText('Trace');
-      expect(trace).toBeInTheDocument();
+      expect(await screen.findByText('Installer')).toBeInTheDocument();
     });
   });
 });
