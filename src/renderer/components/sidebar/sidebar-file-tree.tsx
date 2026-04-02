@@ -18,6 +18,7 @@ import {
   ProcessedLogFile,
   SelectableLogType,
   UnzippedFile,
+  LogTypeFilter,
 } from '../../../interfaces';
 import {
   ApartmentOutlined,
@@ -62,19 +63,19 @@ interface LogTypeCheckboxConfig {
 const LOG_TYPE_CHECKBOXES: LogTypeCheckboxConfig[] = [
   {
     type: LogType.BROWSER,
-    label: 'Browser Process',
+    label: 'Browser',
     icon: <DesktopOutlined />,
+  },
+  { type: LogType.WEBAPP, label: 'Webapp', icon: <CommentOutlined /> },
+  {
+    type: LogType.SERVICE_WORKER,
+    label: 'Service worker',
+    icon: <CloudOutlined />,
   },
   {
     type: LogType.EPIC_TRACES,
-    label: 'Epic Traces',
+    label: 'Epic traces',
     icon: <ExperimentOutlined />,
-  },
-  { type: LogType.WEBAPP, label: 'WebApp', icon: <CommentOutlined /> },
-  {
-    type: LogType.SERVICE_WORKER,
-    label: 'Service Worker',
-    icon: <CloudOutlined />,
   },
   { type: LogType.CHROMIUM, label: 'Chromium', icon: <ChromeOutlined /> },
   { type: LogType.INSTALLER, label: 'Installer', icon: <DownloadOutlined /> },
@@ -87,6 +88,9 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     Map<string, ProcessedLogFile | UnzippedFile>
   >(new Map());
   const [manualTab, setManualTab] = useState<string | null>(null);
+  const [hoveredType, setHoveredType] = useState<ProcessableLogType | null>(
+    null,
+  );
 
   useEffect(() => {
     async function fetchTree() {
@@ -129,6 +133,33 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       props.state.setLogTypeFilter({ [logType]: checked });
 
       // Ensure the ALL merged view is selected
+      const { selectedLogFile } = props.state;
+      if (
+        !selectedLogFile ||
+        !isMergedLogFile(selectedLogFile) ||
+        selectedLogFile.logType !== LogType.ALL
+      ) {
+        props.state.selectLogFile(null, LogType.ALL);
+      }
+    },
+    [props.state],
+  );
+
+  const onLogTypeFocus = useCallback(
+    (logType: ProcessableLogType) => {
+      const { logTypeFilter } = props.state;
+      // If this type is already the only one enabled, re-enable all
+      const isAlreadyFocused = LOG_TYPE_CHECKBOXES.every(
+        ({ type }) => logTypeFilter[type] === (type === logType),
+      );
+      const filter = Object.fromEntries(
+        LOG_TYPE_CHECKBOXES.map(({ type }) => [
+          type,
+          isAlreadyFocused ? true : type === logType,
+        ]),
+      ) as Partial<LogTypeFilter>;
+      props.state.setLogTypeFilter(filter);
+
       const { selectedLogFile } = props.state;
       if (
         !selectedLogFile ||
@@ -310,26 +341,98 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
             icon: <FileTextOutlined />,
             children: (
               <div style={{ padding: '4px 0' }}>
-                {availableLogTypes.map(({ type, label, icon }) => (
-                  <div
-                    key={type}
-                    style={{
-                      padding: '6px 12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                    }}
-                  >
-                    <Checkbox
-                      checked={logTypeFilter[type]}
-                      onChange={(e) => onLogTypeToggle(type, e.target.checked)}
-                    />
-                    <Space size={4}>
-                      {icon}
-                      <Typography.Text>{label}</Typography.Text>
-                    </Space>
-                  </div>
-                ))}
+                <Typography.Text
+                  type="secondary"
+                  style={{
+                    fontSize: 11,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    padding: '2px 4px 4px',
+                    display: 'block',
+                  }}
+                >
+                  Log Types
+                </Typography.Text>
+                {availableLogTypes.map(({ type, label, icon }) => {
+                  const files =
+                    (processedLogFiles?.[
+                      type as keyof typeof processedLogFiles
+                    ] as ProcessedLogFile[] | undefined) ?? [];
+                  const lineCount = files.reduce(
+                    (sum, f) => sum + (f.logEntries?.length ?? 0),
+                    0,
+                  );
+                  const isHovered = hoveredType === type;
+                  return (
+                    <div
+                      key={type}
+                      style={{
+                        padding: '1px 4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        background: isHovered
+                          ? 'var(--ant-color-fill-secondary)'
+                          : 'transparent',
+                        transition: 'background 0.15s ease',
+                      }}
+                      onMouseEnter={() => setHoveredType(type)}
+                      onMouseLeave={() => setHoveredType(null)}
+                      onClick={() => onLogTypeFocus(type)}
+                    >
+                      <Checkbox
+                        checked={logTypeFilter[type]}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          onLogTypeToggle(type, e.target.checked);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <Space size={4} style={{ flex: 1 }}>
+                        {icon}
+                        <Typography.Text style={{ fontSize: 14 }}>
+                          {label}
+                        </Typography.Text>
+                      </Space>
+                      <span
+                        style={{
+                          position: 'relative',
+                          minWidth: 32,
+                          textAlign: 'right',
+                        }}
+                      >
+                        <Typography.Text
+                          type="secondary"
+                          style={{
+                            fontSize: 12,
+                            opacity: isHovered ? 0 : 1,
+                            transition: 'opacity 0.15s ease',
+                          }}
+                        >
+                          {lineCount.toLocaleString()}
+                        </Typography.Text>
+                        <Typography.Text
+                          type="secondary"
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5,
+                            position: 'absolute',
+                            right: 0,
+                            top: 0,
+                            opacity: isHovered ? 1 : 0,
+                            transition: 'opacity 0.15s ease',
+                          }}
+                        >
+                          only
+                        </Typography.Text>
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             ),
           },
