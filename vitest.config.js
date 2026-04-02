@@ -7,6 +7,7 @@ export default defineConfig({
     setupFiles: ['./test/vitest-setup.js'],
     include: ['test/**/*.test.[jt]s?(x)'],
     css: true,
+    restoreMocks: true,
     reporters: ['default', 'junit'],
     outputFile: {
       junit: 'test-results/junit.xml',
