@@ -47,9 +47,9 @@
 
 .LogLine {
   background: var(--ant-color-bg-layout);
-  font-family: 'Inconsolata', monospace;
+  font-family: 'Fira Code', monospace;
   padding: 12px;
   margin-bottom: 12px;
   border-radius: var(--ant-border-radius-lg);
-  font-weight: bold;
+  font-weight: normal;
 }
