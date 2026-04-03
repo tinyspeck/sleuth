@@ -1,18 +1,11 @@
-import {
-  Badge,
-  Checkbox,
-  Space,
-  Tabs,
-  Tooltip,
-  Tree,
-  TreeDataNode,
-  Typography,
-} from 'antd';
+import { Badge, Space, Tabs, theme, Tooltip, Tree, TreeDataNode } from 'antd';
 import classNames from 'classnames';
 import { observer } from 'mobx-react';
-import React, { Key, useCallback, useEffect, useState } from 'react';
+import React, { Key, useCallback, useEffect, useMemo, useState } from 'react';
 import { SleuthState } from '../../state/sleuth';
 import {
+  LevelFilter,
+  LogLevel,
   LogType,
   ProcessableLogType,
   ProcessedLogFile,
@@ -40,6 +33,7 @@ import {
   SettingOutlined,
   WarningFilled,
 } from '@ant-design/icons';
+import { CheckboxItem, SidebarCheckboxGroup } from './sidebar-checkbox-group';
 import { isMergedLogFile } from '../../../utils/is-logfile';
 import { getEnvironmentWarnings } from '../../analytics/environment-analytics';
 import { getRootStateWarnings } from '../../analytics/root-state-analytics';
@@ -54,43 +48,61 @@ interface SidebarNodeData {
   type: SelectableLogType;
 }
 
-interface LogTypeCheckboxConfig {
-  type: ProcessableLogType;
-  label: string;
-  icon: React.ReactNode;
-}
-
-const LOG_TYPE_CHECKBOXES: LogTypeCheckboxConfig[] = [
+const LOG_TYPE_CHECKBOXES: CheckboxItem[] = [
+  { key: LogType.BROWSER, label: 'browser', icon: <DesktopOutlined /> },
+  { key: LogType.WEBAPP, label: 'webapp', icon: <CommentOutlined /> },
   {
-    type: LogType.BROWSER,
-    label: 'browser',
-    icon: <DesktopOutlined />,
-  },
-  { type: LogType.WEBAPP, label: 'webapp', icon: <CommentOutlined /> },
-  {
-    type: LogType.SERVICE_WORKER,
+    key: LogType.SERVICE_WORKER,
     label: 'service worker',
     icon: <CloudOutlined />,
   },
   {
-    type: LogType.rx_epic,
+    key: LogType.rx_epic,
     label: 'epic traces',
     icon: <ExperimentOutlined />,
   },
-  { type: LogType.CHROMIUM, label: 'chromium', icon: <ChromeOutlined /> },
-  { type: LogType.INSTALLER, label: 'installer', icon: <DownloadOutlined /> },
+  { key: LogType.CHROMIUM, label: 'chromium', icon: <ChromeOutlined /> },
+  { key: LogType.INSTALLER, label: 'installer', icon: <DownloadOutlined /> },
+];
+
+const LOG_LEVEL_KEYS = [
+  { key: LogLevel.error, label: 'error' },
+  { key: LogLevel.warn, label: 'warning' },
+  { key: LogLevel.info, label: 'info' },
+  { key: LogLevel.debug, label: 'debug' },
 ];
 
 const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
+  const { token } = theme.useToken();
+
+  const LOG_LEVEL_CHECKBOXES: CheckboxItem[] = useMemo(
+    () =>
+      LOG_LEVEL_KEYS.map(({ key, label }) => ({
+        key,
+        label,
+        icon: (
+          <Badge
+            color={
+              key === LogLevel.error
+                ? token.colorError
+                : key === LogLevel.warn
+                  ? token.colorWarning
+                  : key === LogLevel.info
+                    ? token.colorInfo
+                    : token.colorTextTertiary
+            }
+          />
+        ),
+      })),
+    [token],
+  );
+
   const [stateNodes, setStateNodes] = useState<TreeDataNode[]>([]);
   const [expandedStateKeys, setExpandedStateKeys] = useState<Key[]>();
   const [files, setFiles] = useState<
     Map<string, ProcessedLogFile | UnzippedFile>
   >(new Map());
   const [manualTab, setManualTab] = useState<string | null>(null);
-  const [hoveredType, setHoveredType] = useState<ProcessableLogType | null>(
-    null,
-  );
 
   useEffect(() => {
     async function fetchTree() {
@@ -128,11 +140,10 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     [props.state, files],
   );
 
+  // --- Log type callbacks ---
   const onLogTypeToggle = useCallback(
-    (logType: ProcessableLogType, checked: boolean) => {
-      props.state.setLogTypeFilter({ [logType]: checked });
-
-      // Ensure the ALL merged view is selected
+    (key: string, checked: boolean) => {
+      props.state.setLogTypeFilter({ [key]: checked });
       const { selectedLogFile } = props.state;
       if (
         !selectedLogFile ||
@@ -145,24 +156,24 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     [props.state],
   );
 
-  const onShowAll = useCallback(() => {
+  const onLogTypeShowAll = useCallback(() => {
     const filter = Object.fromEntries(
-      LOG_TYPE_CHECKBOXES.map(({ type }) => [type, true]),
+      LOG_TYPE_CHECKBOXES.map(({ key }) => [key, true]),
     ) as Partial<LogTypeFilter>;
     props.state.setLogTypeFilter(filter);
   }, [props.state]);
 
   const onLogTypeFocus = useCallback(
-    (logType: ProcessableLogType) => {
+    (focusKey: string) => {
       const { logTypeFilter } = props.state;
-      // If this type is already the only one enabled, re-enable all
       const isAlreadyFocused = LOG_TYPE_CHECKBOXES.every(
-        ({ type }) => logTypeFilter[type] === (type === logType),
+        ({ key }) =>
+          logTypeFilter[key as ProcessableLogType] === (key === focusKey),
       );
       const filter = Object.fromEntries(
-        LOG_TYPE_CHECKBOXES.map(({ type }) => [
-          type,
-          isAlreadyFocused ? true : type === logType,
+        LOG_TYPE_CHECKBOXES.map(({ key }) => [
+          key,
+          isAlreadyFocused ? true : key === focusKey,
         ]),
       ) as Partial<LogTypeFilter>;
       props.state.setLogTypeFilter(filter);
@@ -175,6 +186,41 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       ) {
         props.state.selectLogFile(null, LogType.ALL);
       }
+    },
+    [props.state],
+  );
+
+  // --- Log level callbacks ---
+  const onLevelToggle = useCallback(
+    (key: string, checked: boolean) => {
+      props.state.setFilterLogLevels({ [key]: checked });
+    },
+    [props.state],
+  );
+
+  const onLevelShowAll = useCallback(() => {
+    props.state.setFilterLogLevels({
+      debug: true,
+      info: true,
+      warn: true,
+      error: true,
+    });
+  }, [props.state]);
+
+  const onLevelFocus = useCallback(
+    (focusKey: string) => {
+      const { levelFilter } = props.state;
+      const isAlreadyFocused = LOG_LEVEL_KEYS.every(
+        ({ key }) => levelFilter[key as LogLevel] === (key === focusKey),
+      );
+      props.state.setFilterLogLevels(
+        Object.fromEntries(
+          LOG_LEVEL_KEYS.map(({ key }) => [
+            key,
+            isAlreadyFocused ? true : key === focusKey,
+          ]),
+        ) as Partial<LevelFilter>,
+      );
     },
     [props.state],
   );
@@ -197,12 +243,45 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
   const derivedTab = isStateFileSelected ? 'state' : 'logs';
   const activeTab = manualTab ?? derivedTab;
 
-  // Determine which log types have files present
-  const availableLogTypes = LOG_TYPE_CHECKBOXES.filter(({ type }) => {
-    if (!processedLogFiles) return false;
-    const key = type as keyof typeof processedLogFiles;
-    return processedLogFiles[key]?.length > 0;
-  });
+  // Compute log level line counts across all processable files
+  const logLevelItems = useMemo(() => {
+    if (!processedLogFiles) return LOG_LEVEL_CHECKBOXES as CheckboxItem[];
+    const totals: Record<string, number> = {};
+    for (const typeKey of LOG_TYPE_CHECKBOXES.map(({ key }) => key)) {
+      const files =
+        (processedLogFiles[typeKey as keyof typeof processedLogFiles] as
+          | ProcessedLogFile[]
+          | undefined) ?? [];
+      for (const f of files) {
+        for (const [level, count] of Object.entries(f.levelCounts ?? {})) {
+          totals[level] = (totals[level] ?? 0) + count;
+        }
+      }
+    }
+    return LOG_LEVEL_CHECKBOXES.map((item) => ({
+      ...item,
+      count: totals[item.key] ?? 0,
+    }));
+  }, [processedLogFiles]);
+
+  // Determine which log types have files present, and compute line counts
+  const logTypeItems = useMemo(() => {
+    if (!processedLogFiles) return [];
+    return LOG_TYPE_CHECKBOXES.filter(({ key }) => {
+      const pKey = key as keyof typeof processedLogFiles;
+      return processedLogFiles[pKey]?.length > 0;
+    }).map((item) => {
+      const typeFiles =
+        (processedLogFiles[item.key as keyof typeof processedLogFiles] as
+          | ProcessedLogFile[]
+          | undefined) ?? [];
+      const count = typeFiles.reduce(
+        (sum: number, f: ProcessedLogFile) => sum + (f.logEntries?.length ?? 0),
+        0,
+      );
+      return { ...item, count };
+    });
+  }, [processedLogFiles]);
 
   function getNode(
     id: string,
@@ -347,128 +426,26 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
             label: 'Logs',
             icon: <FileTextOutlined />,
             children: (
-              <div style={{ padding: '4px 0' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    justifyContent: 'space-between',
-                    padding: '2px 4px 4px',
-                  }}
-                >
-                  <Typography.Text
-                    type="secondary"
-                    style={{
-                      fontSize: 11,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    Log Types
-                  </Typography.Text>
-                  {!availableLogTypes.every(
-                    ({ type }) => logTypeFilter[type],
-                  ) && (
-                    <Typography.Text
-                      strong
-                      style={{
-                        fontSize: 11,
-                        textTransform: 'uppercase',
-                        letterSpacing: 0.5,
-                        cursor: 'pointer',
-                      }}
-                      onClick={onShowAll}
-                    >
-                      Show all
-                    </Typography.Text>
-                  )}
-                </div>
-                {availableLogTypes.map(({ type, label, icon }) => {
-                  const files =
-                    (processedLogFiles?.[
-                      type as keyof typeof processedLogFiles
-                    ] as ProcessedLogFile[] | undefined) ?? [];
-                  const lineCount = files.reduce(
-                    (sum, f) => sum + (f.logEntries?.length ?? 0),
-                    0,
-                  );
-                  const isHovered = hoveredType === type;
-                  return (
-                    <div
-                      key={type}
-                      style={{
-                        padding: '1px 4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        borderRadius: 4,
-                        cursor: 'pointer',
-                        background: isHovered
-                          ? 'var(--ant-color-fill-secondary)'
-                          : 'transparent',
-                        transition: 'background 0.15s ease',
-                      }}
-                      onMouseEnter={() => setHoveredType(type)}
-                      onMouseLeave={() => setHoveredType(null)}
-                      onClick={() => onLogTypeFocus(type)}
-                    >
-                      <Checkbox
-                        checked={logTypeFilter[type]}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onLogTypeToggle(type, e.target.checked);
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <Space size={4} style={{ flex: 1 }}>
-                        {icon}
-                        <Typography.Text style={{ fontSize: 14 }}>
-                          {label}
-                        </Typography.Text>
-                      </Space>
-                      <span
-                        style={{
-                          position: 'relative',
-                          minWidth: 36,
-                          textAlign: 'right',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'flex-end',
-                        }}
-                      >
-                        <Typography.Text
-                          type="secondary"
-                          style={{
-                            fontSize: 12,
-                            opacity: isHovered ? 0 : 1,
-                            transition: 'opacity 0.15s ease',
-                          }}
-                        >
-                          {lineCount.toLocaleString()}
-                        </Typography.Text>
-                        <Typography.Text
-                          strong
-                          style={{
-                            fontSize: 11,
-                            textTransform: 'uppercase',
-                            letterSpacing: 0.5,
-                            position: 'absolute',
-                            inset: 0,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'flex-end',
-                            opacity: isHovered ? 1 : 0,
-                            transition: 'opacity 0.15s ease',
-                            color: 'var(--ant-color-primary)',
-                          }}
-                        >
-                          ONLY
-                        </Typography.Text>
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+              <>
+                <SidebarCheckboxGroup
+                  title="Log Types"
+                  items={logTypeItems}
+                  filter={logTypeFilter}
+                  onToggle={onLogTypeToggle}
+                  onFocus={onLogTypeFocus}
+                  onShowAll={onLogTypeShowAll}
+                  allShownWhen="all-true"
+                />
+                <SidebarCheckboxGroup
+                  title="Log Levels"
+                  items={logLevelItems}
+                  filter={props.state.levelFilter}
+                  onToggle={onLevelToggle}
+                  onFocus={onLevelFocus}
+                  onShowAll={onLevelShowAll}
+                  allShownWhen="all-true"
+                />
+              </>
             ),
           },
           {

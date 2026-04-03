@@ -78,10 +78,10 @@ export class SleuthState {
 
   // ** Search and Filter **
   @observable public levelFilter: LevelFilter = {
-    debug: false,
-    error: false,
-    info: false,
-    warn: false,
+    debug: true,
+    error: true,
+    info: true,
+    warn: true,
   };
   @observable public logTypeFilter: LogTypeFilter = {
     browser: true,
@@ -324,10 +324,10 @@ export class SleuthState {
     this.selectedIndex = undefined;
     this.selectedLogFile = undefined;
     this.bookmarks = [];
-    this.levelFilter.debug = false;
-    this.levelFilter.error = false;
-    this.levelFilter.info = false;
-    this.levelFilter.warn = false;
+    this.levelFilter.debug = true;
+    this.levelFilter.error = true;
+    this.levelFilter.info = true;
+    this.levelFilter.warn = true;
     this.logTypeFilter.browser = true;
     this.logTypeFilter.rx_epic = true;
     this.logTypeFilter.webapp = true;

@@ -197,13 +197,8 @@ export const LogTable = observer((props: LogTableProps) => {
           filterOrDefault.info === true &&
           filterOrDefault.warn === true &&
           filterOrDefault.error === true;
-        const allDisabled =
-          filterOrDefault.debug === false &&
-          filterOrDefault.info === false &&
-          filterOrDefault.warn === false &&
-          filterOrDefault.error === false;
 
-        return !(allEnabled || allDisabled);
+        return !allEnabled;
       }
 
       function doSearch(

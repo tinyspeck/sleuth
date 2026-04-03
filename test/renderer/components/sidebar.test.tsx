@@ -88,21 +88,22 @@ describe('Sidebar', () => {
           chromium: [fakeFile2],
         },
         logTypeFilter: defaultLogTypeFilter,
+        levelFilter: { debug: true, info: true, warn: true, error: true },
         bookmarks: [],
       };
 
       render(<Sidebar state={state as SleuthState} />);
 
-      const chromium = await screen.findByText('Chromium');
+      const chromium = await screen.findByText('chromium');
       expect(chromium).toBeInTheDocument();
 
-      const webapp = await screen.findByText('WebApp');
+      const webapp = await screen.findByText('webapp');
       expect(webapp).toBeInTheDocument();
 
-      const browser = await screen.findByText('Browser Process');
+      const browser = await screen.findByText('browser');
       expect(browser).toBeInTheDocument();
 
-      const installer = screen.queryByText('Installer');
+      const installer = screen.queryByText('installer');
       expect(installer).not.toBeInTheDocument();
     });
 
@@ -121,15 +122,16 @@ describe('Sidebar', () => {
           chromium: [],
         },
         logTypeFilter: defaultLogTypeFilter,
+        levelFilter: { debug: true, info: true, warn: true, error: true },
         bookmarks: [],
       };
 
       render(<Sidebar state={state as SleuthState} />);
 
-      const browser = screen.queryByText('Browser Process');
+      const browser = screen.queryByText('browser');
       expect(browser).not.toBeInTheDocument();
 
-      const webapp = screen.queryByText('WebApp');
+      const webapp = screen.queryByText('webapp');
       expect(webapp).not.toBeInTheDocument();
     });
 
@@ -148,6 +150,7 @@ describe('Sidebar', () => {
           chromium: [],
         },
         logTypeFilter: defaultLogTypeFilter,
+        levelFilter: { debug: true, info: true, warn: true, error: true },
         bookmarks: [],
         isSidebarOpen: false,
       };
@@ -183,15 +186,16 @@ describe('Sidebar', () => {
           chromium: [fakeFile2],
         },
         logTypeFilter: defaultLogTypeFilter,
+        levelFilter: { debug: true, info: true, warn: true, error: true },
         bookmarks: [],
       };
 
       render(<Sidebar state={state as SleuthState} />);
 
-      expect(await screen.findByText('Browser Process')).toBeInTheDocument();
-      expect(await screen.findByText('WebApp')).toBeInTheDocument();
-      expect(await screen.findByText('Chromium')).toBeInTheDocument();
-      expect(await screen.findByText('Installer')).toBeInTheDocument();
+      expect(await screen.findByText('browser')).toBeInTheDocument();
+      expect(await screen.findByText('webapp')).toBeInTheDocument();
+      expect(await screen.findByText('chromium')).toBeInTheDocument();
+      expect(await screen.findByText('installer')).toBeInTheDocument();
     });
   });
 });
