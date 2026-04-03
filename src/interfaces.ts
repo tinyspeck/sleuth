@@ -82,6 +82,16 @@ export interface LogEntry {
   index: number;
   timestamp: string;
   message: string;
+  tag?: {
+    /** The extracted tag name, e.g. `"Store"`, `"HUDDLES"`, `"fooBarEpic"`.
+     *  Used for color hashing and display grouping. */
+    name: string;
+    /** Length of the full prefix match in the original message string,
+     *  e.g. `"Store:"` is 6, `"[HUDDLES]"` is 9, `"Tag = fooBarEpic;"` is 18.
+     *  Lets the renderer slice the display prefix and remaining message
+     *  without re-running the regex. */
+    offset: number;
+  };
   level: LogLevel;
   logType: LogType;
   line: number;

@@ -34,6 +34,7 @@ import { isReduxAction } from '../../utils/is-redux-action';
 import { LogTableProps, SortFilterListOptions } from './log-table-constants';
 import { isMergedLogFile } from '../../utils/is-logfile';
 import { getRegExpMaybeSafe } from '../../utils/regexp';
+import { matchTag } from '../../utils/match-tag';
 import { between } from '../../utils/is-between';
 import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
@@ -44,19 +45,6 @@ import { getCopyText } from '../state/copy';
 import { PartitionOutlined } from '@ant-design/icons';
 
 const d = debug('sleuth:logtable');
-
-/**
- * Something like `[HUDDLES]` in webapp logs
- */
-const WEBAPP_TAG_RGX = /^\s*\[([A-Za-z][A-Za-z0-9_ -]+)\]/;
-/**
- * Something like `Store:` in desktop logs
- */
-const BROWSER_PREFIX_RGX = /^\s*([A-Za-z][A-Za-z0-9_-]*(?:\s*\[[^\]]+\])?):/;
-/**
- * Something like `Tag = fooBarEpic;` for rxjs-spy debug logs
- */
-const BROWSER_EPIC_TAG_PREFIX = /^\s*Tag = ([A-Za-z][A-Za-z0-9_]*);/;
 
 const tagColorCache = new Map<string, string>();
 
@@ -86,14 +74,6 @@ function hashTagColor(tag: string, dark: boolean): string {
   const color = `hsl(${h}, ${s}%, ${l}%)`;
   tagColorCache.set(key, color);
   return color;
-}
-
-function matchTag(msg: string): RegExpExecArray | null {
-  return (
-    WEBAPP_TAG_RGX.exec(msg) ||
-    BROWSER_PREFIX_RGX.exec(msg) ||
-    BROWSER_EPIC_TAG_PREFIX.exec(msg)
-  );
 }
 
 const MSG_ICON_STYLE = {
@@ -541,22 +521,20 @@ export const LogTable = observer((props: LogTableProps) => {
    */
   const renderMessageCell = useCallback(
     ({ rowData: entry }: TableCellProps): JSX.Element | string => {
-      const display = entry.highlightMessage ?? entry.message;
-
-      // Always extract tag from the raw message so it works with highlight elements too
-      const tagMatch = matchTag(entry.message);
-      const tag = tagMatch ? tagMatch[1] : null;
-      const tagDisplay = tagMatch ? tagMatch[0].trim() : null;
-      const msgAfterTag = tagMatch
-        ? typeof display === 'string'
-          ? display.slice(tagMatch[0].length)
-          : display
-        : display;
+      // Pre-parsed tag from parsing layer, with runtime fallback
+      const tag =
+        entry.tag ??
+        (() => {
+          const m = matchTag(entry.message);
+          return m ? { name: m[1], offset: m[0].length } : null;
+        })();
+      const tagDisplay = tag ? entry.message.slice(0, tag.offset).trim() : null;
+      const msgAfterTag = tag ? entry.message.slice(tag.offset) : entry.message;
 
       const tagSpan = tag ? (
         <span
           style={{
-            color: hashTagColor(tag, state.prefersDarkColors),
+            color: hashTagColor(tag.name, state.prefersDarkColors),
             flexShrink: 0,
           }}
         >

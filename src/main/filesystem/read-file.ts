@@ -11,6 +11,7 @@ import {
   UnzippedFile,
 } from '../../interfaces';
 import { getTypeForFile } from '../../utils/get-file-types';
+import { matchTag } from '../../utils/match-tag';
 import debug from 'debug';
 import { StateTableState } from '../../renderer/components/state-table';
 import { TZDate } from '@date-fns/tz';
@@ -1040,8 +1041,14 @@ export function makeLogEntry(
   rest.timestamp = rest.timestamp || '';
   rest.level = rest.level || '';
 
-  const logEntry = { ...rest, logType, line, sourceFile };
-  return logEntry as LogEntry;
+  const logEntry = { ...rest, logType, line, sourceFile } as LogEntry;
+
+  const tagMatch = matchTag(logEntry.message);
+  if (tagMatch) {
+    logEntry.tag = { name: tagMatch[1], offset: tagMatch[0].length };
+  }
+
+  return logEntry;
 }
 
 export interface ReadFileResult {
