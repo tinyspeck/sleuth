@@ -494,30 +494,11 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                   allShownWhen="all-true"
                 />
                 {tagOptions.length > 0 && (
-                  <fieldset
-                    style={{
-                      border: 'none',
-                      borderTop: '1px solid var(--ant-color-border)',
-                      margin: 0,
-                      padding: '4px 0 12px',
-                    }}
-                  >
-                    <legend
-                      style={{
-                        padding: '0 4px 0 0',
-                        margin: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                      }}
-                    >
+                  <fieldset className="SidebarTags">
+                    <legend className="SidebarTags-legend">
                       <Typography.Text
                         type="secondary"
-                        style={{
-                          fontSize: 11,
-                          textTransform: 'uppercase',
-                          letterSpacing: 0.5,
-                        }}
+                        className="SidebarCheckboxGroup-title"
                       >
                         Tags
                       </Typography.Text>
@@ -529,7 +510,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                           { label: '#', value: 'freq' },
                           { label: 'Az', value: 'az' },
                         ]}
-                        style={{ fontSize: 10 }}
+                        className="SidebarTags-sortToggle"
                       />
                     </legend>
                     <Select
@@ -538,10 +519,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                       options={tagOptions}
                       value={props.state.selectedTags}
                       onChange={(tags) => props.state.setSelectedTags(tags)}
-                      style={{
-                        width: '100%',
-                        fontFamily: 'Fira Code, monospace',
-                      }}
+                      className="SidebarTags-select"
                       size="small"
                       allowClear
                       optionRender={(option) => {
@@ -554,33 +532,18 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                             : '';
                         return (
                           <span
+                            className="SidebarTags-option"
                             style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              fontFamily: 'Fira Code, monospace',
                               color: hashTagColor(
                                 String(option.value ?? ''),
                                 props.state.prefersDarkColors,
                               ),
                             }}
                           >
-                            <span
-                              style={{
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                minWidth: 0,
-                              }}
-                            >
+                            <span className="SidebarTags-optionLabel">
                               {option.label}
                             </span>
-                            <span
-                              style={{
-                                opacity: 0.5,
-                                flexShrink: 0,
-                                marginLeft: 8,
-                              }}
-                            >
+                            <span className="SidebarTags-optionCount">
                               {countLabel}
                             </span>
                           </span>
@@ -588,37 +551,19 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                       }}
                       tagRender={({ label, value, closable, onClose }) => (
                         <span
+                          className="SidebarTags-tag"
                           style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            maxWidth: 160,
-                            padding: '0 4px',
-                            borderRadius: 4,
-                            border: '1px solid var(--ant-color-border)',
-                            marginInlineEnd: 4,
-                            fontSize: 12,
-                            fontFamily: 'Fira Code, monospace',
                             color: hashTagColor(
                               String(value ?? ''),
                               props.state.prefersDarkColors,
                             ),
                           }}
                         >
-                          <span
-                            style={{
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              minWidth: 0,
-                            }}
-                          >
-                            {label}
-                          </span>
+                          <span className="SidebarTags-tagLabel">{label}</span>
                           {closable && (
                             <span
+                              className="SidebarTags-tagClose"
                               onClick={onClose}
-                              style={{ cursor: 'pointer', marginLeft: 2 }}
                             >
                               ×
                             </span>
