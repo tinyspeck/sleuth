@@ -92,6 +92,7 @@ export class SleuthState {
     installer: true,
     mobile: true,
   };
+  @observable public selectedTags: string[] = [];
   @observable public searchIndex = 0;
   @observable public searchList: number[] = [];
   @observable public search = '';
@@ -335,6 +336,7 @@ export class SleuthState {
     this.logTypeFilter.chromium = true;
     this.logTypeFilter.installer = true;
     this.logTypeFilter.mobile = true;
+    this.selectedTags = [];
     this.searchIndex = 0;
     this.showOnlySearchResults = undefined;
     this.isSpotlightOpen = false;
@@ -391,6 +393,11 @@ export class SleuthState {
   @action
   public setLogTypeFilter(types: Partial<LogTypeFilter>) {
     this.logTypeFilter = { ...this.logTypeFilter, ...types };
+  }
+
+  @action
+  public setSelectedTags(tags: string[]) {
+    this.selectedTags = tags;
   }
 
   /**

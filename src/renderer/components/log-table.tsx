@@ -51,7 +51,7 @@ const tagColorCache = new Map<string, string>();
 /**
  * Maps a string to a hex code
  */
-function hashTagColor(tag: string, dark: boolean): string {
+export function hashTagColor(tag: string, dark: boolean): string {
   const key = `${dark ? 'd' : 'l'}:${tag}`;
   const cached = tagColorCache.get(key);
   if (cached) return cached;
@@ -319,6 +319,15 @@ export const LogTable = observer((props: LogTableProps) => {
         }
       }
 
+      // Tag filter
+      const { selectedTags } = state;
+      if (selectedTags.length > 0) {
+        const tagSet = new Set(selectedTags);
+        list = list.filter(
+          (entry) => entry.tag?.name && tagSet.has(entry.tag.name),
+        );
+      }
+
       // DateRange
       if (range) {
         d(
@@ -358,6 +367,7 @@ export const LogTable = observer((props: LogTableProps) => {
       logFile,
       levelFilter,
       state.logTypeFilter,
+      state.selectedTags,
       search,
       effectiveSortBy,
       dateRange,

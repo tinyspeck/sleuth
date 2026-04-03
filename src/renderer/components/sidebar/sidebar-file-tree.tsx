@@ -1,4 +1,15 @@
-import { Badge, Space, Tabs, theme, Tooltip, Tree, TreeDataNode } from 'antd';
+import {
+  Badge,
+  Segmented,
+  Select,
+  Space,
+  Tabs,
+  theme,
+  Tooltip,
+  Tree,
+  TreeDataNode,
+  Typography,
+} from 'antd';
 import classNames from 'classnames';
 import { observer } from 'mobx-react';
 import React, { Key, useCallback, useEffect, useMemo, useState } from 'react';
@@ -38,6 +49,7 @@ import { isMergedLogFile } from '../../../utils/is-logfile';
 import { getEnvironmentWarnings } from '../../analytics/environment-analytics';
 import { getRootStateWarnings } from '../../analytics/root-state-analytics';
 import { getTraceWarnings } from '../../analytics/trace-analytics';
+import { hashTagColor } from '../log-table';
 
 interface SidebarFileTreeProps {
   state: SleuthState;
@@ -89,7 +101,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                   ? token.colorWarning
                   : key === LogLevel.info
                     ? token.colorInfo
-                    : token.colorTextTertiary
+                    : token.colorSuccess
             }
           />
         ),
@@ -103,6 +115,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     Map<string, ProcessedLogFile | UnzippedFile>
   >(new Map());
   const [manualTab, setManualTab] = useState<string | null>(null);
+  const [tagSort, setTagSort] = useState<'freq' | 'az'>('freq');
 
   useEffect(() => {
     async function fetchTree() {
@@ -264,6 +277,36 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     }));
   }, [processedLogFiles]);
 
+  // Collect unique tags with counts across all processable files
+  const tagOptions = useMemo(() => {
+    if (!processedLogFiles) return [];
+    const tagCounts = new Map<string, number>();
+    for (const typeKey of LOG_TYPE_CHECKBOXES.map(({ key }) => key)) {
+      const files =
+        (processedLogFiles[typeKey as keyof typeof processedLogFiles] as
+          | ProcessedLogFile[]
+          | undefined) ?? [];
+      for (const f of files) {
+        for (const entry of f.logEntries ?? []) {
+          if (entry.tag?.name) {
+            tagCounts.set(
+              entry.tag.name,
+              (tagCounts.get(entry.tag.name) ?? 0) + 1,
+            );
+          }
+        }
+      }
+    }
+    const sorted = Array.from(tagCounts.entries()).sort((a, b) =>
+      tagSort === 'az' ? a[0].localeCompare(b[0]) : b[1] - a[1],
+    );
+    return sorted.map(([name, count]) => ({
+      label: name,
+      value: name,
+      count,
+    }));
+  }, [processedLogFiles, tagSort]);
+
   // Determine which log types have files present, and compute line counts
   const logTypeItems = useMemo(() => {
     if (!processedLogFiles) return [];
@@ -391,7 +434,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     ) {
       const warnings = props.state.stateFiles[
         'logfiles-shipping-manifest.json'
-      ].data.files.filter((f) => f.fileName.endsWith('.dmp'));
+      ].data.files.filter((f: any) => f.fileName.endsWith('.dmp'));
       return (
         <Tooltip
           title={`${warnings.length} DMP files found in log bundle. Check corresponding errors on Sentry.`}
@@ -418,7 +461,12 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     <div className={classNames('SidebarFileTree', { Open: isSidebarOpen })}>
       <Tabs
         activeKey={activeTab}
-        onChange={setManualTab}
+        onChange={(key) => {
+          setManualTab(key);
+          if (key === 'logs' && isStateFileSelected) {
+            props.state.selectLogFile(null, LogType.ALL);
+          }
+        }}
         size="small"
         items={[
           {
@@ -445,6 +493,141 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                   onShowAll={onLevelShowAll}
                   allShownWhen="all-true"
                 />
+                {tagOptions.length > 0 && (
+                  <fieldset
+                    style={{
+                      border: 'none',
+                      borderTop: '1px solid var(--ant-color-border)',
+                      margin: 0,
+                      padding: '4px 0 12px',
+                    }}
+                  >
+                    <legend
+                      style={{
+                        padding: '0 4px 0 0',
+                        margin: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
+                      <Typography.Text
+                        type="secondary"
+                        style={{
+                          fontSize: 11,
+                          textTransform: 'uppercase',
+                          letterSpacing: 0.5,
+                        }}
+                      >
+                        Tags
+                      </Typography.Text>
+                      <Segmented
+                        size="small"
+                        value={tagSort}
+                        onChange={(val) => setTagSort(val as 'freq' | 'az')}
+                        options={[
+                          { label: '#', value: 'freq' },
+                          { label: 'Az', value: 'az' },
+                        ]}
+                        style={{ fontSize: 10 }}
+                      />
+                    </legend>
+                    <Select
+                      mode="multiple"
+                      placeholder="Filter by tag..."
+                      options={tagOptions}
+                      value={props.state.selectedTags}
+                      onChange={(tags) => props.state.setSelectedTags(tags)}
+                      style={{
+                        width: '100%',
+                        fontFamily: 'Fira Code, monospace',
+                      }}
+                      size="small"
+                      allowClear
+                      optionRender={(option) => {
+                        const count = (option.data as { count?: number }).count;
+                        const countLabel =
+                          count !== undefined
+                            ? count >= 1000
+                              ? `${(count / 1000).toFixed(1).replace(/\.0$/, '')}k`
+                              : String(count)
+                            : '';
+                        return (
+                          <span
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              fontFamily: 'Fira Code, monospace',
+                              color: hashTagColor(
+                                String(option.value ?? ''),
+                                props.state.prefersDarkColors,
+                              ),
+                            }}
+                          >
+                            <span
+                              style={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                minWidth: 0,
+                              }}
+                            >
+                              {option.label}
+                            </span>
+                            <span
+                              style={{
+                                opacity: 0.5,
+                                flexShrink: 0,
+                                marginLeft: 8,
+                              }}
+                            >
+                              {countLabel}
+                            </span>
+                          </span>
+                        );
+                      }}
+                      tagRender={({ label, value, closable, onClose }) => (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            maxWidth: 160,
+                            padding: '0 4px',
+                            borderRadius: 4,
+                            border: '1px solid var(--ant-color-border)',
+                            marginInlineEnd: 4,
+                            fontSize: 12,
+                            fontFamily: 'Fira Code, monospace',
+                            color: hashTagColor(
+                              String(value ?? ''),
+                              props.state.prefersDarkColors,
+                            ),
+                          }}
+                        >
+                          <span
+                            style={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              minWidth: 0,
+                            }}
+                          >
+                            {label}
+                          </span>
+                          {closable && (
+                            <span
+                              onClick={onClose}
+                              style={{ cursor: 'pointer', marginLeft: 2 }}
+                            >
+                              ×
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    />
+                  </fieldset>
+                )}
               </>
             ),
           },
