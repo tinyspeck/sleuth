@@ -214,3 +214,9 @@
   cursor: pointer;
   margin-left: 2px;
 }
+
+.SidebarTooltip-sm .ant-tooltip-inner {
+  font-size: var(--ant-font-size-sm);
+  min-height: auto;
+  padding: 2px var(--ant-padding-xs);
+}

@@ -507,8 +507,28 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                         value={tagSort}
                         onChange={(val) => setTagSort(val as 'freq' | 'az')}
                         options={[
-                          { label: '#', value: 'freq' },
-                          { label: 'Az', value: 'az' },
+                          {
+                            label: (
+                              <Tooltip
+                                title="Sort by frequency"
+                                classNames={{ root: 'SidebarTooltip-sm' }}
+                              >
+                                #
+                              </Tooltip>
+                            ),
+                            value: 'freq',
+                          },
+                          {
+                            label: (
+                              <Tooltip
+                                title="Sort alphabetically"
+                                classNames={{ root: 'SidebarTooltip-sm' }}
+                              >
+                                Az
+                              </Tooltip>
+                            ),
+                            value: 'az',
+                          },
                         ]}
                         className="SidebarTags-sortToggle"
                       />
