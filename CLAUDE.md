@@ -64,7 +64,7 @@ The app follows standard Electron patterns with three main processes:
 
 #### Key Interfaces
 
-- **LogEntry** (`src/interfaces.ts`): Core data structure for log entries
+- **LogEntry** (`src/interfaces.ts`): Core data structure with optional `tag: { name, offset }` for pre-parsed tag metadata
 - **UnzippedFile/ProcessedLogFile/MergedLogFile**: File handling abstractions
 - **LogType** enum: Defines supported log file types
 
@@ -83,7 +83,7 @@ The core flow for processing log bundles:
 3. **Type categorization** (`src/utils/get-file-types.ts`): `getTypesForFiles()` classifies each file by filename pattern into `LogType` (BROWSER, WEBAPP, NETLOG, INSTALLER, MOBILE, CHROMIUM, STATE, TRACE, UNKNOWN).
 4. **Routing** (`app-core.tsx`): Files split into raw files (STATE, NETLOG, TRACE — displayed as-is) and processable files (BROWSER, WEBAPP, INSTALLER, MOBILE, CHROMIUM — parsed line-by-line).
 5. **State files read first**: `log-context.json` provides timezone info used during log parsing.
-6. **Line-by-line parsing** (`src/main/filesystem/read-file.ts`): `readLogFile()` streams each file, applying type-specific regex matchers (e.g., `matchLineElectron`, `matchLineWebApp`). Each matched line becomes a `LogEntry` with timestamp, level, message, and metadata. Repeated consecutive lines are collapsed.
+6. **Line-by-line parsing** (`src/main/filesystem/read-file.ts`): `readLogFile()` streams each file, applying type-specific regex matchers (e.g., `matchLineElectron`, `matchLineWebApp`). Each matched line becomes a `LogEntry` with timestamp, level, message, and metadata. Tags extracted via `matchTag()` (`src/utils/match-tag.ts`). Repeated consecutive lines are collapsed.
 7. **Merging & sorting** (`src/renderer/processor.ts`): `mergeLogFiles()` combines entries from multiple files of the same type using a synchronous k-way merge (sorted chronologically). Produces merged views for Browser, Webapp, and combined ALL.
 8. **Display**: Results stored in MobX `SleuthState`, populating Sidebar (file tree), LogTable (virtualized entries), and detail panels.
 
@@ -96,6 +96,7 @@ Key file dispatch: `src/main/filesystem/open-file.ts` routes between `openZip()`
 - **NetLog Viewing**: Network log analysis
 - **Bookmarking**: Save and restore specific log entries
 - **Log Merging**: Combine multiple log files chronologically
+- **Tag Extraction**: Pre-parsed tag metadata via `src/utils/match-tag.ts`, used for sidebar filtering and log table coloring
 
 ## Testing
 
@@ -120,9 +121,17 @@ Key file dispatch: `src/main/filesystem/open-file.ts` routes between `openZip()`
 
 - `src/main/`: Main process Electron code
 - `src/renderer/`: React renderer code
+- `src/renderer/styles/`: CSS files using antd CSS variable tokens
 - `src/preload/`: Preload script for secure IPC
-- `src/utils/`: Shared utilities (renderer-safe only)
+- `src/utils/`: Shared utilities (importable by both main and renderer processes)
 - `src/interfaces.ts`: Shared TypeScript interfaces
+
+### Styling Conventions
+
+- Prefer CSS classes in `src/renderer/styles/*.css` over inline styles
+- Use antd CSS variable tokens (`--ant-padding-*`, `--ant-font-size-*`, `--ant-color-*`, `--ant-border-radius-*`, `--ant-line-width`) for spacing/sizing
+- Font size tokens: `--ant-font-size-sm` (12px), `--ant-font-size` (14px), `--ant-font-size-lg` (16px), `--ant-font-size-xl` (20px) — no XS token
+- Runtime-dependent values (computed colors, hover opacity) stay as inline `style`
 
 ### State Patterns
 
@@ -130,6 +139,11 @@ Key file dispatch: `src/main/filesystem/open-file.ts` routes between `openZip()`
 - State mutations only through actions
 - Computed values for derived data
 - Autorun for side effects
+
+### Filter Semantics
+
+- **LevelFilter / LogTypeFilter**: `Record<key, boolean>` — `true` = visible, all `true` = no filtering, all `false` = show nothing
+- **Tag filter** (`selectedTags: string[]`): empty = show all, non-empty = show only matching tags
 
 ## Development Notes
 
