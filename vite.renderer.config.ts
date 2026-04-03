@@ -15,6 +15,9 @@ export default defineConfig({
   define: {
     global: {},
   },
+  optimizeDeps: {
+    include: ['react-virtualized', 'date-fns'],
+  },
   build: {
     copyPublicDir: true,
     rollupOptions: {

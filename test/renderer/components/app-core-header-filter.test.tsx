@@ -79,19 +79,21 @@ describe('Filter', () => {
 
       // Mock system timezone to match user timezone
       const originalDateTimeFormat = Intl.DateTimeFormat;
-      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation((locale, options) => {
-        const formatter = new originalDateTimeFormat(locale, options);
-        if (!options) {
-          return {
-            ...formatter,
-            resolvedOptions: () => ({
-              ...formatter.resolvedOptions(),
-              timeZone: 'America/Los_Angeles',
-            }),
-          } as any;
-        }
-        return formatter;
-      });
+      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        function (locale, options) {
+          const formatter = new originalDateTimeFormat(locale, options);
+          if (!options) {
+            return {
+              ...formatter,
+              resolvedOptions: () => ({
+                ...formatter.resolvedOptions(),
+                timeZone: 'America/Los_Angeles',
+              }),
+            } as any;
+          }
+          return formatter;
+        },
+      );
 
       render(<Filter state={state as SleuthState} />);
 
@@ -116,19 +118,21 @@ describe('Filter', () => {
 
       // Mock system timezone to be different from user timezone
       const originalDateTimeFormat = Intl.DateTimeFormat;
-      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation((locale, options) => {
-        const formatter = new originalDateTimeFormat(locale, options);
-        if (!options) {
-          return {
-            ...formatter,
-            resolvedOptions: () => ({
-              ...formatter.resolvedOptions(),
-              timeZone: 'America/Los_Angeles',
-            }),
-          } as any;
-        }
-        return formatter;
-      });
+      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        function (locale, options) {
+          const formatter = new originalDateTimeFormat(locale, options);
+          if (!options) {
+            return {
+              ...formatter,
+              resolvedOptions: () => ({
+                ...formatter.resolvedOptions(),
+                timeZone: 'America/Los_Angeles',
+              }),
+            } as any;
+          }
+          return formatter;
+        },
+      );
 
       render(<Filter state={state as SleuthState} />);
 
@@ -155,19 +159,21 @@ describe('Filter', () => {
 
       // Mock system timezone to be different from user timezone
       const originalDateTimeFormat = Intl.DateTimeFormat;
-      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation((locale, options) => {
-        const formatter = new originalDateTimeFormat(locale, options);
-        if (!options) {
-          return {
-            ...formatter,
-            resolvedOptions: () => ({
-              ...formatter.resolvedOptions(),
-              timeZone: 'America/Los_Angeles',
-            }),
-          } as any;
-        }
-        return formatter;
-      });
+      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        function (locale, options) {
+          const formatter = new originalDateTimeFormat(locale, options);
+          if (!options) {
+            return {
+              ...formatter,
+              resolvedOptions: () => ({
+                ...formatter.resolvedOptions(),
+                timeZone: 'America/Los_Angeles',
+              }),
+            } as any;
+          }
+          return formatter;
+        },
+      );
 
       render(<Filter state={state as SleuthState} />);
 
@@ -196,19 +202,21 @@ describe('Filter', () => {
 
       // Mock system timezone
       const originalDateTimeFormat = Intl.DateTimeFormat;
-      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation((locale, options) => {
-        const formatter = new originalDateTimeFormat(locale, options);
-        if (!options) {
-          return {
-            ...formatter,
-            resolvedOptions: () => ({
-              ...formatter.resolvedOptions(),
-              timeZone: 'America/Los_Angeles',
-            }),
-          } as any;
-        }
-        return formatter;
-      });
+      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        function (locale, options) {
+          const formatter = new originalDateTimeFormat(locale, options);
+          if (!options) {
+            return {
+              ...formatter,
+              resolvedOptions: () => ({
+                ...formatter.resolvedOptions(),
+                timeZone: 'America/Los_Angeles',
+              }),
+            } as any;
+          }
+          return formatter;
+        },
+      );
 
       render(<Filter state={state as SleuthState} />);
 
@@ -233,19 +241,21 @@ describe('Filter', () => {
 
       // Mock system timezone
       const originalDateTimeFormat = Intl.DateTimeFormat;
-      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation((locale, options) => {
-        const formatter = new originalDateTimeFormat(locale, options);
-        if (!options) {
-          return {
-            ...formatter,
-            resolvedOptions: () => ({
-              ...formatter.resolvedOptions(),
-              timeZone: 'America/Los_Angeles',
-            }),
-          } as any;
-        }
-        return formatter;
-      });
+      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        function (locale, options) {
+          const formatter = new originalDateTimeFormat(locale, options);
+          if (!options) {
+            return {
+              ...formatter,
+              resolvedOptions: () => ({
+                ...formatter.resolvedOptions(),
+                timeZone: 'America/Los_Angeles',
+              }),
+            } as any;
+          }
+          return formatter;
+        },
+      );
 
       render(<Filter state={state as SleuthState} />);
 
@@ -346,19 +356,21 @@ describe('Filter', () => {
 
       // Mock system timezone
       const originalDateTimeFormat = Intl.DateTimeFormat;
-      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation((locale, options) => {
-        const formatter = new originalDateTimeFormat(locale, options);
-        if (!options) {
-          return {
-            ...formatter,
-            resolvedOptions: () => ({
-              ...formatter.resolvedOptions(),
-              timeZone: 'America/New_York',
-            }),
-          } as any;
-        }
-        return formatter;
-      });
+      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        function (locale, options) {
+          const formatter = new originalDateTimeFormat(locale, options);
+          if (!options) {
+            return {
+              ...formatter,
+              resolvedOptions: () => ({
+                ...formatter.resolvedOptions(),
+                timeZone: 'America/New_York',
+              }),
+            } as any;
+          }
+          return formatter;
+        },
+      );
 
       render(<Filter state={state as SleuthState} />);
 
@@ -386,19 +398,21 @@ describe('Filter', () => {
 
       // Mock system timezone
       const originalDateTimeFormat = Intl.DateTimeFormat;
-      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation((locale, options) => {
-        const formatter = new originalDateTimeFormat(locale, options);
-        if (!options) {
-          return {
-            ...formatter,
-            resolvedOptions: () => ({
-              ...formatter.resolvedOptions(),
-              timeZone: 'America/Los_Angeles',
-            }),
-          } as any;
-        }
-        return formatter;
-      });
+      vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        function (locale, options) {
+          const formatter = new originalDateTimeFormat(locale, options);
+          if (!options) {
+            return {
+              ...formatter,
+              resolvedOptions: () => ({
+                ...formatter.resolvedOptions(),
+                timeZone: 'America/Los_Angeles',
+              }),
+            } as any;
+          }
+          return formatter;
+        },
+      );
 
       render(<Filter state={state as SleuthState} />);
 
