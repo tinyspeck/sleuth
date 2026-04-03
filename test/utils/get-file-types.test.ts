@@ -114,7 +114,7 @@ describe('getTypeForFile', () => {
     ).toEqual('browser');
   });
 
-  it('should get the type for browser-epics-trace.log as epic_traces', () => {
+  it('should get the type for browser-epics-trace.log as rx_epic', () => {
     expect(
       getTypeForFile({
         ...base,
@@ -122,10 +122,10 @@ describe('getTypeForFile', () => {
         fullPath: '_',
         size: 0,
       }),
-    ).toEqual('epic_traces');
+    ).toEqual('rx_epic');
   });
 
-  it('should get the type for webapp-service-worker-console.log as service_worker', () => {
+  it('should get the type for webapp-service-worker-console.log as webapp_sw', () => {
     expect(
       getTypeForFile({
         ...base,
@@ -133,7 +133,7 @@ describe('getTypeForFile', () => {
         fullPath: '_',
         size: 0,
       }),
-    ).toEqual('service_worker');
+    ).toEqual('webapp_sw');
   });
 
   it('should get the type for trace files', () => {

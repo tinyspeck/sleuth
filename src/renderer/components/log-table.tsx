@@ -122,7 +122,7 @@ const PROCESS_TAG_STYLE = {
 
 export const logColorMap: Record<ProcessableLogType, string> = {
   [LogType.BROWSER]: 'cyan',
-  [LogType.EPIC_TRACES]: 'purple',
+  [LogType.rx_epic]: 'purple',
   [LogType.WEBAPP]: 'magenta',
   [LogType.SERVICE_WORKER]: 'orange',
   [LogType.INSTALLER]: 'green',

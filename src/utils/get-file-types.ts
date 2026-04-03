@@ -18,9 +18,9 @@ const d = debug('sleuth:file-types');
 export function getTypesForFiles(logFiles: UnzippedFiles): SortedUnzippedFiles {
   const result: SortedUnzippedFiles = {
     browser: [],
-    epic_traces: [],
+    rx_epic: [],
     webapp: [],
-    service_worker: [],
+    webapp_sw: [],
     state: [],
     installer: [],
     netlog: [],
@@ -58,7 +58,7 @@ export function getTypeForFile(
   if (fileName.endsWith('.trace')) {
     return LogType.TRACE;
   } else if (fileName === 'browser-epics-trace.log') {
-    return LogType.EPIC_TRACES;
+    return LogType.rx_epic;
   } else if (
     fileName.startsWith('browser') ||
     fileName === 'epics-browser.log'

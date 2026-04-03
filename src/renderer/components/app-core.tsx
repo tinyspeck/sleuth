@@ -33,9 +33,9 @@ export const CoreApplication = observer((props: CoreAppProps) => {
   const [processedLogFiles, setProcessedLogFiles] = useState<ProcessedLogFiles>(
     {
       browser: [],
-      epic_traces: [],
+      rx_epic: [],
       webapp: [],
-      service_worker: [],
+      webapp_sw: [],
       state: [],
       installer: [],
       netlog: [],
@@ -191,9 +191,9 @@ export const CoreApplication = observer((props: CoreAppProps) => {
         if (currentProcessed) {
           const MERGE_CANDIDATES = [
             { key: 'browser', type: LogType.BROWSER },
-            { key: 'epic_traces', type: LogType.EPIC_TRACES },
+            { key: 'rx_epic', type: LogType.rx_epic },
             { key: 'webapp', type: LogType.WEBAPP },
-            { key: 'service_worker', type: LogType.SERVICE_WORKER },
+            { key: 'webapp_sw', type: LogType.SERVICE_WORKER },
             { key: 'chromium', type: LogType.CHROMIUM },
             { key: 'installer', type: LogType.INSTALLER },
           ] as const;
@@ -235,9 +235,9 @@ export const CoreApplication = observer((props: CoreAppProps) => {
           const merged = props.state.mergedLogFiles;
           const toMerge = [
             merged?.browser,
-            merged?.epic_traces,
+            merged?.rx_epic,
             merged?.webapp,
-            merged?.service_worker,
+            merged?.webapp_sw,
             merged?.chromium,
             merged?.installer,
           ].filter(Boolean) as MergedLogFiles[keyof MergedLogFiles][];

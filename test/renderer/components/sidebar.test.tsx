@@ -33,9 +33,9 @@ vi.mock(
 
 const defaultLogTypeFilter = {
   browser: true,
-  epic_traces: true,
+  rx_epic: true,
   webapp: true,
-  service_worker: true,
+  webapp_sw: true,
   chromium: true,
   installer: true,
   mobile: true,
@@ -77,9 +77,9 @@ describe('Sidebar', () => {
       const state: Partial<SleuthState> = {
         processedLogFiles: {
           browser: [fakeFile1],
-          epic_traces: [],
+          rx_epic: [],
           webapp: [fakeFile3],
-          service_worker: [],
+          webapp_sw: [],
           state: [],
           netlog: [],
           installer: [],
@@ -110,9 +110,9 @@ describe('Sidebar', () => {
       const state: Partial<SleuthState> = {
         processedLogFiles: {
           browser: [],
-          epic_traces: [],
+          rx_epic: [],
           webapp: [],
-          service_worker: [],
+          webapp_sw: [],
           state: [],
           netlog: [],
           installer: [],
@@ -137,9 +137,9 @@ describe('Sidebar', () => {
       const state: Partial<SleuthState> = {
         processedLogFiles: {
           browser: [fakeFile1],
-          epic_traces: [],
+          rx_epic: [],
           webapp: [],
-          service_worker: [],
+          webapp_sw: [],
           state: [],
           netlog: [],
           installer: [],
@@ -172,9 +172,9 @@ describe('Sidebar', () => {
       const state: Partial<SleuthState> = {
         processedLogFiles: {
           browser: [fakeFile1],
-          epic_traces: [],
+          rx_epic: [],
           webapp: [fakeFile3],
-          service_worker: [],
+          webapp_sw: [],
           state: [],
           netlog: [],
           installer: [installerFile],

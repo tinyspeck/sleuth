@@ -10,9 +10,9 @@ export type RepeatedCounts = Record<string, number>;
 export enum LogType {
   ALL = 'all',
   BROWSER = 'browser',
-  EPIC_TRACES = 'epic_traces',
+  rx_epic = 'rx_epic',
   WEBAPP = 'webapp',
-  SERVICE_WORKER = 'service_worker',
+  SERVICE_WORKER = 'webapp_sw',
   STATE = 'state',
   NETLOG = 'netlog',
   TRACE = 'trace',
@@ -27,7 +27,7 @@ export type SelectableLogType = Exclude<LogType, LogType.UNKNOWN>;
 
 export const LOG_TYPES_TO_PROCESS = [
   LogType.BROWSER,
-  LogType.EPIC_TRACES,
+  LogType.rx_epic,
   LogType.WEBAPP,
   LogType.SERVICE_WORKER,
   LogType.INSTALLER,

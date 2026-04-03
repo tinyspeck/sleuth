@@ -85,9 +85,9 @@ export class SleuthState {
   };
   @observable public logTypeFilter: LogTypeFilter = {
     browser: true,
-    epic_traces: true,
+    rx_epic: true,
     webapp: true,
-    service_worker: true,
+    webapp_sw: true,
     chromium: true,
     installer: true,
     mobile: true,
@@ -329,9 +329,9 @@ export class SleuthState {
     this.levelFilter.info = false;
     this.levelFilter.warn = false;
     this.logTypeFilter.browser = true;
-    this.logTypeFilter.epic_traces = true;
+    this.logTypeFilter.rx_epic = true;
     this.logTypeFilter.webapp = true;
-    this.logTypeFilter.service_worker = true;
+    this.logTypeFilter.webapp_sw = true;
     this.logTypeFilter.chromium = true;
     this.logTypeFilter.installer = true;
     this.logTypeFilter.mobile = true;

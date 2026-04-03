@@ -63,22 +63,22 @@ interface LogTypeCheckboxConfig {
 const LOG_TYPE_CHECKBOXES: LogTypeCheckboxConfig[] = [
   {
     type: LogType.BROWSER,
-    label: 'Browser',
+    label: 'browser',
     icon: <DesktopOutlined />,
   },
-  { type: LogType.WEBAPP, label: 'Webapp', icon: <CommentOutlined /> },
+  { type: LogType.WEBAPP, label: 'webapp', icon: <CommentOutlined /> },
   {
     type: LogType.SERVICE_WORKER,
-    label: 'Service worker',
+    label: 'service worker',
     icon: <CloudOutlined />,
   },
   {
-    type: LogType.EPIC_TRACES,
-    label: 'Epic traces',
+    type: LogType.rx_epic,
+    label: 'epic traces',
     icon: <ExperimentOutlined />,
   },
-  { type: LogType.CHROMIUM, label: 'Chromium', icon: <ChromeOutlined /> },
-  { type: LogType.INSTALLER, label: 'Installer', icon: <DownloadOutlined /> },
+  { type: LogType.CHROMIUM, label: 'chromium', icon: <ChromeOutlined /> },
+  { type: LogType.INSTALLER, label: 'installer', icon: <DownloadOutlined /> },
 ];
 
 const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
@@ -144,6 +144,13 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     },
     [props.state],
   );
+
+  const onShowAll = useCallback(() => {
+    const filter = Object.fromEntries(
+      LOG_TYPE_CHECKBOXES.map(({ type }) => [type, true]),
+    ) as Partial<LogTypeFilter>;
+    props.state.setLogTypeFilter(filter);
+  }, [props.state]);
 
   const onLogTypeFocus = useCallback(
     (logType: ProcessableLogType) => {
@@ -341,18 +348,41 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
             icon: <FileTextOutlined />,
             children: (
               <div style={{ padding: '4px 0' }}>
-                <Typography.Text
-                  type="secondary"
+                <div
                   style={{
-                    fontSize: 11,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    justifyContent: 'space-between',
                     padding: '2px 4px 4px',
-                    display: 'block',
                   }}
                 >
-                  Log Types
-                </Typography.Text>
+                  <Typography.Text
+                    type="secondary"
+                    style={{
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Log Types
+                  </Typography.Text>
+                  {!availableLogTypes.every(
+                    ({ type }) => logTypeFilter[type],
+                  ) && (
+                    <Typography.Text
+                      strong
+                      style={{
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.5,
+                        cursor: 'pointer',
+                      }}
+                      onClick={onShowAll}
+                    >
+                      Show all
+                    </Typography.Text>
+                  )}
+                </div>
                 {availableLogTypes.map(({ type, label, icon }) => {
                   const files =
                     (processedLogFiles?.[
@@ -399,8 +429,11 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                       <span
                         style={{
                           position: 'relative',
-                          minWidth: 32,
+                          minWidth: 36,
                           textAlign: 'right',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-end',
                         }}
                       >
                         <Typography.Text
@@ -414,20 +447,22 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                           {lineCount.toLocaleString()}
                         </Typography.Text>
                         <Typography.Text
-                          type="secondary"
+                          strong
                           style={{
                             fontSize: 11,
-                            fontWeight: 600,
                             textTransform: 'uppercase',
                             letterSpacing: 0.5,
                             position: 'absolute',
-                            right: 0,
-                            top: 0,
+                            inset: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
                             opacity: isHovered ? 1 : 0,
                             transition: 'opacity 0.15s ease',
+                            color: 'var(--ant-color-primary)',
                           }}
                         >
-                          only
+                          ONLY
                         </Typography.Text>
                       </span>
                     </div>
