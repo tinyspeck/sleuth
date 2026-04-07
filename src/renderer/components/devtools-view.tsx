@@ -30,26 +30,33 @@ export const DevtoolsView = observer((props: DevtoolsViewProps) => {
 
   useEffect(() => {
     const messageHandler = async (event: MessageEvent) => {
-      const iframe = document.querySelector('iframe');
-      const events =
-        await processorRef.current.getRendererProfile(selectedTracePid);
-      d(
-        `Loaded ${events.length} events for renderer profile with pid: ${selectedTracePid}`,
-      );
+      try {
+        const iframe = document.querySelector('iframe');
+        const events =
+          await processorRef.current.getRendererProfile(selectedTracePid);
+        d(
+          `Loaded ${events.length} events for renderer profile with pid: ${selectedTracePid}`,
+        );
 
-      if (!iframe?.contentWindow || event.source !== iframe.contentWindow) {
-        return;
-      }
-      if (event.data && event.data.type === 'REHYDRATING_IFRAME_READY') {
-        d('Received REHYDRATING_IFRAME_READY event from DevTools');
-        iframe.contentWindow.postMessage(
-          {
-            type: 'REHYDRATING_TRACE_FILE',
-            traceJson: JSON.stringify({
-              traceEvents: events,
-            }),
-          },
-          '*',
+        if (!iframe?.contentWindow || event.source !== iframe.contentWindow) {
+          return;
+        }
+        if (event.data && event.data.type === 'REHYDRATING_IFRAME_READY') {
+          d('Received REHYDRATING_IFRAME_READY event from DevTools');
+          iframe.contentWindow.postMessage(
+            {
+              type: 'REHYDRATING_TRACE_FILE',
+              traceJson: JSON.stringify({
+                traceEvents: events,
+              }),
+            },
+            '*',
+          );
+        }
+      } catch (error) {
+        console.error(
+          `Failed to load renderer profile for PID ${selectedTracePid}:`,
+          error,
         );
       }
     };

@@ -102,7 +102,7 @@ const PROCESS_TAG_STYLE = {
 
 export const logColorMap: Record<ProcessableLogType, string> = {
   [LogType.BROWSER]: 'cyan',
-  [LogType.rx_epic]: 'purple',
+  [LogType.RX_EPIC]: 'purple',
   [LogType.WEBAPP]: 'magenta',
   [LogType.SERVICE_WORKER]: 'orange',
   [LogType.INSTALLER]: 'green',
@@ -280,7 +280,14 @@ export const LogTable = observer((props: LogTableProps) => {
         isMergedLogFile(file) &&
         file.logType === LogType.ALL &&
         !Object.values(state.logTypeFilter).every(Boolean);
-      if (noSort && !shouldDoFilter && !searchText && !hasLogTypeFilter)
+      const hasTagFilter = state.selectedTags.length > 0;
+      if (
+        noSort &&
+        !shouldDoFilter &&
+        !searchText &&
+        !hasLogTypeFilter &&
+        !hasTagFilter
+      )
         return { list: file.logEntries, newSearchList: null };
 
       let list = file.logEntries.concat();

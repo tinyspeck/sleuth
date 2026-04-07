@@ -236,7 +236,7 @@ export class IpcManager {
       return new Promise((resolve) => {
         const maybeShowInContext: MenuItemConstructorOptions[] =
           type === LogType.BROWSER ||
-          type === LogType.rx_epic ||
+          type === LogType.RX_EPIC ||
           type === LogType.WEBAPP ||
           type === LogType.SERVICE_WORKER
             ? [

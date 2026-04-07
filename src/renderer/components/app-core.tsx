@@ -191,7 +191,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
         if (currentProcessed) {
           const MERGE_CANDIDATES = [
             { key: 'browser', type: LogType.BROWSER },
-            { key: 'rx_epic', type: LogType.rx_epic },
+            { key: 'rx_epic', type: LogType.RX_EPIC },
             { key: 'webapp', type: LogType.WEBAPP },
             { key: 'webapp_sw', type: LogType.SERVICE_WORKER },
             { key: 'chromium', type: LogType.CHROMIUM },

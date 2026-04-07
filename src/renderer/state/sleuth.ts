@@ -34,6 +34,7 @@ import {
   Suggestion,
   SelectableLogType,
   TRACE_VIEWER,
+  LOG_TYPES_TO_PROCESS,
 } from '../../interfaces';
 import {
   getInitialTimeViewRange,
@@ -49,6 +50,10 @@ import { StateTableState } from '../components/state-table';
 import { Editor, EDITORS } from '../components/preferences/preferences-utils';
 
 const d = debug('sleuth:state');
+
+const DEFAULT_LOG_TYPE_FILTER: LogTypeFilter = Object.fromEntries(
+  LOG_TYPES_TO_PROCESS.map((t) => [t, true]),
+) as LogTypeFilter;
 
 export class SleuthState {
   // ** Log file selection **
@@ -84,13 +89,7 @@ export class SleuthState {
     warn: true,
   };
   @observable public logTypeFilter: LogTypeFilter = {
-    browser: true,
-    rx_epic: true,
-    webapp: true,
-    webapp_sw: true,
-    chromium: true,
-    installer: true,
-    mobile: true,
+    ...DEFAULT_LOG_TYPE_FILTER,
   };
   @observable public selectedTags: string[] = [];
   @observable public searchIndex = 0;
@@ -330,13 +329,7 @@ export class SleuthState {
     this.levelFilter.error = true;
     this.levelFilter.info = true;
     this.levelFilter.warn = true;
-    this.logTypeFilter.browser = true;
-    this.logTypeFilter.rx_epic = true;
-    this.logTypeFilter.webapp = true;
-    this.logTypeFilter.webapp_sw = true;
-    this.logTypeFilter.chromium = true;
-    this.logTypeFilter.installer = true;
-    this.logTypeFilter.mobile = true;
+    this.logTypeFilter = { ...DEFAULT_LOG_TYPE_FILTER };
     this.selectedTags = [];
     this.searchIndex = 0;
     this.showOnlySearchResults = undefined;
@@ -436,6 +429,11 @@ export class SleuthState {
     if (firstTraceFile) {
       this.selectLogFile(firstTraceFile);
     }
+  }
+
+  @action
+  public setTraceThreads(threads: TraceThreadDescription[] | undefined) {
+    this.traceThreads = threads;
   }
 
   @action

@@ -58,7 +58,7 @@ export function getTypeForFile(
   if (fileName.endsWith('.trace')) {
     return LogType.TRACE;
   } else if (fileName === 'browser-epics-trace.log') {
-    return LogType.rx_epic;
+    return LogType.RX_EPIC;
   } else if (
     fileName.startsWith('browser') ||
     fileName === 'epics-browser.log'

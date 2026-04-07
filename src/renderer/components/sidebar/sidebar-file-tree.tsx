@@ -75,7 +75,7 @@ const LOG_TYPE_CHECKBOXES: CheckboxItem[] = [
     icon: <CloudOutlined />,
   },
   {
-    key: LogType.rx_epic,
+    key: LogType.RX_EPIC,
     label: 'epic traces',
     icon: <ExperimentOutlined />,
   },
@@ -164,9 +164,15 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     const traceFiles = props.state.processedLogFiles?.trace;
     if (!traceFiles?.length || props.state.traceThreads) return;
     const processor = new TraceProcessor(traceFiles[0]);
-    processor.getProcesses().then((threads) => {
-      props.state.traceThreads = threads;
-    });
+    processor
+      .getProcesses()
+      .then((threads) => {
+        props.state.setTraceThreads(threads);
+      })
+      .catch((error) => {
+        console.error('Failed to load trace threads:', error);
+        props.state.setTraceThreads([]);
+      });
   }, [props.state.processedLogFiles?.trace, props.state.traceThreads]);
 
   const onTraceSelect = useCallback(
