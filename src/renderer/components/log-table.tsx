@@ -34,7 +34,7 @@ import { isReduxAction } from '../../utils/is-redux-action';
 import { LogTableProps, SortFilterListOptions } from './log-table-constants';
 import { isMergedLogFile } from '../../utils/is-logfile';
 import { getRegExpMaybeSafe } from '../../utils/regexp';
-import { matchTag } from '../../utils/match-tag';
+import { matchTag, hashTagColor } from '../../utils/match-tag';
 import { between } from '../../utils/is-between';
 import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
@@ -45,36 +45,6 @@ import { getCopyText } from '../state/copy';
 import { PartitionOutlined } from '@ant-design/icons';
 
 const d = debug('sleuth:logtable');
-
-const tagColorCache = new Map<string, string>();
-
-/**
- * Maps a string to a hex code
- */
-export function hashTagColor(tag: string, dark: boolean): string {
-  const key = `${dark ? 'd' : 'l'}:${tag}`;
-  const cached = tagColorCache.get(key);
-  if (cached) return cached;
-
-  let hash = 0;
-  for (let i = 0; i < tag.length; i++) {
-    hash = tag.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const h = ((hash % 360) + 360) % 360;
-  // Yellow-green (40–160) needs lower lightness for contrast on white backgrounds
-  // Blue-purple (220–310) needs higher lightness for contrast on dark backgrounds
-  const l = dark
-    ? h >= 220 && h < 310
-      ? 78
-      : 65
-    : h >= 40 && h < 160
-      ? 32
-      : 45;
-  const s = dark && h >= 220 && h < 310 ? 95 : 80;
-  const color = `hsl(${h}, ${s}%, ${l}%)`;
-  tagColorCache.set(key, color);
-  return color;
-}
 
 const MSG_ICON_STYLE = {
   flexShrink: 0,

@@ -54,7 +54,8 @@ import { isMergedLogFile } from '../../../utils/is-logfile';
 import { getEnvironmentWarnings } from '../../analytics/environment-analytics';
 import { getRootStateWarnings } from '../../analytics/root-state-analytics';
 import { getTraceWarnings } from '../../analytics/trace-analytics';
-import { hashTagColor, logColorMap } from '../log-table';
+import { hashTagColor } from '../../../utils/match-tag';
+import { logColorMap } from '../log-table';
 import { TraceProcessor } from '../../processor/trace';
 
 interface SidebarFileTreeProps {
