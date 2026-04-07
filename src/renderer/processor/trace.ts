@@ -100,9 +100,10 @@ export class TraceProcessor {
     }
 
     rendererThreadsEvents.forEach((thread) => {
-      const title = getProcessLabel(labelEvents, thread.pid);
+      const label = getProcessLabel(labelEvents, thread.pid);
+      const title = label || `Renderer (PID ${thread.pid})`;
       d(`Discovered renderer thread via thread event: ${title}`);
-      const isClient = title.startsWith('Slack |');
+      const isClient = label.startsWith('Slack |');
       const processId = thread.pid;
       if (!discovered[processId]) {
         discovered[processId] = {

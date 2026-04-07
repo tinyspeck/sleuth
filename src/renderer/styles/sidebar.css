@@ -107,6 +107,10 @@
   &:hover {
     background: var(--ant-color-fill-secondary);
   }
+
+  &.selected {
+    background: var(--ant-color-primary-bg);
+  }
 }
 
 .SidebarCheckboxGroup-label {

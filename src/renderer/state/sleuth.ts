@@ -119,6 +119,7 @@ export class SleuthState {
   @observable public prefersDarkColors = false;
   // ** Profiler **
   @observable public traceThreads?: Array<TraceThreadDescription>;
+  @observable public selectedTracePid?: number;
 
   @observable
   public selectedTraceViewer: TRACE_VIEWER;
@@ -343,6 +344,7 @@ export class SleuthState {
     this.isDetailsVisible = false;
     this.dateRange = { from: null, to: null };
     this.traceThreads = undefined;
+    this.selectedTracePid = undefined;
     this.stateFiles = {};
 
     if (goBackToHome) {
@@ -424,6 +426,7 @@ export class SleuthState {
     d(`Opening trace viewer: ${viewerType}`);
 
     this.selectedTraceViewer = viewerType;
+    this.selectedTracePid = undefined;
 
     if (!this.processedLogFiles?.trace?.length) {
       return;
@@ -433,6 +436,11 @@ export class SleuthState {
     if (firstTraceFile) {
       this.selectLogFile(firstTraceFile);
     }
+  }
+
+  @action
+  public setSelectedTracePid(pid: number | undefined) {
+    this.selectedTracePid = pid;
   }
 
   /**

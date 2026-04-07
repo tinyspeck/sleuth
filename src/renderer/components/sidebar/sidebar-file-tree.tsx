@@ -2,8 +2,10 @@ import {
   Badge,
   Segmented,
   Select,
+  Skeleton,
   Space,
   Tabs,
+  Tag,
   theme,
   Tooltip,
   Tree,
@@ -21,13 +23,16 @@ import {
   ProcessableLogType,
   ProcessedLogFile,
   SelectableLogType,
+  TRACE_VIEWER,
   UnzippedFile,
   LogTypeFilter,
 } from '../../../interfaces';
 import {
   ApartmentOutlined,
+  ApiOutlined,
   ChromeOutlined,
   CloudOutlined,
+  DashboardOutlined,
   CommentOutlined,
   DesktopOutlined,
   DownloadOutlined,
@@ -49,7 +54,8 @@ import { isMergedLogFile } from '../../../utils/is-logfile';
 import { getEnvironmentWarnings } from '../../analytics/environment-analytics';
 import { getRootStateWarnings } from '../../analytics/root-state-analytics';
 import { getTraceWarnings } from '../../analytics/trace-analytics';
-import { hashTagColor } from '../log-table';
+import { hashTagColor, logColorMap } from '../log-table';
+import { TraceProcessor } from '../../processor/trace';
 
 interface SidebarFileTreeProps {
   state: SleuthState;
@@ -153,6 +159,45 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     [props.state, files],
   );
 
+  // Load trace threads when trace files are available
+  useEffect(() => {
+    const traceFiles = props.state.processedLogFiles?.trace;
+    if (!traceFiles?.length || props.state.traceThreads) return;
+    const processor = new TraceProcessor(traceFiles[0]);
+    processor.getProcesses().then((threads) => {
+      props.state.traceThreads = threads;
+    });
+  }, [props.state.processedLogFiles?.trace, props.state.traceThreads]);
+
+  const onTraceSelect = useCallback(
+    (selectedKeys: Key[]) => {
+      const selected = String(selectedKeys[0]);
+      if (selected === TRACE_VIEWER.PERFETTO) {
+        props.state.openTraceViewer(TRACE_VIEWER.PERFETTO);
+      } else {
+        // Thread PID — open DevTools with that process
+        const pid = parseInt(selected, 10);
+        if (!isNaN(pid)) {
+          props.state.openTraceViewer(TRACE_VIEWER.CHROME_DEVTOOLS);
+          props.state.setSelectedTracePid(pid);
+        }
+      }
+    },
+    [props.state],
+  );
+
+  const onNetlogSelect = useCallback(
+    (fileId: string) => {
+      const file = props.state.processedLogFiles?.netlog?.find(
+        (f) => f.id === fileId,
+      );
+      if (file) {
+        props.state.selectLogFile(file);
+      }
+    },
+    [props.state],
+  );
+
   // --- Log type callbacks ---
   const onLogTypeToggle = useCallback(
     (key: string, checked: boolean) => {
@@ -253,7 +298,20 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
   const isStateFileSelected = selectedKey
     ? stateNodes.some((node) => node.key === selectedKey)
     : false;
-  const derivedTab = isStateFileSelected ? 'state' : 'logs';
+  const isTraceFileSelected =
+    selectedLogFile &&
+    'fileName' in selectedLogFile &&
+    selectedLogFile.fileName.endsWith('.trace');
+  const isNetlogFileSelected = selectedKey
+    ? (processedLogFiles?.netlog?.some((f) => f.id === selectedKey) ?? false)
+    : false;
+  const derivedTab = isNetlogFileSelected
+    ? 'netlog'
+    : isTraceFileSelected
+      ? 'trace'
+      : isStateFileSelected
+        ? 'state'
+        : 'logs';
   const activeTab = manualTab ?? derivedTab;
 
   // Compute log level line counts across all processable files
@@ -463,7 +521,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
         activeKey={activeTab}
         onChange={(key) => {
           setManualTab(key);
-          if (key === 'logs' && isStateFileSelected) {
+          if (key === 'logs' && derivedTab !== 'logs') {
             props.state.selectLogFile(null, LogType.ALL);
           }
         }}
@@ -598,7 +656,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
           },
           {
             key: 'state',
-            label: 'State & Settings',
+            label: 'State',
             icon: <SettingOutlined />,
             children: (
               <Tree
@@ -609,6 +667,146 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
               />
             ),
           },
+          ...(processedLogFiles?.netlog?.length
+            ? [
+                {
+                  key: 'netlog',
+                  label: 'Net',
+                  icon: <ApiOutlined />,
+                  children: (
+                    <fieldset className="SidebarCheckboxGroup">
+                      <legend className="SidebarCheckboxGroup-legend">
+                        <Typography.Text
+                          type="secondary"
+                          className="SidebarCheckboxGroup-title"
+                        >
+                          Network Logs
+                        </Typography.Text>
+                      </legend>
+                      {processedLogFiles.netlog.map((file) => {
+                        const isSelected =
+                          isNetlogFileSelected && selectedKey === file.id;
+                        return (
+                          <div
+                            key={file.id}
+                            className={classNames('SidebarCheckboxGroup-row', {
+                              selected: isSelected,
+                            })}
+                            onClick={() => onNetlogSelect(file.id)}
+                          >
+                            <Space size={4} style={{ flex: 1 }}>
+                              <GlobalOutlined />
+                              <Typography.Text className="SidebarCheckboxGroup-label">
+                                {file.fileName}
+                              </Typography.Text>
+                            </Space>
+                          </div>
+                        );
+                      })}
+                    </fieldset>
+                  ),
+                },
+              ]
+            : []),
+          ...(processedLogFiles?.trace?.length
+            ? [
+                {
+                  key: 'trace',
+                  label: 'Trace',
+                  icon: <DashboardOutlined />,
+                  children: (
+                    <>
+                      <fieldset className="SidebarCheckboxGroup">
+                        <legend className="SidebarCheckboxGroup-legend">
+                          <Typography.Text
+                            type="secondary"
+                            className="SidebarCheckboxGroup-title"
+                          >
+                            Chrome DevTools
+                          </Typography.Text>
+                        </legend>
+                        {!props.state.traceThreads && (
+                          <Skeleton
+                            active
+                            paragraph={{ rows: 2 }}
+                            title={false}
+                          />
+                        )}
+                        {props.state.traceThreads?.map((thread) => {
+                          const isSelected =
+                            isTraceFileSelected &&
+                            props.state.selectedTraceViewer ===
+                              TRACE_VIEWER.CHROME_DEVTOOLS &&
+                            props.state.selectedTracePid === thread.processId;
+                          return (
+                            <div
+                              key={thread.processId}
+                              className={classNames(
+                                'SidebarCheckboxGroup-row',
+                                { selected: isSelected },
+                              )}
+                              onClick={() =>
+                                onTraceSelect([String(thread.processId)])
+                              }
+                            >
+                              <Space size={4} style={{ flex: 1 }}>
+                                <ChromeOutlined />
+                                <Typography.Text className="SidebarCheckboxGroup-label">
+                                  {thread.title || `PID ${thread.processId}`}
+                                </Typography.Text>
+                              </Space>
+                              <Tag
+                                color={
+                                  thread.type === 'renderer'
+                                    ? logColorMap[LogType.WEBAPP]
+                                    : logColorMap[LogType.BROWSER]
+                                }
+                                style={{
+                                  fontSize: 10,
+                                  lineHeight: '16px',
+                                  padding: '0 4px',
+                                  margin: 0,
+                                }}
+                              >
+                                {thread.type === 'renderer'
+                                  ? 'webapp'
+                                  : thread.type}
+                              </Tag>
+                            </div>
+                          );
+                        })}
+                      </fieldset>
+                      <fieldset className="SidebarCheckboxGroup">
+                        <legend className="SidebarCheckboxGroup-legend">
+                          <Typography.Text
+                            type="secondary"
+                            className="SidebarCheckboxGroup-title"
+                          >
+                            Perfetto
+                          </Typography.Text>
+                        </legend>
+                        <div
+                          className={classNames('SidebarCheckboxGroup-row', {
+                            selected:
+                              isTraceFileSelected &&
+                              props.state.selectedTraceViewer ===
+                                TRACE_VIEWER.PERFETTO,
+                          })}
+                          onClick={() => onTraceSelect([TRACE_VIEWER.PERFETTO])}
+                        >
+                          <Space size={4} style={{ flex: 1 }}>
+                            <DashboardOutlined />
+                            <Typography.Text className="SidebarCheckboxGroup-label">
+                              Open in Perfetto
+                            </Typography.Text>
+                          </Space>
+                        </div>
+                      </fieldset>
+                    </>
+                  ),
+                },
+              ]
+            : []),
         ]}
       />
     </div>
