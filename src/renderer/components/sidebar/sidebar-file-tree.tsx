@@ -1,4 +1,5 @@
 import {
+  Alert,
   Badge,
   Segmented,
   Select,
@@ -666,12 +667,22 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
             label: 'State',
             icon: <SettingOutlined />,
             children: (
-              <Tree
-                {...stateTreeProps}
-                onExpand={(keys) => setExpandedStateKeys(keys)}
-                expandedKeys={expandedStateKeys}
-                treeData={stateNodes}
-              />
+              <fieldset className="SidebarCheckboxGroup">
+                <legend className="SidebarCheckboxGroup-legend">
+                  <Typography.Text
+                    type="secondary"
+                    className="SidebarCheckboxGroup-title"
+                  >
+                    State & Settings
+                  </Typography.Text>
+                </legend>
+                <Tree
+                  {...stateTreeProps}
+                  onExpand={(keys) => setExpandedStateKeys(keys)}
+                  expandedKeys={expandedStateKeys}
+                  treeData={stateNodes}
+                />
+              </fieldset>
             ),
           },
           ...(processedLogFiles?.netlog?.length
@@ -690,6 +701,16 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                           Network Logs
                         </Typography.Text>
                       </legend>
+                      <Alert
+                        type="info"
+                        message={
+                          <Typography.Paragraph type="secondary">
+                            Net logs provide network-level captures showing HTTP
+                            requests, socket connections, and DNS lookups.
+                          </Typography.Paragraph>
+                        }
+                        className="SidebarPreamble"
+                      />
                       {processedLogFiles.netlog.map((file) => {
                         const isSelected =
                           isNetlogFileSelected && selectedKey === file.id;
@@ -723,6 +744,19 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                   icon: <DashboardOutlined />,
                   children: (
                     <>
+                      <Alert
+                        type="info"
+                        message={
+                          <Typography.Paragraph type="secondary">
+                            Performance profiles captured via Electron's{' '}
+                            <code>contentTracing</code> API. Inspect the entire
+                            trace with Google's Perfetto trace viewer, or
+                            analyze performance from a web perspective with
+                            Chrome DevTools.
+                          </Typography.Paragraph>
+                        }
+                        className="SidebarPreamble"
+                      />
                       <fieldset className="SidebarCheckboxGroup">
                         <legend className="SidebarCheckboxGroup-legend">
                           <Typography.Text

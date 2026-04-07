@@ -65,6 +65,17 @@
   }
 }
 
+/* Sidebar preamble alert */
+.SidebarPreamble {
+  margin: var(--ant-padding-xs) 0;
+}
+
+.SidebarPreamble .ant-typography {
+  margin-bottom: 0;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
 /* SidebarCheckboxGroup */
 .SidebarCheckboxGroup {
   border: none;
