@@ -114,6 +114,36 @@ describe('makeLogEntry', () => {
       timestamp: '1',
     });
   });
+
+  it('should populate tag for browser-style prefix', () => {
+    const result = makeLogEntry(
+      { message: 'Store: UPDATE_SETTINGS', timestamp: '1', level: 'info' },
+      'browser',
+      1,
+      'test-file',
+    );
+    expect(result.tag).toEqual({ name: 'Store', offset: 6 });
+  });
+
+  it('should populate tag for webapp-style [TAG]', () => {
+    const result = makeLogEntry(
+      { message: '[HUDDLES] joined call', timestamp: '1', level: 'info' },
+      'webapp',
+      1,
+      'test-file',
+    );
+    expect(result.tag).toEqual({ name: 'HUDDLES', offset: 9 });
+  });
+
+  it('should leave tag undefined for plain messages', () => {
+    const result = makeLogEntry(
+      { message: 'plain message', timestamp: '1', level: 'info' },
+      'browser',
+      1,
+      'test-file',
+    );
+    expect(result.tag).toBeUndefined();
+  });
 });
 
 describe('matchLineWebApp (additional)', () => {

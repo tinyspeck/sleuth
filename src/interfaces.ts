@@ -10,7 +10,9 @@ export type RepeatedCounts = Record<string, number>;
 export enum LogType {
   ALL = 'all',
   BROWSER = 'browser',
+  RX_EPIC = 'rx_epic',
   WEBAPP = 'webapp',
+  SERVICE_WORKER = 'webapp_sw',
   STATE = 'state',
   NETLOG = 'netlog',
   TRACE = 'trace',
@@ -25,7 +27,9 @@ export type SelectableLogType = Exclude<LogType, LogType.UNKNOWN>;
 
 export const LOG_TYPES_TO_PROCESS = [
   LogType.BROWSER,
+  LogType.RX_EPIC,
   LogType.WEBAPP,
+  LogType.SERVICE_WORKER,
   LogType.INSTALLER,
   LogType.MOBILE,
   LogType.CHROMIUM,
@@ -74,10 +78,22 @@ export interface DateRange {
   to: Date | null;
 }
 
+export interface LogTag {
+  /** The extracted tag name, e.g. `"Store"`, `"HUDDLES"`, `"fooBarEpic"`.
+   *  Used for color hashing and display grouping. */
+  name: string;
+  /** Length of the full prefix match in the original message string,
+   *  e.g. `"Store:"` is 6, `"[HUDDLES]"` is 9, `"Tag = fooBarEpic;"` is 18.
+   *  Lets the renderer slice the display prefix and remaining message
+   *  without re-running the regex. */
+  offset: number;
+}
+
 export interface LogEntry {
   index: number;
   timestamp: string;
   message: string;
+  tag?: LogTag;
   level: LogLevel;
   logType: LogType;
   line: number;
@@ -154,6 +170,7 @@ export enum LogLevel {
 }
 
 export type LevelFilter = Record<LogLevel, boolean>;
+export type LogTypeFilter = Record<ProcessableLogType, boolean>;
 export type LogMetrics = Record<LogLevel, number>;
 export type TimeBucketedLogMetrics = Record<number, LogMetrics>;
 

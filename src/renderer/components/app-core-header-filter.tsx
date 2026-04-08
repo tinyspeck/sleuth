@@ -5,7 +5,6 @@ import {
   Button,
   DatePicker,
   Divider,
-  Dropdown,
   Input,
   InputRef,
   Space,
@@ -16,15 +15,9 @@ import { SleuthState } from '../state/sleuth';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
-  BugOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
-  FilterOutlined,
-  FilterTwoTone,
-  FireOutlined,
-  InfoCircleOutlined,
   SearchOutlined,
-  WarningOutlined,
 } from '@ant-design/icons';
 import { TZDate, tzOffset } from '@date-fns/tz';
 import dateFnsGenerateConfig from 'rc-picker/lib/generate/dateFns';
@@ -37,7 +30,6 @@ export interface FilterProps {
 
 export const Filter = observer((props: FilterProps) => {
   const searchRef = React.useRef<InputRef>(null);
-  const [open, setOpen] = React.useState(false);
 
   /**
    * Handles an increment or decrement of the selected index in the
@@ -124,106 +116,6 @@ export const Filter = observer((props: FilterProps) => {
     dateFnsGenerateConfig,
   );
 
-  function renderFilter() {
-    const { error, warn, info, debug } = props.state.levelFilter;
-    const isDefaultState = !(debug || info || warn || error);
-
-    const selectedKeys: string[] = [];
-
-    for (const level of ['debug', 'info', 'warn', 'error']) {
-      if (props.state.levelFilter[level]) {
-        selectedKeys.push(level);
-      }
-    }
-
-    return (
-      <Dropdown
-        open={open}
-        trigger={['click']}
-        menu={{
-          selectable: true,
-          selectedKeys: [
-            debug ? 'debug' : '',
-            info ? 'info' : '',
-            warn ? 'warn' : '',
-            error ? 'error' : '',
-          ],
-          items: [
-            {
-              label: (
-                <Space>
-                  <BugOutlined />
-                  Debug
-                </Space>
-              ),
-              onClick: () => {
-                props.state.setFilterLogLevels({ debug: !debug });
-              },
-              key: 'debug',
-            },
-            {
-              label: (
-                <Space>
-                  <InfoCircleOutlined />
-                  Info
-                </Space>
-              ),
-              onClick: () => {
-                props.state.setFilterLogLevels({ info: !info });
-              },
-              key: 'info',
-            },
-            {
-              label: (
-                <Space>
-                  <WarningOutlined />
-                  Warning
-                </Space>
-              ),
-              onClick: () => {
-                props.state.setFilterLogLevels({ warn: !warn });
-              },
-              key: 'warn',
-            },
-            {
-              label: (
-                <Space>
-                  <FireOutlined />
-                  Error
-                </Space>
-              ),
-              onClick: () => {
-                props.state.setFilterLogLevels({ error: !error });
-              },
-              key: 'error',
-            },
-            {
-              type: 'divider',
-            },
-            {
-              label: 'Reset Levels',
-              onClick: () => {
-                setOpen(false);
-                props.state.setFilterLogLevels({
-                  debug: false,
-                  info: false,
-                  warn: false,
-                  error: false,
-                });
-              },
-              key: 'reset',
-            },
-          ],
-        }}
-      >
-        <Button
-          onClick={() => setOpen(!open)}
-          icon={isDefaultState ? <FilterOutlined /> : <FilterTwoTone />}
-        />
-      </Dropdown>
-    );
-  }
-
   const systemTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const userTZ = props.state.stateFiles['log-context.json']?.data?.systemTZ;
   const tz = props.state.isUserTZ ? userTZ : systemTZ;
@@ -278,10 +170,7 @@ export const Filter = observer((props: FilterProps) => {
         ]}
       />
       <Divider type="vertical" />
-      <Space className="FilterGroup">
-        {renderFilter()}
-        {showOnlySearchResultsButton}
-      </Space>
+      <Space className="FilterGroup">{showOnlySearchResultsButton}</Space>
       <Divider type="vertical" />
       <Space.Compact className="SearchInputGroup">
         <Input

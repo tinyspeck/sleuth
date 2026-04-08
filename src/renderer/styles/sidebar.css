@@ -64,3 +64,174 @@
     background: transparent;
   }
 }
+
+/* Sidebar preamble alert */
+.SidebarPreamble {
+  margin: var(--ant-padding-xs) 0;
+}
+
+.SidebarPreamble .ant-typography {
+  margin-bottom: 0;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* SidebarCheckboxGroup */
+.SidebarCheckboxGroup {
+  border: none;
+  border-top: var(--ant-line-width) solid var(--ant-color-border);
+  margin: 0;
+  padding: var(--ant-padding-xxs) 0 var(--ant-padding-sm);
+}
+
+.SidebarCheckboxGroup-legend {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ant-padding-xs);
+  padding: 0 var(--ant-padding-xxs) 0 0;
+  margin: 0;
+}
+
+.SidebarCheckboxGroup-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.SidebarCheckboxGroup-showAll {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+.SidebarCheckboxGroup-row {
+  padding: 1px var(--ant-padding-xxs);
+  display: flex;
+  align-items: center;
+  gap: var(--ant-padding-xs);
+  border-radius: var(--ant-border-radius-sm);
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--ant-color-fill-secondary);
+  }
+
+  &.selected {
+    background: var(--ant-color-primary-bg);
+  }
+}
+
+.SidebarCheckboxGroup-label {
+  font-size: var(--ant-font-size);
+}
+
+.SidebarCheckboxGroup-countWrap {
+  position: relative;
+  min-width: 36px;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.SidebarCheckboxGroup-count {
+  font-size: var(--ant-font-size);
+  transition: opacity 0.15s ease;
+}
+
+.SidebarCheckboxGroup-only {
+  font-size: var(--ant-font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  transition: opacity 0.15s ease;
+  color: var(--ant-color-primary);
+}
+
+/* Sidebar Tags section */
+.SidebarTags {
+  border: none;
+  border-top: var(--ant-line-width) solid var(--ant-color-border);
+  margin: 0;
+  padding: var(--ant-padding-xxs) 0 var(--ant-padding-sm);
+}
+
+.SidebarTags-legend {
+  padding: 0 var(--ant-padding-xxs) 0 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ant-padding-xs);
+}
+
+.SidebarTags-sortToggle {
+  font-size: 10px;
+}
+
+.SidebarTags-select {
+  width: 100%;
+  font-family:
+    Fira Code,
+    monospace;
+}
+
+.SidebarTags-option {
+  display: flex;
+  justify-content: space-between;
+  font-family:
+    Fira Code,
+    monospace;
+}
+
+.SidebarTags-optionLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.SidebarTags-optionCount {
+  opacity: 0.5;
+  flex-shrink: 0;
+  margin-left: var(--ant-margin-xs);
+}
+
+.SidebarTags-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ant-margin-xxs);
+  max-width: 160px;
+  padding: 0 var(--ant-padding-xxs);
+  border-radius: var(--ant-border-radius-sm);
+  border: var(--ant-line-width) solid var(--ant-color-border);
+  margin-inline-end: var(--ant-margin-xxs);
+  font-size: var(--ant-font-size-sm);
+  font-family:
+    Fira Code,
+    monospace;
+}
+
+.SidebarTags-tagLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.SidebarTags-tagClose {
+  cursor: pointer;
+  margin-left: 2px;
+}
+
+.SidebarTooltip-sm .ant-tooltip-inner {
+  font-size: var(--ant-font-size-sm);
+  min-height: auto;
+  padding: 2px var(--ant-padding-xs);
+}

@@ -17,6 +17,7 @@ import { getFileName } from '../../utils/get-file-name';
 import {
   LevelFilter,
   LogEntry,
+  LogTypeFilter,
   MergedLogFile,
   ProcessedLogFile,
   DateRange,
@@ -33,6 +34,7 @@ import {
   Suggestion,
   SelectableLogType,
   TRACE_VIEWER,
+  LOG_TYPES_TO_PROCESS,
 } from '../../interfaces';
 import {
   getInitialTimeViewRange,
@@ -48,6 +50,10 @@ import { StateTableState } from '../components/state-table';
 import { Editor, EDITORS } from '../components/preferences/preferences-utils';
 
 const d = debug('sleuth:state');
+
+const DEFAULT_LOG_TYPE_FILTER: LogTypeFilter = Object.fromEntries(
+  LOG_TYPES_TO_PROCESS.map((t) => [t, true]),
+) as LogTypeFilter;
 
 export class SleuthState {
   // ** Log file selection **
@@ -77,11 +83,15 @@ export class SleuthState {
 
   // ** Search and Filter **
   @observable public levelFilter: LevelFilter = {
-    debug: false,
-    error: false,
-    info: false,
-    warn: false,
+    debug: true,
+    error: true,
+    info: true,
+    warn: true,
   };
+  @observable public logTypeFilter: LogTypeFilter = {
+    ...DEFAULT_LOG_TYPE_FILTER,
+  };
+  @observable public selectedTags: string[] = [];
   @observable public searchIndex = 0;
   @observable public searchList: number[] = [];
   @observable public search = '';
@@ -108,6 +118,7 @@ export class SleuthState {
   @observable public prefersDarkColors = false;
   // ** Profiler **
   @observable public traceThreads?: Array<TraceThreadDescription>;
+  @observable public selectedTracePid?: number;
 
   @observable
   public selectedTraceViewer: TRACE_VIEWER;
@@ -314,16 +325,19 @@ export class SleuthState {
     this.selectedIndex = undefined;
     this.selectedLogFile = undefined;
     this.bookmarks = [];
-    this.levelFilter.debug = false;
-    this.levelFilter.error = false;
-    this.levelFilter.info = false;
-    this.levelFilter.warn = false;
+    this.levelFilter.debug = true;
+    this.levelFilter.error = true;
+    this.levelFilter.info = true;
+    this.levelFilter.warn = true;
+    this.logTypeFilter = { ...DEFAULT_LOG_TYPE_FILTER };
+    this.selectedTags = [];
     this.searchIndex = 0;
     this.showOnlySearchResults = undefined;
     this.isSpotlightOpen = false;
     this.isDetailsVisible = false;
     this.dateRange = { from: null, to: null };
     this.traceThreads = undefined;
+    this.selectedTracePid = undefined;
     this.stateFiles = {};
 
     if (goBackToHome) {
@@ -371,6 +385,16 @@ export class SleuthState {
     this.levelFilter = { ...this.levelFilter, ...levels };
   }
 
+  @action
+  public setLogTypeFilter(types: Partial<LogTypeFilter>) {
+    this.logTypeFilter = { ...this.logTypeFilter, ...types };
+  }
+
+  @action
+  public setSelectedTags(tags: string[]) {
+    this.selectedTags = tags;
+  }
+
   /**
    * Update this component's status with a merged logfile
    *
@@ -395,6 +419,7 @@ export class SleuthState {
     d(`Opening trace viewer: ${viewerType}`);
 
     this.selectedTraceViewer = viewerType;
+    this.selectedTracePid = undefined;
 
     if (!this.processedLogFiles?.trace?.length) {
       return;
@@ -404,6 +429,16 @@ export class SleuthState {
     if (firstTraceFile) {
       this.selectLogFile(firstTraceFile);
     }
+  }
+
+  @action
+  public setTraceThreads(threads: TraceThreadDescription[] | undefined) {
+    this.traceThreads = threads;
+  }
+
+  @action
+  public setSelectedTracePid(pid: number | undefined) {
+    this.selectedTracePid = pid;
   }
 
   /**

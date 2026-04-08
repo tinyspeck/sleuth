@@ -34,6 +34,7 @@ import { isReduxAction } from '../../utils/is-redux-action';
 import { LogTableProps, SortFilterListOptions } from './log-table-constants';
 import { isMergedLogFile } from '../../utils/is-logfile';
 import { getRegExpMaybeSafe } from '../../utils/regexp';
+import { matchTag, hashTagColor } from '../../utils/match-tag';
 import { between } from '../../utils/is-between';
 import { getRangeEntries } from '../../utils/get-range-from-array';
 import { RepeatedLevels } from '../../shared-constants';
@@ -44,57 +45,6 @@ import { getCopyText } from '../state/copy';
 import { PartitionOutlined } from '@ant-design/icons';
 
 const d = debug('sleuth:logtable');
-
-/**
- * Something like `[HUDDLES]` in webapp logs
- */
-const WEBAPP_TAG_RGX = /^\s*\[([A-Za-z][A-Za-z0-9_ -]+)\]/;
-/**
- * Something like `Store:` in desktop logs
- */
-const BROWSER_PREFIX_RGX = /^\s*([A-Za-z][A-Za-z0-9_-]*(?:\s*\[[^\]]+\])?):/;
-/**
- * Something like `Tag = fooBarEpic;` for rxjs-spy debug logs
- */
-const BROWSER_EPIC_TAG_PREFIX = /^\s*Tag = ([A-Za-z][A-Za-z0-9_]*);/;
-
-const tagColorCache = new Map<string, string>();
-
-/**
- * Maps a string to a hex code
- */
-function hashTagColor(tag: string, dark: boolean): string {
-  const key = `${dark ? 'd' : 'l'}:${tag}`;
-  const cached = tagColorCache.get(key);
-  if (cached) return cached;
-
-  let hash = 0;
-  for (let i = 0; i < tag.length; i++) {
-    hash = tag.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const h = ((hash % 360) + 360) % 360;
-  // Yellow-green (40–160) needs lower lightness for contrast on white backgrounds
-  // Blue-purple (220–310) needs higher lightness for contrast on dark backgrounds
-  const l = dark
-    ? h >= 220 && h < 310
-      ? 78
-      : 65
-    : h >= 40 && h < 160
-      ? 32
-      : 45;
-  const s = dark && h >= 220 && h < 310 ? 95 : 80;
-  const color = `hsl(${h}, ${s}%, ${l}%)`;
-  tagColorCache.set(key, color);
-  return color;
-}
-
-function matchTag(msg: string): RegExpExecArray | null {
-  return (
-    WEBAPP_TAG_RGX.exec(msg) ||
-    BROWSER_PREFIX_RGX.exec(msg) ||
-    BROWSER_EPIC_TAG_PREFIX.exec(msg)
-  );
-}
 
 const MSG_ICON_STYLE = {
   flexShrink: 0,
@@ -122,7 +72,9 @@ const PROCESS_TAG_STYLE = {
 
 export const logColorMap: Record<ProcessableLogType, string> = {
   [LogType.BROWSER]: 'cyan',
+  [LogType.RX_EPIC]: 'purple',
   [LogType.WEBAPP]: 'magenta',
+  [LogType.SERVICE_WORKER]: 'orange',
   [LogType.INSTALLER]: 'green',
   [LogType.CHROMIUM]: 'geekblue',
   [LogType.MOBILE]: 'lime',
@@ -195,13 +147,8 @@ export const LogTable = observer((props: LogTableProps) => {
           filterOrDefault.info === true &&
           filterOrDefault.warn === true &&
           filterOrDefault.error === true;
-        const allDisabled =
-          filterOrDefault.debug === false &&
-          filterOrDefault.info === false &&
-          filterOrDefault.warn === false &&
-          filterOrDefault.error === false;
 
-        return !(allEnabled || allDisabled);
+        return !allEnabled;
       }
 
       function doSearch(
@@ -299,7 +246,18 @@ export const LogTable = observer((props: LogTableProps) => {
         (!sortDir || sortDir === SortDirection.ASC);
 
       // Check if we can bail early and just use the naked logEntries array
-      if (noSort && !shouldDoFilter && !searchText)
+      const hasLogTypeFilter =
+        isMergedLogFile(file) &&
+        file.logType === LogType.ALL &&
+        !Object.values(state.logTypeFilter).every(Boolean);
+      const hasTagFilter = state.selectedTags.length > 0;
+      if (
+        noSort &&
+        !shouldDoFilter &&
+        !searchText &&
+        !hasLogTypeFilter &&
+        !hasTagFilter
+      )
         return { list: file.logEntries, newSearchList: null };
 
       let list = file.logEntries.concat();
@@ -325,6 +283,26 @@ export const LogTable = observer((props: LogTableProps) => {
       // Filter
       if (shouldDoFilter) {
         list = list.filter(doFilter);
+      }
+
+      // LogType filter (for merged ALL view)
+      if (isMergedLogFile(file) && file.logType === LogType.ALL) {
+        const { logTypeFilter } = state;
+        const allEnabled = Object.values(logTypeFilter).every(Boolean);
+        if (!allEnabled) {
+          list = list.filter(
+            (entry) => logTypeFilter[entry.logType as ProcessableLogType],
+          );
+        }
+      }
+
+      // Tag filter
+      const { selectedTags } = state;
+      if (selectedTags.length > 0) {
+        const tagSet = new Set(selectedTags);
+        list = list.filter(
+          (entry) => entry.tag?.name && tagSet.has(entry.tag.name),
+        );
       }
 
       // DateRange
@@ -365,6 +343,8 @@ export const LogTable = observer((props: LogTableProps) => {
     [
       logFile,
       levelFilter,
+      state.logTypeFilter,
+      state.selectedTags,
       search,
       effectiveSortBy,
       dateRange,
@@ -528,22 +508,20 @@ export const LogTable = observer((props: LogTableProps) => {
    */
   const renderMessageCell = useCallback(
     ({ rowData: entry }: TableCellProps): JSX.Element | string => {
-      const display = entry.highlightMessage ?? entry.message;
-
-      // Always extract tag from the raw message so it works with highlight elements too
-      const tagMatch = matchTag(entry.message);
-      const tag = tagMatch ? tagMatch[1] : null;
-      const tagDisplay = tagMatch ? tagMatch[0].trim() : null;
-      const msgAfterTag = tagMatch
-        ? typeof display === 'string'
-          ? display.slice(tagMatch[0].length)
-          : display
-        : display;
+      // Pre-parsed tag from parsing layer, with runtime fallback
+      const tag =
+        entry.tag ??
+        (() => {
+          const m = matchTag(entry.message);
+          return m ? { name: m[1], offset: m[0].length } : null;
+        })();
+      const tagDisplay = tag ? entry.message.slice(0, tag.offset).trim() : null;
+      const msgAfterTag = tag ? entry.message.slice(tag.offset) : entry.message;
 
       const tagSpan = tag ? (
         <span
           style={{
-            color: hashTagColor(tag, state.prefersDarkColors),
+            color: hashTagColor(tag.name, state.prefersDarkColors),
             flexShrink: 0,
           }}
         >

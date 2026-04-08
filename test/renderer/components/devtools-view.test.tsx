@@ -1,40 +1,15 @@
 import React from 'react';
 import { DevtoolsView } from '../../../src/renderer/components/devtools-view';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('../../../src/renderer/processor/trace');
 
 describe('DevtoolsView', () => {
-  it('renders a table containing a list of trace threads', () => {
+  it('shows empty state when no trace PID is selected', () => {
     render(
       <DevtoolsView
-        state={
-          {
-            traceThreads: [
-              {
-                type: 'browser',
-                processId: 91908,
-                title: 'Main process',
-                pid: 91908,
-                tid: 259,
-                ts: 9007199254740991,
-                isClient: false,
-              },
-              {
-                type: 'renderer',
-                processId: 91918,
-                data: {
-                  frame: '',
-                  url: 'https://slack.com/unknown?name=',
-                  processId: 91918,
-                },
-                title: 'Renderer process',
-                isClient: false,
-              },
-            ],
-          } as any
-        }
+        state={{ selectedTracePid: undefined } as any}
         file={
           {
             fileName:
@@ -45,28 +20,15 @@ describe('DevtoolsView', () => {
       />,
     );
 
-    const tables = screen.getAllByRole('table');
-    expect(tables).toHaveLength(2);
+    expect(
+      screen.getByText('Select a process from the sidebar to view its trace'),
+    ).toBeInTheDocument();
   });
 
-  it('opens an iframe of the devtools frontend', () => {
+  it('renders an iframe when a trace PID is selected', () => {
     render(
       <DevtoolsView
-        state={
-          {
-            traceThreads: [
-              {
-                type: 'browser',
-                processId: 91908,
-                title: 'Main process',
-                pid: 91908,
-                tid: 259,
-                ts: 9007199254740991,
-                isClient: false,
-              },
-            ],
-          } as any
-        }
+        state={{ selectedTracePid: 91908 } as any}
         file={
           {
             fileName:
@@ -76,10 +38,6 @@ describe('DevtoolsView', () => {
         }
       />,
     );
-
-    const row = screen.getByRole('row', { name: /Main process/ });
-    const btn = within(row).getByRole('button');
-    fireEvent.click(btn);
 
     const iframe = screen.getByTitle('DevTools embed');
     expect(iframe).toBeInTheDocument();
