@@ -10,12 +10,21 @@ import type { SleuthState } from './sleuth';
 import type { ProcessedLogFile } from '../../interfaces';
 import { setSetting } from '../settings';
 
-export interface RendererAiMessage {
+interface BaseAiMessage {
   id: string;
-  role: 'user' | 'assistant';
   content: string;
-  isStreaming?: boolean;
 }
+
+export interface UserAiMessage extends BaseAiMessage {
+  role: 'user';
+}
+
+export interface AssistantAiMessage extends BaseAiMessage {
+  role: 'assistant';
+  isStreaming: boolean;
+}
+
+export type RendererAiMessage = UserAiMessage | AssistantAiMessage;
 
 export class AiStore {
   @observable messages: RendererAiMessage[] = [];
@@ -27,6 +36,7 @@ export class AiStore {
   private cleanupChunk?: () => void;
   private cleanupDone?: () => void;
   private cleanupError?: () => void;
+  private cachedLogContext: SerializedLogContext | null = null;
 
   constructor() {
     makeObservable(this);
@@ -100,6 +110,7 @@ export class AiStore {
     this.isLoading = false;
     this.error = null;
     this.currentRequestId = null;
+    this.cachedLogContext = null;
   }
 
   @action
@@ -114,6 +125,7 @@ export class AiStore {
     this.codebasePaths = this.codebasePaths.filter((p) => p !== dirPath);
   }
 
+  @action
   async sendMessage(userText: string, sleuthState: SleuthState) {
     this.addUserMessage(userText);
 
@@ -122,20 +134,27 @@ export class AiStore {
     this.isLoading = true;
     this.error = null;
 
-    const logContext = this.serializeAllLogs(sleuthState);
-    const apiMessages: AiMessage[] = this.messages
-      .filter((m) => m.content)
-      .map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
+    try {
+      const logContext = this.getLogContext(sleuthState);
+      const apiMessages: AiMessage[] = this.messages
+        .filter((m) => m.content)
+        .map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
 
-    await window.Sleuth.aiSendMessage(
-      requestId,
-      apiMessages,
-      JSON.parse(JSON.stringify(logContext)),
-      toJS(this.codebasePaths),
-    );
+      await window.Sleuth.aiSendMessage(
+        requestId,
+        apiMessages,
+        logContext,
+        toJS(this.codebasePaths),
+      );
+    } catch (error) {
+      this.handleStreamError(
+        requestId,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   }
 
   async abortCurrent() {
@@ -152,8 +171,30 @@ export class AiStore {
   }
 
   /**
+   * Return the serialized log context, caching the result since loaded
+   * logs are immutable after processing completes.
+   */
+  private getLogContext(sleuthState: SleuthState): SerializedLogContext {
+    if (this.cachedLogContext) return this.cachedLogContext;
+    this.cachedLogContext = this.serializeAllLogs(sleuthState);
+    return this.cachedLogContext;
+  }
+
+  /**
+   * Invalidate the cached log context (e.g. when new logs are loaded).
+   */
+  invalidateLogCache() {
+    this.cachedLogContext = null;
+  }
+
+  /**
    * Serialize all loaded log files and state files so the AI service
    * can make them available via tools (list_log_files, read_log_entries, etc.).
+   *
+   * We intentionally map only the fields needed for log analysis (timestamp,
+   * level, message, line, sourceFile) and drop internal bookkeeping fields
+   * (index, logType, momentValue, meta, repeated) to keep the serialized
+   * payload small and focused.
    */
   private serializeAllLogs(sleuthState: SleuthState): SerializedLogContext {
     const context: SerializedLogContext = { files: [] };
@@ -200,10 +241,22 @@ export class AiStore {
     try {
       const stored = localStorage.getItem('aiCodebasePaths');
       if (stored) {
-        this.codebasePaths = JSON.parse(stored);
+        const parsed: unknown = JSON.parse(stored);
+        if (
+          Array.isArray(parsed) &&
+          parsed.every((p) => typeof p === 'string')
+        ) {
+          this.codebasePaths = parsed;
+        } else {
+          console.warn('Invalid aiCodebasePaths in localStorage, clearing');
+          localStorage.removeItem('aiCodebasePaths');
+        }
       }
     } catch {
-      // ignore parse errors
+      console.warn(
+        'Failed to parse aiCodebasePaths from localStorage, clearing',
+      );
+      localStorage.removeItem('aiCodebasePaths');
     }
   }
 

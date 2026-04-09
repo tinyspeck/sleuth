@@ -85,10 +85,10 @@ const AiMessageList = observer(({ messages }: AiMessageListProps) => {
         {messages.map((msg) => (
           <div key={msg.id} className={`AiMessage AiMessage--${msg.role}`}>
             <MessageContent content={msg.content} />
-            {msg.isStreaming && !msg.content && (
+            {msg.role === 'assistant' && msg.isStreaming && !msg.content && (
               <LoadingOutlined style={{ fontSize: 16 }} />
             )}
-            {msg.isStreaming && msg.content && (
+            {msg.role === 'assistant' && msg.isStreaming && msg.content && (
               <span className="AiStreamingCursor" />
             )}
           </div>
