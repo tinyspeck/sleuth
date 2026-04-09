@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import { SleuthState } from '../../state/sleuth';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { format as dateFormatter } from 'date-fns';
 
 import { getSleuth } from '../../sleuth';
@@ -14,6 +14,7 @@ import {
 import { SortDirection } from 'react-virtualized';
 import {
   Alert,
+  Button,
   Checkbox,
   Divider,
   Form,
@@ -25,7 +26,9 @@ import {
 } from 'antd';
 import {
   CodeOutlined,
+  DeleteOutlined,
   FieldTimeOutlined,
+  FolderOpenOutlined,
   FontColorsOutlined,
 } from '@ant-design/icons';
 
@@ -44,13 +47,14 @@ export interface PreferencesProps {
 }
 
 export const Preferences = observer((props: PreferencesProps) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
   useEffect(() => {
-    const cleanup = window.Sleuth.setupPreferencesShow(() => setIsOpen(true));
+    const cleanup = window.Sleuth.setupPreferencesShow(() =>
+      props.state.showPreferences(),
+    );
     return () => {
       cleanup();
     };
-  }, []);
+  }, [props.state]);
 
   const {
     colorTheme,
@@ -64,8 +68,8 @@ export const Preferences = observer((props: PreferencesProps) => {
   } = props.state;
   return (
     <Modal
-      open={isOpen}
-      onCancel={() => setIsOpen(false)}
+      open={props.state.isPreferencesOpen}
+      onCancel={() => props.state.hidePreferences()}
       width={700}
       footer={null}
       title={<Typography.Title level={4}>Preferences</Typography.Title>}
@@ -217,6 +221,38 @@ export const Preferences = observer((props: PreferencesProps) => {
           </Typography.Text>
         </Space>
       </Space>
+      <Divider />
+      <Typography.Title level={5}>AI Settings</Typography.Title>
+      <Form.Item layout="vertical" label="Codebase Directories">
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Typography.Text type="secondary">
+            Configure local codebase directories that the AI assistant can
+            search to correlate log messages with source code.
+          </Typography.Text>
+          {props.state.aiStore.codebasePaths.map((dirPath, index) => (
+            <Space key={index}>
+              <Typography.Text code>{dirPath}</Typography.Text>
+              <Button
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => props.state.aiStore.removeCodebasePath(dirPath)}
+              />
+            </Space>
+          ))}
+          <Button
+            icon={<FolderOpenOutlined />}
+            onClick={async () => {
+              const result = await window.Sleuth.aiShowDirectoryPicker();
+              if (!result.canceled && result.filePaths.length > 0) {
+                props.state.aiStore.addCodebasePath(result.filePaths[0]);
+              }
+            }}
+          >
+            Add Directory
+          </Button>
+        </Space>
+      </Form.Item>
     </Modal>
   );
 });

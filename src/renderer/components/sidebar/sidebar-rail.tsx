@@ -20,6 +20,14 @@ const SidebarRail = observer((props: SidebarRailProps) => {
       </Tooltip>
       <SidebarBookmarks state={props.state} />
       <Divider size="small" />
+      <div style={{ flex: 1 }} />
+      <Tooltip title="Preferences (⌘,)" placement="right">
+        <Button
+          style={{ marginBottom: 4 }}
+          icon={<SettingOutlined />}
+          onClick={() => props.state.showPreferences()}
+        />
+      </Tooltip>
     </Flex>
   );
 });

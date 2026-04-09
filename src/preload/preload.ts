@@ -20,6 +20,13 @@ import {
   app,
 } from 'electron';
 import { Editor } from '../renderer/components/preferences/preferences-utils';
+import type {
+  AiMessage,
+  SerializedLogContext,
+  AiStreamChunkData,
+  AiStreamDoneData,
+  AiStreamErrorData,
+} from '../ai-interfaces';
 
 const packageJSON = JSON.parse(
   fs
@@ -75,6 +82,8 @@ export const SleuthAPI = {
     }),
   setupToggleSidebar: (cb: () => void) =>
     ipcRenderer.on(IpcEvents.TOGGLE_SIDEBAR, cb),
+  setupToggleAiSidebar: (cb: () => void) =>
+    ipcRenderer.on(IpcEvents.TOGGLE_AI_SIDEBAR, cb),
   setColorTheme: (colorTheme: ColorTheme) =>
     ipcRenderer.invoke(IpcEvents.SET_COLOR_THEME, colorTheme),
   /**
@@ -138,6 +147,44 @@ export const SleuthAPI = {
       sourceFile,
       options,
     ),
+  aiSendMessage: (
+    requestId: string,
+    messages: AiMessage[],
+    logContext: SerializedLogContext,
+    codebasePaths: string[],
+  ) =>
+    ipcRenderer.invoke(
+      IpcEvents.AI_SEND_MESSAGE,
+      requestId,
+      messages,
+      logContext,
+      codebasePaths,
+    ),
+  setupAiStreamChunk: (
+    cb: (_event: Electron.IpcRendererEvent, data: AiStreamChunkData) => void,
+  ) => {
+    ipcRenderer.on(IpcEvents.AI_STREAM_CHUNK, cb);
+    return () => ipcRenderer.off(IpcEvents.AI_STREAM_CHUNK, cb);
+  },
+  setupAiStreamDone: (
+    cb: (_event: Electron.IpcRendererEvent, data: AiStreamDoneData) => void,
+  ) => {
+    ipcRenderer.on(IpcEvents.AI_STREAM_DONE, cb);
+    return () => ipcRenderer.off(IpcEvents.AI_STREAM_DONE, cb);
+  },
+  setupAiStreamError: (
+    cb: (_event: Electron.IpcRendererEvent, data: AiStreamErrorData) => void,
+  ) => {
+    ipcRenderer.on(IpcEvents.AI_STREAM_ERROR, cb);
+    return () => ipcRenderer.off(IpcEvents.AI_STREAM_ERROR, cb);
+  },
+  aiAbort: (requestId: string) =>
+    ipcRenderer.invoke(IpcEvents.AI_ABORT, requestId),
+  aiSsoLogin: (): Promise<void> => ipcRenderer.invoke(IpcEvents.AI_SSO_LOGIN),
+  aiCheckAvailable: (): Promise<boolean> =>
+    ipcRenderer.invoke(IpcEvents.AI_CHECK_AVAILABLE),
+  aiShowDirectoryPicker: (): Promise<Electron.OpenDialogReturnValue> =>
+    ipcRenderer.invoke(IpcEvents.AI_SHOW_DIRECTORY_PICKER),
 };
 
 contextBridge.exposeInMainWorld('Sleuth', SleuthAPI);
