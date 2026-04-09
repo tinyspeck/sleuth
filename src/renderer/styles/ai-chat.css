@@ -55,13 +55,28 @@
   gap: 4px;
 }
 
-.AiMessageList {
+.AiMessageListWrapper {
   flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.AiMessageList {
+  height: 100%;
   overflow-y: auto;
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.AiScrollToBottom {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 5;
 }
 
 .AiMessageList--empty {
