@@ -411,10 +411,12 @@ function executeReadLogEntries(
   }
 
   const header = `[${file.logType}] ${file.fileName} — showing entries ${offset}-${offset + sliced.length - 1} of ${entries.length}${input.level_filter ? ` (filtered: ${input.level_filter})` : ''}`;
-  const lines = sliced.map(
-    (e) =>
-      `[${e.timestamp}] [${e.level}] [${e.sourceFile}:${e.line}] ${e.message}`,
-  );
+  const lines = sliced.map((e) => {
+    let line = `[${e.timestamp}] [${e.level}] [${e.sourceFile}:${e.line}] ${e.message}`;
+    if (e.meta) line += `\n  meta: ${e.meta}`;
+    if (e.repeated?.length) line += `\n  repeated ${e.repeated.length}x`;
+    return line;
+  });
 
   let result = header + '\n\n' + lines.join('\n');
 
@@ -453,10 +455,12 @@ function executeSearchLogEntries(
         continue;
       }
 
-      if (regex.test(entry.message)) {
-        matches.push(
-          `[${file.fileName}] [${entry.timestamp}] [${entry.level}] [${entry.sourceFile}:${entry.line}] ${entry.message}`,
-        );
+      if (regex.test(entry.message) || (entry.meta && regex.test(entry.meta))) {
+        let line = `[${file.fileName}] [${entry.timestamp}] [${entry.level}] [${entry.sourceFile}:${entry.line}] ${entry.message}`;
+        if (entry.meta) line += `\n  meta: ${entry.meta}`;
+        if (entry.repeated?.length)
+          line += `\n  repeated ${entry.repeated.length}x`;
+        matches.push(line);
       }
     }
     if (matches.length >= maxResults) break;

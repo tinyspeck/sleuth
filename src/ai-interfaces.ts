@@ -9,6 +9,8 @@ export interface SerializedLogEntry {
   message: string;
   line: number;
   sourceFile: string;
+  meta?: string;
+  repeated?: string[];
 }
 
 export interface SerializedLogFile {

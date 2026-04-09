@@ -2,6 +2,7 @@ import { observable, action, makeObservable, autorun, toJS } from 'mobx';
 import type {
   AiMessage,
   SerializedLogContext,
+  SerializedLogEntry,
   AiStreamChunkData,
   AiStreamDoneData,
   AiStreamErrorData,
@@ -191,10 +192,10 @@ export class AiStore {
    * Serialize all loaded log files and state files so the AI service
    * can make them available via tools (list_log_files, read_log_entries, etc.).
    *
-   * We intentionally map only the fields needed for log analysis (timestamp,
-   * level, message, line, sourceFile) and drop internal bookkeeping fields
-   * (index, logType, momentValue, meta, repeated) to keep the serialized
-   * payload small and focused.
+   * We map the fields needed for log analysis and drop internal bookkeeping
+   * fields (index, logType, momentValue) to keep the serialized payload
+   * focused. We keep meta (stack traces, extended JSON) and repeated
+   * (collapsed duplicate lines) since they carry diagnostic value.
    */
   private serializeAllLogs(sleuthState: SleuthState): SerializedLogContext {
     const context: SerializedLogContext = { files: [] };
@@ -214,13 +215,25 @@ export class AiStore {
           fileName: file.logFile.fileName,
           logType: file.logType,
           entryCount: file.logEntries.length,
-          entries: file.logEntries.map((e) => ({
-            timestamp: e.timestamp,
-            level: e.level,
-            message: e.message,
-            line: e.line,
-            sourceFile: e.sourceFile,
-          })),
+          entries: file.logEntries.map((e) => {
+            const entry: SerializedLogEntry = {
+              timestamp: e.timestamp,
+              level: e.level,
+              message: e.message,
+              line: e.line,
+              sourceFile: e.sourceFile,
+            };
+            if (e.meta != null) {
+              entry.meta =
+                typeof e.meta === 'string'
+                  ? e.meta
+                  : `[${e.meta.timestamp}] [${e.meta.level}] ${e.meta.message}`;
+            }
+            if (e.repeated?.length) {
+              entry.repeated = e.repeated;
+            }
+            return entry;
+          }),
         });
       }
     }
