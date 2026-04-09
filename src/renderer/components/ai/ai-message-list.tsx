@@ -1,7 +1,7 @@
 import { Button, Typography } from 'antd';
 import { ArrowDownOutlined, LoadingOutlined } from '@ant-design/icons';
 import { observer } from 'mobx-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -14,17 +14,28 @@ interface AiMessageListProps {
 /** Pixel threshold for considering the list "at the bottom". */
 const SCROLL_THRESHOLD = 30;
 
+/** Stable reference — avoids re-creating the array on every render. */
+const REMARK_PLUGINS = [remarkGfm];
+
 function isNearBottom(el: HTMLElement): boolean {
   return el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_THRESHOLD;
 }
 
-function MessageContent({ content }: { content: string }) {
+/**
+ * Memoized so completed messages skip ReactMarkdown re-parsing when
+ * a sibling (the streaming message) updates on every chunk.
+ */
+const MessageContent = memo(function MessageContent({
+  content,
+}: {
+  content: string;
+}) {
   return (
     <div className="AiMessageContent">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{content}</ReactMarkdown>
     </div>
   );
-}
+});
 
 const AiMessageList = observer(({ messages }: AiMessageListProps) => {
   const listRef = useRef<HTMLDivElement>(null);
