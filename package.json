@@ -76,7 +76,7 @@
     "@types/semver": "^7.3.4",
     "@types/tmp": "0.2.0",
     "@types/yauzl": "^2.10.0",
-    "@vitejs/plugin-react": "^4.5.0",
+    "@vitejs/plugin-react": "^6.0.1",
     "electron": "41.0.2",
     "husky": "^9.0.0",
     "jsdom": "^26.1.0",
