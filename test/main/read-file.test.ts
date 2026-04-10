@@ -479,6 +479,47 @@ describe('matchLineChromium', () => {
     expect(result!.level).toBe('error');
   });
 
+  it('should match colon-delimited source format with microsecond timestamps', () => {
+    const line =
+      '[17503:0409/143510.501684:WARNING:services/audio/sync_reader.cc:161] ASR: No room in socket buffer.: Broken pipe (32)';
+    const result = matchLineChromium(line);
+
+    expect(result).toBeDefined();
+    expect(result!.level).toBe('warn');
+    expect(result!.message).toBe(
+      'ASR: No room in socket buffer.: Broken pipe (32)',
+    );
+    const now = new Date();
+    let expectedYear = now.getFullYear();
+    if (Date.UTC(expectedYear, 3, 9, 14, 35, 10, 501) > now.valueOf()) {
+      expectedYear -= 1;
+    }
+    expect(result!.momentValue).toBe(
+      Date.UTC(expectedYear, 3, 9, 14, 35, 10, 501),
+    );
+    expect(result!.meta).toMatchObject({
+      sourceFile: 'services/audio/sync_reader.cc',
+      pid: '17503',
+    });
+  });
+
+  it('should match colon-delimited source format with nested path', () => {
+    const line =
+      '[17485:0409/143510.673109:INFO:third_party/blink/renderer/modules/peerconnection/peer_connection_dependency_factory.cc:941] Running WebRTC with a combined Network and Worker thread.';
+    const result = matchLineChromium(line);
+
+    expect(result).toBeDefined();
+    expect(result!.level).toBe('info');
+    expect(result!.message).toBe(
+      'Running WebRTC with a combined Network and Worker thread.',
+    );
+    expect(result!.meta).toMatchObject({
+      sourceFile:
+        'third_party/blink/renderer/modules/peerconnection/peer_connection_dependency_factory.cc',
+      pid: '17485',
+    });
+  });
+
   it('should return undefined for non-matching lines', () => {
     expect(matchLineChromium('random text')).toBeUndefined();
   });

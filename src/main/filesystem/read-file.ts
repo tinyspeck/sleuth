@@ -57,8 +57,9 @@ const SHIPIT_MAC_RGX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (.*)$/;
 const SQUIRREL_RGX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})> (.*)$/;
 
 // [70491:0302/160742.806582:WARNING:gpu_process_host.cc(1303)] The GPU process has crashed 1 time(s)
+// [17503:0409/143510.501684:WARNING:services/audio/sync_reader.cc:161] ASR: No room in socket buffer.
 const CHROMIUM_RGX =
-  /^\[(\d+:\d{4}\/\d{6}\.\d{3,6}:[a-zA-Z]+:.*\(\d+\))\] (.*)$/;
+  /^\[(\d+:\d{4}\/\d{6}\.\d{3,6}:[a-zA-Z]+:.*(?:\(\d+\)|:\d+))\] (.*)$/;
 
 /**
  * Converts local-time components to UTC epoch millis, respecting the
@@ -916,7 +917,8 @@ export function matchLineChromium(
   }
 
   const [, metadata, message] = results;
-  const [pid, timestamp, level, sourceFile] = metadata.split(':');
+  const [pid, timestamp, level, ...rest] = metadata.split(':');
+  const sourceFile = rest.join(':');
   const currentDate = new Date();
 
   // ts format is MMDD/HHmmss.
@@ -924,7 +926,7 @@ export function matchLineChromium(
   // this log format has no year information. Assume that the logs
   // happened in the past year because why would we read stale logs?
   const TIMESTAMP_FORMAT_RGX =
-    /^(\d{2})(\d{2})\/(\d{2})(\d{2})(\d{2})\.(\d{3})$/;
+    /^(\d{2})(\d{2})\/(\d{2})(\d{2})(\d{2})\.(\d{3,6})$/;
   const parsedTimestamp = TIMESTAMP_FORMAT_RGX.exec(timestamp);
   if (parsedTimestamp === null) {
     throw new Error(`Failed to parse Chromium timestamp: ${timestamp}`);
@@ -936,7 +938,7 @@ export function matchLineChromium(
   const pHour = parseInt(hour, 10);
   const pMinute = parseInt(minute, 10);
   const pSecond = parseInt(second, 10);
-  const pMs = parseInt(millisecond, 10);
+  const pMs = parseInt(millisecond.slice(0, 3), 10);
 
   let momentValue = toTZMillis(
     curYear,
@@ -976,7 +978,7 @@ export function matchLineChromium(
     message,
     momentValue,
     meta: {
-      sourceFile: sourceFile.split('(')[0],
+      sourceFile: sourceFile.replace(/(?:\(\d+\)|:\d+)$/, ''),
       pid,
     },
   };
