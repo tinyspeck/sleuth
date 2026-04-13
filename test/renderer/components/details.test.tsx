@@ -1,7 +1,7 @@
 import React from 'react';
 import { observable } from 'mobx';
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 
 import { LogLineDetails } from '../../../src/renderer/components/log-line-details/details';
 import { SleuthState } from '../../../src/renderer/state/sleuth';
@@ -50,7 +50,7 @@ describe('Details', () => {
     expect(screen.getByText('process:browser')).toBeVisible();
   });
 
-  it('closes the details pane when button is clicked', () => {
+  it('closes the details pane when button is clicked', async () => {
     const state = observable(mockLogEntry);
     render(<LogLineDetails state={state} />);
 
@@ -58,6 +58,10 @@ describe('Details', () => {
     expect(closeButton).toBeVisible();
     closeButton.click();
 
-    expect(screen.queryByLabelText('Log Line Details')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.queryByLabelText('Log Line Details'),
+      ).not.toBeInTheDocument();
+    });
   });
 });
