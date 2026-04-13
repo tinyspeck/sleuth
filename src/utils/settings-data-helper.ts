@@ -1,3 +1,25 @@
+/**
+ * Maps external setting names (used in external-config.json) to internal
+ * setting names (used in root-state.json settings layers).
+ *
+ * Derived from slack-desktop's external-settings.ts.
+ */
+export const EXTERNAL_TO_INTERNAL = {
+  HardwareAcceleration: 'useHwAcceleration',
+  DownloadPath: 'PrefSSBFileDownloadPath',
+  HideOnStartup: 'hideOnStartup',
+  DefaultSignInTeam: 'defaultSigninTeam',
+  SignInMethod: 'signInMethod',
+  ReleaseChannel: 'releaseChannelOverride',
+  WebSwitches: 'webSwitches',
+  AutoUpdate: 'AutoUpdate',
+  ClientEnvironment: 'ClientEnvironment',
+} as const satisfies Record<string, string>;
+
+export const INTERNAL_TO_EXTERNAL: Record<string, string> = Object.fromEntries(
+  Object.entries(EXTERNAL_TO_INTERNAL).map(([ext, int]) => [int, ext]),
+);
+
 export function getOSInfo(data?: Record<string, any>): string {
   if (!data) {
     return 'Unknown';
@@ -9,16 +31,25 @@ export function getOSInfo(data?: Record<string, any>): string {
     platformVersion && platformVersion.major
       ? `(${platformVersion.major}.${platformVersion.minor}.${platformVersion.build})`
       : '(unknown version)';
-  let windowsInfo = '';
 
-  if (os === 'Windows' && platformVersion) {
-    const niceName = getWindowsVersion(platformVersion);
-    windowsInfo = pretendNotReallyWindows10
-      ? ` We're pretending it's an older version, but the user is running on ${niceName}`
-      : ` That's ${niceName}`;
+  if (os === 'macOS') {
+    const macVersion = data.darwin?.macOSVersion;
+    if (macVersion) {
+      return `macOS ${macVersion}`;
+    }
   }
 
-  return `${os} ${osVersion}.${windowsInfo}`;
+  if (os === 'Windows' && platformVersion) {
+    const winVersion = getWindowsVersion(platformVersion);
+    if (winVersion) {
+      const pretendNote = pretendNotReallyWindows10
+        ? ' (pretending older version)'
+        : '';
+      return `${winVersion} ${osVersion}${pretendNote}`;
+    }
+  }
+
+  return `${os} ${osVersion}`;
 }
 
 function getPlatform(data?: Record<string, any>): string {
@@ -44,7 +75,7 @@ function getPlatform(data?: Record<string, any>): string {
     }
   }
 
-  return os;
+  return os ?? 'Unknown';
 }
 
 function getWindowsVersion({
@@ -55,82 +86,82 @@ function getWindowsVersion({
   _major: number;
   _minor: number;
   build: number;
-}): string {
+}): string | null {
   const windowsVersions: Record<string, { os: number; version: string }> = {
     '10240': {
       os: 10,
-      version: 'Version 1507 (RTM)',
+      version: '1507 (RTM)',
     },
     '10586': {
       os: 10,
-      version: 'Version 1511',
+      version: '1511',
     },
     '14393': {
       os: 10,
-      version: 'Version 1607',
+      version: '1607',
     },
     '15063': {
       os: 10,
-      version: 'Version 1703',
+      version: '1703',
     },
     '16299': {
       os: 10,
-      version: 'Version 1709',
+      version: '1709',
     },
     '17134': {
       os: 10,
-      version: 'Version 1803',
+      version: '1803',
     },
     '17763': {
       os: 10,
-      version: 'Version 1809',
+      version: '1809',
     },
     '18362': {
       os: 10,
-      version: 'Version 1903',
+      version: '1903',
     },
     '18363': {
       os: 10,
-      version: 'Version 1909',
+      version: '1909',
     },
     '19041': {
       os: 10,
-      version: 'Version 2004',
+      version: '2004',
     },
     '19042': {
       os: 10,
-      version: 'Version 20H2',
+      version: '20H2',
     },
     '19043': {
       os: 10,
-      version: 'Version 21H1',
+      version: '21H1',
     },
     '19044': {
       os: 10,
-      version: 'Version 21H2',
+      version: '21H2',
     },
     '19045': {
       os: 10,
-      version: 'Version 22H2',
+      version: '22H2',
     },
     '22000': {
       os: 11,
-      version: 'Version 21H2',
+      version: '21H2',
     },
     '22621': {
       os: 11,
-      version: 'Version 22H2',
+      version: '22H2',
     },
     '22631': {
       os: 11,
-      version: 'Version 23H2',
+      version: '23H2',
     },
     '26100': {
       os: 11,
-      version: 'Version 24H2',
+      version: '24H2',
     },
   } as const;
-  let version: { os: number; version: string } = { os: 0, version: '' };
+  let version: { os: number; version: string } | null = null;
 
   for (const [key, value] of Object.entries(windowsVersions)) {
     if (build < Number(key)) {
@@ -140,5 +171,6 @@ function getWindowsVersion({
     }
   }
 
-  return `Windows ${version.os} ${version.version}.`;
+  if (!version) return null;
+  return `Windows ${version.os} ${version.version}`;
 }

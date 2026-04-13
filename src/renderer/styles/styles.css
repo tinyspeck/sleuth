@@ -18,5 +18,6 @@
 @import 'perfetto-view.css';
 @import 'preferences.css';
 @import 'sidebar.css';
+@import 'sidebar-state-dashboard.css';
 @import 'state-table.css';
 @import 'welcome.css';

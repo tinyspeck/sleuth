@@ -14,7 +14,44 @@ import { LogTimeView } from './log-time-view';
 import { NetLogView } from './net-log-view';
 import { DevtoolsView } from './devtools-view';
 import { PerfettoView } from './perfetto-view';
+import { StateDashboard } from './state-dashboard';
 import { Filter } from './app-core-header-filter';
+
+class DashboardErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(
+      'StateDashboard render error:',
+      error,
+      errorInfo.componentStack,
+    );
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="DashboardError">
+          <h3>Summary dashboard failed to render</h3>
+          <p>Select a state file from the sidebar to view it individually.</p>
+          <pre>{this.state.error.message}</pre>
+          <details>
+            <summary>Stack trace</summary>
+            <pre className="DashboardError-stack">{this.state.error.stack}</pre>
+          </details>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export interface LogContentProps {
   state: SleuthState;
@@ -40,6 +77,14 @@ export const LogContent = observer((props: LogContentProps) => {
     dateRange,
     selectedEntry,
   } = props.state;
+
+  if (props.state.showStateSummary) {
+    return (
+      <DashboardErrorBoundary>
+        <StateDashboard state={props.state} />
+      </DashboardErrorBoundary>
+    );
+  }
 
   if (!selectedLogFile) return null;
   const isLog = isLogFile(selectedLogFile);

@@ -1,6 +1,7 @@
 import {
   Alert,
   Badge,
+  Button,
   Segmented,
   Select,
   Skeleton,
@@ -14,6 +15,7 @@ import {
   Typography,
 } from 'antd';
 import classNames from 'classnames';
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { Key, useCallback, useEffect, useMemo, useState } from 'react';
 import { SleuthState } from '../../state/sleuth';
@@ -34,6 +36,7 @@ import {
   ChromeOutlined,
   CloudOutlined,
   DashboardOutlined,
+  MonitorOutlined,
   CommentOutlined,
   DesktopOutlined,
   DownloadOutlined,
@@ -52,9 +55,6 @@ import {
 } from '@ant-design/icons';
 import { CheckboxItem, SidebarCheckboxGroup } from './sidebar-checkbox-group';
 import { isMergedLogFile } from '../../../utils/is-logfile';
-import { getEnvironmentWarnings } from '../../analytics/environment-analytics';
-import { getRootStateWarnings } from '../../analytics/root-state-analytics';
-import { getTraceWarnings } from '../../analytics/trace-analytics';
 import { hashTagColor } from '../../../utils/match-tag';
 import { logColorMap } from '../log-table';
 import { TraceProcessor } from '../../processor/trace';
@@ -124,6 +124,9 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
   >(new Map());
   const [manualTab, setManualTab] = useState<string | null>(null);
   const [tagSort, setTagSort] = useState<'freq' | 'az'>('freq');
+  const [traceSourcemapped, setTraceSourcemapped] = useState<boolean | null>(
+    null,
+  );
 
   useEffect(() => {
     async function fetchTree() {
@@ -133,12 +136,10 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
 
       const filesMap = new Map<string, ProcessedLogFile | UnzippedFile>();
 
-      const stateFileNodes = await Promise.all(
-        processedLogFiles.state.map((file) => {
-          filesMap.set(file.id, file);
-          return getStateFileNode(file);
-        }),
-      );
+      const stateFileNodes = processedLogFiles.state.map((file) => {
+        filesMap.set(file.id, file);
+        return getStateFileNode(file);
+      });
 
       setFiles(filesMap);
       setStateNodes(stateFileNodes);
@@ -176,6 +177,16 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
         props.state.setTraceThreads([]);
       });
   }, [props.state.processedLogFiles?.trace, props.state.traceThreads]);
+
+  // Check if trace files are sourcemapped
+  useEffect(() => {
+    const traceFiles = props.state.processedLogFiles?.trace;
+    if (!traceFiles?.length) return;
+    setTraceSourcemapped(null);
+    window.Sleuth.isTraceSourcemapped(traceFiles[0])
+      .then((result) => setTraceSourcemapped(result))
+      .catch(() => setTraceSourcemapped(null));
+  }, [props.state.processedLogFiles?.trace]);
 
   const onTraceSelect = useCallback(
     (selectedKeys: Key[]) => {
@@ -303,9 +314,9 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
 
   const selectedKey = getSelectedKey();
 
-  const isStateFileSelected = selectedKey
-    ? stateNodes.some((node) => node.key === selectedKey)
-    : false;
+  const isStateFileSelected =
+    props.state.showStateSummary ||
+    (selectedKey ? stateNodes.some((node) => node.key === selectedKey) : false);
   const isTraceFileSelected =
     selectedLogFile &&
     'fileName' in selectedLogFile &&
@@ -405,7 +416,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     };
   }
 
-  async function getStateFileNode(file: UnzippedFile) {
+  function getStateFileNode(file: UnzippedFile) {
     const label = file.fileName;
     let icon: React.ReactNode = <FileTextOutlined />;
     if (
@@ -433,85 +444,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       icon = <HeartOutlined />;
     }
 
-    const options: Partial<TreeDataNode> = {
-      icon,
-    };
-
-    const hints = await getStateFileHint(file);
-    if (hints) {
-      options.title = (
-        <Space>
-          <span>{label}</span>
-          {hints}
-        </Space>
-      );
-    }
-
-    return getNode(label, { file }, options);
-  }
-
-  async function getStateFileHint(file: UnzippedFile) {
-    if (file.fileName.endsWith('root-state.json')) {
-      const warnings = getRootStateWarnings(
-        props.state.stateFiles[file.fileName].data,
-      );
-
-      if (warnings && warnings.length > 0) {
-        const content = warnings.join('\n');
-        return (
-          <Tooltip title={content} placement="right">
-            <ExperimentOutlined style={{ color: 'goldenrod' }} />
-          </Tooltip>
-        );
-      }
-    }
-
-    // TODO(erickzhao): re-implement trace warnings with symbolicated file name
-    if (file.fileName.endsWith('.trace')) {
-      const warnings = await getTraceWarnings(file);
-      if (warnings && warnings.length > 0) {
-        const content = warnings.join('\n');
-        return (
-          <Tooltip title={content} placement="right">
-            <WarningFilled style={{ color: 'goldenrod' }} />
-          </Tooltip>
-        );
-      }
-    }
-
-    // TODO: refactor this rendering code probably
-    if (file.fileName.endsWith('environment.json')) {
-      const warnings = getEnvironmentWarnings(
-        props.state.stateFiles[file.fileName].data,
-      );
-      if (warnings.length > 0) {
-        const content = warnings.join('\n');
-        return (
-          <Tooltip title={content} placement="right">
-            <WarningFilled style={{ color: 'red' }} />
-          </Tooltip>
-        );
-      }
-    }
-
-    if (
-      file.fileName.endsWith('installation') &&
-      props.state.stateFiles['logfiles-shipping-manifest.json']
-    ) {
-      const warnings = props.state.stateFiles[
-        'logfiles-shipping-manifest.json'
-      ].data.files.filter((f: any) => f.fileName.endsWith('.dmp'));
-      return (
-        <Tooltip
-          title={`${warnings.length} DMP files found in log bundle. Check corresponding errors on Sentry.`}
-          placement="right"
-        >
-          <Badge status="error" />
-        </Tooltip>
-      );
-    }
-
-    return null;
+    return getNode(label, { file }, { icon });
   }
 
   const stateTreeProps = {
@@ -520,7 +453,11 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     showIcon: true,
     blockNode: true,
     switcherIcon: <DownOutlined />,
-    selectedKeys: selectedKey ? [selectedKey] : [],
+    selectedKeys: props.state.showStateSummary
+      ? []
+      : selectedKey
+        ? [selectedKey]
+        : [],
   };
 
   return (
@@ -531,6 +468,11 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
           setManualTab(key);
           if (key === 'logs' && derivedTab !== 'logs') {
             props.state.selectLogFile(null, LogType.ALL);
+          }
+          if (key === 'state') {
+            runInAction(() => {
+              props.state.showStateSummary = true;
+            });
           }
         }}
         size="small"
@@ -667,22 +609,38 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
             label: 'State',
             icon: <SettingOutlined />,
             children: (
-              <fieldset className="SidebarCheckboxGroup">
-                <legend className="SidebarCheckboxGroup-legend">
-                  <Typography.Text
-                    type="secondary"
-                    className="SidebarCheckboxGroup-title"
-                  >
-                    State & Settings
-                  </Typography.Text>
-                </legend>
-                <Tree
-                  {...stateTreeProps}
-                  onExpand={(keys) => setExpandedStateKeys(keys)}
-                  expandedKeys={expandedStateKeys}
-                  treeData={stateNodes}
-                />
-              </fieldset>
+              <>
+                <Button
+                  className="SidebarStateSummary"
+                  type={props.state.showStateSummary ? 'primary' : 'default'}
+                  ghost={props.state.showStateSummary}
+                  icon={<MonitorOutlined />}
+                  block
+                  onClick={() => {
+                    runInAction(() => {
+                      props.state.showStateSummary = true;
+                    });
+                  }}
+                >
+                  Summary
+                </Button>
+                <fieldset className="SidebarCheckboxGroup">
+                  <legend className="SidebarCheckboxGroup-legend">
+                    <Typography.Text
+                      type="secondary"
+                      className="SidebarCheckboxGroup-title"
+                    >
+                      State & Settings
+                    </Typography.Text>
+                  </legend>
+                  <Tree
+                    {...stateTreeProps}
+                    onExpand={(keys) => setExpandedStateKeys(keys)}
+                    expandedKeys={expandedStateKeys}
+                    treeData={stateNodes}
+                  />
+                </fieldset>
+              </>
             ),
           },
           ...(processedLogFiles?.netlog?.length
@@ -740,10 +698,30 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
             ? [
                 {
                   key: 'trace',
-                  label: 'Trace',
+                  label: (
+                    <Space size={4}>
+                      Trace
+                      {traceSourcemapped === false && (
+                        <Tooltip title="Trace is not sourcemapped">
+                          <WarningFilled
+                            style={{ color: token.colorWarning }}
+                          />
+                        </Tooltip>
+                      )}
+                    </Space>
+                  ),
                   icon: <DashboardOutlined />,
                   children: (
                     <>
+                      {traceSourcemapped === false && (
+                        <Alert
+                          type="warning"
+                          showIcon
+                          message="Trace is not sourcemapped"
+                          description="Function names may appear minified. Re-export with sourcemaps for readable stack traces."
+                          className="SidebarPreamble"
+                        />
+                      )}
                       <Alert
                         type="info"
                         message={
