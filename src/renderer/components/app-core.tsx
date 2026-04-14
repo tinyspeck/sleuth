@@ -245,7 +245,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
           if (toMerge.length > 0) {
             const allMerged = await mergeLogFiles(toMerge, LogType.ALL);
             setMergedFile(allMerged);
-            props.state.selectLogFile(null, LogType.ALL);
+            props.state.selectAllLogs();
           } else {
             // No browser/webapp logs to merge — select first available file
             const firstFile =
@@ -255,7 +255,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
               currentProcessed.netlog[0] ??
               currentProcessed.state[0];
             if (firstFile) {
-              props.state.selectLogFile(firstFile);
+              props.state.selectFile(firstFile);
             }
           }
         }

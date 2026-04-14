@@ -69,38 +69,36 @@ function isRootStateFile(file: UnzippedFile) {
   return file.fullPath.endsWith('root-state.json');
 }
 
-function getFileType(
-  selectedLogFile: SelectableLogFile | undefined,
-): StateType {
-  if (!isStateFile(selectedLogFile)) {
+function getFileType(selectedFile: SelectableLogFile | undefined): StateType {
+  if (!isStateFile(selectedFile)) {
     throw new Error('StateTable: No file');
   }
 
-  if (isHtmlFile(selectedLogFile)) {
+  if (isHtmlFile(selectedFile)) {
     return StateType.html;
   }
 
-  if (isNotifsFile(selectedLogFile)) {
+  if (isNotifsFile(selectedFile)) {
     return StateType.notifs;
   }
 
-  if (isInstallationFile(selectedLogFile)) {
+  if (isInstallationFile(selectedFile)) {
     return StateType.installation;
   }
 
-  if (isRootStateFile(selectedLogFile)) {
+  if (isRootStateFile(selectedFile)) {
     return StateType.rootState;
   }
 
-  if (isExternalConfigFile(selectedLogFile)) {
+  if (isExternalConfigFile(selectedFile)) {
     return StateType.externalConfig;
   }
 
-  if (selectedLogFile.fileName === 'environment.json') {
+  if (selectedFile.fileName === 'environment.json') {
     return StateType.environment;
   }
 
-  if (selectedLogFile.fileName === 'local-settings.json') {
+  if (selectedFile.fileName === 'local-settings.json') {
     return StateType.localSettings;
   }
 
@@ -110,17 +108,17 @@ function getFileType(
 // oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export const StateTable = observer(({ state }: StateTableProps) => {
   const fileState = useMemo(() => {
-    const { selectedLogFile } = state;
-    if (isStateFile(selectedLogFile)) {
-      return state.stateFiles[selectedLogFile.fileName] ?? {};
+    const { selectedFile } = state;
+    if (isStateFile(selectedFile)) {
+      return state.stateFiles[selectedFile.fileName] ?? {};
     }
     return {};
-  }, [state, state.selectedLogFile]);
+  }, [state, state.selectedFile]);
 
   const { data, path, raw } = fileState;
-  const { font, selectedLogFile } = state;
+  const { font, selectedFile } = state;
 
-  const type = getFileType(selectedLogFile);
+  const type = getFileType(selectedFile);
 
   const renderNotifsInfo = (): JSX.Element | null => {
     if (!Array.isArray(data) || data.length === 0) {

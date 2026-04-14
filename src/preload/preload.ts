@@ -62,8 +62,8 @@ export const SleuthAPI = {
     ipcRenderer.invoke(IpcEvents.MESSAGE_BOX, options),
   changeIcon: (iconName: ICON_NAMES) =>
     ipcRenderer.invoke(IpcEvents.CHANGE_ICON, iconName),
-  showLogLineContextMenu: (type: LogType): Promise<LogLineContextMenuActions> =>
-    ipcRenderer.invoke(IpcEvents.OPEN_LOG_CONTEXT_MENU, type),
+  showLogLineContextMenu: (): Promise<LogLineContextMenuActions> =>
+    ipcRenderer.invoke(IpcEvents.OPEN_LOG_CONTEXT_MENU),
   setSetting: (key: string, value: unknown) =>
     ipcRenderer.invoke(IpcEvents.SET_SETTINGS, key, value),
   focusFind: (cb: () => void) => {

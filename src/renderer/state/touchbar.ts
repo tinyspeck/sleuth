@@ -10,11 +10,11 @@ export function setupTouchBarAutoruns(state: SleuthState) {
   });
 
   autorun(() => {
-    const levelCounts = isProcessedLogFile(state.selectedLogFile)
-      ? state.selectedLogFile.levelCounts
+    const levelCounts = isProcessedLogFile(state.selectedFile)
+      ? state.selectedFile.levelCounts
       : {};
     const options: TouchBarLogFileUpdate = {
-      isLogFile: isLogFile(state.selectedLogFile),
+      isLogFile: isLogFile(state.selectedFile),
       levelCounts,
     };
 

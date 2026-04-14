@@ -29,7 +29,7 @@ export function goToBookmark(state: SleuthState, bookmark: Bookmark) {
 
   d(`Going to ${bookmark.logFile.id} at line ${bookmark.logEntry.line}`);
 
-  state.selectedLogFile = bookmark.logFile;
+  state.selectFile(bookmark.logFile);
   state.selectedEntry = bookmark.logEntry;
 }
 
@@ -43,18 +43,18 @@ export function goToBookmark(state: SleuthState, bookmark: Bookmark) {
 export function getBookmark(state: SleuthState): Bookmark | undefined {
   // No point in saving a bookmark unless we have
   // a path
-  if (!state.selectedEntry || !state.selectedLogFile || !state.selectedIndex) {
+  if (!state.selectedEntry || !state.selectedFile || !state.selectedIndex) {
     return;
   }
 
   // Don't bookmark tools and unzipped files
-  if (!isProcessedLogFile(state.selectedLogFile)) {
+  if (!isProcessedLogFile(state.selectedFile)) {
     return;
   }
 
   const bookmark: Bookmark = {
     logEntry: state.selectedEntry,
-    logFile: state.selectedLogFile,
+    logFile: state.selectedFile,
   };
 
   return bookmark;
