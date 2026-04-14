@@ -1,7 +1,8 @@
 import '@fontsource/fira-code/400.css';
 import '@fontsource/fira-code/500.css';
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { App } from './components/app';
 
-ReactDOM.render(React.createElement(App), document.getElementById('SlackApp'));
+const root = createRoot(document.getElementById('SlackApp')!);
+root.render(React.createElement(App));
