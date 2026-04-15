@@ -26,12 +26,12 @@ function isStateFile(file?: SelectableLogFile): file is UnzippedFile {
 // oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export const StateTable = observer(({ state }: StateTableProps) => {
   const fileState = useMemo(() => {
-    const { selectedLogFile } = state;
-    if (isStateFile(selectedLogFile)) {
-      return state.stateFiles[selectedLogFile.fileName] ?? {};
+    const { selectedFile } = state;
+    if (isStateFile(selectedFile)) {
+      return state.stateFiles[selectedFile.fileName] ?? {};
     }
     return {};
-  }, [state, state.selectedLogFile]);
+  }, [state]);
 
   const { data, path, raw } = fileState;
   const { font } = state;

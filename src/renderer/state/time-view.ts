@@ -34,15 +34,15 @@ function getBucket(range: number, momentValue: number): number {
  * @returns {TimeBucketedLogMetrics} timeBucketedLogMetrics
  */
 export function getTimeBucketedLogMetrics(
-  selectedLogFile: SelectableLogFile,
+  selectedFile: SelectableLogFile,
   range: number,
 ): TimeBucketedLogMetrics {
-  if (!isLogFile(selectedLogFile)) {
+  if (!isLogFile(selectedFile)) {
     return {};
   }
 
   const values: TimeBucketedLogMetrics = {};
-  for (const entry of selectedLogFile.logEntries) {
+  for (const entry of selectedFile.logEntries) {
     if (entry.momentValue) {
       const bucket = getBucket(range, entry.momentValue);
       values[bucket] = values[bucket] || {
@@ -62,15 +62,15 @@ export function getTimeBucketedLogMetrics(
  * Get initial range (difference between highest and lowest timestamp) from the selected log file
  */
 export function getInitialTimeViewRange(
-  selectedLogFile: SelectableLogFile,
+  selectedFile: SelectableLogFile,
 ): number {
-  if (!isLogFile(selectedLogFile) || selectedLogFile.logEntries.length === 0) {
+  if (!isLogFile(selectedFile) || selectedFile.logEntries.length === 0) {
     return 0;
   }
 
   let min = Number.MAX_SAFE_INTEGER;
   let max = 0;
-  for (const { momentValue } of selectedLogFile.logEntries) {
+  for (const { momentValue } of selectedFile.logEntries) {
     if (!momentValue) continue;
 
     if (momentValue < min) {

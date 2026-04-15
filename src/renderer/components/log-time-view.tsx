@@ -25,9 +25,9 @@ export const LogTimeView = observer((props: LogTimeViewProps) => {
 
     const dataX = chart.scales.x.getValueForPixel(canvasPosition.x);
 
-    const { selectedLogFile } = props.state;
-    if (isLogFile(selectedLogFile)) {
-      const { logEntries } = selectedLogFile;
+    const { selectedFile } = props.state;
+    if (isLogFile(selectedFile)) {
+      const { logEntries } = selectedFile;
       const selectedEntry = logEntries.find((entry) => {
         return (
           parse(entry.timestamp, 'MM/dd/yy, HH:mm:ss:SSS', new Date()) >= dataX
@@ -43,8 +43,8 @@ export const LogTimeView = observer((props: LogTimeViewProps) => {
     props.state.customTimeViewRange = until - from;
   }
 
-  const { selectedLogFile, isLogViewVisible, isUserTZ } = props.state;
-  if (!isLogViewVisible || !selectedLogFile || !isLogFile(selectedLogFile))
+  const { selectedFile, isLogViewVisible, isUserTZ } = props.state;
+  if (!isLogViewVisible || !selectedFile || !isLogFile(selectedFile))
     return null;
 
   const className = classNames('Details', { IsVisible: isLogViewVisible });
@@ -84,7 +84,7 @@ export const LogTimeView = observer((props: LogTimeViewProps) => {
     <div className={className}>
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         <ChartJSChart
-          key={selectedLogFile.id}
+          key={selectedFile.id}
           type="bar"
           data={{
             datasets,

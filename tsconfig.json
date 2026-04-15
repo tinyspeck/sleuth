@@ -16,7 +16,7 @@
     "esModuleInterop": true,
     "pretty": true,
     "target": "es2019",
-    "jsx": "react",
+    "jsx": "react-jsx",
     "types": ["@electron-forge/plugin-vite/forge-vite-env"],
     "skipLibCheck": true
   },

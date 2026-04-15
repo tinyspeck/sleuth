@@ -36,7 +36,7 @@ export const Spotlight = observer((props: SpotlightProps): JSX.Element => {
       openFile,
       processedLogFiles,
       reset,
-      selectLogFile,
+      selectFile,
       suggestions,
       toggleSidebar,
     } = props.state;
@@ -86,7 +86,7 @@ export const Spotlight = observer((props: SpotlightProps): JSX.Element => {
               ),
               value: logFile.logFile.fileName,
               click: () => {
-                selectLogFile(logFile);
+                selectFile(logFile);
               },
             });
           } else {
@@ -102,7 +102,7 @@ export const Spotlight = observer((props: SpotlightProps): JSX.Element => {
               ),
               value: logFile.fileName,
               click: () => {
-                selectLogFile(logFile);
+                selectFile(logFile);
               },
             });
           }

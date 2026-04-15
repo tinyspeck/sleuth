@@ -189,7 +189,6 @@ export interface RootState {
  * Context menu actions that can be taken on a specific log line.
  */
 export enum LogLineContextMenuActions {
-  SHOW_IN_CONTEXT,
   COPY_TO_CLIPBOARD,
   OPEN_SOURCE,
 }
