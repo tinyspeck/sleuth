@@ -4,12 +4,11 @@ import {
   Alert,
   Button,
   Card,
-  Col,
   Collapse,
   Descriptions,
   Empty,
+  Masonry,
   Result,
-  Row,
   Space,
   Table,
   Tag,
@@ -45,7 +44,6 @@ function DashboardCard({
   children,
   warnings,
   actions,
-  span,
   emptyDescription,
 }: {
   title: string;
@@ -54,10 +52,8 @@ function DashboardCard({
   children?: React.ReactNode;
   warnings?: React.ReactNode[];
   actions?: React.ReactNode[];
-  span?: { xs?: number; xl?: number; xxl?: number };
   emptyDescription?: string;
 }) {
-  const { xs = 12, xl = 8, xxl = 6 } = span ?? {};
   const isEmpty = items.length === 0 && !children;
   const cardTitle = icon ? (
     <Space size={6}>
@@ -68,41 +64,39 @@ function DashboardCard({
     title
   );
   return (
-    <Col xs={xs} xl={xl} xxl={xxl}>
-      <Card className="StateDashboard-card" size="small" actions={actions}>
-        {isEmpty ? (
-          <>
-            <Typography.Text strong className="StateDashboard-emptyTitle">
-              {cardTitle}
-            </Typography.Text>
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={emptyDescription}
-            />
-          </>
-        ) : (
-          <>
-            <Descriptions
-              title={cardTitle}
-              column={1}
-              size="small"
-              colon={false}
-              items={items}
-            />
-            {children}
-          </>
-        )}
-        {warnings?.map((w, i) => (
-          <Alert
-            key={i}
-            type="warning"
-            showIcon
-            message={w}
-            className="StateDashboard-warning"
+    <Card className="StateDashboard-card" size="small" actions={actions}>
+      {isEmpty ? (
+        <>
+          <Typography.Text strong className="StateDashboard-emptyTitle">
+            {cardTitle}
+          </Typography.Text>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={emptyDescription}
           />
-        ))}
-      </Card>
-    </Col>
+        </>
+      ) : (
+        <>
+          <Descriptions
+            title={cardTitle}
+            column={1}
+            size="small"
+            colon={false}
+            items={items}
+          />
+          {children}
+        </>
+      )}
+      {warnings?.map((w, i) => (
+        <Alert
+          key={i}
+          type="warning"
+          showIcon
+          title={w}
+          className="StateDashboard-warning"
+        />
+      ))}
+    </Card>
   );
 }
 
@@ -311,7 +305,6 @@ export const StateDashboard = observer(({ state }: { state: SleuthState }) => {
     children?: React.ReactNode;
     actions?: React.ReactNode[];
     warnings?: React.ReactNode[];
-    span?: { xs?: number; xl?: number; xxl?: number };
   }> = [
     {
       title: 'App',
@@ -374,7 +367,6 @@ export const StateDashboard = observer(({ state }: { state: SleuthState }) => {
       title: 'Notification Warnings',
       icon: <BellOutlined />,
       emptyDescription: 'No notification warnings',
-      span: { xs: 24, xl: 16 },
       items: notifCategories.map(({ category, warnings }) => ({
         key: category,
         label: category,
@@ -414,11 +406,15 @@ export const StateDashboard = observer(({ state }: { state: SleuthState }) => {
   return (
     <div className="StateDashboard" style={{ fontFamily: getFontForCSS(font) }}>
       <Typography.Title level={4}>Summary</Typography.Title>
-      <Row gutter={[16, 16]}>
-        {cards.map((card) => (
-          <DashboardCard key={card.title} {...card} />
-        ))}
-      </Row>
+      <Masonry
+        columns={{ xs: 1, sm: 1, md: 2, lg: 2, xl: 3, xxl: 4 }}
+        gutter={16}
+        items={cards.map((card) => ({
+          key: card.title,
+          data: null,
+          children: <DashboardCard {...card} />,
+        }))}
+      />
     </div>
   );
 });

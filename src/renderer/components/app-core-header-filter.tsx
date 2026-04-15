@@ -20,7 +20,7 @@ import {
   SearchOutlined,
 } from '@ant-design/icons';
 import { TZDate, tzOffset } from '@date-fns/tz';
-import dateFnsGenerateConfig from 'rc-picker/lib/generate/dateFns';
+import dateFnsGenerateConfig from '@rc-component/picker/lib/generate/dateFns';
 
 import { getTZDateFromString } from '../../utils/get-tz-date-from-string';
 
@@ -169,9 +169,9 @@ export const Filter = observer((props: FilterProps) => {
             : null,
         ]}
       />
-      <Divider type="vertical" />
+      <Divider orientation="vertical" />
       <Space className="FilterGroup">{showOnlySearchResultsButton}</Space>
-      <Divider type="vertical" />
+      <Divider orientation="vertical" />
       <Space.Compact className="SearchInputGroup">
         <Input
           placeholder="Search"
