@@ -1,4 +1,5 @@
 import path from 'node:path';
+import fs from 'fs-extra';
 
 import type {
   ForgeConfig,
@@ -19,6 +20,43 @@ const iconDir = path.join(__dirname, 'public/img');
 
 const options: ForgeConfig = {
   hooks: {
+    generateAssets: async () => {
+      const submodulePath = path.join(
+        __dirname,
+        'catapult/netlog_viewer/netlog_viewer',
+      );
+      const hasSubmodules = fs.existsSync(submodulePath);
+      const isCI = process.env.CI;
+
+      if (!hasSubmodules && isCI) {
+        console.error('In CI and missing Catapult');
+        process.exit(1);
+      } else if (!hasSubmodules) {
+        console.warn('Building WITHOUT catapult!');
+        return;
+      }
+
+      console.log('Catapult found, copying to public/catapult');
+      const dest = path.join(__dirname, 'public/catapult');
+
+      await fs.copy(
+        path.join(__dirname, 'catapult/netlog_viewer/netlog_viewer'),
+        dest,
+      );
+      await fs.copy(
+        path.join(__dirname, 'catapult/third_party/polymer/components/polymer'),
+        path.join(dest, 'polymer'),
+      );
+      await fs.copy(
+        path.join(
+          __dirname,
+          'catapult/third_party/polymer/components/webcomponentsjs',
+        ),
+        path.join(dest, 'webcomponentsjs'),
+      );
+      // Apply local overrides on top
+      await fs.copy(path.join(__dirname, 'static/catapult-overrides'), dest);
+    },
     postMake: async (
       _forgeConfig: ForgeConfig,
       makeResults: ForgeMakeResult[],
