@@ -400,7 +400,7 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
                 </Tag>
                 {gpuInfoFile && (
                   <Typography.Link
-                    onClick={() => state.selectLogFile(gpuInfoFile)}
+                    onClick={() => state.selectFile(gpuInfoFile)}
                     style={{ fontSize: 'var(--ant-font-size-sm)' }}
                   >
                     (see gpu info)

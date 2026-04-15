@@ -174,11 +174,6 @@ export type LogTypeFilter = Record<ProcessableLogType, boolean>;
 export type LogMetrics = Record<LogLevel, number>;
 export type TimeBucketedLogMetrics = Record<number, LogMetrics>;
 
-export interface TouchBarLogFileUpdate {
-  levelCounts: Record<string, number>;
-  isLogFile: boolean;
-}
-
 export interface RootState {
   settings?: {
     releaseChannelOverride: string;

@@ -17,7 +17,6 @@ import { Sidebar } from './sidebar/sidebar';
 import { Loading } from './loading';
 import { LogContent } from './log-content';
 import { flushLogPerformance } from '../processor/performance';
-import { Spotlight } from './spotlight';
 import { rehydrateBookmarks } from '../state/bookmarks';
 import { getTypesForFiles } from '../../utils/get-file-types';
 import { mergeLogFiles, processLogFiles } from '../processor';
@@ -297,8 +296,6 @@ export const CoreApplication = observer((props: CoreAppProps) => {
   return (
     <div className="AppCore">
       <Sidebar state={props.state} />
-      <Spotlight state={props.state} />
-
       <div id="content" className={logContentClassName}>
         <LogContent state={props.state} />
       </div>

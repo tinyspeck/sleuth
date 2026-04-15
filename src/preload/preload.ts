@@ -4,12 +4,9 @@ import fs from 'node:fs';
 import { IpcEvents } from '../ipc-events';
 import { ICON_NAMES } from '../shared-constants';
 import {
-  LevelFilter,
-  LogLevel,
   LogLineContextMenuActions,
   LogType,
   Suggestion,
-  TouchBarLogFileUpdate,
   UnzippedFile,
 } from '../interfaces';
 import { ReadFileResult } from '../main/filesystem/read-file';
@@ -72,18 +69,12 @@ export const SleuthAPI = {
   },
   readStateFile: (file: UnzippedFile) =>
     ipcRenderer.invoke(IpcEvents.READ_STATE_FILE, file),
-  logFileUpdate: (options: TouchBarLogFileUpdate) =>
-    ipcRenderer.send(IpcEvents.LOG_FILE_UPDATE, options),
-  levelFilterUpdate: (options: LevelFilter) =>
-    ipcRenderer.send(IpcEvents.LEVEL_FILTER_UPDATE, options),
   setupDarkModeUpdate: (cb: (prefersDarkColors: boolean) => void) =>
     ipcRenderer.on(IpcEvents.DARK_MODE_UPDATE, (_, prefersDarkColors) => {
       cb(prefersDarkColors);
     }),
   setupToggleSidebar: (cb: () => void) =>
     ipcRenderer.on(IpcEvents.TOGGLE_SIDEBAR, cb),
-  setupToggleSpotlight: (cb: () => void) =>
-    ipcRenderer.on(IpcEvents.TOGGLE_SPOTLIGHT, cb),
   setColorTheme: (colorTheme: ColorTheme) =>
     ipcRenderer.invoke(IpcEvents.SET_COLOR_THEME, colorTheme),
   /**
@@ -97,9 +88,6 @@ export const SleuthAPI = {
     cb: (event: Electron.IpcRendererEvent, data: string) => void,
   ) => ipcRenderer.on(IpcEvents.OPEN_BOOKMARKS, cb),
   setupReset: (cb: () => void) => ipcRenderer.on(IpcEvents.RESET, cb),
-  setupToggleFilter: (
-    cb: (event: Electron.IpcRendererEvent, level: LogLevel) => void,
-  ) => ipcRenderer.on(IpcEvents.TOGGLE_FILTER, cb),
   getSuggestions: () => ipcRenderer.invoke(IpcEvents.GET_SUGGESTIONS),
   setupSuggestionsUpdated: (
     cb: (
