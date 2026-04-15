@@ -97,7 +97,7 @@ function DashboardCard({
             key={i}
             type="warning"
             showIcon
-            message={w}
+            title={w}
             className="StateDashboard-warning"
           />
         ))}

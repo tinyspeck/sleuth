@@ -661,7 +661,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                       </legend>
                       <Alert
                         type="info"
-                        message={
+                        title={
                           <Typography.Paragraph type="secondary">
                             Net logs provide network-level captures showing HTTP
                             requests, socket connections, and DNS lookups.
@@ -717,14 +717,14 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
                         <Alert
                           type="warning"
                           showIcon
-                          message="Trace is not sourcemapped"
+                          title="Trace is not sourcemapped"
                           description="Function names may appear minified. Re-export with sourcemaps for readable stack traces."
                           className="SidebarPreamble"
                         />
                       )}
                       <Alert
                         type="info"
-                        message={
+                        title={
                           <Typography.Paragraph type="secondary">
                             Performance profiles captured via Electron's{' '}
                             <code>contentTracing</code> API. Inspect the entire

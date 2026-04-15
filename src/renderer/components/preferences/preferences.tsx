@@ -74,14 +74,14 @@ export const Preferences = observer((props: PreferencesProps) => {
       <Alert
         type="info"
         showIcon={true}
-        message={`
-        You're running Sleuth ${window.Sleuth.sleuthVersion} ${getSleuth()} 
-        with Electron ${window.Sleuth.versions.electron} and Chrome 
+        title={`
+        You're running Sleuth ${window.Sleuth.sleuthVersion} ${getSleuth()}
+        with Electron ${window.Sleuth.versions.electron} and Chrome
         ${window.Sleuth.versions.chrome}.`}
       ></Alert>
       <Typography.Title level={5}>Appearance</Typography.Title>
       <Form.Item layout="vertical" label="Font">
-        <Space direction="vertical">
+        <Space orientation="vertical">
           <Select
             prefix={<FontColorsOutlined />}
             showSearch
@@ -102,7 +102,7 @@ export const Preferences = observer((props: PreferencesProps) => {
         </Space>
       </Form.Item>
       <Form.Item layout="vertical" label="Color Theme">
-        <Space direction="vertical">
+        <Space orientation="vertical">
           <Radio.Group
             value={colorTheme}
             options={[
@@ -120,7 +120,7 @@ export const Preferences = observer((props: PreferencesProps) => {
         </Space>
       </Form.Item>
 
-      <Space direction="vertical">
+      <Space orientation="vertical">
         <Checkbox
           checked={isMarkIcon}
           onChange={(e) => (props.state.isMarkIcon = e.target.checked)}
@@ -134,7 +134,7 @@ export const Preferences = observer((props: PreferencesProps) => {
       <Divider />
       <Typography.Title level={5}>Log Settings</Typography.Title>
       <Form.Item layout="vertical" label="Date Format">
-        <Space direction="vertical">
+        <Space orientation="vertical">
           <Select
             prefix={<FieldTimeOutlined />}
             style={{ width: 200 }}
@@ -154,7 +154,7 @@ export const Preferences = observer((props: PreferencesProps) => {
         </Space>
       </Form.Item>
       <Form.Item layout="vertical" label="Sort Direction">
-        <Space direction="vertical">
+        <Space orientation="vertical">
           <Radio.Group
             value={defaultSort}
             options={[
@@ -171,7 +171,7 @@ export const Preferences = observer((props: PreferencesProps) => {
         </Space>
       </Form.Item>
       <Form.Item layout="vertical" label="Default Editor">
-        <Space direction="vertical">
+        <Space orientation="vertical">
           <Select
             prefix={<CodeOutlined />}
             style={{ width: 200 }}
@@ -192,8 +192,8 @@ export const Preferences = observer((props: PreferencesProps) => {
       </Form.Item>
       <Divider />
       <Typography.Title level={5}>Runtime settings</Typography.Title>
-      <Space direction="vertical">
-        <Space direction="vertical">
+      <Space orientation="vertical">
+        <Space orientation="vertical">
           <Checkbox
             checked={isOpenMostRecent}
             onChange={(e) => (props.state.isOpenMostRecent = e.target.checked)}
@@ -204,7 +204,7 @@ export const Preferences = observer((props: PreferencesProps) => {
             Skip the home screen and always open most recent file automatically.
           </Typography.Text>
         </Space>
-        <Space direction="vertical">
+        <Space orientation="vertical">
           <Checkbox
             checked={isSmartCopy}
             onChange={(e) => (props.state.isSmartCopy = e.target.checked)}
