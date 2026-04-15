@@ -7,7 +7,6 @@ import windowStateKeeper from 'electron-window-state';
 import { settingsFileManager } from './settings';
 import { getIconPath } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
-import { TouchBarManager } from './touch-bar-manager';
 import path from 'node:path';
 
 export let windows: Array<Electron.BrowserWindow> = [];
@@ -92,14 +91,6 @@ export async function createWindow(): Promise<BrowserWindow> {
   const mainWindow = new BrowserWindow(options);
 
   mainWindowState.manage(mainWindow);
-
-  // Add a TouchBarManager. It'll take care of the touch bar.
-  // We don't _really_ get to add things to the window, but
-  // I'm doing it anyway.
-  if (process.platform === 'darwin') {
-    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-    (mainWindow as any).touchBarManager = new TouchBarManager(mainWindow);
-  }
 
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {

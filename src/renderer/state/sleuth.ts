@@ -26,7 +26,6 @@ import {
   ProcessedLogFiles,
   SerializedBookmark,
   TimeBucketedLogMetrics,
-  LogLevel,
   LogType,
   Suggestion,
   TRACE_VIEWER,
@@ -39,7 +38,6 @@ import {
 import { rehydrateBookmarks, importBookmarks } from './bookmarks';
 import { copy } from './copy';
 import { ICON_NAMES } from '../../shared-constants';
-import { setupTouchBarAutoruns } from './touchbar';
 import { TraceThreadDescription } from '../processor/trace';
 import { ColorTheme } from '../components/preferences/preferences';
 import { StateTableState } from '../components/state-table';
@@ -211,17 +209,12 @@ export class SleuthState {
     this.setMergedFile = this.setMergedFile.bind(this);
     this.setFilterLogLevels = this.setFilterLogLevels.bind(this);
 
-    setupTouchBarAutoruns(this);
     window.Sleuth.setupToggleSidebar(this.toggleSidebar);
     window.Sleuth.setupToggleSpotlight(this.toggleSpotlight);
     window.Sleuth.setupOpenBookmarks((_event, data) =>
       importBookmarks(this, data),
     );
     window.Sleuth.setupReset(() => this.reset(true));
-    window.Sleuth.setupToggleFilter((_event, level: LogLevel) => {
-      this.setFilterLogLevels({ [level]: !this.levelFilter[level] });
-    });
-
     document.oncopy = (event) => {
       if (copy(this)) {
         event.preventDefault();
