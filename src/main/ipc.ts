@@ -7,7 +7,6 @@ import {
   systemPreferences,
   IpcMainEvent,
   Menu,
-  MenuItemConstructorOptions,
   nativeTheme,
 } from 'electron';
 import path from 'node:path';
@@ -17,11 +16,7 @@ import { settingsFileManager } from './settings';
 import { changeIcon } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import { IpcEvents } from '../ipc-events';
-import {
-  LogLineContextMenuActions,
-  LogType,
-  UnzippedFile,
-} from '../interfaces';
+import { LogLineContextMenuActions, UnzippedFile } from '../interfaces';
 import { ColorTheme } from '../renderer/components/preferences/preferences';
 import { Unzipper } from './unzip';
 import { openFile } from './filesystem/open-file';
@@ -232,26 +227,8 @@ export class IpcManager {
   }
 
   private setupContextMenus() {
-    ipcMain.handle(IpcEvents.OPEN_LOG_CONTEXT_MENU, (event, type: LogType) => {
+    ipcMain.handle(IpcEvents.OPEN_LOG_CONTEXT_MENU, (event) => {
       return new Promise((resolve) => {
-        const maybeShowInContext: MenuItemConstructorOptions[] =
-          type === LogType.BROWSER ||
-          type === LogType.RX_EPIC ||
-          type === LogType.WEBAPP ||
-          type === LogType.SERVICE_WORKER
-            ? [
-                {
-                  type: 'separator',
-                },
-                {
-                  label: 'Show in "All Desktop Logs"',
-                  click: () => {
-                    resolve(LogLineContextMenuActions.SHOW_IN_CONTEXT);
-                  },
-                },
-              ]
-            : [];
-
         const menu = Menu.buildFromTemplate([
           {
             label: 'Copy Line',
@@ -265,7 +242,6 @@ export class IpcManager {
               resolve(LogLineContextMenuActions.OPEN_SOURCE);
             },
           },
-          ...maybeShowInContext,
         ]);
         menu.popup({
           window: BrowserWindow.fromWebContents(event.sender) || undefined,

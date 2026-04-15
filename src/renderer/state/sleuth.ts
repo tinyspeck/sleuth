@@ -11,7 +11,7 @@ import debug from 'debug';
 import { testDateTimeFormat } from '../../utils/test-date-time';
 import { SortDirection, SortDirectionType } from 'react-virtualized';
 import { setSetting } from '../settings';
-import { isProcessedLogFile } from '../../utils/is-logfile';
+import { isLogFile } from '../../utils/is-logfile';
 import { getFileName } from '../../utils/get-file-name';
 
 import {
@@ -19,20 +19,16 @@ import {
   LogEntry,
   LogTypeFilter,
   MergedLogFile,
-  ProcessedLogFile,
   DateRange,
   Bookmark,
   MergedLogFiles,
-  UnzippedFile,
   SelectableLogFile,
   ProcessedLogFiles,
   SerializedBookmark,
   TimeBucketedLogMetrics,
   LogLevel,
   LogType,
-  KnownLogType,
   Suggestion,
-  SelectableLogType,
   TRACE_VIEWER,
   LOG_TYPES_TO_PROCESS,
 } from '../../interfaces';
@@ -68,18 +64,10 @@ export class SleuthState {
   @observable.ref public selectedRangeEntries?: Array<LogEntry>;
   // The custom range of the log time view
   @observable public customTimeViewRange: number | undefined;
-  // When set, the log table should scroll to the entry with this momentValue
-  @observable public pendingScrollToMoment?: number;
-
-  @action
-  public setPendingScrollToMoment(moment: number | undefined) {
-    this.pendingScrollToMoment = moment;
-  }
-
   // Path to the source directory (zip file, folder path, etc)
   @observable public source?: string;
   // A reference to the selected log file
-  @observable.ref public selectedLogFile?: SelectableLogFile;
+  @observable.ref public selectedFile?: SelectableLogFile;
 
   // ** Search and Filter **
   @observable public levelFilter: LevelFilter = {
@@ -121,7 +109,7 @@ export class SleuthState {
   @observable public selectedTracePid?: number;
 
   @observable
-  public selectedTraceViewer: TRACE_VIEWER;
+  public selectedTraceViewer: TRACE_VIEWER | undefined;
 
   // ** Settings **
   @observable public colorTheme = this.retrieve<ColorTheme>('colorTheme', {
@@ -218,7 +206,7 @@ export class SleuthState {
     this.reset = this.reset.bind(this);
     this.toggleSidebar = this.toggleSidebar.bind(this);
     this.toggleSpotlight = this.toggleSpotlight.bind(this);
-    this.selectLogFile = this.selectLogFile.bind(this);
+    this.selectFile = this.selectFile.bind(this);
     this.setMergedFile = this.setMergedFile.bind(this);
     this.setFilterLogLevels = this.setFilterLogLevels.bind(this);
 
@@ -251,21 +239,19 @@ export class SleuthState {
    */
   @computed
   public get selectedFileName(): string {
-    return this.selectedLogFile ? getFileName(this.selectedLogFile) : '';
+    return this.selectedFile ? getFileName(this.selectedFile) : '';
   }
 
   @computed
   public get initialTimeViewRange(): number {
-    return this.selectedLogFile
-      ? getInitialTimeViewRange(this.selectedLogFile)
-      : 0;
+    return this.selectedFile ? getInitialTimeViewRange(this.selectedFile) : 0;
   }
 
   @computed
   public get timeBucketedLogMetrics(): TimeBucketedLogMetrics {
     const range = this.customTimeViewRange || this.initialTimeViewRange;
-    return this.selectedLogFile
-      ? getTimeBucketedLogMetrics(this.selectedLogFile, range)
+    return this.selectedFile
+      ? getTimeBucketedLogMetrics(this.selectedFile, range)
       : {};
   }
 
@@ -323,7 +309,7 @@ export class SleuthState {
     this.mergedLogFiles = undefined;
     this.selectedEntry = undefined;
     this.selectedIndex = undefined;
-    this.selectedLogFile = undefined;
+    this.selectedFile = undefined;
     this.bookmarks = [];
     this.levelFilter.debug = true;
     this.levelFilter.error = true;
@@ -345,35 +331,25 @@ export class SleuthState {
     }
   }
 
-  /**
-   * Select a log file. This is a more complex operation than one might think -
-   * mostly because we might need to create a merged file on-the-fly.
-   */
   @action
-  public selectLogFile(
-    logFile: ProcessedLogFile | UnzippedFile | null,
-    logType?: SelectableLogType,
-  ): void {
+  public selectFile(logFile: SelectableLogFile): void {
     this.selectedEntry = undefined;
     this.selectedRangeEntries = undefined;
     this.selectedRangeIndex = undefined;
     this.selectedIndex = undefined;
     this.customTimeViewRange = undefined;
 
-    if (logFile) {
-      const name = isProcessedLogFile(logFile)
-        ? logFile.logType
-        : logFile.fileName;
-      d(`Selecting log file ${name}`);
+    const name = isLogFile(logFile) ? logFile.logType : logFile.fileName;
+    d(`Selecting log file ${name}`);
 
-      this.selectedLogFile = logFile;
-    } else if (
-      logType &&
-      Object.values(LogType).includes(logType as LogType) &&
-      this.mergedLogFiles
-    ) {
-      d(`Selecting log type ${logType}`);
-      this.selectedLogFile = this.mergedLogFiles[logType as KnownLogType];
+    this.selectedFile = logFile;
+  }
+
+  @action
+  public selectAllLogs(): void {
+    const allMerged = this.mergedLogFiles?.[LogType.ALL];
+    if (allMerged) {
+      this.selectFile(allMerged);
     }
   }
 
@@ -427,7 +403,7 @@ export class SleuthState {
 
     const firstTraceFile = this.processedLogFiles?.trace[0];
     if (firstTraceFile) {
-      this.selectLogFile(firstTraceFile);
+      this.selectFile(firstTraceFile);
     }
   }
 

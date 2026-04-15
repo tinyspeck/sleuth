@@ -28,7 +28,6 @@ import {
   LogType,
   ProcessableLogType,
   LogLineContextMenuActions,
-  LogFile,
 } from '../../interfaces';
 import { isReduxAction } from '../../utils/is-redux-action';
 import { LogTableProps, SortFilterListOptions } from './log-table-constants';
@@ -246,10 +245,9 @@ export const LogTable = observer((props: LogTableProps) => {
         (!sortDir || sortDir === SortDirection.ASC);
 
       // Check if we can bail early and just use the naked logEntries array
-      const hasLogTypeFilter =
-        isMergedLogFile(file) &&
-        file.logType === LogType.ALL &&
-        !Object.values(state.logTypeFilter).every(Boolean);
+      const hasLogTypeFilter = !Object.values(state.logTypeFilter).every(
+        Boolean,
+      );
       const hasTagFilter = state.selectedTags.length > 0;
       if (
         noSort &&
@@ -285,15 +283,11 @@ export const LogTable = observer((props: LogTableProps) => {
         list = list.filter(doFilter);
       }
 
-      // LogType filter (for merged ALL view)
-      if (isMergedLogFile(file) && file.logType === LogType.ALL) {
-        const { logTypeFilter } = state;
-        const allEnabled = Object.values(logTypeFilter).every(Boolean);
-        if (!allEnabled) {
-          list = list.filter(
-            (entry) => logTypeFilter[entry.logType as ProcessableLogType],
-          );
-        }
+      // LogType filter
+      if (hasLogTypeFilter) {
+        list = list.filter(
+          (entry) => state.logTypeFilter[entry.logType as ProcessableLogType],
+        );
       }
 
       // Tag filter
@@ -435,11 +429,7 @@ export const LogTable = observer((props: LogTableProps) => {
     async (params: RowMouseEventHandlerParams) => {
       try {
         const rowData: LogEntry = params.rowData;
-        const selectedLogFile = state.selectedLogFile as LogFile | undefined;
-        if (!selectedLogFile) return;
-
-        const logType = selectedLogFile.logType;
-        const response = await window.Sleuth.showLogLineContextMenu(logType);
+        const response = await window.Sleuth.showLogLineContextMenu();
 
         switch (response) {
           case LogLineContextMenuActions.COPY_TO_CLIPBOARD: {
@@ -461,10 +451,6 @@ export const LogTable = observer((props: LogTableProps) => {
             });
             break;
           }
-          case LogLineContextMenuActions.SHOW_IN_CONTEXT:
-            state.setPendingScrollToMoment(rowData.momentValue);
-            state.selectLogFile(null, LogType.ALL);
-            break;
         }
       } catch (error) {
         d('Error in context menu handler:', error);
@@ -734,21 +720,19 @@ export const LogTable = observer((props: LogTableProps) => {
           flexGrow={0}
         />
         <Column label="Level" dataKey="level" width={80} />
-        {logFile.logType === LogType.ALL ? (
-          <Column
-            label="Process"
-            dataKey="logType"
-            width={100}
-            cellRenderer={({ cellData }: TableCellProps) => (
-              <Tag
-                color={logColorMap[cellData as ProcessableLogType] ?? 'default'}
-                style={PROCESS_TAG_STYLE}
-              >
-                {cellData}
-              </Tag>
-            )}
-          />
-        ) : null}
+        <Column
+          label="Process"
+          dataKey="logType"
+          width={100}
+          cellRenderer={({ cellData }: TableCellProps) => (
+            <Tag
+              color={logColorMap[cellData as ProcessableLogType] ?? 'default'}
+              style={PROCESS_TAG_STYLE}
+            >
+              {cellData}
+            </Tag>
+          )}
+        />
         <Column
           label="Message"
           dataKey="message"
@@ -835,25 +819,6 @@ export const LogTable = observer((props: LogTableProps) => {
       scrollToSelectionRef.current = true;
     }
   }, []);
-
-  // Handle pending scroll-to-moment (e.g. from "Show in All Desktop Logs").
-  // When the user triggers "Show in Context", we set the pending moment and
-  // switch to the ALL view. The sortedList may not yet reflect the new file,
-  // so we wait until the list is populated before attempting to find the entry.
-  useEffect(() => {
-    const { pendingScrollToMoment } = state;
-    if (pendingScrollToMoment === undefined) return;
-    if (sortedList.length === 0) return;
-
-    const matchingIndex = sortedList.findIndex(
-      (row) => row.momentValue === pendingScrollToMoment,
-    );
-
-    if (matchingIndex >= 0) {
-      changeSelection(matchingIndex);
-    }
-    state.setPendingScrollToMoment(undefined);
-  }, [state.pendingScrollToMoment, sortedList, changeSelection]);
 
   // Keyboard navigation handler — listen on document to match
   // the previous global behavior (react-keydown listened globally)

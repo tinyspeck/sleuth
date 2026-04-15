@@ -155,7 +155,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
 
       const file = files.get(selected);
       if (file) {
-        props.state.selectLogFile(file);
+        props.state.selectFile(file);
       }
     },
     [props.state, files],
@@ -200,7 +200,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
         (f) => f.id === fileId,
       );
       if (file) {
-        props.state.selectLogFile(file);
+        props.state.selectFile(file);
       }
     },
     [props.state],
@@ -210,13 +210,13 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
   const onLogTypeToggle = useCallback(
     (key: string, checked: boolean) => {
       props.state.setLogTypeFilter({ [key]: checked });
-      const { selectedLogFile } = props.state;
+      const { selectedFile } = props.state;
       if (
-        !selectedLogFile ||
-        !isMergedLogFile(selectedLogFile) ||
-        selectedLogFile.logType !== LogType.ALL
+        !selectedFile ||
+        !isMergedLogFile(selectedFile) ||
+        selectedFile.logType !== LogType.ALL
       ) {
-        props.state.selectLogFile(null, LogType.ALL);
+        props.state.selectAllLogs();
       }
     },
     [props.state],
@@ -244,13 +244,13 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       ) as Partial<LogTypeFilter>;
       props.state.setLogTypeFilter(filter);
 
-      const { selectedLogFile } = props.state;
+      const { selectedFile } = props.state;
       if (
-        !selectedLogFile ||
-        !isMergedLogFile(selectedLogFile) ||
-        selectedLogFile.logType !== LogType.ALL
+        !selectedFile ||
+        !isMergedLogFile(selectedFile) ||
+        selectedFile.logType !== LogType.ALL
       ) {
-        props.state.selectLogFile(null, LogType.ALL);
+        props.state.selectAllLogs();
       }
     },
     [props.state],
@@ -291,13 +291,13 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     [props.state],
   );
 
-  const { isSidebarOpen, selectedLogFile, logTypeFilter, processedLogFiles } =
+  const { isSidebarOpen, selectedFile, logTypeFilter, processedLogFiles } =
     props.state;
 
   function getSelectedKey(): string | undefined {
-    if (!selectedLogFile) return undefined;
-    if (isMergedLogFile(selectedLogFile)) return selectedLogFile.logType;
-    if ('id' in selectedLogFile) return selectedLogFile.id;
+    if (!selectedFile) return undefined;
+    if (isMergedLogFile(selectedFile)) return selectedFile.logType;
+    if ('id' in selectedFile) return selectedFile.id;
     return undefined;
   }
 
@@ -307,9 +307,9 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     ? stateNodes.some((node) => node.key === selectedKey)
     : false;
   const isTraceFileSelected =
-    selectedLogFile &&
-    'fileName' in selectedLogFile &&
-    selectedLogFile.fileName.endsWith('.trace');
+    selectedFile &&
+    'fileName' in selectedFile &&
+    selectedFile.fileName.endsWith('.trace');
   const isNetlogFileSelected = selectedKey
     ? (processedLogFiles?.netlog?.some((f) => f.id === selectedKey) ?? false)
     : false;
@@ -530,7 +530,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
         onChange={(key) => {
           setManualTab(key);
           if (key === 'logs' && derivedTab !== 'logs') {
-            props.state.selectLogFile(null, LogType.ALL);
+            props.state.selectAllLogs();
           }
         }}
         size="small"
