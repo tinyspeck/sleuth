@@ -223,7 +223,7 @@ function isExternalConfigFile(file: UnzippedFile) {
 
 export async function readStateFile(
   file: UnzippedFile,
-): Promise<StateTableState<any> | undefined> {
+): Promise<StateTableState | undefined> {
   if (!file) {
     return;
   }

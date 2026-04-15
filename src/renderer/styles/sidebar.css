@@ -124,6 +124,11 @@
   }
 }
 
+.SidebarStateSummary {
+  margin-bottom: var(--ant-padding-xs);
+  font-weight: 600;
+}
+
 .SidebarCheckboxGroup-label {
   font-size: var(--ant-font-size);
 }

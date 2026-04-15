@@ -147,6 +147,7 @@ export const App = observer(() => {
         token: {
           colorPrimary: sleuthState.prefersDarkColors ? '#6bb8e0' : '#137cbd',
           colorBgBase: sleuthState.prefersDarkColors ? '#272b31' : '#ffffff',
+          colorLink: sleuthState.prefersDarkColors ? '#58a6ff' : '#137cbd',
         },
       }}
     >

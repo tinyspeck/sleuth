@@ -6,14 +6,6 @@
   overflow: hidden;
   box-sizing: border-box;
 
-  a {
-    transition: color 0.2s ease;
-  }
-
-  a:hover {
-    filter: brightness(120%);
-  }
-
   --sleuth-darwin-titlebar-height: 36px;
   --sleuth-sidebar-gap: 6px;
   --sleuth-sidebar-open-width: 300px;

@@ -94,6 +94,7 @@ export class SleuthState {
   @observable public isDetailsVisible = false;
   @observable public isSidebarOpen = true;
   @observable public isSpotlightOpen = false;
+  @observable public showStateSummary = false;
   @observable public isUserTZ = false;
   @observable.shallow public bookmarks: Array<Bookmark> = [];
   @observable public serializedBookmarks: Record<
@@ -152,7 +153,7 @@ export class SleuthState {
   public mergedLogFiles?: MergedLogFiles;
   public processedLogFiles?: ProcessedLogFiles;
 
-  public stateFiles: Record<string, StateTableState<any>> = {};
+  public stateFiles: Record<string, StateTableState> = {};
 
   // ** Internal settings **
   private didOpenMostRecent = false;
@@ -320,6 +321,7 @@ export class SleuthState {
     this.searchIndex = 0;
     this.showOnlySearchResults = undefined;
     this.isSpotlightOpen = false;
+    this.showStateSummary = false;
     this.isDetailsVisible = false;
     this.dateRange = { from: null, to: null };
     this.traceThreads = undefined;
@@ -338,6 +340,7 @@ export class SleuthState {
     this.selectedRangeIndex = undefined;
     this.selectedIndex = undefined;
     this.customTimeViewRange = undefined;
+    this.showStateSummary = false;
 
     const name = isLogFile(logFile) ? logFile.logType : logFile.fileName;
     d(`Selecting log file ${name}`);

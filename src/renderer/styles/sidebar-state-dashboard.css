@@ -1,0 +1,89 @@
+/* Summary dashboard — full-page state/settings overview */
+.StateDashboard {
+  padding: var(--ant-padding) 1rem;
+  height: calc(100% - var(--ant-control-height));
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.StateDashboard .ant-typography {
+  margin-top: 0;
+}
+
+.StateDashboard .ant-row {
+  align-items: stretch;
+}
+
+.StateDashboard .ant-col {
+  display: flex;
+}
+
+.StateDashboard-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.StateDashboard-card > .ant-card-body {
+  flex: 1;
+}
+
+.StateDashboard-card > .ant-card-actions {
+  margin-top: auto;
+}
+
+.StateDashboard-card .ant-descriptions-item-label {
+  font-weight: 500;
+  white-space: nowrap;
+  text-align: right;
+  width: 40%;
+}
+
+.StateDashboard-card .ant-descriptions-item-content {
+  min-width: 0;
+}
+
+.StateDashboard-emptyTitle {
+  font-size: var(--ant-font-size-lg);
+}
+
+.StateDashboard-warning {
+  margin-top: var(--ant-padding-xs);
+}
+
+.StateDashboard-diff {
+  margin-top: var(--ant-padding-xs);
+}
+
+.DashboardError {
+  padding: var(--ant-padding-lg);
+}
+
+.DashboardError-stack {
+  font-size: var(--ant-font-size-sm);
+  overflow: auto;
+}
+
+.StateDashboard-list {
+  margin: 0;
+  padding-left: var(--ant-padding);
+  list-style: disc;
+}
+
+.StateDashboard-list li {
+  margin-bottom: var(--ant-padding-xxs);
+  white-space: normal;
+}
+
+.StateDashboard-card .ant-tag {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.StateDashboard-card .ant-collapse-header {
+  padding: var(--ant-padding-xxs) 0 !important;
+}
+
+.StateDashboard-card .ant-collapse-content-box {
+  padding: 0 0 var(--ant-padding-xxs) var(--ant-padding) !important;
+}
