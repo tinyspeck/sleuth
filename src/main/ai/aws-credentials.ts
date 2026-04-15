@@ -3,7 +3,8 @@ import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
-const FMA_ROLE = 'SLEUTH_AI_FMA_ROLE_PLACEHOLDER';
+const FMA_ROLE = process.env.SLEUTH_AI_FMA_ROLE ?? '';
+const FMA_ROLE_SHORT = FMA_ROLE.split('/')[1] ?? '';
 
 interface AwsCredentials {
   accessKeyId: string;
@@ -127,11 +128,13 @@ export function startSsoLogin(): Promise<AwsCredentials> {
  * 2. The required role must be listed in `fma-sso-assume-role list`
  */
 export async function checkAiAvailable(): Promise<boolean> {
+  if (!FMA_ROLE_SHORT) return false;
+
   try {
     const { stdout } = await execFileAsync('fma-sso-assume-role', ['list'], {
       timeout: 10_000,
     });
-    return stdout.includes('REDACTED_ROLE_NAME');
+    return stdout.includes(FMA_ROLE_SHORT);
   } catch {
     return false;
   }

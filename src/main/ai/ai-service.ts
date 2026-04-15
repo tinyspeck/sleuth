@@ -17,8 +17,8 @@ import {
 } from './tools';
 import { getAwsCredentials, clearCredentialCache } from './aws-credentials';
 
-const AWS_REGION = 'us-east-1';
-const BEDROCK_MODEL = 'SLEUTH_AI_MODEL_PLACEHOLDER';
+const AWS_REGION = process.env.SLEUTH_AI_AWS_REGION ?? 'us-east-1';
+const BEDROCK_MODEL = process.env.SLEUTH_AI_MODEL ?? '';
 
 export class AiService {
   private client: AnthropicBedrock | null = null;
