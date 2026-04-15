@@ -91,16 +91,6 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
         {
           role: 'resetZoom',
         },
-        {
-          type: 'separator',
-        },
-        {
-          label: 'Show Omnibar',
-          accelerator: 'CmdOrCtrl+K',
-          click(_item: Electron.MenuItem, browserWindow: BrowserWindow) {
-            browserWindow.webContents.send(IpcEvents.TOGGLE_SPOTLIGHT);
-          },
-        },
       ],
     },
     {

@@ -91,7 +91,6 @@ export class SleuthState {
   @observable public dateRange: DateRange = { from: null, to: null };
   @observable public isDetailsVisible = false;
   @observable public isSidebarOpen = true;
-  @observable public isSpotlightOpen = false;
   @observable public showStateSummary = false;
   @observable public isUserTZ = false;
   @observable.shallow public bookmarks: Array<Bookmark> = [];
@@ -204,13 +203,11 @@ export class SleuthState {
 
     this.reset = this.reset.bind(this);
     this.toggleSidebar = this.toggleSidebar.bind(this);
-    this.toggleSpotlight = this.toggleSpotlight.bind(this);
     this.selectFile = this.selectFile.bind(this);
     this.setMergedFile = this.setMergedFile.bind(this);
     this.setFilterLogLevels = this.setFilterLogLevels.bind(this);
 
     window.Sleuth.setupToggleSidebar(this.toggleSidebar);
-    window.Sleuth.setupToggleSpotlight(this.toggleSpotlight);
     window.Sleuth.setupOpenBookmarks((_event, data) =>
       importBookmarks(this, data),
     );
@@ -257,11 +254,6 @@ export class SleuthState {
   @action
   public toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
-  }
-
-  @action
-  public toggleSpotlight() {
-    this.isSpotlightOpen = !this.isSpotlightOpen;
   }
 
   @action
@@ -313,7 +305,6 @@ export class SleuthState {
     this.selectedTags = [];
     this.searchIndex = 0;
     this.showOnlySearchResults = undefined;
-    this.isSpotlightOpen = false;
     this.showStateSummary = false;
     this.isDetailsVisible = false;
     this.dateRange = { from: null, to: null };

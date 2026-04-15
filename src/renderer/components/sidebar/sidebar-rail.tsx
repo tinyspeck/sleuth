@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import { Button, Divider, Flex, Tooltip } from 'antd';
-import { FileSearchOutlined, HomeOutlined } from '@ant-design/icons';
+import { HomeOutlined } from '@ant-design/icons';
 import { SleuthState } from '../../state/sleuth';
 import { SidebarBookmarks } from './sidebar-bookmarks';
 
@@ -19,12 +19,6 @@ const SidebarRail = observer((props: SidebarRailProps) => {
         />
       </Tooltip>
       <SidebarBookmarks state={props.state} />
-      <Tooltip title="Search Files" placement="right">
-        <Button
-          icon={<FileSearchOutlined />}
-          onClick={props.state.toggleSpotlight}
-        />
-      </Tooltip>
       <Divider size="small" />
     </Flex>
   );
