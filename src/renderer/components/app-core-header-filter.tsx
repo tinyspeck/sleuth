@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react';
+import { runInAction } from 'mobx';
 import React, { useEffect } from 'react';
 import { debounce } from 'lodash';
 import {
@@ -38,41 +39,28 @@ export const Filter = observer((props: FilterProps) => {
    * @param change 1 or -1, normally
    */
   const handleSearchIndexChange = (change: number) => {
-    const { searchList, searchIndex, selectedIndex } = props.state;
-    // noop if we have no search results at the moment
-    if (searchList.length === 0 || selectedIndex === undefined) {
+    const { searchList, searchIndex } = props.state;
+    if (searchList.length === 0) {
       return;
     }
-    let newSearchIndex = 0;
 
-    if (selectedIndex === searchList[searchIndex]) {
-      const numSearchResults = searchList.length;
-      newSearchIndex = searchIndex + change;
-      if (newSearchIndex >= numSearchResults) {
-        newSearchIndex = 0;
-      } else if (newSearchIndex < 0) {
-        newSearchIndex = numSearchResults - 1;
-      }
-    } else {
-      // if we're currently selecting a row that isn't in the search result list,
-      // we want the arrow keys to point us back to the nearest search result in that
-      // direction. This is kind of what VSCode does for its search arrows.
-      // For positive change, we just want the next largest search index but for negative
-      // change, we want the previous one so we offset by -1 indices.
-      const offset = change > 0 ? 0 : -1;
-      for (const [index, searchIndex] of searchList.entries()) {
-        if (searchIndex > selectedIndex) {
-          newSearchIndex = index + offset;
-          break;
-        }
-      }
+    let newSearchIndex = searchIndex + change;
+    if (newSearchIndex >= searchList.length) {
+      newSearchIndex = 0;
+    } else if (newSearchIndex < 0) {
+      newSearchIndex = searchList.length - 1;
     }
 
-    props.state.searchIndex = newSearchIndex;
+    runInAction(() => {
+      props.state.searchIndex = newSearchIndex;
+    });
   };
 
   const handleSearchQueryChange = debounce((value: string) => {
-    props.state.search = value;
+    runInAction(() => {
+      props.state.search = value;
+      props.state.searchIndex = 0;
+    });
   }, 500);
 
   const handleDateRangeChange = (values: [Date, Date]) => {

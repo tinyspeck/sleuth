@@ -424,4 +424,92 @@ describe('Filter', () => {
       expect(tzSwitch.parentElement).toBeInTheDocument();
     });
   });
+
+  describe('Search Navigation', () => {
+    function makeState(
+      overrides: Partial<SleuthState> = {},
+    ): Partial<SleuthState> {
+      return {
+        isUserTZ: false,
+        stateFiles: {
+          'log-context.json': { data: {} } as any,
+        },
+        searchList: [],
+        searchIndex: 0,
+        levelFilter: { error: true, warn: true, info: true, debug: true },
+        dateRange: { from: null, to: null },
+        ...overrides,
+      };
+    }
+
+    function getArrowButton(direction: 'up' | 'down'): HTMLElement {
+      const icon = screen.getByLabelText(`arrow-${direction}`);
+      return icon.closest('button')!;
+    }
+
+    it('wraps searchIndex to the last result when pressing up at index 0', () => {
+      const state = makeState({
+        searchList: [10, 20, 30],
+        searchIndex: 0,
+      });
+
+      render(<Filter state={state as SleuthState} />);
+      fireEvent.click(getArrowButton('up'));
+
+      expect(state.searchIndex).toBe(2);
+    });
+
+    it('wraps searchIndex to 0 when pressing down at the last result', () => {
+      const state = makeState({
+        searchList: [10, 20, 30],
+        searchIndex: 2,
+      });
+
+      render(<Filter state={state as SleuthState} />);
+      fireEvent.click(getArrowButton('down'));
+
+      expect(state.searchIndex).toBe(0);
+    });
+
+    it('increments searchIndex normally when not at a boundary', () => {
+      const state = makeState({
+        searchList: [10, 20, 30],
+        searchIndex: 0,
+      });
+
+      render(<Filter state={state as SleuthState} />);
+      fireEvent.click(getArrowButton('down'));
+
+      expect(state.searchIndex).toBe(1);
+    });
+
+    it('decrements searchIndex normally when not at a boundary', () => {
+      const state = makeState({
+        searchList: [10, 20, 30],
+        searchIndex: 2,
+      });
+
+      render(<Filter state={state as SleuthState} />);
+      fireEvent.click(getArrowButton('up'));
+
+      expect(state.searchIndex).toBe(1);
+    });
+
+    it('resets searchIndex to 0 when the search query changes', async () => {
+      const state = makeState({
+        searchList: [10, 20, 30],
+        searchIndex: 2,
+        search: 'old query',
+      });
+
+      render(<Filter state={state as SleuthState} />);
+
+      const searchInput = screen.getByPlaceholderText('Search');
+      fireEvent.change(searchInput, { target: { value: 'new query' } });
+
+      await waitFor(() => {
+        expect(state.searchIndex).toBe(0);
+      });
+    });
+  });
 });

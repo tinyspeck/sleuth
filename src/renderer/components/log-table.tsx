@@ -784,6 +784,14 @@ export const LogTable = observer((props: LogTableProps) => {
     });
   }, [sortedList, state, state.selectedEntry]);
 
+  // Scroll to selected entry when showOnlySearchResults is toggled
+  useEffect(() => {
+    if (state.selectedEntry) {
+      scrollToSelectionRef.current = true;
+      setIgnoreSearchIndex(true);
+    }
+  }, [showOnlySearchResults, state]);
+
   // Scroll to selection when a bookmark is activated (selectedEntry prop changes)
   useEffect(() => {
     if (selectedEntry !== state.selectedEntry) {
