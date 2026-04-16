@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import { Button, Divider, Flex, Tooltip } from 'antd';
-import { HomeOutlined } from '@ant-design/icons';
+import { HomeOutlined, SettingOutlined } from '@ant-design/icons';
 import { SleuthState } from '../../state/sleuth';
 import { SidebarBookmarks } from './sidebar-bookmarks';
 

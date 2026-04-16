@@ -202,13 +202,16 @@ export class AiStore {
     const { processedLogFiles, stateFiles } = sleuthState;
 
     if (processedLogFiles) {
-      const allLogFiles: ProcessedLogFile[] = [
+      // The arrays may contain raw UnzippedFile entries (e.g. ShipIt plists
+      // in installer) alongside ProcessedLogFile entries, so filter by the
+      // discriminant to avoid accessing .logFile on an UnzippedFile.
+      const allLogFiles = [
         ...processedLogFiles.browser,
         ...processedLogFiles.webapp,
         ...processedLogFiles.chromium,
         ...processedLogFiles.installer,
         ...processedLogFiles.mobile,
-      ];
+      ].filter((f): f is ProcessedLogFile => f.type === 'ProcessedLogFile');
 
       for (const file of allLogFiles) {
         context.files.push({

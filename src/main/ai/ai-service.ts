@@ -16,9 +16,7 @@ import {
   executeTools,
 } from './tools';
 import { getAwsCredentials, clearCredentialCache } from './aws-credentials';
-
-const AWS_REGION = process.env.SLEUTH_AI_AWS_REGION ?? 'us-east-1';
-const BEDROCK_MODEL = process.env.SLEUTH_AI_MODEL ?? '';
+import { getModel, getAwsRegion } from './ai-config';
 
 export class AiService {
   private client: AnthropicBedrock | null = null;
@@ -30,7 +28,7 @@ export class AiService {
 
     // Recreate client if credentials changed
     this.client = new AnthropicBedrock({
-      awsRegion: AWS_REGION,
+      awsRegion: getAwsRegion(),
       awsAccessKey: creds.accessKeyId,
       awsSecretKey: creds.secretAccessKey,
       awsSessionToken: creds.sessionToken,
@@ -82,7 +80,7 @@ export class AiService {
       while (true) {
         const stream = client.messages.stream(
           {
-            model: BEDROCK_MODEL,
+            model: getModel(),
             max_tokens: 8192,
             system: systemPrompt,
             messages: currentMessages,

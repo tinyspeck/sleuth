@@ -1,10 +1,9 @@
 import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 
-const execFileAsync = promisify(execFile);
+import { getFmaRole } from './ai-config';
 
-const FMA_ROLE = process.env.SLEUTH_AI_FMA_ROLE ?? '';
-const FMA_ROLE_SHORT = FMA_ROLE.split('/')[1] ?? '';
+const execFileAsync = promisify(execFile);
 
 interface AwsCredentials {
   accessKeyId: string;
@@ -53,7 +52,7 @@ export async function getAwsCredentials(): Promise<AwsCredentials> {
   try {
     const { stdout } = await execFileAsync(
       'fma-sso-assume-role',
-      ['print', `--fma-role=${FMA_ROLE}`],
+      ['print', `--fma-role=${getFmaRole()}`],
       { timeout: 10_000 },
     );
 
@@ -87,7 +86,7 @@ export function startSsoLogin(): Promise<AwsCredentials> {
     // --refresh-cache forces a new browser auth flow
     const child = spawn(
       'fma-sso-assume-role',
-      ['print', `--fma-role=${FMA_ROLE}`, '--refresh-cache'],
+      ['print', `--fma-role=${getFmaRole()}`, '--refresh-cache'],
       { stdio: ['ignore', 'pipe', 'pipe'] },
     );
 
@@ -128,13 +127,14 @@ export function startSsoLogin(): Promise<AwsCredentials> {
  * 2. The required role must be listed in `fma-sso-assume-role list`
  */
 export async function checkAiAvailable(): Promise<boolean> {
-  if (!FMA_ROLE_SHORT) return false;
+  const roleShort = getFmaRole().split('/')[1] ?? '';
+  if (!roleShort) return false;
 
   try {
     const { stdout } = await execFileAsync('fma-sso-assume-role', ['list'], {
       timeout: 10_000,
     });
-    return stdout.includes(FMA_ROLE_SHORT);
+    return stdout.includes(roleShort);
   } catch {
     return false;
   }
