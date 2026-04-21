@@ -78,7 +78,7 @@
     "@types/tmp": "0.2.0",
     "@types/yauzl": "^2.10.0",
     "@vitejs/plugin-react": "^6.0.1",
-    "electron": "41.0.2",
+    "electron": "41.2.2",
     "husky": "^9.0.0",
     "jsdom": "^26.1.0",
     "lint-staged": "^16.3.2",
