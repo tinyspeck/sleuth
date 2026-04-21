@@ -53,7 +53,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
   function getPercentageLoaded(): number {
     const current = processedLogFilesRef.current;
     const alreadyLoaded = Object.keys(current)
-      .map((k: keyof ProcessedLogFiles) => current[k])
+      .map((k) => current[k as keyof ProcessedLogFiles])
       .reduce((p, c) => p + (c ? c.length : 0), 0);
     const toLoad = props.unzippedFiles.length;
 
@@ -86,7 +86,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
 
         const sortedUnzippedFiles = getTypesForFiles(unzippedFiles);
         const noFiles = Object.keys(sortedUnzippedFiles)
-          .map((k: keyof SortedUnzippedFiles) => sortedUnzippedFiles[k])
+          .map((k) => sortedUnzippedFiles[k as keyof SortedUnzippedFiles])
           .every((s) => s.length === 0);
 
         if (noFiles) {

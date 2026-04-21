@@ -64,18 +64,18 @@ export const LogTimeView = observer((props: LogTimeViewProps) => {
     const systemTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const userTZ = props.state.stateFiles['log-context.json']?.data?.systemTZ;
     const tz = isUserTZ ? userTZ : systemTZ;
-    datasets = Object.keys(LogLevel).map((type: LogLevel) => {
+    datasets = Object.keys(LogLevel).map((type) => {
       return {
-        label: type,
+        label: type as LogLevel,
         data: bucketedLogMetricsByTime.map(([time, buckets]) => {
           const date = new Date(parseInt(time, 10) * 1000);
           const dateString = date.toLocaleString('en-US', { timeZone: tz });
           return {
-            y: buckets[type],
+            y: buckets[type as LogLevel],
             x: new Date(dateString),
           };
         }),
-        backgroundColor: backgroundColors[type],
+        backgroundColor: backgroundColors[type as LogLevel],
       };
     });
   }

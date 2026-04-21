@@ -54,17 +54,17 @@ const ChartJSChart = React.memo(function (props: ChartJSProps) {
   }, [data, getChart]);
 
   const onClick = useCallback(
-    (e) => {
+    (e: React.MouseEvent) => {
       const chart = getChart();
       if (chart && getElementAtEvent) {
         getElementAtEvent(
           chart.getElementsAtEventForMode(
-            e,
+            e.nativeEvent,
             'nearest',
             { intersect: true },
             false,
           ),
-          e,
+          e.nativeEvent,
         );
       }
     },

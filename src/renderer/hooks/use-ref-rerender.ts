@@ -6,7 +6,7 @@ export function useRefReRender<T>(
 ): [() => T | null, (ref: T) => void] {
   const ref = useRef<T | null>(initialValue);
   const setRef = useCallback(
-    (value) => {
+    (value: T | null) => {
       if (ref.current && teardown) {
         teardown(ref.current);
       }

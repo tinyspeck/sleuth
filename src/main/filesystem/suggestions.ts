@@ -231,7 +231,7 @@ async function getSuggestions(
           filePath: file,
           ...stats,
           age,
-          error,
+          error: error instanceof Error ? error : new Error(String(error)),
         });
         d(`Tried to add ${file}, but failed: ${error}`);
       }
