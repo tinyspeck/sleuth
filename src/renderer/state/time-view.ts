@@ -7,7 +7,12 @@ import {
   startOfHour,
 } from 'date-fns';
 import { isLogFile } from '../../utils/is-logfile';
-import { TimeBucketedLogMetrics, SelectableLogFile } from '../../interfaces';
+import {
+  TimeBucketedLogMetrics,
+  SelectableLogFile,
+  LogTypeFilter,
+  ProcessableLogType,
+} from '../../interfaces';
 
 function getBucket(range: number, momentValue: number): number {
   if (range < 1000 * 60 * 60 * 4) {
@@ -36,13 +41,23 @@ function getBucket(range: number, momentValue: number): number {
 export function getTimeBucketedLogMetrics(
   selectedFile: SelectableLogFile,
   range: number,
+  logTypeFilter?: LogTypeFilter,
 ): TimeBucketedLogMetrics {
   if (!isLogFile(selectedFile)) {
     return {};
   }
 
+  const hasLogTypeFilter =
+    logTypeFilter && !Object.values(logTypeFilter).every(Boolean);
+
   const values: TimeBucketedLogMetrics = {};
   for (const entry of selectedFile.logEntries) {
+    if (
+      hasLogTypeFilter &&
+      !logTypeFilter[entry.logType as ProcessableLogType]
+    ) {
+      continue;
+    }
     if (entry.momentValue) {
       const bucket = getBucket(range, entry.momentValue);
       values[bucket] = values[bucket] || {
