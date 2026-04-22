@@ -10,7 +10,7 @@ import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 import { MakerRpm } from '@electron-forge/maker-rpm';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives';
-import { PublisherGithub } from '@electron-forge/publisher-github';
+import { PublisherGitHub } from '@electron-forge/publisher-github';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 
 import { version } from './package.json';
@@ -109,7 +109,7 @@ const options: ForgeConfig = {
     new MakerRpm({}, ['linux']),
   ],
   publishers: [
-    new PublisherGithub({
+    new PublisherGitHub({
       repository: {
         owner: 'tinyspeck',
         name: 'sleuth',
