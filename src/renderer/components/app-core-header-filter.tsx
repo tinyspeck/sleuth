@@ -63,7 +63,7 @@ export const Filter = observer((props: FilterProps) => {
     });
   }, 500);
 
-  const handleDateRangeChange = (values: [Date, Date]) => {
+  const handleDateRangeChange = (values: [Date | null, Date | null] | null) => {
     const systemTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const userTZ = props.state.stateFiles['log-context.json']?.data?.systemTZ;
     const tz = props.state.isUserTZ ? userTZ : systemTZ;

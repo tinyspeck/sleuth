@@ -1,6 +1,10 @@
-import { app, BrowserWindow, MenuItem, shell } from 'electron';
+import { app, BaseWindow, BrowserWindow, MenuItem, shell } from 'electron';
 import { createWindow, getCurrentWindow } from './windows';
 import { IpcEvents } from '../ipc-events';
+
+function asBrowserWindow(win: BaseWindow | undefined): BrowserWindow | null {
+  return win instanceof BrowserWindow ? win : null;
+}
 
 export interface MenuTemplateOptions {
   pruneItems: Array<Electron.MenuItemConstructorOptions>;
@@ -32,8 +36,9 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
         {
           label: 'Find',
           accelerator: 'CmdOrCtrl+F',
-          click(_item: Electron.MenuItem, browserWindow: BrowserWindow) {
-            browserWindow.webContents.send(IpcEvents.FIND);
+          click(_item: Electron.MenuItem, window: BaseWindow | undefined) {
+            const browserWindow = asBrowserWindow(window);
+            browserWindow?.webContents.send(IpcEvents.FIND);
           },
         },
       ],
@@ -44,7 +49,8 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
         {
           label: 'Reload',
           accelerator: 'CmdOrCtrl+R',
-          click(_item: MenuItem, focusedWindow: BrowserWindow) {
+          click(_item: MenuItem, window: BaseWindow | undefined) {
+            const focusedWindow = asBrowserWindow(window);
             if (focusedWindow) focusedWindow.reload();
           },
         },
@@ -54,7 +60,8 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
             if (process.platform === 'darwin') return 'Ctrl+Command+F';
             else return 'F11';
           })(),
-          click(_item: MenuItem, focusedWindow: BrowserWindow) {
+          click(_item: MenuItem, window: BaseWindow | undefined) {
+            const focusedWindow = asBrowserWindow(window);
             if (focusedWindow)
               focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
           },
@@ -65,7 +72,8 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
             if (process.platform === 'darwin') return 'Option+Command+I';
             else return 'Ctrl+Shift+I';
           })(),
-          click(_item: MenuItem, focusedWindow: BrowserWindow) {
+          click(_item: MenuItem, window: BaseWindow | undefined) {
+            const focusedWindow = asBrowserWindow(window);
             if (focusedWindow) {
               focusedWindow.webContents.toggleDevTools();
             }
@@ -114,8 +122,12 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
       submenu: [
         {
           label: 'Open Sentry',
-          click: async (_item: Electron.MenuItem, win: BrowserWindow) => {
-            win.webContents.send(IpcEvents.OPEN_SENTRY);
+          click: async (
+            _item: Electron.MenuItem,
+            window: BaseWindow | undefined,
+          ) => {
+            const win = asBrowserWindow(window);
+            win?.webContents.send(IpcEvents.OPEN_SENTRY);
           },
         },
         { type: 'separator' },

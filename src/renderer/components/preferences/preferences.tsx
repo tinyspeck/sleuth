@@ -6,7 +6,6 @@ import { format as dateFormatter } from 'date-fns';
 import { getSleuth } from '../../sleuth';
 import {
   DATE_TIME_FORMATS,
-  Editor,
   EDITORS,
   FONTS,
   getFontForCSS,
@@ -180,7 +179,7 @@ export const Preferences = observer((props: PreferencesProps) => {
               value: editor,
               label: <span>{details.name}</span>,
             }))}
-            onChange={(value: keyof Editor) => {
+            onChange={(value: string) => {
               const editor = EDITORS[value];
               props.state.defaultEditor = editor ?? EDITORS.VSCODE;
             }}
