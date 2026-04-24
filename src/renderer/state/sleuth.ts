@@ -5,6 +5,7 @@ import {
   computed,
   toJS,
   makeObservable,
+  runInAction,
 } from 'mobx';
 import debug from 'debug';
 
@@ -146,6 +147,10 @@ export class SleuthState {
     parse: true,
   });
 
+  // ** Live Tail **
+  @observable public isLiveTailActive = false;
+  @observable public isAutoScrollEnabled = true;
+
   // ** Giant non-observable arrays **
   public mergedLogFiles?: MergedLogFiles;
   public processedLogFiles?: ProcessedLogFiles;
@@ -261,15 +266,13 @@ export class SleuthState {
     this.isUserTZ = !this.isUserTZ;
   }
 
-  @action
   public async getSuggestions(suggestions?: Suggestion[]) {
-    this.suggestions = suggestions || (await window.Sleuth.getSuggestions());
-    this.suggestionsLoaded = true;
-
-    // This is a side effect. There's probably a better
-    // place for it, since we only want to run it once,
-    // but here we are.
-    this.openMostRecentSuggestionMaybe();
+    const resolved = suggestions || (await window.Sleuth.getSuggestions());
+    runInAction(() => {
+      this.suggestions = resolved;
+      this.suggestionsLoaded = true;
+      this.openMostRecentSuggestionMaybe();
+    });
   }
 
   @action
@@ -291,6 +294,12 @@ export class SleuthState {
 
   @action
   public reset(goBackToHome = false) {
+    if (this.isLiveTailActive) {
+      window.Sleuth.stopLiveTail();
+      this.isLiveTailActive = false;
+      this.isAutoScrollEnabled = true;
+    }
+
     this.processedLogFiles = undefined;
     this.mergedLogFiles = undefined;
     this.selectedEntry = undefined;
@@ -372,6 +381,45 @@ export class SleuthState {
 
     // Recalculate bookmarks
     rehydrateBookmarks(this);
+  }
+
+  @action
+  public updateLiveTailFile(updatedMerged: MergedLogFile) {
+    const newMergedLogFiles = { ...(this.mergedLogFiles as MergedLogFiles) };
+    newMergedLogFiles[updatedMerged.logType] = updatedMerged;
+    this.mergedLogFiles = newMergedLogFiles;
+
+    const sel = this.selectedFile;
+    const isLog = sel && isLogFile(sel);
+    const typeMatch = isLog && sel.logType === updatedMerged.logType;
+    console.log(
+      '[live-tail state] updateLiveTailFile: updatedType=%s selectedType=%s isLog=%s typeMatch=%s',
+      updatedMerged.logType,
+      isLog ? sel.logType : 'N/A',
+      isLog,
+      typeMatch,
+    );
+
+    if (sel && isLog && typeMatch) {
+      this.selectedFile = updatedMerged;
+      console.log(
+        '[live-tail state] selectedFile replaced, entries=%d',
+        updatedMerged.logEntries.length,
+      );
+    }
+  }
+
+  @action
+  public setLiveTailActive(active: boolean) {
+    this.isLiveTailActive = active;
+    if (active) {
+      this.isAutoScrollEnabled = true;
+    }
+  }
+
+  @action
+  public setAutoScrollEnabled(enabled: boolean) {
+    this.isAutoScrollEnabled = enabled;
   }
 
   /**

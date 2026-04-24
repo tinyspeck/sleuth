@@ -195,3 +195,22 @@ export enum TRACE_VIEWER {
   CHROME_DEVTOOLS = 'chrome-devtools',
   PERFETTO = 'perfetto',
 }
+
+export interface LiveTailUpdate {
+  fileId: string;
+  newEntries: LogEntry[];
+  levelCountDeltas: Record<string, number>;
+  repeatedCountDeltas: Record<string, number>;
+  byteOffset: number;
+  totalLines: number;
+}
+
+export interface LiveTailNewFile {
+  file: UnzippedFile;
+  logType: KnownLogType;
+}
+
+export interface LiveTailUpdatePayload {
+  updates: LiveTailUpdate[];
+  newFiles: LiveTailNewFile[];
+}

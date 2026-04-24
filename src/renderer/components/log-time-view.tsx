@@ -1,5 +1,6 @@
 import { SleuthState } from '../state/sleuth';
 import { observer } from 'mobx-react';
+import { runInAction } from 'mobx';
 import React from 'react';
 import Chart, { InteractionItem } from 'chart.js/auto';
 import { ChartJSChart } from './chart-js';
@@ -40,7 +41,9 @@ export const LogTimeView = observer((props: LogTimeViewProps) => {
   function onZoomComplete({ chart }: { chart: Chart }) {
     const from = chart.scales.x.min;
     const until = chart.scales.x.max;
-    props.state.customTimeViewRange = until - from;
+    runInAction(() => {
+      props.state.customTimeViewRange = until - from;
+    });
   }
 
   const { selectedFile, isLogViewVisible, isUserTZ } = props.state;

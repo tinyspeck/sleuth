@@ -53,10 +53,30 @@ export const App = observer(() => {
     [resetApp],
   );
 
+  const startLiveTail = useCallback(
+    async (logsPath: string) => {
+      d('startLiveTail called with path:', logsPath);
+      resetApp();
+      try {
+        d('Invoking window.Sleuth.startLiveTail...');
+        const files = await window.Sleuth.startLiveTail(logsPath);
+        d('startLiveTail returned %d files', files?.length ?? 0, files);
+        sleuthStateRef.current?.setSource(logsPath);
+        sleuthStateRef.current?.setLiveTailActive(true);
+        setUnzippedFiles(files);
+      } catch (error) {
+        d('Failed to start live tail:', logsPath, error);
+      }
+    },
+    [resetApp],
+  );
+
   // Use refs so SleuthState always calls through the latest closures,
   // even though it only receives them once in the constructor.
   const openFileRef = useRef(openFile);
   openFileRef.current = openFile;
+  const startLiveTailRef = useRef(startLiveTail);
+  startLiveTailRef.current = startLiveTail;
   const resetAppRef = useRef(resetApp);
   resetAppRef.current = resetApp;
 
@@ -92,6 +112,10 @@ export const App = observer(() => {
       openFileRef.current(url),
     );
 
+    const removeLiveTailDrop = window.Sleuth.setupLiveTailDropped(
+      (_event, logsPath: string) => startLiveTailRef.current(logsPath),
+    );
+
     // Setup open sentry
     const removeOpenSentry = window.Sleuth.setupOpenSentry((event) => {
       const installationFile = unzippedFilesRef.current?.find((file) => {
@@ -111,6 +135,7 @@ export const App = observer(() => {
       document.removeEventListener('drop', preventHandler);
       document.body.removeEventListener('drop', bodyDropHandler);
       removeFileDrop();
+      removeLiveTailDrop();
       removeOpenSentry();
       disposeAutorun();
     };
@@ -130,11 +155,12 @@ export const App = observer(() => {
     ) : (
       ''
     );
+  d('Render: unzippedFiles length=%d', unzippedFiles?.length ?? 0);
   const content =
     unzippedFiles && unzippedFiles.length ? (
       <CoreApplication state={sleuthState} unzippedFiles={unzippedFiles} />
     ) : (
-      <Welcome state={sleuthState} />
+      <Welcome state={sleuthState} onStartLiveTail={startLiveTailRef.current} />
     );
 
   return (

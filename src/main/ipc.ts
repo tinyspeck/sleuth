@@ -26,6 +26,7 @@ import {
   getItemsInSuggestionFolders,
 } from './filesystem/suggestions';
 import { readLogFile, readStateFile } from './filesystem/read-file';
+import { LiveTailWatcher } from './filesystem/live-tail';
 import { getSentryHref } from '../renderer/sentry';
 import { openLineInSource } from './open-line-in-source';
 import { isTraceSourcemapped } from './filesystem/is-trace-sourcemapped';
@@ -56,6 +57,8 @@ function getCurrentWindow(): Electron.BrowserWindow {
 }
 
 export class IpcManager {
+  private liveTailWatcher: LiveTailWatcher | null = null;
+
   constructor() {
     this.setupFileDrop();
     this.setupMessageBoxHandler();
@@ -76,6 +79,7 @@ export class IpcManager {
     this.setupProcessor();
     this.setupOpenSentry();
     this.setupLogFileContextMenu();
+    this.setupLiveTail();
   }
 
   public openFile(pathName: string) {
@@ -395,6 +399,44 @@ export class IpcManager {
         openLineInSource(line, sourceFile, options);
       },
     );
+  }
+  private setupLiveTail() {
+    ipcMain.handle(
+      IpcEvents.LIVE_TAIL_START,
+      async (event, logsPath: string, userTZ?: string) => {
+        console.log('[live-tail IPC] LIVE_TAIL_START called with:', logsPath);
+        this.liveTailWatcher?.stop();
+        this.liveTailWatcher = new LiveTailWatcher(
+          logsPath,
+          event.sender,
+          userTZ,
+        );
+        try {
+          const files = await this.liveTailWatcher.start();
+          console.log(
+            '[live-tail IPC] start() returned',
+            files.length,
+            'files',
+          );
+          return files;
+        } catch (err) {
+          console.error('[live-tail IPC] start() threw:', err);
+          return [];
+        }
+      },
+    );
+
+    ipcMain.handle(IpcEvents.LIVE_TAIL_STOP, async () => {
+      this.liveTailWatcher?.stop();
+      this.liveTailWatcher = null;
+    });
+
+    app.on('browser-window-created', (_e, window) => {
+      window.on('closed', () => {
+        this.liveTailWatcher?.stop();
+        this.liveTailWatcher = null;
+      });
+    });
   }
 }
 

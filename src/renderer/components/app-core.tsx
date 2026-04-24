@@ -13,6 +13,7 @@ import {
   UnzippedFiles,
   ProcessedLogFile,
 } from '../../interfaces';
+import { applyLiveTailUpdate } from '../live-tail';
 import { Sidebar } from './sidebar/sidebar';
 import { Loading } from './loading';
 import { LogContent } from './log-content';
@@ -49,6 +50,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
   // Use a ref to track processedLogFiles inside the async processFiles
   // since setState is async and we need to accumulate updates
   const processedLogFilesRef = useRef(processedLogFiles);
+  const liveTailCleanupRef = useRef<(() => void) | null>(null);
 
   function getPercentageLoaded(): number {
     const current = processedLogFilesRef.current;
@@ -261,6 +263,28 @@ export const CoreApplication = observer((props: CoreAppProps) => {
 
         setLoadedLogFiles(true);
 
+        if (props.state.isLiveTailActive) {
+          console.log(
+            '[live-tail renderer] Registering live tail update listener',
+          );
+          liveTailCleanupRef.current = window.Sleuth.setupLiveTailUpdate(
+            (_event, payload) => {
+              console.log(
+                '[live-tail renderer] Got update:',
+                payload.updates.length,
+                'updates,',
+                payload.updates.reduce((s, u) => s + u.newEntries.length, 0),
+                'new entries',
+              );
+              applyLiveTailUpdate(props.state, payload);
+            },
+          );
+        } else {
+          console.log(
+            '[live-tail renderer] isLiveTailActive is false, skipping listener setup',
+          );
+        }
+
         rehydrateBookmarks(props.state);
         flushLogPerformance();
       } catch (error) {
@@ -276,6 +300,11 @@ export const CoreApplication = observer((props: CoreAppProps) => {
     }
 
     processFiles();
+
+    return () => {
+      liveTailCleanupRef.current?.();
+      liveTailCleanupRef.current = null;
+    };
   }, []);
 
   if (!loadedLogFiles) {

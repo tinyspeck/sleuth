@@ -140,6 +140,10 @@
   transform: translate(-50%, -50%);
 }
 
+.welcome__watch-buttons {
+  margin-bottom: var(--ant-padding-sm);
+}
+
 .welcome__suggestion-drag-and-drop-reminder {
   position: absolute;
   bottom: 95%;

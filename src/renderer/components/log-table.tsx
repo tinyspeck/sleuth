@@ -97,6 +97,14 @@ export const LogTable = observer((props: LogTableProps) => {
     state,
   } = props;
 
+  console.log(
+    '[LogTable render] logFile entries:',
+    logFile.logEntries.length,
+    'logFile ref changed:',
+    logFile !== (LogTable as any)._lastLogFile,
+  );
+  (LogTable as any)._lastLogFile = logFile;
+
   const tableRef = useRef<Table>(null);
   const [sortBy, setSortBy] = useState<string>('index');
   const [sortDirection, setSortDirection] = useState<SortDirectionType>(
@@ -365,6 +373,12 @@ export const LogTable = observer((props: LogTableProps) => {
       }
     });
   }, [newSearchList, state]);
+
+  useEffect(() => {
+    if (state.isLiveTailActive && tableRef.current) {
+      tableRef.current.forceUpdateGrid();
+    }
+  }, [sortedList, state.isLiveTailActive]);
 
   /**
    * Changes the current selection in the table to the target index
@@ -680,6 +694,31 @@ export const LogTable = observer((props: LogTableProps) => {
   /**
    * Renders the table
    */
+  const onTableScroll = useCallback(
+    ({
+      clientHeight,
+      scrollHeight,
+      scrollTop,
+    }: {
+      clientHeight: number;
+      scrollHeight: number;
+      scrollTop: number;
+    }) => {
+      if (!state.isLiveTailActive) return;
+
+      const isAtNewestEdge =
+        sortDirection === SortDirection.DESC
+          ? scrollTop < 50
+          : scrollHeight - scrollTop - clientHeight < 50;
+      if (isAtNewestEdge !== state.isAutoScrollEnabled) {
+        runInAction(() => {
+          state.setAutoScrollEnabled(isAtNewestEdge);
+        });
+      }
+    },
+    [state, sortDirection],
+  );
+
   function renderTable(options: Size): JSX.Element {
     const tableOptions: TableProps = {
       ...options,
@@ -693,6 +732,7 @@ export const LogTable = observer((props: LogTableProps) => {
       sort: onSortChange,
       sortBy,
       sortDirection,
+      onScroll: onTableScroll,
     };
 
     if (scrollToSelectionRef.current) {
@@ -702,6 +742,15 @@ export const LogTable = observer((props: LogTableProps) => {
 
     if (!ignoreSearchIndex && searchList.length > 0)
       tableOptions.scrollToIndex = searchList[searchIndex] || 0;
+
+    if (
+      state.isLiveTailActive &&
+      state.isAutoScrollEnabled &&
+      sortedList.length > 0
+    ) {
+      tableOptions.scrollToIndex = 0;
+      tableOptions.scrollToAlignment = 'start';
+    }
 
     return (
       <Table {...tableOptions} ref={tableRef}>
@@ -847,6 +896,22 @@ export const LogTable = observer((props: LogTableProps) => {
 
   return (
     <div className={className}>
+      {state.isLiveTailActive && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 10,
+            zIndex: 10,
+            background: 'red',
+            color: 'white',
+            padding: '2px 8px',
+            fontSize: 12,
+          }}
+        >
+          rows: {sortedList.length}
+        </div>
+      )}
       <div className="Sizer">
         <AutoSizer>{(options) => renderTable(options)}</AutoSizer>
       </div>

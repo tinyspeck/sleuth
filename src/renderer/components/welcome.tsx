@@ -20,6 +20,7 @@ import {
   AndroidFilled,
   SlackCircleFilled,
   ExclamationCircleOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import { observer } from 'mobx-react';
 
@@ -33,6 +34,7 @@ import classNames from 'classnames';
 export interface WelcomeProps {
   sleuth?: string;
   state: SleuthState;
+  onStartLiveTail?: (logsPath: string) => void;
 }
 
 const iconStyle = {
@@ -76,11 +78,32 @@ const platformIcon = (platform: string) => {
 export const Welcome = observer((props: WelcomeProps) => {
   const [sleuth] = useState(() => props.sleuth || getSleuth());
   const [downloadsDir, setDownloadsDir] = useState<string | undefined>();
+  const [slackLogPaths, setSlackLogPaths] = useState<
+    { label: string; logsPath: string }[]
+  >([]);
 
   useEffect(() => {
     window.Sleuth.getPath('downloads')
       .then(setDownloadsDir)
       .catch(console.error);
+
+    if (window.Sleuth.platform === 'darwin') {
+      window.Sleuth.getPath('appData')
+        .then((appData) => {
+          const variants = [
+            { suffix: 'Slack', label: 'Slack' },
+            { suffix: 'SlackDevEnv', label: 'Slack DevEnv' },
+            { suffix: 'SlackDevMode', label: 'Slack DevMode' },
+          ];
+          setSlackLogPaths(
+            variants.map((v) => ({
+              label: v.label,
+              logsPath: `${appData}/${v.suffix}/logs`,
+            })),
+          );
+        })
+        .catch(console.error);
+    }
 
     const unmountListener = window.Sleuth.setupSuggestionsUpdated(
       async (_event, suggestions: Suggestion[]) => {
@@ -287,6 +310,24 @@ export const Welcome = observer((props: WelcomeProps) => {
 
   const suggestions = renderSuggestions();
 
+  const renderWatchButtons = () => {
+    if (!props.onStartLiveTail || slackLogPaths.length === 0) return null;
+
+    return (
+      <Space className="welcome__watch-buttons" wrap>
+        {slackLogPaths.map(({ label, logsPath }) => (
+          <Button
+            key={logsPath}
+            icon={<EyeOutlined />}
+            onClick={() => props.onStartLiveTail!(logsPath)}
+          >
+            Watch {label} Logs
+          </Button>
+        ))}
+      </Space>
+    );
+  };
+
   return (
     <div className="welcome css-var-">
       <div>
@@ -294,6 +335,8 @@ export const Welcome = observer((props: WelcomeProps) => {
           <span className="welcome__title-emoji">{sleuth}</span> Sleuth
         </Typography.Title>
       </div>
+
+      {renderWatchButtons()}
 
       {suggestions ? (
         <div className="welcome__suggestion-container">

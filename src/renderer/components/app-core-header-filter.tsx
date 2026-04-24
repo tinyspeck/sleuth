@@ -10,6 +10,7 @@ import {
   InputRef,
   Space,
   Switch,
+  Tag,
   Tooltip,
 } from 'antd';
 import { SleuthState } from '../state/sleuth';
@@ -18,7 +19,9 @@ import {
   ArrowUpOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
+  PauseCircleOutlined,
   SearchOutlined,
+  VerticalAlignBottomOutlined,
 } from '@ant-design/icons';
 import { TZDate, tzOffset } from '@date-fns/tz';
 import dateFnsGenerateConfig from '@rc-component/picker/lib/generate/dateFns';
@@ -126,6 +129,41 @@ export const Filter = observer((props: FilterProps) => {
 
   return (
     <Space className="SearchGroup">
+      {props.state.isLiveTailActive && (
+        <>
+          <Tag color="green">Live</Tag>
+          <Tooltip
+            title={
+              props.state.isAutoScrollEnabled
+                ? 'Auto-scrolling to newest'
+                : 'Auto-scroll paused — scroll to bottom to resume'
+            }
+          >
+            <Button
+              icon={<VerticalAlignBottomOutlined />}
+              type={props.state.isAutoScrollEnabled ? 'primary' : 'default'}
+              size="small"
+              onClick={() => {
+                props.state.setAutoScrollEnabled(true);
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Stop live tail">
+            <Button
+              icon={<PauseCircleOutlined />}
+              size="small"
+              danger
+              onClick={() => {
+                window.Sleuth.stopLiveTail();
+                runInAction(() => {
+                  props.state.setLiveTailActive(false);
+                });
+              }}
+            />
+          </Tooltip>
+          <Divider orientation="vertical" />
+        </>
+      )}
       {!!userTZ && (
         <div>
           <Space>
