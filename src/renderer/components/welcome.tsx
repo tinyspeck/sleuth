@@ -20,6 +20,7 @@ import {
   AndroidFilled,
   SlackCircleFilled,
   ExclamationCircleOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import { observer } from 'mobx-react';
 
@@ -33,6 +34,7 @@ import classNames from 'classnames';
 export interface WelcomeProps {
   sleuth?: string;
   state: SleuthState;
+  onStartLiveTail?: (logsPath: string) => void;
 }
 
 const iconStyle = {
@@ -76,11 +78,28 @@ const platformIcon = (platform: string) => {
 export const Welcome = observer((props: WelcomeProps) => {
   const [sleuth] = useState(() => props.sleuth || getSleuth());
   const [downloadsDir, setDownloadsDir] = useState<string | undefined>();
+  const [slackLogPaths, setSlackLogPaths] = useState<
+    { label: string; logsPath: string }[]
+  >([]);
 
   useEffect(() => {
     window.Sleuth.getPath('downloads')
       .then(setDownloadsDir)
       .catch(console.error);
+
+    if (window.Sleuth.platform === 'darwin') {
+      window.Sleuth.getPath('appData')
+        .then((appData) => {
+          const variants = [{ suffix: 'Slack', label: 'Slack' }];
+          setSlackLogPaths(
+            variants.map((v) => ({
+              label: v.label,
+              logsPath: `${appData}/${v.suffix}/logs`,
+            })),
+          );
+        })
+        .catch(console.error);
+    }
 
     const unmountListener = window.Sleuth.setupSuggestionsUpdated(
       async (_event, suggestions: Suggestion[]) => {
@@ -258,7 +277,6 @@ export const Welcome = observer((props: WelcomeProps) => {
               {list(stale)}
             </>
           )}
-          {renderDeleteStale(stale)}
         </div>
       );
     }
@@ -266,26 +284,38 @@ export const Welcome = observer((props: WelcomeProps) => {
     return null;
   };
 
-  const renderDeleteStale = (staleFiles: Suggestion[]): JSX.Element | null => {
-    if (staleFiles.length > 0) {
-      const stalePaths = staleFiles.map((f) => f.filePath);
-      return (
-        <Button
-          className="welcome__delete-stale"
-          type="primary"
-          danger={true}
-          icon={<DeleteOutlined />}
-          onClick={() => deleteSuggestions(stalePaths)}
-        >
-          Delete stale logs
-        </Button>
-      );
-    }
-
-    return null;
-  };
-
   const suggestions = renderSuggestions();
+
+  const showWatch = !!props.onStartLiveTail && slackLogPaths.length > 0;
+
+  const stalePaths = props.state.suggestions
+    .filter((s) => !isToday(s.mtimeMs) && !isThisWeek(s.mtimeMs))
+    .map((s) => s.filePath);
+
+  const folderActions =
+    showWatch || stalePaths.length > 0 ? (
+      <div className="welcome__folder-actions">
+        {showWatch && (
+          <Button
+            className="welcome__watch-btn"
+            icon={<EyeOutlined />}
+            onClick={() => props.onStartLiveTail!(slackLogPaths[0].logsPath)}
+          >
+            Watch Slack Logs
+          </Button>
+        )}
+        {stalePaths.length > 0 && (
+          <Button
+            className="welcome__delete-stale"
+            danger={true}
+            icon={<DeleteOutlined />}
+            onClick={() => deleteSuggestions(stalePaths)}
+          >
+            Delete Stale Logs
+          </Button>
+        )}
+      </div>
+    ) : null;
 
   return (
     <div className="welcome css-var-">
@@ -304,6 +334,7 @@ export const Welcome = observer((props: WelcomeProps) => {
             Open from <code>{downloadsDir}</code>
           </div>
           {suggestions}
+          {folderActions}
         </div>
       ) : props.state.suggestionsLoaded ? (
         <div className="welcome__drag-and-drop">
@@ -313,6 +344,7 @@ export const Welcome = observer((props: WelcomeProps) => {
             subTitle="
             Drag and drop a ZIP archive or folder anywhere on this window"
           />
+          {folderActions}
         </div>
       ) : (
         <Spin className="welcome__spinner" />

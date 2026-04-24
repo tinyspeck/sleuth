@@ -5,6 +5,7 @@ import {
   computed,
   toJS,
   makeObservable,
+  runInAction,
 } from 'mobx';
 import debug from 'debug';
 
@@ -146,6 +147,12 @@ export class SleuthState {
     parse: true,
   });
 
+  // ** Live Tail **
+  @observable public isLiveTailActive = false;
+  @observable public isAutoScrollEnabled = true;
+  @observable public liveTailRevision = 0;
+  public liveTailTagCounts = new Map<string, number>();
+
   // ** Giant non-observable arrays **
   public mergedLogFiles?: MergedLogFiles;
   public processedLogFiles?: ProcessedLogFiles;
@@ -261,15 +268,13 @@ export class SleuthState {
     this.isUserTZ = !this.isUserTZ;
   }
 
-  @action
   public async getSuggestions(suggestions?: Suggestion[]) {
-    this.suggestions = suggestions || (await window.Sleuth.getSuggestions());
-    this.suggestionsLoaded = true;
-
-    // This is a side effect. There's probably a better
-    // place for it, since we only want to run it once,
-    // but here we are.
-    this.openMostRecentSuggestionMaybe();
+    const resolved = suggestions || (await window.Sleuth.getSuggestions());
+    runInAction(() => {
+      this.suggestions = resolved;
+      this.suggestionsLoaded = true;
+      this.openMostRecentSuggestionMaybe();
+    });
   }
 
   @action
@@ -291,6 +296,14 @@ export class SleuthState {
 
   @action
   public reset(goBackToHome = false) {
+    if (this.isLiveTailActive) {
+      window.Sleuth.stopLiveTail();
+      this.isLiveTailActive = false;
+      this.isAutoScrollEnabled = true;
+      this.liveTailTagCounts.clear();
+    }
+
+    this.source = undefined;
     this.processedLogFiles = undefined;
     this.mergedLogFiles = undefined;
     this.selectedEntry = undefined;
@@ -372,6 +385,36 @@ export class SleuthState {
 
     // Recalculate bookmarks
     rehydrateBookmarks(this);
+  }
+
+  /** Replace a merged log file in-place and bump the revision counter to trigger re-renders. */
+  @action
+  public updateLiveTailFile(updatedMerged: MergedLogFile) {
+    const newMergedLogFiles = { ...(this.mergedLogFiles as MergedLogFiles) };
+    newMergedLogFiles[updatedMerged.logType] = updatedMerged;
+    this.mergedLogFiles = newMergedLogFiles;
+
+    const sel = this.selectedFile;
+    if (sel && isLogFile(sel) && sel.logType === updatedMerged.logType) {
+      this.selectedFile = updatedMerged;
+    }
+
+    this.liveTailRevision++;
+  }
+
+  /** Toggle live tail mode and reset auto-scroll when activating. */
+  @action
+  public setLiveTailActive(active: boolean) {
+    this.isLiveTailActive = active;
+    if (active) {
+      this.isAutoScrollEnabled = true;
+    }
+  }
+
+  /** Enable or disable auto-scrolling to newest entries during live tail. */
+  @action
+  public setAutoScrollEnabled(enabled: boolean) {
+    this.isAutoScrollEnabled = enabled;
   }
 
   /**

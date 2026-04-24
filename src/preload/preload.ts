@@ -4,10 +4,12 @@ import fs from 'node:fs';
 import { IpcEvents } from '../ipc-events';
 import { ICON_NAMES } from '../shared-constants';
 import {
+  LiveTailUpdatePayload,
   LogLineContextMenuActions,
   LogType,
   Suggestion,
   UnzippedFile,
+  UnzippedFiles,
 } from '../interfaces';
 import { ReadFileResult } from '../main/filesystem/read-file';
 import { ColorTheme } from '../renderer/components/preferences/preferences';
@@ -138,6 +140,25 @@ export const SleuthAPI = {
       sourceFile,
       options,
     ),
+  startLiveTail: (logsPath: string, userTZ?: string): Promise<UnzippedFiles> =>
+    ipcRenderer.invoke(IpcEvents.LIVE_TAIL_START, logsPath, userTZ),
+  stopLiveTail: (): Promise<void> =>
+    ipcRenderer.invoke(IpcEvents.LIVE_TAIL_STOP),
+  setupLiveTailUpdate: (
+    cb: (
+      event: Electron.IpcRendererEvent,
+      payload: LiveTailUpdatePayload,
+    ) => void,
+  ) => {
+    ipcRenderer.on(IpcEvents.LIVE_TAIL_UPDATE, cb);
+    return () => ipcRenderer.off(IpcEvents.LIVE_TAIL_UPDATE, cb);
+  },
+  setupLiveTailDropped: (
+    cb: (event: Electron.IpcRendererEvent, logsPath: string) => void,
+  ) => {
+    ipcRenderer.on(IpcEvents.LIVE_TAIL_DROPPED, cb);
+    return () => ipcRenderer.off(IpcEvents.LIVE_TAIL_DROPPED, cb);
+  },
 };
 
 contextBridge.exposeInMainWorld('Sleuth', SleuthAPI);

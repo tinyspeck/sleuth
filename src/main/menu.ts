@@ -98,6 +98,38 @@ export class AppMenu {
     };
   }
 
+  /** Build a menu item that starts a live tail session for the given Slack variant. */
+  public getWatchItem(
+    type: '' | 'DevEnv' | 'DevMode' = '',
+  ): MenuItemConstructorOptions {
+    const appData = app.getPath('appData');
+    const logsPath = path.join(appData, `Slack${type}`, 'logs');
+
+    return {
+      label: `Watch local Slack${type} logs...`,
+      click: async () => {
+        let files: Array<string> = [];
+
+        try {
+          files = await fs.readdir(logsPath);
+        } catch (error) {
+          d(`Tried to read logs directory for watch, but failed`, { error });
+        }
+
+        if (files && files.length > 0) {
+          const { webContents } = await getCurrentWindow();
+          webContents.send(IpcEvents.LIVE_TAIL_DROPPED, logsPath);
+        } else {
+          dialog.showMessageBox({
+            type: 'error',
+            title: 'Could not find local Slack logs',
+            message: `We attempted to find your local Slack's logs, but we couldn't find them. We checked for them in ${logsPath}.`,
+          });
+        }
+      },
+    };
+  }
+
   /**
    * Checks what kind of Slack logs are locally available and returns an array
    * with appropriate items.
@@ -172,6 +204,11 @@ export class AppMenu {
     if (this.productionLogsExist) openItems.push(this.getOpenItem());
     if (this.devEnvLogsExist) openItems.push(this.getOpenItem('DevEnv'));
     if (this.devModeLogsExist) openItems.push(this.getOpenItem('DevMode'));
+
+    if (this.productionLogsExist) {
+      openItems.push({ type: 'separator' });
+      openItems.push(this.getWatchItem());
+    }
 
     return openItems;
   }

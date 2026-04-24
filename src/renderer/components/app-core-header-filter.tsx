@@ -19,6 +19,7 @@ import {
   EyeInvisibleOutlined,
   EyeOutlined,
   SearchOutlined,
+  VerticalAlignBottomOutlined,
 } from '@ant-design/icons';
 import { TZDate, tzOffset } from '@date-fns/tz';
 import dateFnsGenerateConfig from '@rc-component/picker/lib/generate/dateFns';
@@ -126,6 +127,43 @@ export const Filter = observer((props: FilterProps) => {
 
   return (
     <Space className="SearchGroup">
+      {props.state.isLiveTailActive && (
+        <>
+          <Tooltip title="Click to stop recording">
+            <button
+              className="LivePill"
+              onClick={() => {
+                window.Sleuth.stopLiveTail();
+                runInAction(() => {
+                  props.state.setLiveTailActive(false);
+                });
+              }}
+            >
+              <span className="LivePillDot" />
+              <span>Live</span>
+            </button>
+          </Tooltip>
+          <Tooltip
+            title={
+              props.state.isAutoScrollEnabled
+                ? 'Auto-scrolling to newest'
+                : 'Auto-scroll paused'
+            }
+          >
+            <Button
+              icon={<VerticalAlignBottomOutlined />}
+              type={props.state.isAutoScrollEnabled ? 'primary' : 'default'}
+              size="small"
+              onClick={() => {
+                props.state.setAutoScrollEnabled(
+                  !props.state.isAutoScrollEnabled,
+                );
+              }}
+            />
+          </Tooltip>
+          <Divider orientation="vertical" />
+        </>
+      )}
       {!!userTZ && (
         <div>
           <Space>
