@@ -245,6 +245,7 @@ export const LogTable = observer((props: LogTableProps) => {
       );
       const hasTagFilter = state.selectedTags.length > 0;
 
+      /** Apply level, logType, tag, and dateRange filters in a single pass. */
       function applyFilters(input: Array<LogEntry>): Array<LogEntry> {
         let result = input;
         if (hasLevelFilter) {
@@ -706,9 +707,7 @@ export const LogTable = observer((props: LogTableProps) => {
     ],
   );
 
-  /**
-   * Renders the table
-   */
+  /** Toggle auto-scroll based on whether the user is at the newest edge. */
   const onTableScroll = useCallback(
     ({
       clientHeight,

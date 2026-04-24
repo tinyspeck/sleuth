@@ -53,6 +53,7 @@ export const App = observer(() => {
     [resetApp],
   );
 
+  /** Start a live tail session: reset state, begin watching, and load the file list. */
   const startLiveTail = useCallback(
     async (logsPath: string) => {
       resetApp();

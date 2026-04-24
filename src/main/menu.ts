@@ -98,6 +98,7 @@ export class AppMenu {
     };
   }
 
+  /** Build a menu item that starts a live tail session for the given Slack variant. */
   public getWatchItem(
     type: '' | 'DevEnv' | 'DevMode' = '',
   ): MenuItemConstructorOptions {

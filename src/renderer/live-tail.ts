@@ -4,12 +4,15 @@ import {
   LiveTailUpdatePayload,
   LogEntry,
   LogType,
-  MergedLogFile,
   ProcessedLogFile,
   SelectableLogType,
 } from '../interfaces';
 import { SleuthState } from './state/sleuth';
 
+/**
+ * Apply a live tail update payload to the MobX state. Prepends new entries
+ * to the affected ProcessedLogFiles and MergedLogFiles without re-sorting.
+ */
 export function applyLiveTailUpdate(
   state: SleuthState,
   payload: LiveTailUpdatePayload,
@@ -81,6 +84,7 @@ export function applyLiveTailUpdate(
   });
 }
 
+/** Look up a ProcessedLogFile by its fullPath across all log type arrays. */
 function findProcessedFile(
   state: SleuthState,
   fileId: string,

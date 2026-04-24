@@ -92,6 +92,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
       setProcessedLogFiles(newProcessedLogFiles);
     }
 
+    /** Create empty ProcessedLogFile/MergedLogFile shells and register the live tail update listener. */
     async function processFilesLiveTail(
       sortedUnzippedFiles: SortedUnzippedFiles,
       addFiles: typeof addFilesToState,
@@ -158,6 +159,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
       );
     }
 
+    /** Parse, process, and merge log files for the standard (non-live-tail) flow. */
     async function processFilesNormal(
       sortedUnzippedFiles: SortedUnzippedFiles,
       userTZ: string | undefined,

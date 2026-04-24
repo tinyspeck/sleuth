@@ -34,6 +34,10 @@ interface WatchedFile {
   file: UnzippedFile;
 }
 
+/**
+ * Watches a Slack logs directory for changes, incrementally parses new lines,
+ * and sends batched updates to the renderer via IPC every `FLUSH_DEBOUNCE_MS`.
+ */
 export class LiveTailWatcher {
   private directoryWatchers: fs.FSWatcher[] = [];
   private watchedFiles = new Map<string, WatchedFile>();
@@ -47,6 +51,7 @@ export class LiveTailWatcher {
     private readonly userTZ?: string,
   ) {}
 
+  /** Scan the directory, set up file and directory watchers, and return the file list. */
   async start(): Promise<UnzippedFiles> {
     const allFiles = await this.scanDirectory();
 
@@ -96,6 +101,7 @@ export class LiveTailWatcher {
     return allFiles;
   }
 
+  /** Stop all watchers and discard pending updates. */
   stop() {
     if (this.stopped) return;
     this.stopped = true;

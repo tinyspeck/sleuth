@@ -7,12 +7,20 @@ const d = debug('sleuth:line-parser');
 
 const MAX_TO_PARSE = 100_000;
 
+/**
+ * Result of feeding lines into a LineParser — new entries plus counter deltas.
+ */
 export interface LineParserResult {
   newEntries: LogEntry[];
   levelCountDeltas: Record<string, number>;
   repeatedCountDeltas: Record<string, number>;
 }
 
+/**
+ * Incremental log line parser. Accepts raw lines, applies a match function
+ * to extract structured LogEntry objects, collapses repeated messages,
+ * and tracks level/repeated count deltas for each batch.
+ */
 export class LineParser {
   private current: LogEntry | null = null;
   private toParse = '';
@@ -46,6 +54,7 @@ export class LineParser {
     this.lastPushedEntry = lastEntry ?? null;
   }
 
+  /** Parse a batch of raw lines, returning new entries and counter deltas. */
   feedLines(lines: string[]): LineParserResult {
     this.entries = [];
     this.levelCountDeltas = { debug: 0, info: 0, warn: 0, error: 0 };
@@ -62,6 +71,7 @@ export class LineParser {
     };
   }
 
+  /** Flush any buffered partial entry (e.g. trailing multi-line meta). */
   finalize(): LineParserResult {
     this.entries = [];
     this.levelCountDeltas = { debug: 0, info: 0, warn: 0, error: 0 };

@@ -400,6 +400,7 @@ export class IpcManager {
       },
     );
   }
+  /** Register IPC handlers for starting, stopping, and cleaning up live tail sessions. */
   private setupLiveTail() {
     ipcMain.handle(
       IpcEvents.LIVE_TAIL_START,

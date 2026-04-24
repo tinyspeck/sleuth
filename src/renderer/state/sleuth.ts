@@ -387,6 +387,7 @@ export class SleuthState {
     rehydrateBookmarks(this);
   }
 
+  /** Replace a merged log file in-place and bump the revision counter to trigger re-renders. */
   @action
   public updateLiveTailFile(updatedMerged: MergedLogFile) {
     const newMergedLogFiles = { ...(this.mergedLogFiles as MergedLogFiles) };
@@ -401,6 +402,7 @@ export class SleuthState {
     this.liveTailRevision++;
   }
 
+  /** Toggle live tail mode and reset auto-scroll when activating. */
   @action
   public setLiveTailActive(active: boolean) {
     this.isLiveTailActive = active;
@@ -409,6 +411,7 @@ export class SleuthState {
     }
   }
 
+  /** Enable or disable auto-scrolling to newest entries during live tail. */
   @action
   public setAutoScrollEnabled(enabled: boolean) {
     this.isAutoScrollEnabled = enabled;
