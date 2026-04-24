@@ -90,11 +90,7 @@ export const Welcome = observer((props: WelcomeProps) => {
     if (window.Sleuth.platform === 'darwin') {
       window.Sleuth.getPath('appData')
         .then((appData) => {
-          const variants = [
-            { suffix: 'Slack', label: 'Slack' },
-            { suffix: 'SlackDevEnv', label: 'Slack DevEnv' },
-            { suffix: 'SlackDevMode', label: 'Slack DevMode' },
-          ];
+          const variants = [{ suffix: 'Slack', label: 'Slack' }];
           setSlackLogPaths(
             variants.map((v) => ({
               label: v.label,
@@ -281,27 +277,7 @@ export const Welcome = observer((props: WelcomeProps) => {
               {list(stale)}
             </>
           )}
-          {renderDeleteStale(stale)}
         </div>
-      );
-    }
-
-    return null;
-  };
-
-  const renderDeleteStale = (staleFiles: Suggestion[]): JSX.Element | null => {
-    if (staleFiles.length > 0) {
-      const stalePaths = staleFiles.map((f) => f.filePath);
-      return (
-        <Button
-          className="welcome__delete-stale"
-          type="primary"
-          danger={true}
-          icon={<DeleteOutlined />}
-          onClick={() => deleteSuggestions(stalePaths)}
-        >
-          Delete stale logs
-        </Button>
       );
     }
 
@@ -310,23 +286,36 @@ export const Welcome = observer((props: WelcomeProps) => {
 
   const suggestions = renderSuggestions();
 
-  const renderWatchButtons = () => {
-    if (!props.onStartLiveTail || slackLogPaths.length === 0) return null;
+  const showWatch = !!props.onStartLiveTail && slackLogPaths.length > 0;
 
-    return (
-      <Space className="welcome__watch-buttons" wrap>
-        {slackLogPaths.map(({ label, logsPath }) => (
+  const stalePaths = props.state.suggestions
+    .filter((s) => !isToday(s.mtimeMs) && !isThisWeek(s.mtimeMs))
+    .map((s) => s.filePath);
+
+  const folderActions =
+    showWatch || stalePaths.length > 0 ? (
+      <div className="welcome__folder-actions">
+        {showWatch && (
           <Button
-            key={logsPath}
+            className="welcome__watch-btn"
             icon={<EyeOutlined />}
-            onClick={() => props.onStartLiveTail!(logsPath)}
+            onClick={() => props.onStartLiveTail!(slackLogPaths[0].logsPath)}
           >
-            Watch {label} Logs
+            Watch Slack Logs
           </Button>
-        ))}
-      </Space>
-    );
-  };
+        )}
+        {stalePaths.length > 0 && (
+          <Button
+            className="welcome__delete-stale"
+            danger={true}
+            icon={<DeleteOutlined />}
+            onClick={() => deleteSuggestions(stalePaths)}
+          >
+            Delete Stale Logs
+          </Button>
+        )}
+      </div>
+    ) : null;
 
   return (
     <div className="welcome css-var-">
@@ -335,8 +324,6 @@ export const Welcome = observer((props: WelcomeProps) => {
           <span className="welcome__title-emoji">{sleuth}</span> Sleuth
         </Typography.Title>
       </div>
-
-      {renderWatchButtons()}
 
       {suggestions ? (
         <div className="welcome__suggestion-container">
@@ -347,6 +334,7 @@ export const Welcome = observer((props: WelcomeProps) => {
             Open from <code>{downloadsDir}</code>
           </div>
           {suggestions}
+          {folderActions}
         </div>
       ) : props.state.suggestionsLoaded ? (
         <div className="welcome__drag-and-drop">
@@ -356,6 +344,7 @@ export const Welcome = observer((props: WelcomeProps) => {
             subTitle="
             Drag and drop a ZIP archive or folder anywhere on this window"
           />
+          {folderActions}
         </div>
       ) : (
         <Spin className="welcome__spinner" />

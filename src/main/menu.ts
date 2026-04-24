@@ -204,17 +204,10 @@ export class AppMenu {
     if (this.devEnvLogsExist) openItems.push(this.getOpenItem('DevEnv'));
     if (this.devModeLogsExist) openItems.push(this.getOpenItem('DevMode'));
 
-    if (
-      this.productionLogsExist ||
-      this.devEnvLogsExist ||
-      this.devModeLogsExist
-    ) {
+    if (this.productionLogsExist) {
       openItems.push({ type: 'separator' });
+      openItems.push(this.getWatchItem());
     }
-
-    if (this.productionLogsExist) openItems.push(this.getWatchItem());
-    if (this.devEnvLogsExist) openItems.push(this.getWatchItem('DevEnv'));
-    if (this.devModeLogsExist) openItems.push(this.getWatchItem('DevMode'));
 
     return openItems;
   }

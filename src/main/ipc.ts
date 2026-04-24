@@ -404,25 +404,13 @@ export class IpcManager {
     ipcMain.handle(
       IpcEvents.LIVE_TAIL_START,
       async (event, logsPath: string, userTZ?: string) => {
-        console.log('[live-tail IPC] LIVE_TAIL_START called with:', logsPath);
         this.liveTailWatcher?.stop();
         this.liveTailWatcher = new LiveTailWatcher(
           logsPath,
           event.sender,
           userTZ,
         );
-        try {
-          const files = await this.liveTailWatcher.start();
-          console.log(
-            '[live-tail IPC] start() returned',
-            files.length,
-            'files',
-          );
-          return files;
-        } catch (err) {
-          console.error('[live-tail IPC] start() threw:', err);
-          return [];
-        }
+        return this.liveTailWatcher.start();
       },
     );
 

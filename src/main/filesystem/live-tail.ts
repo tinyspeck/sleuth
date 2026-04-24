@@ -48,15 +48,7 @@ export class LiveTailWatcher {
   ) {}
 
   async start(): Promise<UnzippedFiles> {
-    console.log('[live-tail] start() called, logsPath:', this.logsPath);
-
     const allFiles = await this.scanDirectory();
-    console.log(
-      '[live-tail] scanDirectory found %d files across %d dirs',
-      allFiles.length,
-      this.watchedDirs.length,
-    );
-    const tailableFiles: UnzippedFile[] = [];
 
     for (const file of allFiles) {
       const logType = getTypeForFile(file);
@@ -64,16 +56,7 @@ export class LiveTailWatcher {
         continue;
       }
 
-      const result = await readLogFile(file, {
-        logType,
-        userTZ: this.userTZ,
-      });
-
       const stats = fs.statSync(file.fullPath);
-      const lastEntry =
-        result.entries.length > 0
-          ? result.entries[result.entries.length - 1]
-          : undefined;
 
       const parser = new LineParser(
         getMatchFunction(logType, file),
@@ -81,9 +64,6 @@ export class LiveTailWatcher {
         file.fullPath,
         file.fileName,
         this.userTZ,
-        result.entries.length,
-        result.lines,
-        lastEntry,
       );
 
       const watcher = fs.watch(file.fullPath, () => {
@@ -97,8 +77,6 @@ export class LiveTailWatcher {
         logType: logType as KnownLogType,
         file,
       });
-
-      tailableFiles.push(file);
     }
 
     for (const dir of this.watchedDirs) {
@@ -147,33 +125,22 @@ export class LiveTailWatcher {
     const files: UnzippedFiles = [];
     const dirsToScan = [this.logsPath];
 
-    console.log('[live-tail] scanDirectory: reading', this.logsPath);
     const topEntries = await fs.promises.readdir(this.logsPath);
-    console.log('[live-tail] top-level entries:', topEntries);
     for (const entry of topEntries) {
       const fullPath = path.join(this.logsPath, entry);
       try {
-        const isDir = fs.statSync(fullPath).isDirectory();
-        console.log(
-          '[live-tail]   entry=%s isDir=%s ignore=%s',
-          entry,
-          isDir,
-          shouldIgnoreFile(entry),
-        );
-        if (isDir && !shouldIgnoreFile(entry)) {
+        if (fs.statSync(fullPath).isDirectory() && !shouldIgnoreFile(entry)) {
           dirsToScan.push(fullPath);
         }
-      } catch (err) {
-        console.log('[live-tail]   stat failed for', fullPath, err);
+      } catch {
+        d('Failed to stat %s, skipping', fullPath);
       }
     }
 
-    console.log('[live-tail] dirsToScan:', dirsToScan);
     this.watchedDirs = dirsToScan;
 
     for (const dir of dirsToScan) {
       const entries = await fs.promises.readdir(dir);
-      console.log('[live-tail] dir=%s has %d entries', dir, entries.length);
       for (const fileName of entries) {
         if (shouldIgnoreFile(fileName)) continue;
         const fullPath = path.join(dir, fileName);
@@ -193,8 +160,6 @@ export class LiveTailWatcher {
         }
       }
     }
-    console.log('[live-tail] scanDirectory returning %d files', files.length);
-
     return files;
   }
 
@@ -210,13 +175,6 @@ export class LiveTailWatcher {
     } catch {
       return;
     }
-
-    console.log(
-      '[live-tail] onFileChange %s: prev=%d new=%d',
-      path.basename(fullPath),
-      watched.byteOffset,
-      newSize,
-    );
 
     if (newSize <= watched.byteOffset) {
       if (newSize < watched.byteOffset) {
@@ -325,22 +283,12 @@ export class LiveTailWatcher {
 
     d('New file detected: %s (type: %s)', filename, logType);
 
-    const result = await readLogFile(file, { logType, userTZ: this.userTZ });
-    const newStats = fs.statSync(fullPath);
-    const lastEntry =
-      result.entries.length > 0
-        ? result.entries[result.entries.length - 1]
-        : undefined;
-
     const parser = new LineParser(
       getMatchFunction(logType, file),
       logType,
       fullPath,
       filename,
       this.userTZ,
-      result.entries.length,
-      result.lines,
-      lastEntry,
     );
 
     const watcher = fs.watch(fullPath, () => {
@@ -349,29 +297,11 @@ export class LiveTailWatcher {
 
     this.watchedFiles.set(fullPath, {
       watcher,
-      byteOffset: newStats.size,
+      byteOffset: stats.size,
       parser,
       logType: logType as KnownLogType,
       file,
     });
-
-    if (result.entries.length > 0) {
-      this.pendingUpdates.push({
-        fileId: fullPath,
-        newEntries: result.entries,
-        levelCountDeltas: result.entries.reduce(
-          (acc, e) => {
-            if (e.level) acc[e.level] = (acc[e.level] || 0) + 1;
-            return acc;
-          },
-          {} as Record<string, number>,
-        ),
-        repeatedCountDeltas: {},
-        byteOffset: newStats.size,
-        totalLines: result.lines,
-      });
-      this.scheduleFlush();
-    }
   }
 
   private scheduleFlush() {
@@ -383,16 +313,6 @@ export class LiveTailWatcher {
     this.flushTimer = null;
     if (this.stopped || this.pendingUpdates.length === 0) return;
 
-    const totalNewEntries = this.pendingUpdates.reduce(
-      (sum, u) => sum + u.newEntries.length,
-      0,
-    );
-    console.log(
-      '[live-tail] flush: %d updates, %d total new entries',
-      this.pendingUpdates.length,
-      totalNewEntries,
-    );
-
     const payload: LiveTailUpdatePayload = {
       updates: this.pendingUpdates,
       newFiles: [],
@@ -403,11 +323,9 @@ export class LiveTailWatcher {
     try {
       if (!this.webContents.isDestroyed()) {
         this.webContents.send(IpcEvents.LIVE_TAIL_UPDATE, payload);
-      } else {
-        console.log('[live-tail] flush: webContents is destroyed, skipping');
       }
     } catch (error) {
-      console.error('[live-tail] flush: send failed', error);
+      d('flush: send failed', error);
     }
   }
 }

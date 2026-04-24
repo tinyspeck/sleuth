@@ -2,6 +2,7 @@ import { runInAction } from 'mobx';
 
 import {
   LiveTailUpdatePayload,
+  LogEntry,
   LogType,
   MergedLogFile,
   ProcessedLogFile,
@@ -17,23 +18,22 @@ export function applyLiveTailUpdate(
 
   runInAction(() => {
     const affectedTypes = new Set<SelectableLogType>();
+    const newEntriesByType = new Map<SelectableLogType, LogEntry[]>();
 
     for (const update of payload.updates) {
       if (update.newEntries.length === 0) continue;
 
       const processed = findProcessedFile(state, update.fileId);
-      if (!processed) {
-        console.log('[live-tail apply] No match for fileId:', update.fileId);
-        continue;
-      }
+      if (!processed) continue;
 
-      console.log(
-        '[live-tail apply] Matched %s, appending %d entries (total: %d)',
-        update.fileId,
-        update.newEntries.length,
-        processed.logEntries.length + update.newEntries.length,
-      );
       processed.logEntries.push(...update.newEntries);
+
+      for (const entry of update.newEntries) {
+        if (entry.tag?.name) {
+          const prev = state.liveTailTagCounts.get(entry.tag.name) ?? 0;
+          state.liveTailTagCounts.set(entry.tag.name, prev + 1);
+        }
+      }
 
       for (const [level, delta] of Object.entries(update.levelCountDeltas)) {
         processed.levelCounts[level] =
@@ -46,6 +46,10 @@ export function applyLiveTailUpdate(
 
       affectedTypes.add(processed.logType);
       affectedTypes.add(LogType.ALL);
+
+      const existing = newEntriesByType.get(processed.logType) ?? [];
+      existing.push(...update.newEntries);
+      newEntriesByType.set(processed.logType, existing);
     }
 
     for (const logType of affectedTypes) {
@@ -54,26 +58,24 @@ export function applyLiveTailUpdate(
       const existingMerged = state.mergedLogFiles![logType];
       if (!existingMerged) continue;
 
-      const updatedMerged = rebuildMerged(existingMerged);
-      state.updateLiveTailFile(updatedMerged);
+      const batchEntries = newEntriesByType.get(logType) ?? [];
+      existingMerged.logEntries.push(...batchEntries);
+      state.updateLiveTailFile({ ...existingMerged });
     }
 
     if (affectedTypes.has(LogType.ALL)) {
       const allMerged = state.mergedLogFiles![LogType.ALL];
       if (allMerged) {
-        const freshSources = allMerged.logFiles.map(
-          (f) =>
-            ('logType' in f &&
-              state.mergedLogFiles![f.logType as SelectableLogType]) ||
-            f,
+        const allNewEntries: LogEntry[] = [];
+        for (const entries of newEntriesByType.values()) {
+          allNewEntries.push(...entries);
+        }
+        allNewEntries.sort(
+          (a, b) => (a.momentValue ?? 0) - (b.momentValue ?? 0),
         );
-        const allEntries = freshSources.flatMap((f) => f.logEntries);
-        allEntries.sort((a, b) => (a.momentValue ?? 0) - (b.momentValue ?? 0));
-        state.updateLiveTailFile({
-          ...allMerged,
-          logFiles: freshSources as ProcessedLogFile[],
-          logEntries: allEntries,
-        });
+
+        allMerged.logEntries.push(...allNewEntries);
+        state.updateLiveTailFile({ ...allMerged });
       }
     }
   });
@@ -98,14 +100,4 @@ function findProcessedFile(
   }
 
   return undefined;
-}
-
-function rebuildMerged(existing: MergedLogFile): MergedLogFile {
-  const allEntries = existing.logFiles.flatMap((f) => f.logEntries);
-  allEntries.sort((a, b) => (a.momentValue ?? 0) - (b.momentValue ?? 0));
-
-  return {
-    ...existing,
-    logEntries: allEntries,
-  };
 }

@@ -5,6 +5,7 @@ import debug from 'debug';
 
 import { SleuthState } from '../state/sleuth';
 import {
+  MergedLogFile,
   MergedLogFiles,
   ProcessedLogFiles,
   LogType,
@@ -19,10 +20,19 @@ import { Loading } from './loading';
 import { LogContent } from './log-content';
 import { flushLogPerformance } from '../processor/performance';
 import { rehydrateBookmarks } from '../state/bookmarks';
-import { getTypesForFiles } from '../../utils/get-file-types';
+import { getTypeForFile, getTypesForFiles } from '../../utils/get-file-types';
 import { mergeLogFiles, processLogFiles } from '../processor';
 
 const d = debug('sleuth:app-core');
+
+const MERGE_CANDIDATES = [
+  { key: 'browser', type: LogType.BROWSER },
+  { key: 'rx_epic', type: LogType.RX_EPIC },
+  { key: 'webapp', type: LogType.WEBAPP },
+  { key: 'webapp_sw', type: LogType.SERVICE_WORKER },
+  { key: 'chromium', type: LogType.CHROMIUM },
+  { key: 'installer', type: LogType.INSTALLER },
+] as const;
 
 export interface CoreAppProps {
   state: SleuthState;
@@ -82,6 +92,195 @@ export const CoreApplication = observer((props: CoreAppProps) => {
       setProcessedLogFiles(newProcessedLogFiles);
     }
 
+    async function processFilesLiveTail(
+      sortedUnzippedFiles: SortedUnzippedFiles,
+      addFiles: typeof addFilesToState,
+    ) {
+      for (const { key } of MERGE_CANDIDATES) {
+        const unzippedOfType = sortedUnzippedFiles[key];
+        const shells: ProcessedLogFile[] = unzippedOfType.map((file) => ({
+          id: file.fullPath,
+          type: 'ProcessedLogFile' as const,
+          levelCounts: {},
+          repeatedCounts: {},
+          logEntries: [],
+          logFile: file,
+          logType: getTypeForFile(file) as ProcessedLogFile['logType'],
+        }));
+        addFiles({ [key]: shells });
+      }
+
+      const currentProcessed = processedLogFilesRef.current;
+      props.state.processedLogFiles = currentProcessed;
+
+      const { setMergedFile } = props.state;
+      const perTypeMerged: MergedLogFile[] = [];
+
+      for (const { key, type } of MERGE_CANDIDATES) {
+        const files = (
+          currentProcessed[
+            key as keyof typeof currentProcessed
+          ] as ProcessedLogFile[]
+        ).filter((f) => 'logEntries' in f);
+
+        if (files.length === 0) continue;
+
+        const merged: MergedLogFile = {
+          id: type,
+          type: 'MergedLogFile',
+          logFiles: files,
+          logEntries: [],
+          logType: type,
+        };
+        setMergedFile(merged);
+        perTypeMerged.push(merged);
+      }
+
+      if (perTypeMerged.length > 0) {
+        const allFiles = perTypeMerged.flatMap((m) => m.logFiles);
+        const allMerged: MergedLogFile = {
+          id: LogType.ALL,
+          type: 'MergedLogFile',
+          logFiles: allFiles,
+          logEntries: [],
+          logType: LogType.ALL,
+        };
+        setMergedFile(allMerged);
+        props.state.selectAllLogs();
+      }
+
+      setLoadedLogFiles(true);
+
+      liveTailCleanupRef.current = window.Sleuth.setupLiveTailUpdate(
+        (_event, payload) => {
+          applyLiveTailUpdate(props.state, payload);
+        },
+      );
+    }
+
+    async function processFilesNormal(
+      sortedUnzippedFiles: SortedUnzippedFiles,
+      userTZ: string | undefined,
+      addFiles: typeof addFilesToState,
+    ) {
+      console.time('process-files');
+
+      const results = await Promise.allSettled(
+        LOG_TYPES_TO_PROCESS.map(async (type) => {
+          const preFiles = sortedUnzippedFiles[type];
+          const files = await processLogFiles(preFiles, userTZ, (msg) => {
+            setLoadingMessage(msg);
+          });
+          return { type, files };
+        }),
+      );
+
+      const failedTypes: string[] = [];
+      for (let i = 0; i < results.length; i++) {
+        const r = results[i];
+        if (r.status === 'fulfilled') {
+          const { type, files } = r.value;
+          addFiles({ [type]: files as ProcessedLogFile[] });
+
+          if (type === LogType.INSTALLER) {
+            for (const file of files) {
+              if (
+                'fullPath' in file &&
+                file.fileName.toLowerCase() === 'shipitstate.plist'
+              ) {
+                const content = await window.Sleuth.readStateFile(file);
+                if (content) {
+                  props.state.stateFiles[file.fileName] = content;
+                }
+              }
+            }
+          }
+        } else {
+          const type = LOG_TYPES_TO_PROCESS[i];
+          const reason = r.reason;
+          console.error(`Failed to process ${type} log files:`, reason);
+          d(`Failed to process ${type} log files:`, reason);
+          failedTypes.push(type);
+        }
+      }
+
+      if (failedTypes.length > 0) {
+        window.Sleuth.showMessageBox({
+          title: 'Some logs failed to process',
+          message: `The following log types could not be processed: ${failedTypes.join(', ')}. Some data may be missing.`,
+          type: 'warning',
+        });
+      }
+      console.timeEnd('process-files');
+
+      const currentProcessed = processedLogFilesRef.current;
+      props.state.processedLogFiles = currentProcessed;
+
+      const { setMergedFile } = props.state;
+
+      if (currentProcessed) {
+        const toProcess = MERGE_CANDIDATES.map(({ key, type }) => {
+          const files = (
+            currentProcessed[
+              key as keyof typeof currentProcessed
+            ] as ProcessedLogFile[]
+          ).filter((f) => 'logEntries' in f);
+          return { key, type, files };
+        }).filter(({ files }) => files.length > 0);
+        const mergeResults = await Promise.allSettled(
+          toProcess.map(({ files, type }) => mergeLogFiles(files, type)),
+        );
+
+        const failedMergeTypes: string[] = [];
+        for (let i = 0; i < mergeResults.length; i++) {
+          const result = mergeResults[i];
+          if (result.status === 'fulfilled') {
+            setMergedFile(result.value);
+          } else {
+            const type = toProcess[i].key;
+            console.error(`Failed to merge ${type} log files:`, result.reason);
+            failedMergeTypes.push(type);
+          }
+        }
+
+        if (failedMergeTypes.length > 0) {
+          window.Sleuth.showMessageBox({
+            title: 'Some logs failed to merge',
+            message: `The following log types could not be merged: ${failedMergeTypes.join(', ')}. The combined view may be incomplete.`,
+            type: 'warning',
+          });
+        }
+
+        const merged = props.state.mergedLogFiles;
+        const toMerge = [
+          merged?.browser,
+          merged?.rx_epic,
+          merged?.webapp,
+          merged?.webapp_sw,
+          merged?.chromium,
+          merged?.installer,
+        ].filter(Boolean) as MergedLogFiles[keyof MergedLogFiles][];
+
+        if (toMerge.length > 0) {
+          const allMerged = await mergeLogFiles(toMerge, LogType.ALL);
+          setMergedFile(allMerged);
+          props.state.selectAllLogs();
+        } else {
+          const firstFile =
+            currentProcessed.installer[0] ??
+            currentProcessed.mobile[0] ??
+            currentProcessed.chromium[0] ??
+            currentProcessed.netlog[0] ??
+            currentProcessed.state[0];
+          if (firstFile) {
+            props.state.selectFile(firstFile);
+          }
+        }
+      }
+
+      setLoadedLogFiles(true);
+    }
+
     async function processFiles() {
       try {
         const { unzippedFiles } = props;
@@ -129,159 +328,13 @@ export const CoreApplication = observer((props: CoreAppProps) => {
           d(`Processing logs with user timezone: ${userTZ}`);
         }
 
-        // Process all log types in parallel — use allSettled so one failure
-        // doesn't prevent the remaining types from loading.
-        // State updates are applied sequentially after all processing completes
-        // to avoid a read-modify-write race on processedLogFilesRef.
-        const results = await Promise.allSettled(
-          LOG_TYPES_TO_PROCESS.map(async (type) => {
-            const preFiles = sortedUnzippedFiles[type];
-            const files = await processLogFiles(preFiles, userTZ, (msg) => {
-              setLoadingMessage(msg);
-            });
-            return { type, files };
-          }),
-        );
-
-        const failedTypes: string[] = [];
-        for (let i = 0; i < results.length; i++) {
-          const r = results[i];
-          if (r.status === 'fulfilled') {
-            const { type, files } = r.value;
-            addFilesToState({ [type]: files as ProcessedLogFile[] });
-
-            // ShipItState.plist is a JSON file that should be read as state
-            if (type === LogType.INSTALLER) {
-              for (const file of files) {
-                if (
-                  'fullPath' in file &&
-                  file.fileName.toLowerCase() === 'shipitstate.plist'
-                ) {
-                  const content = await window.Sleuth.readStateFile(file);
-                  if (content) {
-                    props.state.stateFiles[file.fileName] = content;
-                  }
-                }
-              }
-            }
-          } else {
-            const type = LOG_TYPES_TO_PROCESS[i];
-            const reason = r.reason;
-            console.error(`Failed to process ${type} log files:`, reason);
-            d(`Failed to process ${type} log files:`, reason);
-            failedTypes.push(type);
-          }
-        }
-
-        if (failedTypes.length > 0) {
-          window.Sleuth.showMessageBox({
-            title: 'Some logs failed to process',
-            message: `The following log types could not be processed: ${failedTypes.join(', ')}. Some data may be missing.`,
-            type: 'warning',
-          });
-        }
-        console.timeEnd('process-files');
-
-        const currentProcessed = processedLogFilesRef.current;
-
-        props.state.processedLogFiles = currentProcessed;
-
-        // Merge log files before showing the UI
-        const { setMergedFile } = props.state;
-
-        if (currentProcessed) {
-          const MERGE_CANDIDATES = [
-            { key: 'browser', type: LogType.BROWSER },
-            { key: 'rx_epic', type: LogType.RX_EPIC },
-            { key: 'webapp', type: LogType.WEBAPP },
-            { key: 'webapp_sw', type: LogType.SERVICE_WORKER },
-            { key: 'chromium', type: LogType.CHROMIUM },
-            { key: 'installer', type: LogType.INSTALLER },
-          ] as const;
-          const toProcess = MERGE_CANDIDATES.map(({ key, type }) => {
-            const files = (
-              currentProcessed[
-                key as keyof typeof currentProcessed
-              ] as ProcessedLogFile[]
-            ).filter((f) => 'logEntries' in f);
-            return { key, type, files };
-          }).filter(({ files }) => files.length > 0);
-          const mergeResults = await Promise.allSettled(
-            toProcess.map(({ files, type }) => mergeLogFiles(files, type)),
-          );
-
-          const failedMergeTypes: string[] = [];
-          for (let i = 0; i < mergeResults.length; i++) {
-            const result = mergeResults[i];
-            if (result.status === 'fulfilled') {
-              setMergedFile(result.value);
-            } else {
-              const type = toProcess[i].key;
-              console.error(
-                `Failed to merge ${type} log files:`,
-                result.reason,
-              );
-              failedMergeTypes.push(type);
-            }
-          }
-
-          if (failedMergeTypes.length > 0) {
-            window.Sleuth.showMessageBox({
-              title: 'Some logs failed to merge',
-              message: `The following log types could not be merged: ${failedMergeTypes.join(', ')}. The combined view may be incomplete.`,
-              type: 'warning',
-            });
-          }
-
-          const merged = props.state.mergedLogFiles;
-          const toMerge = [
-            merged?.browser,
-            merged?.rx_epic,
-            merged?.webapp,
-            merged?.webapp_sw,
-            merged?.chromium,
-            merged?.installer,
-          ].filter(Boolean) as MergedLogFiles[keyof MergedLogFiles][];
-
-          if (toMerge.length > 0) {
-            const allMerged = await mergeLogFiles(toMerge, LogType.ALL);
-            setMergedFile(allMerged);
-            props.state.selectAllLogs();
-          } else {
-            // No browser/webapp logs to merge — select first available file
-            const firstFile =
-              currentProcessed.installer[0] ??
-              currentProcessed.mobile[0] ??
-              currentProcessed.chromium[0] ??
-              currentProcessed.netlog[0] ??
-              currentProcessed.state[0];
-            if (firstFile) {
-              props.state.selectFile(firstFile);
-            }
-          }
-        }
-
-        setLoadedLogFiles(true);
-
         if (props.state.isLiveTailActive) {
-          console.log(
-            '[live-tail renderer] Registering live tail update listener',
-          );
-          liveTailCleanupRef.current = window.Sleuth.setupLiveTailUpdate(
-            (_event, payload) => {
-              console.log(
-                '[live-tail renderer] Got update:',
-                payload.updates.length,
-                'updates,',
-                payload.updates.reduce((s, u) => s + u.newEntries.length, 0),
-                'new entries',
-              );
-              applyLiveTailUpdate(props.state, payload);
-            },
-          );
+          await processFilesLiveTail(sortedUnzippedFiles, addFilesToState);
         } else {
-          console.log(
-            '[live-tail renderer] isLiveTailActive is false, skipping listener setup',
+          await processFilesNormal(
+            sortedUnzippedFiles,
+            userTZ,
+            addFilesToState,
           );
         }
 

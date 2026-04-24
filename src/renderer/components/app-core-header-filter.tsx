@@ -10,7 +10,6 @@ import {
   InputRef,
   Space,
   Switch,
-  Tag,
   Tooltip,
 } from 'antd';
 import { SleuthState } from '../state/sleuth';
@@ -19,7 +18,6 @@ import {
   ArrowUpOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
-  PauseCircleOutlined,
   SearchOutlined,
   VerticalAlignBottomOutlined,
 } from '@ant-design/icons';
@@ -131,12 +129,25 @@ export const Filter = observer((props: FilterProps) => {
     <Space className="SearchGroup">
       {props.state.isLiveTailActive && (
         <>
-          <Tag color="green">Live</Tag>
+          <Tooltip title="Click to stop recording">
+            <button
+              className="LivePill"
+              onClick={() => {
+                window.Sleuth.stopLiveTail();
+                runInAction(() => {
+                  props.state.setLiveTailActive(false);
+                });
+              }}
+            >
+              <span className="LivePillDot" />
+              <span>Live</span>
+            </button>
+          </Tooltip>
           <Tooltip
             title={
               props.state.isAutoScrollEnabled
                 ? 'Auto-scrolling to newest'
-                : 'Auto-scroll paused — scroll to bottom to resume'
+                : 'Auto-scroll paused'
             }
           >
             <Button
@@ -144,20 +155,9 @@ export const Filter = observer((props: FilterProps) => {
               type={props.state.isAutoScrollEnabled ? 'primary' : 'default'}
               size="small"
               onClick={() => {
-                props.state.setAutoScrollEnabled(true);
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Stop live tail">
-            <Button
-              icon={<PauseCircleOutlined />}
-              size="small"
-              danger
-              onClick={() => {
-                window.Sleuth.stopLiveTail();
-                runInAction(() => {
-                  props.state.setLiveTailActive(false);
-                });
+                props.state.setAutoScrollEnabled(
+                  !props.state.isAutoScrollEnabled,
+                );
               }}
             />
           </Tooltip>

@@ -150,6 +150,8 @@ export class SleuthState {
   // ** Live Tail **
   @observable public isLiveTailActive = false;
   @observable public isAutoScrollEnabled = true;
+  @observable public liveTailRevision = 0;
+  public liveTailTagCounts = new Map<string, number>();
 
   // ** Giant non-observable arrays **
   public mergedLogFiles?: MergedLogFiles;
@@ -298,8 +300,10 @@ export class SleuthState {
       window.Sleuth.stopLiveTail();
       this.isLiveTailActive = false;
       this.isAutoScrollEnabled = true;
+      this.liveTailTagCounts.clear();
     }
 
+    this.source = undefined;
     this.processedLogFiles = undefined;
     this.mergedLogFiles = undefined;
     this.selectedEntry = undefined;
@@ -390,23 +394,11 @@ export class SleuthState {
     this.mergedLogFiles = newMergedLogFiles;
 
     const sel = this.selectedFile;
-    const isLog = sel && isLogFile(sel);
-    const typeMatch = isLog && sel.logType === updatedMerged.logType;
-    console.log(
-      '[live-tail state] updateLiveTailFile: updatedType=%s selectedType=%s isLog=%s typeMatch=%s',
-      updatedMerged.logType,
-      isLog ? sel.logType : 'N/A',
-      isLog,
-      typeMatch,
-    );
-
-    if (sel && isLog && typeMatch) {
+    if (sel && isLogFile(sel) && sel.logType === updatedMerged.logType) {
       this.selectedFile = updatedMerged;
-      console.log(
-        '[live-tail state] selectedFile replaced, entries=%d',
-        updatedMerged.logEntries.length,
-      );
     }
+
+    this.liveTailRevision++;
   }
 
   @action

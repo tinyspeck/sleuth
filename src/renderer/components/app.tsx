@@ -55,12 +55,10 @@ export const App = observer(() => {
 
   const startLiveTail = useCallback(
     async (logsPath: string) => {
-      d('startLiveTail called with path:', logsPath);
       resetApp();
       try {
-        d('Invoking window.Sleuth.startLiveTail...');
-        const files = await window.Sleuth.startLiveTail(logsPath);
-        d('startLiveTail returned %d files', files?.length ?? 0, files);
+        const systemTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const files = await window.Sleuth.startLiveTail(logsPath, systemTZ);
         sleuthStateRef.current?.setSource(logsPath);
         sleuthStateRef.current?.setLiveTailActive(true);
         setUnzippedFiles(files);
@@ -155,7 +153,6 @@ export const App = observer(() => {
     ) : (
       ''
     );
-  d('Render: unzippedFiles length=%d', unzippedFiles?.length ?? 0);
   const content =
     unzippedFiles && unzippedFiles.length ? (
       <CoreApplication state={sleuthState} unzippedFiles={unzippedFiles} />

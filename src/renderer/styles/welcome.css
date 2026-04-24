@@ -48,15 +48,18 @@
   background: var(--ant-color-bg-elevated);
 }
 
-.welcome__delete-stale {
-  text-align: center;
-  position: sticky;
-  bottom: 1rem;
-  margin-top: 1rem;
+.welcome__folder-actions {
+  position: absolute;
+  bottom: var(--ant-padding-lg);
   left: 50%;
-  transform: translate(-50%, 0);
-  box-shadow: var(--ant-box-shadow);
+  transform: translateX(-50%);
+  display: flex;
+  gap: var(--ant-padding-xs);
   z-index: 3;
+}
+
+.welcome__delete-stale {
+  box-shadow: var(--ant-box-shadow);
 }
 
 .welcome__suggestion-container {
@@ -124,13 +127,17 @@
 
 .welcome__downloads-dir {
   background: var(--ant-color-bg-elevated);
-  border-radius: 4px 4px 0 0;
-  padding: 8px 16px;
+  border-radius: var(--ant-border-radius) var(--ant-border-radius) 0 0;
+  padding: var(--ant-padding-xs) var(--ant-padding);
   position: absolute;
-  border: 1px solid var(--ant-button-default-border-color);
-  border-bottom: 1px solid var(--ant-color-bg-elevated);
+  border: var(--ant-line-width) solid var(--ant-button-default-border-color);
+  border-bottom: var(--ant-line-width) solid var(--ant-color-bg-elevated);
   top: -40px;
   height: 40px;
+}
+
+.welcome__watch-btn {
+  box-shadow: var(--ant-box-shadow);
 }
 
 .welcome__spinner {
@@ -138,10 +145,6 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
-
-.welcome__watch-buttons {
-  margin-bottom: var(--ant-padding-sm);
 }
 
 .welcome__suggestion-drag-and-drop-reminder {
