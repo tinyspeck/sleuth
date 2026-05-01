@@ -227,11 +227,22 @@ export class SleuthState {
       }
     };
 
-    window.Sleuth.aiCheckAvailable().then(
-      action((available: boolean) => {
-        this.isAiAvailable = available;
-      }),
-    );
+    const checkAi = (retries = 2): Promise<void> =>
+      window.Sleuth.aiCheckAvailable().then(
+        action((available: boolean) => {
+          this.isAiAvailable = available;
+        }),
+        (err) => {
+          console.warn('AI availability check failed:', err);
+          if (retries > 0) {
+            return new Promise<void>((resolve) =>
+              setTimeout(() => resolve(checkAi(retries - 1)), 3_000),
+            );
+          }
+        },
+      );
+
+    checkAi();
   }
 
   @computed get isLogViewVisible() {
