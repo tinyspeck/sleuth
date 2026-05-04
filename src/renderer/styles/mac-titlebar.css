@@ -1,4 +1,5 @@
 .MacTitlebar {
+  position: relative;
   width: 100vw;
   height: var(--sleuth-darwin-titlebar-height);
   -webkit-user-select: none;

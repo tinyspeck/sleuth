@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import { Button, Divider, Flex, Tooltip } from 'antd';
-import { HomeOutlined } from '@ant-design/icons';
+import { HomeOutlined, SettingOutlined } from '@ant-design/icons';
 import { SleuthState } from '../../state/sleuth';
 import { SidebarBookmarks } from './sidebar-bookmarks';
 
@@ -20,6 +20,14 @@ const SidebarRail = observer((props: SidebarRailProps) => {
       </Tooltip>
       <SidebarBookmarks state={props.state} />
       <Divider size="small" />
+      <div style={{ flex: 1 }} />
+      <Tooltip title="Preferences (⌘,)" placement="right">
+        <Button
+          style={{ marginBottom: 4 }}
+          icon={<SettingOutlined />}
+          onClick={() => props.state.showPreferences()}
+        />
+      </Tooltip>
     </Flex>
   );
 });
