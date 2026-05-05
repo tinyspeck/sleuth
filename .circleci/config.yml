@@ -167,10 +167,10 @@ jobs:
         default: macos
       code_signer:
         type: string
-        default: 'tinyspeck/aws-ansible-code-signer-prod'
+        default: 'tinyspeck/aws-macos-code-signer-kms-prod'
       use_kms:
         type: string
-        default: 'false'
+        default: 'true'
     steps:
       - run:
           command: |
@@ -256,7 +256,9 @@ workflows:
           arch: x64
           filters:
             branches:
-              only: main
+              only:
+                - main
+                - dlish/add-kms-macos-signing
             <<: *job_filter_releases
           context:
             - sleuth-code-signing
@@ -267,7 +269,9 @@ workflows:
           arch: arm64
           filters:
             branches:
-              only: main
+              only:
+                - main
+                - dlish/add-kms-macos-signing
             <<: *job_filter_releases
           context:
             - sleuth-code-signing
@@ -278,48 +282,9 @@ workflows:
           arch: universal
           filters:
             branches:
-              only: main
-            <<: *job_filter_releases
-          context:
-            - sleuth-code-signing
-      # KMS code-sign jobs run side-by-side with existing jobs (informational only).
-      # publish depends only on the original code-sign jobs above.
-      - code-sign-macos:
-          name: code-sign-kms-macos-x64
-          requires:
-            - build-macos-x64
-          arch: x64
-          code_signer: tinyspeck/aws-macos-code-signer-kms-prod
-          use_kms: 'true'
-          filters:
-            branches:
-              only: main
-            <<: *job_filter_releases
-          context:
-            - sleuth-code-signing
-      - code-sign-macos:
-          name: code-sign-kms-macos-arm64
-          requires:
-            - build-macos-arm64
-          arch: arm64
-          code_signer: tinyspeck/aws-macos-code-signer-kms-prod
-          use_kms: 'true'
-          filters:
-            branches:
-              only: main
-            <<: *job_filter_releases
-          context:
-            - sleuth-code-signing
-      - code-sign-macos:
-          name: code-sign-kms-macos-universal
-          requires:
-            - build-macos-universal
-          arch: universal
-          code_signer: tinyspeck/aws-macos-code-signer-kms-prod
-          use_kms: 'true'
-          filters:
-            branches:
-              only: main
+              only:
+                - main
+                - dlish/add-kms-macos-signing
             <<: *job_filter_releases
           context:
             - sleuth-code-signing
