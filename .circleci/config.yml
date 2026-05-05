@@ -256,9 +256,7 @@ workflows:
           arch: x64
           filters:
             branches:
-              only:
-                - main
-                - dlish/add-kms-macos-signing
+              only: main
             <<: *job_filter_releases
           context:
             - sleuth-code-signing
@@ -269,9 +267,7 @@ workflows:
           arch: arm64
           filters:
             branches:
-              only:
-                - main
-                - dlish/add-kms-macos-signing
+              only: main
             <<: *job_filter_releases
           context:
             - sleuth-code-signing
@@ -282,9 +278,7 @@ workflows:
           arch: universal
           filters:
             branches:
-              only:
-                - main
-                - dlish/add-kms-macos-signing
+              only: main
             <<: *job_filter_releases
           context:
             - sleuth-code-signing
