@@ -1,4 +1,3 @@
-import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import https from 'node:https';
@@ -512,7 +511,12 @@ interface ReadRepoContextInput {
   repo: string;
 }
 
-function fetchUrl(url: string): Promise<string> {
+const MAX_REDIRECTS = 5;
+
+function fetchUrl(
+  url: string,
+  redirectsRemaining = MAX_REDIRECTS,
+): Promise<string> {
   return new Promise((resolve, reject) => {
     https
       .get(url, (res) => {
@@ -522,7 +526,14 @@ function fetchUrl(url: string): Promise<string> {
           res.statusCode < 400 &&
           res.headers.location
         ) {
-          fetchUrl(res.headers.location).then(resolve, reject);
+          if (redirectsRemaining <= 0) {
+            reject(new Error(`Too many redirects (>${MAX_REDIRECTS})`));
+            return;
+          }
+          fetchUrl(res.headers.location, redirectsRemaining - 1).then(
+            resolve,
+            reject,
+          );
           return;
         }
         if (res.statusCode !== 200) {

@@ -224,7 +224,7 @@ export const Preferences = observer((props: PreferencesProps) => {
       <Divider />
       <Typography.Title level={5}>AI Settings</Typography.Title>
       <Form.Item layout="vertical" label="Codebase Directories">
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space orientation="vertical" style={{ width: '100%' }}>
           <Typography.Text type="secondary">
             Configure local codebase directories that the AI assistant can
             search to correlate log messages with source code.

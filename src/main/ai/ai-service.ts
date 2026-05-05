@@ -76,8 +76,13 @@ export class AiService {
         content: m.content,
       }));
 
+      // Cap tool-use iterations so a model that keeps asking for tools
+      // cannot loop forever (bounds cost and latency on pathological inputs).
+      const MAX_TOOL_ITERATIONS = 20;
+
       // Tool-use loop
-      while (true) {
+      let hitToolLimit = false;
+      for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
         const stream = client.messages.stream(
           {
             model: getModel(),
@@ -136,6 +141,17 @@ export class AiService {
           // Done - no more tool calls
           break;
         }
+
+        if (iteration === MAX_TOOL_ITERATIONS - 1) {
+          hitToolLimit = true;
+        }
+      }
+
+      if (hitToolLimit && !window.isDestroyed()) {
+        window.webContents.send(IpcEvents.AI_STREAM_CHUNK, {
+          requestId,
+          chunk: `\n\n> *Stopped after ${MAX_TOOL_ITERATIONS} tool iterations to avoid runaway loops. Ask a follow-up if you'd like me to continue.*\n\n`,
+        });
       }
 
       if (!window.isDestroyed()) {
