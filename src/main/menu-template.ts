@@ -105,8 +105,9 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
         {
           label: 'Toggle AI Sidebar',
           accelerator: 'CmdOrCtrl+L',
-          click(_item: Electron.MenuItem, browserWindow: BrowserWindow) {
-            browserWindow.webContents.send(IpcEvents.TOGGLE_AI_SIDEBAR);
+          click(_item: Electron.MenuItem, win: BaseWindow | undefined) {
+            const browserWindow = asBrowserWindow(win);
+            browserWindow?.webContents.send(IpcEvents.TOGGLE_AI_SIDEBAR);
           },
         },
       ],
