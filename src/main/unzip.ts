@@ -17,8 +17,10 @@ const d = debug('sleuth:unzip');
  */
 export class Unzipper {
   public readonly url: string;
-  public output: string;
-  public zipfile: ZipFile;
+  // Assigned in unzip() before use
+  public output!: string;
+  // Assigned in open() before use
+  public zipfile!: ZipFile;
   public files: Array<UnzippedFile> = [];
 
   public uniqueFileNameCount: Map<string, number> = new Map();
@@ -92,7 +94,7 @@ export class Unzipper {
       (resolve, reject) => {
         this.zipfile.openReadStream(
           entry,
-          async (error: Error, zipStream: NodeJS.ReadableStream) => {
+          async (error: Error | null, zipStream: NodeJS.ReadableStream) => {
             if (error) {
               d(
                 `Encountered error while trying to read stream for ${outputFileName}`,
