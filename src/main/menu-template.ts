@@ -91,6 +91,16 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
         {
           role: 'resetZoom',
         },
+        {
+          type: 'separator',
+        },
+        {
+          label: 'Toggle AI Sidebar',
+          accelerator: 'CmdOrCtrl+L',
+          click(_item: Electron.MenuItem, browserWindow: BrowserWindow) {
+            browserWindow.webContents.send(IpcEvents.TOGGLE_AI_SIDEBAR);
+          },
+        },
       ],
     },
     {
