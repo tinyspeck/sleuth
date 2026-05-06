@@ -132,9 +132,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@anthropic-ai/sdk@npm:^0.81.0":
-  version: 0.81.0
-  resolution: "@anthropic-ai/sdk@npm:0.81.0"
+"@anthropic-ai/sdk@npm:^0.91.1":
+  version: 0.91.1
+  resolution: "@anthropic-ai/sdk@npm:0.91.1"
   dependencies:
     json-schema-to-ts: "npm:^3.1.1"
   peerDependencies:
@@ -144,7 +144,7 @@ __metadata:
       optional: true
   bin:
     anthropic-ai-sdk: bin/cli
-  checksum: 10c0/9ce1de04f88c05a74e67d07e8707d74815df8a9ad4977fbd7ad6fc146cef521214f11c4faeab5f5c00d76ee5671bf4e223dadf0e2f98c2c979aa9e33c8f89d8d
+  checksum: 10c0/aa9fb1b3d0ae47f492ee7a94b76d341ac7c5486b222a9426b4815b07a65a0b6f502430b0250ff5bf2201a0cdae725a5d4f1f7a4aaa075e9fb32cc2ac10d70241
   languageName: node
   linkType: hard
 
@@ -9199,7 +9199,7 @@ __metadata:
   dependencies:
     "@ant-design/icons": "npm:^6.0.0"
     "@anthropic-ai/bedrock-sdk": "npm:^0.27.0"
-    "@anthropic-ai/sdk": "npm:^0.81.0"
+    "@anthropic-ai/sdk": "npm:^0.91.1"
     "@date-fns/tz": "npm:^1.4.1"
     "@electron-forge/cli": "npm:8.0.0-alpha.6"
     "@electron-forge/maker-deb": "npm:8.0.0-alpha.6"
