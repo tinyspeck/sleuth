@@ -167,7 +167,10 @@ jobs:
         default: macos
       code_signer:
         type: string
-        default: 'tinyspeck/aws-ansible-code-signer-prod'
+        default: 'tinyspeck/aws-macos-code-signer-kms-prod'
+      use_kms:
+        type: string
+        default: 'true'
     steps:
       - run:
           command: |
@@ -192,7 +195,8 @@ jobs:
                     --arg ct "" \
                     --arg cs "$CIRCLE_SHA1" \
                     --arg rc << parameters.code_signer >> \
-                    '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, DARWIN_PLATFORM: $mas, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs, RESOURCE_CLASS: $rc}'
+                    --arg kms "<< parameters.use_kms >>" \
+                    '{JOB_NAME: $j, ARTIFACTS_DIR: $ad, DARWIN_PLATFORM: $mas, PROD_NAME: $pn, CIRCLE_TAG: $ct, CIRCLE_SHA1: $cs, RESOURCE_CLASS: $rc, USE_KMS: $kms}'
             )
             if [ -n "${CIRCLE_TAG}" ]; then export GIT_REF=$CIRCLE_TAG; else export GIT_REF=$CIRCLE_BRANCH; fi
             sudo /Library/circleci/runner-entrypoint.sh master "$JOB_PARAMS"
