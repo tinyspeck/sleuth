@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 
 import { SleuthState } from '../../state/sleuth';
-import { Button, Flex } from 'antd';
+import { Button, Flex, Tooltip } from 'antd';
 
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { SidebarFileTree } from './sidebar-file-tree';
@@ -21,13 +21,18 @@ const Sidebar = observer((props: SidebarProps) => {
         <SidebarRail state={props.state} />
         <SidebarFileTree state={props.state} />
       </Flex>
-      <Button
-        className="SidebarTreeToggle"
-        onClick={props.state.toggleSidebar}
-        variant="filled"
+      <Tooltip
+        title={isSidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
+        placement="right"
       >
-        {isSidebarOpen ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
-      </Button>
+        <Button
+          className="SidebarTreeToggle"
+          onClick={props.state.toggleSidebar}
+          variant="filled"
+        >
+          {isSidebarOpen ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
+        </Button>
+      </Tooltip>
     </Flex>
   );
 });
