@@ -30,6 +30,9 @@ import { getSentryHref } from '../renderer/sentry';
 import { openLineInSource } from './open-line-in-source';
 import { isTraceSourcemapped } from './filesystem/is-trace-sourcemapped';
 import { Editor } from '../renderer/components/preferences/preferences-utils';
+import { AiService } from './ai/ai-service';
+import { startSsoLogin, checkAiAvailable } from './ai/aws-credentials';
+import type { AiMessage, SerializedLogContext } from '../ai-interfaces';
 
 fs.watch(app.getPath('downloads'), async () => {
   const suggestions = await getItemsInSuggestionFolders();
@@ -76,6 +79,7 @@ export class IpcManager {
     this.setupProcessor();
     this.setupOpenSentry();
     this.setupLogFileContextMenu();
+    this.setupAi();
   }
 
   public openFile(pathName: string) {
@@ -379,6 +383,54 @@ export class IpcManager {
         }
       },
     );
+  }
+
+  private setupAi() {
+    const aiService = new AiService();
+
+    ipcMain.handle(
+      IpcEvents.AI_SEND_MESSAGE,
+      async (
+        event,
+        requestId: string,
+        messages: AiMessage[],
+        logContext: SerializedLogContext,
+        codebasePaths: string[],
+      ) => {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        if (!window) return;
+
+        await aiService.sendMessage(
+          window,
+          requestId,
+          messages,
+          logContext,
+          codebasePaths,
+        );
+      },
+    );
+
+    ipcMain.handle(IpcEvents.AI_ABORT, async (_event, requestId: string) => {
+      aiService.abort(requestId);
+    });
+
+    ipcMain.handle(IpcEvents.AI_SSO_LOGIN, async () => {
+      await startSsoLogin();
+    });
+
+    ipcMain.handle(IpcEvents.AI_CHECK_AVAILABLE, async () => {
+      return checkAiAvailable();
+    });
+
+    ipcMain.handle(IpcEvents.AI_SHOW_DIRECTORY_PICKER, async (event) => {
+      const window = BrowserWindow.fromWebContents(event.sender);
+      if (!window) return { filePaths: [], canceled: true };
+
+      return dialog.showOpenDialog(window, {
+        properties: ['openDirectory'],
+        title: 'Select Codebase Directory',
+      });
+    });
   }
 
   private setupLogFileContextMenu() {

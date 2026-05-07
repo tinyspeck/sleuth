@@ -5,8 +5,10 @@ import fs from 'fs-extra';
 import { throttle } from 'lodash';
 
 export class SettingsFileManager {
-  public settingsFilePath: string;
-  private _lastSaveSettings: Record<string, unknown>;
+  // Assigned in getSettings(), called by _settings initializer
+  public settingsFilePath!: string;
+  // Assigned in getSettings(), called by _settings initializer
+  private _lastSaveSettings!: Record<string, unknown>;
   private _settings: Record<string, unknown> = this.getSettings();
   private saveSettings: () => void;
 
