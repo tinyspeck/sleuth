@@ -5,3 +5,4 @@ declare module 'electron-default-menu';
 
 // https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript#wildcard-character-in-module-name
 declare module '*/package.json';
+declare module '@fontsource/fira-code/*';

@@ -64,7 +64,6 @@ export const LogTimeView = observer((props: LogTimeViewProps) => {
     const systemTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const userTZ = props.state.stateFiles['log-context.json']?.data?.systemTZ;
     const tz = isUserTZ ? userTZ : systemTZ;
-
     for (const [time, buckets] of bucketedLogMetricsByTime) {
       const epoch = parseInt(time, 10) * 1000;
       if (fromTs !== null && epoch < fromTs) continue;
