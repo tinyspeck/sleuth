@@ -268,7 +268,7 @@ export class SleuthState {
   public get timeBucketedLogMetrics(): TimeBucketedLogMetrics {
     const range = this.customTimeViewRange || this.initialTimeViewRange;
     return this.selectedFile
-      ? getTimeBucketedLogMetrics(this.selectedFile, range)
+      ? getTimeBucketedLogMetrics(this.selectedFile, range, this.logTypeFilter)
       : {};
   }
 
