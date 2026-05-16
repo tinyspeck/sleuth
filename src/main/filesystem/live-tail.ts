@@ -43,6 +43,8 @@ export class LiveTailWatcher {
   private watchedFiles = new Map<string, WatchedFile>();
   private pendingUpdates: LiveTailUpdate[] = [];
   private flushTimer: ReturnType<typeof setTimeout> | null = null;
+  private dirtyFiles = new Set<string>();
+  private readTimer: ReturnType<typeof setTimeout> | null = null;
   private stopped = false;
 
   constructor(
@@ -122,6 +124,11 @@ export class LiveTailWatcher {
       clearTimeout(this.flushTimer);
       this.flushTimer = null;
     }
+    if (this.readTimer) {
+      clearTimeout(this.readTimer);
+      this.readTimer = null;
+    }
+    this.dirtyFiles.clear();
     this.pendingUpdates = [];
   }
 
@@ -170,27 +177,39 @@ export class LiveTailWatcher {
   }
 
   private onFileChange(fullPath: string) {
+    if (this.stopped || !this.watchedFiles.has(fullPath)) return;
+    this.dirtyFiles.add(fullPath);
+    if (!this.readTimer) {
+      this.readTimer = setTimeout(() => this.drainDirty(), 20);
+    }
+  }
+
+  private drainDirty() {
+    this.readTimer = null;
     if (this.stopped) return;
 
-    const watched = this.watchedFiles.get(fullPath);
-    if (!watched) return;
+    for (const fullPath of this.dirtyFiles) {
+      const watched = this.watchedFiles.get(fullPath);
+      if (!watched) continue;
 
-    let newSize: number;
-    try {
-      newSize = fs.statSync(fullPath).size;
-    } catch {
-      return;
-    }
-
-    if (newSize <= watched.byteOffset) {
-      if (newSize < watched.byteOffset) {
-        d('File %s was truncated/rotated, resetting', fullPath);
-        this.resetFile(watched);
+      let newSize: number;
+      try {
+        newSize = fs.statSync(fullPath).size;
+      } catch {
+        continue;
       }
-      return;
-    }
 
-    this.readIncremental(watched, newSize);
+      if (newSize <= watched.byteOffset) {
+        if (newSize < watched.byteOffset) {
+          d('File %s was truncated/rotated, resetting', fullPath);
+          this.resetFile(watched);
+        }
+        continue;
+      }
+
+      this.readIncremental(watched, newSize);
+    }
+    this.dirtyFiles.clear();
   }
 
   private readIncremental(watched: WatchedFile, newSize: number) {

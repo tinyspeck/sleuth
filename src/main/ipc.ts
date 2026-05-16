@@ -452,14 +452,29 @@ export class IpcManager {
       },
     );
   }
+  private getAllowedLogsPaths(): string[] {
+    const appData = app.getPath('appData');
+    return ['Slack', 'SlackDevEnv', 'SlackDevMode'].map((dir) =>
+      path.join(appData, dir, 'logs'),
+    );
+  }
+
   /** Register IPC handlers for starting, stopping, and cleaning up live tail sessions. */
   private setupLiveTail() {
     ipcMain.handle(
       IpcEvents.LIVE_TAIL_START,
       async (event, logsPath: string, userTZ?: string) => {
+        const resolved = path.resolve(logsPath);
+        const allowed = this.getAllowedLogsPaths();
+        if (!allowed.some((p) => resolved === path.resolve(p))) {
+          throw new Error(
+            `Live tail path not allowed: ${resolved}. Allowed: ${allowed.join(', ')}`,
+          );
+        }
+
         this.liveTailWatcher?.stop();
         this.liveTailWatcher = new LiveTailWatcher(
-          logsPath,
+          resolved,
           event.sender,
           userTZ,
         );

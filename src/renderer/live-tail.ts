@@ -59,28 +59,32 @@ export function applyLiveTailUpdate(
       if (logType === LogType.ALL) continue;
 
       const existingMerged = state.mergedLogFiles![logType];
-      if (!existingMerged) continue;
+      if (!existingMerged) {
+        console.warn(`live-tail: no merged file for type ${logType}`);
+        continue;
+      }
 
       const batchEntries = newEntriesByType.get(logType) ?? [];
       existingMerged.logEntries.push(...batchEntries);
       state.updateLiveTailFile({ ...existingMerged });
     }
 
-    if (affectedTypes.has(LogType.ALL)) {
-      const allMerged = state.mergedLogFiles![LogType.ALL];
-      if (allMerged) {
-        const allNewEntries: LogEntry[] = [];
-        for (const entries of newEntriesByType.values()) {
-          allNewEntries.push(...entries);
-        }
-        allNewEntries.sort(
-          (a, b) => (a.momentValue ?? 0) - (b.momentValue ?? 0),
-        );
+    if (!affectedTypes.has(LogType.ALL)) return;
 
-        allMerged.logEntries.push(...allNewEntries);
-        state.updateLiveTailFile({ ...allMerged });
-      }
+    const allMerged = state.mergedLogFiles![LogType.ALL];
+    if (!allMerged) {
+      console.warn('live-tail: no merged file for ALL type');
+      return;
     }
+
+    const allNewEntries: LogEntry[] = [];
+    for (const entries of newEntriesByType.values()) {
+      allNewEntries.push(...entries);
+    }
+    allNewEntries.sort((a, b) => (a.momentValue ?? 0) - (b.momentValue ?? 0));
+
+    allMerged.logEntries.push(...allNewEntries);
+    state.updateLiveTailFile({ ...allMerged });
   });
 }
 
