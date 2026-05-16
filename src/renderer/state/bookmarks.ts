@@ -236,8 +236,8 @@ export function deserializeBookmark(
     const { processedLogFiles } = state;
     if (!processedLogFiles) return;
 
-    Object.keys(processedLogFiles).some((key: keyof ProcessedLogFiles) => {
-      const files = processedLogFiles[key];
+    Object.keys(processedLogFiles).some((key) => {
+      const files = processedLogFiles[key as keyof ProcessedLogFiles];
       const foundFile = (files as Array<ProcessedLogFile>).find(
         (file: ProcessedLogFile) => file.id === serialized.logFile.id,
       );
@@ -253,8 +253,8 @@ export function deserializeBookmark(
     const { mergedLogFiles } = state;
     if (!mergedLogFiles) return;
 
-    Object.keys(mergedLogFiles).some((key: keyof MergedLogFiles) => {
-      const file = mergedLogFiles[key];
+    Object.keys(mergedLogFiles).some((key) => {
+      const file = mergedLogFiles[key as keyof MergedLogFiles];
 
       if (file.id === serialized.logFile.id) {
         logFile = file;
@@ -317,11 +317,11 @@ export function compressBookmark(
 export function decompressBookmark(
   input: CompressedBookmark,
 ): SerializedBookmark {
-  const logFileType = Object.keys(CompressedLogTypes).find(
-    (key: keyof typeof CompressedLogTypes) => {
-      return input[3] === CompressedLogTypes[key];
-    },
-  ) as 'MergedLogFile' | 'ProcessedLogFile';
+  const logFileType = Object.keys(CompressedLogTypes).find((key) => {
+    return (
+      input[3] === CompressedLogTypes[key as keyof typeof CompressedLogTypes]
+    );
+  }) as 'MergedLogFile' | 'ProcessedLogFile';
 
   return {
     logEntry: {

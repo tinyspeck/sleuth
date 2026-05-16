@@ -3,7 +3,7 @@ import { SleuthState } from '../../state/sleuth';
 import React from 'react';
 import classNames from 'classnames';
 
-import { LogEntry, LogLevel } from '../../../interfaces';
+import { LogEntry, LogLevel, ProcessableLogType } from '../../../interfaces';
 import { LogLineData } from './data';
 import { Timestamp } from './timestamp';
 import { getIsBookmark, toggleBookmark } from '../../state/bookmarks';
@@ -130,8 +130,12 @@ export const LogLineDetails = observer((props: LogLineDetailsProps) => {
             timestamps={getProperties(props.state, 'timestamp')}
             momentValues={getProperties(props.state, 'momentValue')}
           />
-          <Tag color={levelColorMap[levels] ?? 'default'}>level:{levels}</Tag>
-          <Tag color={logColorMap[type] ?? 'default'}>process:{type}</Tag>
+          <Tag color={levelColorMap[levels as LogLevel] ?? 'default'}>
+            level:{levels}
+          </Tag>
+          <Tag color={logColorMap[type as ProcessableLogType] ?? 'default'}>
+            process:{type}
+          </Tag>
         </Flex>
       </Card>
     </div>

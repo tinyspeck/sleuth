@@ -43,6 +43,7 @@ import { TraceThreadDescription } from '../processor/trace';
 import { ColorTheme } from '../components/preferences/preferences';
 import { StateTableState } from '../components/state-table';
 import { Editor, EDITORS } from '../components/preferences/preferences-utils';
+import { AiStore } from './ai-store';
 
 const d = debug('sleuth:state');
 
@@ -93,6 +94,9 @@ export class SleuthState {
   @observable public isDetailsVisible = false;
   @observable public isSidebarOpen = true;
   @observable public showStateSummary = false;
+  @observable public isAiSidebarOpen = false;
+  @observable public isAiAvailable = false;
+  @observable public isPreferencesOpen = false;
   @observable public isUserTZ = false;
   @observable.shallow public bookmarks: Array<Bookmark> = [];
   @observable public serializedBookmarks: Record<
@@ -159,6 +163,8 @@ export class SleuthState {
 
   public stateFiles: Record<string, StateTableState> = {};
 
+  public aiStore: AiStore;
+
   // ** Internal settings **
   private didOpenMostRecent = false;
 
@@ -168,6 +174,7 @@ export class SleuthState {
   ) {
     makeObservable(this);
 
+    this.aiStore = new AiStore();
     this.getSuggestions();
     window.Sleuth.setupDarkModeUpdate((prefersDarkColors) => {
       this.prefersDarkColors = prefersDarkColors;
@@ -210,11 +217,13 @@ export class SleuthState {
 
     this.reset = this.reset.bind(this);
     this.toggleSidebar = this.toggleSidebar.bind(this);
+    this.toggleAiSidebar = this.toggleAiSidebar.bind(this);
     this.selectFile = this.selectFile.bind(this);
     this.setMergedFile = this.setMergedFile.bind(this);
     this.setFilterLogLevels = this.setFilterLogLevels.bind(this);
 
     window.Sleuth.setupToggleSidebar(this.toggleSidebar);
+    window.Sleuth.setupToggleAiSidebar(this.toggleAiSidebar);
     window.Sleuth.setupOpenBookmarks((_event, data) =>
       importBookmarks(this, data),
     );
@@ -224,6 +233,23 @@ export class SleuthState {
         event.preventDefault();
       }
     };
+
+    const checkAi = (retries = 2): Promise<void> =>
+      window.Sleuth.aiCheckAvailable().then(
+        action((available: boolean) => {
+          this.isAiAvailable = available;
+        }),
+        (err) => {
+          console.warn('AI availability check failed:', err);
+          if (retries > 0) {
+            return new Promise<void>((resolve) =>
+              setTimeout(() => resolve(checkAi(retries - 1)), 3_000),
+            );
+          }
+        },
+      );
+
+    checkAi();
   }
 
   @computed get isLogViewVisible() {
@@ -261,6 +287,22 @@ export class SleuthState {
   @action
   public toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  @action
+  public toggleAiSidebar() {
+    if (!this.isAiAvailable) return;
+    this.isAiSidebarOpen = !this.isAiSidebarOpen;
+  }
+
+  @action
+  public showPreferences() {
+    this.isPreferencesOpen = true;
+  }
+
+  @action
+  public hidePreferences() {
+    this.isPreferencesOpen = false;
   }
 
   @action
@@ -324,6 +366,7 @@ export class SleuthState {
     this.traceThreads = undefined;
     this.selectedTracePid = undefined;
     this.stateFiles = {};
+    this.aiStore.reset();
 
     if (goBackToHome) {
       this.resetApp();

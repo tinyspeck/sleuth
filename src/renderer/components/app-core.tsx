@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import debug from 'debug';
 
@@ -18,6 +18,7 @@ import { applyLiveTailUpdate } from '../live-tail';
 import { Sidebar } from './sidebar/sidebar';
 import { Loading } from './loading';
 import { LogContent } from './log-content';
+import { AiChatPanel } from './ai/ai-chat-panel';
 import { flushLogPerformance } from '../processor/performance';
 import { rehydrateBookmarks } from '../state/bookmarks';
 import { getTypeForFile, getTypesForFiles } from '../../utils/get-file-types';
@@ -65,7 +66,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
   function getPercentageLoaded(): number {
     const current = processedLogFilesRef.current;
     const alreadyLoaded = Object.keys(current)
-      .map((k: keyof ProcessedLogFiles) => current[k])
+      .map((k) => current[k as keyof ProcessedLogFiles])
       .reduce((p, c) => p + (c ? c.length : 0), 0);
     const toLoad = props.unzippedFiles.length;
 
@@ -289,7 +290,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
 
         const sortedUnzippedFiles = getTypesForFiles(unzippedFiles);
         const noFiles = Object.keys(sortedUnzippedFiles)
-          .map((k: keyof SortedUnzippedFiles) => sortedUnzippedFiles[k])
+          .map((k) => sortedUnzippedFiles[k as keyof SortedUnzippedFiles])
           .every((s) => s.length === 0);
 
         if (noFiles) {
@@ -362,6 +363,42 @@ export const CoreApplication = observer((props: CoreAppProps) => {
     };
   }, []);
 
+  const [aiSidebarWidth, setAiSidebarWidth] = useState(400);
+  const isResizingRef = useRef(false);
+
+  const handleResizeMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      isResizingRef.current = true;
+      const startX = e.clientX;
+      const startWidth = aiSidebarWidth;
+
+      const onMouseMove = (moveEvent: MouseEvent) => {
+        if (!isResizingRef.current) return;
+        const delta = startX - moveEvent.clientX;
+        const newWidth = Math.min(
+          Math.max(startWidth + delta, 300),
+          window.innerWidth * 0.5,
+        );
+        setAiSidebarWidth(newWidth);
+      };
+
+      const onMouseUp = () => {
+        isResizingRef.current = false;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    },
+    [aiSidebarWidth],
+  );
+
   if (!loadedLogFiles) {
     const percentageLoaded = getPercentageLoaded();
 
@@ -374,7 +411,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
     );
   }
 
-  const { isSidebarOpen } = props.state;
+  const { isSidebarOpen, isAiSidebarOpen } = props.state;
   const logContentClassName = classNames({ isSidebarOpen });
 
   return (
@@ -383,6 +420,16 @@ export const CoreApplication = observer((props: CoreAppProps) => {
       <div id="content" className={logContentClassName}>
         <LogContent state={props.state} />
       </div>
+
+      {isAiSidebarOpen && (
+        <div className="AiSidebar" style={{ width: aiSidebarWidth }}>
+          <div
+            className="AiSidebar__ResizeHandle"
+            onMouseDown={handleResizeMouseDown}
+          />
+          <AiChatPanel state={props.state} />
+        </div>
+      )}
     </div>
   );
 });
