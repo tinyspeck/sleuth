@@ -96,6 +96,9 @@ export class SleuthState {
   @observable public isAiSidebarOpen = false;
   @observable public isAiInstalled = false;
   @observable public isAiAvailable = false;
+  // True once a deferred SSO/role check has resolved (regardless of result).
+  // Used by the chat panel to avoid flashing the auth banner before we know.
+  @observable public hasCheckedAiAvailability = false;
   @observable public isPreferencesOpen = false;
   @observable public isUserTZ = false;
   @observable.shallow public bookmarks: Array<Bookmark> = [];
@@ -282,6 +285,7 @@ export class SleuthState {
   @action
   public markAiAvailable() {
     this.isAiAvailable = true;
+    this.hasCheckedAiAvailability = true;
   }
 
   @action
@@ -295,10 +299,12 @@ export class SleuthState {
       window.Sleuth.aiCheckAvailable().then(
         action((available: boolean) => {
           this.isAiAvailable = available;
+          this.hasCheckedAiAvailability = true;
         }),
-        (err) => {
+        action((err) => {
           console.warn('AI availability check failed:', err);
-        },
+          this.hasCheckedAiAvailability = true;
+        }),
       );
     }
   }
