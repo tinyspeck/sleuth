@@ -94,6 +94,7 @@ export class SleuthState {
   @observable public isSidebarOpen = true;
   @observable public showStateSummary = false;
   @observable public isAiSidebarOpen = false;
+  @observable public isAiInstalled = false;
   @observable public isAiAvailable = false;
   @observable public isPreferencesOpen = false;
   @observable public isUserTZ = false;
@@ -227,38 +228,18 @@ export class SleuthState {
       }
     };
 
-    // The user may not have completed SSO login when the app launches, so
-    // poll with exponential backoff until checkAvailable returns true.
-    // Capped at 60s between attempts so a logged-out user doesn't spin
-    // forever at high frequency.
-    const checkAi = (delayMs = 1_000): Promise<void> =>
-      window.Sleuth.aiCheckAvailable().then(
-        (available: boolean) => {
-          if (available) {
-            action(() => {
-              this.isAiAvailable = true;
-            })();
-            return;
-          }
-          return new Promise<void>((resolve) =>
-            setTimeout(
-              () => resolve(checkAi(Math.min(delayMs * 2, 60_000))),
-              delayMs,
-            ),
-          );
-        },
-        (err) => {
-          console.warn('AI availability check failed:', err);
-          return new Promise<void>((resolve) =>
-            setTimeout(
-              () => resolve(checkAi(Math.min(delayMs * 2, 60_000))),
-              delayMs,
-            ),
-          );
-        },
-      );
-
-    checkAi();
+    // Show the assistant button whenever the binary is on PATH and a role
+    // is configured. The full SSO/role-list check is deferred to user
+    // intent (toggleAiSidebar) so we don't trigger an AWS auth prompt on
+    // every launch.
+    window.Sleuth.aiCheckInstalled().then(
+      action((installed: boolean) => {
+        this.isAiInstalled = installed;
+      }),
+      (err) => {
+        console.warn('AI installation check failed:', err);
+      },
+    );
   }
 
   @computed get isLogViewVisible() {
@@ -299,9 +280,27 @@ export class SleuthState {
   }
 
   @action
+  public markAiAvailable() {
+    this.isAiAvailable = true;
+  }
+
+  @action
   public toggleAiSidebar() {
-    if (!this.isAiAvailable) return;
+    if (!this.isAiInstalled) return;
     this.isAiSidebarOpen = !this.isAiSidebarOpen;
+    // Lazily resolve full availability (SSO/role list) the first time the
+    // user opens the panel. The panel itself surfaces auth prompts when
+    // isAiAvailable stays false.
+    if (this.isAiSidebarOpen && !this.isAiAvailable) {
+      window.Sleuth.aiCheckAvailable().then(
+        action((available: boolean) => {
+          this.isAiAvailable = available;
+        }),
+        (err) => {
+          console.warn('AI availability check failed:', err);
+        },
+      );
+    }
   }
 
   @action

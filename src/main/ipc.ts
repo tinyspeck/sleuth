@@ -31,7 +31,11 @@ import { openLineInSource } from './open-line-in-source';
 import { isTraceSourcemapped } from './filesystem/is-trace-sourcemapped';
 import { Editor } from '../renderer/components/preferences/preferences-utils';
 import { AiService } from './ai/ai-service';
-import { startSsoLogin, checkAiAvailable } from './ai/aws-credentials';
+import {
+  startSsoLogin,
+  checkAiAvailable,
+  checkAiInstalled,
+} from './ai/aws-credentials';
 import type { AiMessage, SerializedLogContext } from '../ai-interfaces';
 
 fs.watch(app.getPath('downloads'), async () => {
@@ -420,6 +424,10 @@ export class IpcManager {
 
     ipcMain.handle(IpcEvents.AI_CHECK_AVAILABLE, async () => {
       return checkAiAvailable();
+    });
+
+    ipcMain.handle(IpcEvents.AI_CHECK_INSTALLED, async () => {
+      return checkAiInstalled();
     });
 
     ipcMain.handle(IpcEvents.AI_SHOW_DIRECTORY_PICKER, async (event) => {

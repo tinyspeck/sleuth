@@ -122,9 +122,30 @@ export function startSsoLogin(): Promise<AwsCredentials> {
 }
 
 /**
- * Check whether the AI feature is available:
- * 1. `fma-sso-assume-role` must be installed
- * 2. The required role must be listed in `fma-sso-assume-role list`
+ * Cheap check that the AI feature can be _attempted_:
+ *   1. `fma-sso-assume-role` is on PATH
+ *   2. an `fmaRole` is configured
+ *
+ * Does NOT touch SSO state, so it's safe to call on every launch — we
+ * don't want to prompt for AWS auth unless the user actually opens the
+ * assistant.
+ */
+export async function checkAiInstalled(): Promise<boolean> {
+  if (!getFmaRole()) return false;
+
+  try {
+    await execFileAsync('which', ['fma-sso-assume-role'], { timeout: 5_000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Check whether the AI feature is fully usable: the binary is installed,
+ * SSO has authenticated, and the required role is listed. This shells out
+ * to `fma-sso-assume-role list`, which requires a valid SSO session — so
+ * only invoke it on user intent (e.g. clicking the assistant button).
  */
 export async function checkAiAvailable(): Promise<boolean> {
   const roleShort = getFmaRole().split('/')[1] ?? '';

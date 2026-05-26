@@ -107,7 +107,8 @@ const AiChatPanel = observer(({ state }: AiChatPanelProps) => {
 
   const handleAuthSuccess = useCallback(() => {
     aiStore.error = null;
-  }, [aiStore]);
+    state.markAiAvailable();
+  }, [aiStore, state]);
 
   return (
     <div className="AiChatPanel">
