@@ -227,18 +227,34 @@ export class SleuthState {
       }
     };
 
-    const checkAi = (retries = 2): Promise<void> =>
+    // The user may not have completed SSO login when the app launches, so
+    // poll with exponential backoff until checkAvailable returns true.
+    // Capped at 60s between attempts so a logged-out user doesn't spin
+    // forever at high frequency.
+    const checkAi = (delayMs = 1_000): Promise<void> =>
       window.Sleuth.aiCheckAvailable().then(
-        action((available: boolean) => {
-          this.isAiAvailable = available;
-        }),
+        (available: boolean) => {
+          if (available) {
+            action(() => {
+              this.isAiAvailable = true;
+            })();
+            return;
+          }
+          return new Promise<void>((resolve) =>
+            setTimeout(
+              () => resolve(checkAi(Math.min(delayMs * 2, 60_000))),
+              delayMs,
+            ),
+          );
+        },
         (err) => {
           console.warn('AI availability check failed:', err);
-          if (retries > 0) {
-            return new Promise<void>((resolve) =>
-              setTimeout(() => resolve(checkAi(retries - 1)), 3_000),
-            );
-          }
+          return new Promise<void>((resolve) =>
+            setTimeout(
+              () => resolve(checkAi(Math.min(delayMs * 2, 60_000))),
+              delayMs,
+            ),
+          );
         },
       );
 
