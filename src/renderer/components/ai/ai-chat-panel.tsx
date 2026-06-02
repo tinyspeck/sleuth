@@ -107,7 +107,8 @@ const AiChatPanel = observer(({ state }: AiChatPanelProps) => {
 
   const handleAuthSuccess = useCallback(() => {
     aiStore.error = null;
-  }, [aiStore]);
+    state.markAiAvailable();
+  }, [aiStore, state]);
 
   return (
     <div className="AiChatPanel">
@@ -132,7 +133,10 @@ const AiChatPanel = observer(({ state }: AiChatPanelProps) => {
           </Tooltip>
         </div>
       </div>
-      {getErrorAlert(aiStore.error, handleAuthSuccess)}
+      {getErrorAlert(aiStore.error, handleAuthSuccess) ??
+        (state.hasCheckedAiAvailability && !state.isAiAvailable ? (
+          <SsoLoginBanner onSuccess={handleAuthSuccess} />
+        ) : null)}
       {aiStore.codebasePaths.length === 0 && aiStore.messages.length === 0 && (
         <Alert
           type="info"

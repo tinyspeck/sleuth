@@ -183,6 +183,8 @@ export const SleuthAPI = {
   aiSsoLogin: (): Promise<void> => ipcRenderer.invoke(IpcEvents.AI_SSO_LOGIN),
   aiCheckAvailable: (): Promise<boolean> =>
     ipcRenderer.invoke(IpcEvents.AI_CHECK_AVAILABLE),
+  aiCheckInstalled: (): Promise<boolean> =>
+    ipcRenderer.invoke(IpcEvents.AI_CHECK_INSTALLED),
   aiShowDirectoryPicker: (): Promise<Electron.OpenDialogReturnValue> =>
     ipcRenderer.invoke(IpcEvents.AI_SHOW_DIRECTORY_PICKER),
 };

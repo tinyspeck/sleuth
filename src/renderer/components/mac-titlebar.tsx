@@ -18,7 +18,7 @@ export const MacTitlebar: React.FC<TitlebarProps> = observer(({ state }) => {
   return (
     <div className="MacTitlebar" onDoubleClick={handleDoubleClick}>
       <span>{getWindowTitle(state.source)}</span>
-      {state.isAiAvailable && state.source && (
+      {state.isAiInstalled && state.source && (
         <Tooltip title="AI Assistant (⌘L)" placement="bottomLeft">
           <Button
             className="MacTitlebar__AiButton"
