@@ -395,7 +395,12 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       value: name,
       count,
     }));
-  }, [processedLogFiles, tagSort, liveTailRevision]);
+  }, [
+    processedLogFiles,
+    tagSort,
+    props.state.isLiveTailActive,
+    props.state.liveTailTagCounts,
+  ]);
 
   // Determine which log types have files present, and compute line counts
   const logTypeItems = useMemo(() => {
