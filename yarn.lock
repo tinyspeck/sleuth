@@ -9477,7 +9477,7 @@ __metadata:
     react-markdown: "npm:^8.0.0"
     react-virtualized: "patch:react-virtualized@npm%3A9.22.5#~/.yarn/patches/react-virtualized-npm-9.22.5-be95b8e1a8.patch"
     remark-gfm: "npm:^3.0.0"
-    tmp: "npm:0.2.4"
+    tmp: "npm:0.2.6"
     tslib: "npm:^2.8.1"
     typescript: "npm:^5.9.3"
     update-electron-app: "npm:^2.0.1"
@@ -9904,7 +9904,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tmp@npm:0.2.4, tmp@npm:^0.2.0":
+"tmp@npm:0.2.6":
+  version: 0.2.6
+  resolution: "tmp@npm:0.2.6"
+  checksum: 10c0/fa5b9bfbe60f70904aba5c96b4970e9158d99867891302d10320fe35eee1e45f42946fded4cf5c8514baa087bebee44419029b7deb227da05a68b5205a12d8ab
+  languageName: node
+  linkType: hard
+
+"tmp@npm:^0.2.0":
   version: 0.2.4
   resolution: "tmp@npm:0.2.4"
   checksum: 10c0/ac4a7538a9ddb89ead6f4ee019bc23c28ce31549a0bd0ba499a64f81e0804b1e9a3a758622b33807a1f9644dbde9a0205637985f9450abdba1d5062704f98782
