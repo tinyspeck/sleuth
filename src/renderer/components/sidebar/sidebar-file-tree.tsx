@@ -302,13 +302,8 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     [props.state],
   );
 
-  const {
-    isSidebarOpen,
-    selectedFile,
-    logTypeFilter,
-    processedLogFiles,
-    liveTailRevision,
-  } = props.state;
+  const { isSidebarOpen, selectedFile, logTypeFilter, processedLogFiles } =
+    props.state;
 
   function getSelectedKey(): string | undefined {
     if (!selectedFile) return undefined;
@@ -357,7 +352,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       ...item,
       count: totals[item.key] ?? 0,
     }));
-  }, [processedLogFiles, liveTailRevision]);
+  }, [processedLogFiles, LOG_LEVEL_CHECKBOXES]);
 
   // Collect unique tags with counts across all processable files.
   // During live tail, use incrementally maintained counts to avoid O(n) scans.
@@ -419,7 +414,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       );
       return { ...item, count };
     });
-  }, [processedLogFiles, liveTailRevision]);
+  }, [processedLogFiles]);
 
   function getNode(
     id: string,
