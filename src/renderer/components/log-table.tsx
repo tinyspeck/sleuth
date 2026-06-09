@@ -239,84 +239,94 @@ export const LogTable = observer((props: LogTableProps) => {
       d(`Starting filter`);
       if (!file) return { list: [], newSearchList: null };
 
-      const shouldDoFilter = shouldFilter(filter);
+      const hasLevelFilter = shouldFilter(filter);
+      const hasLogTypeFilter = !Object.values(state.logTypeFilter).every(
+        Boolean,
+      );
+      const hasTagFilter = state.selectedTags.length > 0;
+
+      /** Apply level, logType, tag, and dateRange filters in a single pass. */
+      function applyFilters(input: Array<LogEntry>): Array<LogEntry> {
+        let result = input;
+        if (hasLevelFilter) {
+          result = result.filter((a) => a.level && filter[a.level]);
+        }
+        if (hasLogTypeFilter) {
+          result = result.filter(
+            (entry) => state.logTypeFilter[entry.logType as ProcessableLogType],
+          );
+        }
+        if (hasTagFilter) {
+          const tagSet = new Set(state.selectedTags);
+          result = result.filter(
+            (entry) => entry.tag?.name && tagSet.has(entry.tag.name),
+          );
+        }
+        if (range?.from || range?.to) {
+          result = doRangeFilter(range, result);
+        }
+        return result;
+      }
+
+      // Live tail fast path: entries are already in chronological order,
+      // just reverse for newest-first and apply filters — skip sorting.
+      if (state.isLiveTailActive) {
+        const needsFilter =
+          hasLevelFilter ||
+          hasLogTypeFilter ||
+          hasTagFilter ||
+          range?.from ||
+          range?.to;
+        let list = needsFilter
+          ? applyFilters(file.logEntries)
+          : file.logEntries;
+
+        const reversed = new Array<LogEntry>(list.length);
+        for (let i = 0, j = list.length - 1; j >= 0; i++, j--) {
+          reversed[i] = list[j];
+        }
+        list = reversed;
+
+        if (typeof searchText === 'string') {
+          const [rowsToDisplay, searchResults] = doSearch(list, derivedOptions);
+          return { list: rowsToDisplay, newSearchList: searchResults };
+        }
+
+        return { list, newSearchList: null };
+      }
+
       const noSort =
         (!sortByKey || sortByKey === 'index') &&
         (!sortDir || sortDir === SortDirection.ASC);
 
       // Check if we can bail early and just use the naked logEntries array
-      const hasLogTypeFilter = !Object.values(state.logTypeFilter).every(
-        Boolean,
-      );
-      const hasTagFilter = state.selectedTags.length > 0;
+      const hasRangeFilter = !!(range?.from || range?.to);
       if (
         noSort &&
-        !shouldDoFilter &&
+        !hasLevelFilter &&
         !searchText &&
         !hasLogTypeFilter &&
-        !hasTagFilter
+        !hasTagFilter &&
+        !hasRangeFilter
       )
         return { list: file.logEntries, newSearchList: null };
 
-      let list = file.logEntries.concat();
-
-      // Named definition here allows V8 to go craaaaaazy, speed-wise.
-      function doSortByMessage(a: LogEntry, b: LogEntry) {
-        return a.message.localeCompare(b.message);
-      }
-      function doSortByLevel(a: LogEntry, b: LogEntry) {
-        return a.level.localeCompare(b.level);
-      }
-      function doSortByLine(a: LogEntry, b: LogEntry) {
-        return a.line > b.line ? 1 : -1;
-      }
-      function doSortByTimestamp(a: LogEntry, b: LogEntry) {
-        if (a.momentValue === b.momentValue) return 0;
-        return (a.momentValue || 0) > (b.momentValue || 0) ? 1 : -1;
-      }
-      function doFilter(a: LogEntry) {
-        return a.level && filter[a.level];
-      }
-
       // Filter
-      if (shouldDoFilter) {
-        list = list.filter(doFilter);
-      }
-
-      // LogType filter
-      if (hasLogTypeFilter) {
-        list = list.filter(
-          (entry) => state.logTypeFilter[entry.logType as ProcessableLogType],
-        );
-      }
-
-      // Tag filter
-      const { selectedTags } = state;
-      if (selectedTags.length > 0) {
-        const tagSet = new Set(selectedTags);
-        list = list.filter(
-          (entry) => entry.tag?.name && tagSet.has(entry.tag.name),
-        );
-      }
-
-      // DateRange
-      if (range) {
-        d(
-          `Performing date range filter (from: ${range.from}, to: ${range.to})`,
-        );
-        list = doRangeFilter(range, list);
-      }
+      let list = applyFilters(file.logEntries.concat());
 
       // Sort
       d(`Sorting by ${sortByKey}`);
       if (sortByKey === 'message') {
-        list = list.sort(doSortByMessage);
+        list = list.sort((a, b) => a.message.localeCompare(b.message));
       } else if (sortByKey === 'level') {
-        list = list.sort(doSortByLevel);
+        list = list.sort((a, b) => a.level.localeCompare(b.level));
       } else if (sortByKey === 'line') {
-        list = list.sort(doSortByLine);
+        list = list.sort((a, b) => (a.line > b.line ? 1 : -1));
       } else if (sortByKey === 'momentValue') {
-        list = list.sort(doSortByTimestamp);
+        list = list.sort((a, b) => {
+          if (a.momentValue === b.momentValue) return 0;
+          return (a.momentValue || 0) > (b.momentValue || 0) ? 1 : -1;
+        });
       }
 
       if (sortDir === SortDirection.DESC) {
@@ -339,6 +349,7 @@ export const LogTable = observer((props: LogTableProps) => {
       levelFilter,
       state.logTypeFilter,
       state.selectedTags,
+      state.isLiveTailActive,
       search,
       effectiveSortBy,
       dateRange,
@@ -365,6 +376,24 @@ export const LogTable = observer((props: LogTableProps) => {
       }
     });
   }, [newSearchList, state]);
+
+  useEffect(() => {
+    if (state.isLiveTailActive && tableRef.current) {
+      tableRef.current.forceUpdateGrid();
+    }
+  }, [sortedList, state.isLiveTailActive]);
+
+  useEffect(() => {
+    const dispose = reaction(
+      () => state.isAutoScrollEnabled,
+      (enabled) => {
+        if (enabled && tableRef.current) {
+          tableRef.current.scrollToRow(0);
+        }
+      },
+    );
+    return dispose;
+  }, [state]);
 
   /**
    * Changes the current selection in the table to the target index
@@ -483,10 +512,11 @@ export const LogTable = observer((props: LogTableProps) => {
       sortBy: string;
       sortDirection: SortDirectionType;
     }) => {
+      if (state.isLiveTailActive) return;
       setSortBy(newSortBy);
       setSortDirection(newSortDirection);
     },
-    [],
+    [state],
   );
 
   /**
@@ -677,9 +707,32 @@ export const LogTable = observer((props: LogTableProps) => {
     ],
   );
 
-  /**
-   * Renders the table
-   */
+  /** Toggle auto-scroll based on whether the user is at the newest edge. */
+  const onTableScroll = useCallback(
+    ({
+      clientHeight,
+      scrollHeight,
+      scrollTop,
+    }: {
+      clientHeight: number;
+      scrollHeight: number;
+      scrollTop: number;
+    }) => {
+      if (!state.isLiveTailActive) return;
+
+      const isAtNewestEdge =
+        sortDirection === SortDirection.DESC
+          ? scrollTop < 50
+          : scrollHeight - scrollTop - clientHeight < 50;
+      if (isAtNewestEdge !== state.isAutoScrollEnabled) {
+        runInAction(() => {
+          state.setAutoScrollEnabled(isAtNewestEdge);
+        });
+      }
+    },
+    [state, sortDirection],
+  );
+
   function renderTable(options: Size): JSX.Element {
     const tableOptions: TableProps = {
       ...options,
@@ -693,6 +746,7 @@ export const LogTable = observer((props: LogTableProps) => {
       sort: onSortChange,
       sortBy,
       sortDirection,
+      onScroll: onTableScroll,
     };
 
     if (scrollToSelectionRef.current) {
@@ -702,6 +756,15 @@ export const LogTable = observer((props: LogTableProps) => {
 
     if (!ignoreSearchIndex && searchList.length > 0)
       tableOptions.scrollToIndex = searchList[searchIndex] || 0;
+
+    if (
+      state.isLiveTailActive &&
+      state.isAutoScrollEnabled &&
+      sortedList.length > 0
+    ) {
+      tableOptions.scrollToIndex = 0;
+      tableOptions.scrollToAlignment = 'start';
+    }
 
     return (
       <Table {...tableOptions} ref={tableRef}>

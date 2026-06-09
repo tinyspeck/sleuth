@@ -352,28 +352,36 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       ...item,
       count: totals[item.key] ?? 0,
     }));
-  }, [processedLogFiles]);
+  }, [processedLogFiles, LOG_LEVEL_CHECKBOXES]);
 
-  // Collect unique tags with counts across all processable files
+  // Collect unique tags with counts across all processable files.
+  // During live tail, use incrementally maintained counts to avoid O(n) scans.
   const tagOptions = useMemo(() => {
     if (!processedLogFiles) return [];
-    const tagCounts = new Map<string, number>();
-    for (const typeKey of LOG_TYPE_CHECKBOXES.map(({ key }) => key)) {
-      const files =
-        (processedLogFiles[typeKey as keyof typeof processedLogFiles] as
-          | ProcessedLogFile[]
-          | undefined) ?? [];
-      for (const f of files) {
-        for (const entry of f.logEntries ?? []) {
-          if (entry.tag?.name) {
-            tagCounts.set(
-              entry.tag.name,
-              (tagCounts.get(entry.tag.name) ?? 0) + 1,
-            );
+    let tagCounts: Map<string, number>;
+
+    if (props.state.isLiveTailActive) {
+      tagCounts = props.state.liveTailTagCounts;
+    } else {
+      tagCounts = new Map<string, number>();
+      for (const typeKey of LOG_TYPE_CHECKBOXES.map(({ key }) => key)) {
+        const files =
+          (processedLogFiles[typeKey as keyof typeof processedLogFiles] as
+            | ProcessedLogFile[]
+            | undefined) ?? [];
+        for (const f of files) {
+          for (const entry of f.logEntries ?? []) {
+            if (entry.tag?.name) {
+              tagCounts.set(
+                entry.tag.name,
+                (tagCounts.get(entry.tag.name) ?? 0) + 1,
+              );
+            }
           }
         }
       }
     }
+
     const sorted = Array.from(tagCounts.entries()).sort((a, b) =>
       tagSort === 'az' ? a[0].localeCompare(b[0]) : b[1] - a[1],
     );
@@ -382,7 +390,12 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       value: name,
       count,
     }));
-  }, [processedLogFiles, tagSort]);
+  }, [
+    processedLogFiles,
+    tagSort,
+    props.state.isLiveTailActive,
+    props.state.liveTailTagCounts,
+  ]);
 
   // Determine which log types have files present, and compute line counts
   const logTypeItems = useMemo(() => {

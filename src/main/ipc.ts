@@ -26,6 +26,7 @@ import {
   getItemsInSuggestionFolders,
 } from './filesystem/suggestions';
 import { readLogFile, readStateFile } from './filesystem/read-file';
+import { LiveTailWatcher } from './filesystem/live-tail';
 import { getSentryHref } from '../renderer/sentry';
 import { openLineInSource } from './open-line-in-source';
 import { isTraceSourcemapped } from './filesystem/is-trace-sourcemapped';
@@ -63,6 +64,8 @@ function getCurrentWindow(): Electron.BrowserWindow {
 }
 
 export class IpcManager {
+  private liveTailWatcher: LiveTailWatcher | null = null;
+
   constructor() {
     this.setupFileDrop();
     this.setupMessageBoxHandler();
@@ -83,6 +86,7 @@ export class IpcManager {
     this.setupProcessor();
     this.setupOpenSentry();
     this.setupLogFileContextMenu();
+    this.setupLiveTail();
     this.setupAi();
   }
 
@@ -455,6 +459,48 @@ export class IpcManager {
         openLineInSource(line, sourceFile, options);
       },
     );
+  }
+  private getAllowedLogsPaths(): string[] {
+    const appData = app.getPath('appData');
+    return ['Slack', 'SlackDevEnv', 'SlackDevMode'].map((dir) =>
+      path.join(appData, dir, 'logs'),
+    );
+  }
+
+  /** Register IPC handlers for starting, stopping, and cleaning up live tail sessions. */
+  private setupLiveTail() {
+    ipcMain.handle(
+      IpcEvents.LIVE_TAIL_START,
+      async (event, logsPath: string, userTZ?: string) => {
+        const resolved = path.resolve(logsPath);
+        const allowed = this.getAllowedLogsPaths();
+        if (!allowed.some((p) => resolved === path.resolve(p))) {
+          throw new Error(
+            `Live tail path not allowed: ${resolved}. Allowed: ${allowed.join(', ')}`,
+          );
+        }
+
+        this.liveTailWatcher?.stop();
+        this.liveTailWatcher = new LiveTailWatcher(
+          resolved,
+          event.sender,
+          userTZ,
+        );
+        return this.liveTailWatcher.start();
+      },
+    );
+
+    ipcMain.handle(IpcEvents.LIVE_TAIL_STOP, async () => {
+      this.liveTailWatcher?.stop();
+      this.liveTailWatcher = null;
+    });
+
+    app.on('browser-window-created', (_e, window) => {
+      window.on('closed', () => {
+        this.liveTailWatcher?.stop();
+        this.liveTailWatcher = null;
+      });
+    });
   }
 }
 

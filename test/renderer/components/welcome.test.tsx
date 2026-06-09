@@ -106,7 +106,7 @@ describe('Welcome', () => {
         ],
       };
       render(<Welcome state={state as SleuthState} />);
-      const btn = screen.getByText('Delete stale logs');
+      const btn = screen.getByText('Delete Stale Logs');
       expect(btn).toBeInTheDocument();
     });
 
@@ -121,7 +121,7 @@ describe('Welcome', () => {
         ],
       };
       render(<Welcome state={state as SleuthState} />);
-      const btn = screen.queryByText('Delete stale logs');
+      const btn = screen.queryByText('Delete Stale Logs');
       expect(btn).not.toBeInTheDocument();
     });
   });

@@ -53,10 +53,29 @@ export const App = observer(() => {
     [resetApp],
   );
 
+  /** Start a live tail session: reset state, begin watching, and load the file list. */
+  const startLiveTail = useCallback(
+    async (logsPath: string) => {
+      resetApp();
+      try {
+        const systemTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const files = await window.Sleuth.startLiveTail(logsPath, systemTZ);
+        sleuthStateRef.current?.setSource(logsPath);
+        sleuthStateRef.current?.setLiveTailActive(true);
+        setUnzippedFiles(files);
+      } catch (error) {
+        d('Failed to start live tail:', logsPath, error);
+      }
+    },
+    [resetApp],
+  );
+
   // Use refs so SleuthState always calls through the latest closures,
   // even though it only receives them once in the constructor.
   const openFileRef = useRef(openFile);
   openFileRef.current = openFile;
+  const startLiveTailRef = useRef(startLiveTail);
+  startLiveTailRef.current = startLiveTail;
   const resetAppRef = useRef(resetApp);
   resetAppRef.current = resetApp;
 
@@ -92,6 +111,10 @@ export const App = observer(() => {
       openFileRef.current(url),
     );
 
+    const removeLiveTailDrop = window.Sleuth.setupLiveTailDropped(
+      (_event, logsPath: string) => startLiveTailRef.current(logsPath),
+    );
+
     // Setup open sentry
     const removeOpenSentry = window.Sleuth.setupOpenSentry((event) => {
       const installationFile = unzippedFilesRef.current?.find((file) => {
@@ -111,6 +134,7 @@ export const App = observer(() => {
       document.removeEventListener('drop', preventHandler);
       document.body.removeEventListener('drop', bodyDropHandler);
       removeFileDrop();
+      removeLiveTailDrop();
       removeOpenSentry();
       disposeAutorun();
     };
@@ -134,7 +158,7 @@ export const App = observer(() => {
     unzippedFiles && unzippedFiles.length ? (
       <CoreApplication state={sleuthState} unzippedFiles={unzippedFiles} />
     ) : (
-      <Welcome state={sleuthState} />
+      <Welcome state={sleuthState} onStartLiveTail={startLiveTailRef.current} />
     );
 
   return (
