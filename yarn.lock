@@ -9498,7 +9498,7 @@ __metadata:
     update-electron-app: "npm:^2.0.1"
     vite: "npm:^8.0.5"
     vitest: "npm:^4.1.2"
-    yauzl: "npm:2.10.0"
+    yauzl: "npm:^3.3.2"
   dependenciesMeta:
     electron:
       built: true
@@ -10733,13 +10733,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yauzl@npm:2.10.0, yauzl@npm:^2.10.0":
+"yauzl@npm:^2.10.0":
   version: 2.10.0
   resolution: "yauzl@npm:2.10.0"
   dependencies:
     buffer-crc32: "npm:~0.2.3"
     fd-slicer: "npm:~1.1.0"
   checksum: 10c0/f265002af7541b9ec3589a27f5fb8f11cf348b53cc15e2751272e3c062cd73f3e715bc72d43257de71bbaecae446c3f1b14af7559e8ab0261625375541816422
+  languageName: node
+  linkType: hard
+
+"yauzl@npm:^3.3.2":
+  version: 3.3.2
+  resolution: "yauzl@npm:3.3.2"
+  dependencies:
+    pend: "npm:~1.2.0"
+  checksum: 10c0/92e93b5162ad27a1b3088742fd613c90158553f9ce957ef40bad117c13b25476ea2992a825a7b45eed23924a355991253e60cdeb9b7dea63771de83710dd856f
   languageName: node
   linkType: hard
 
