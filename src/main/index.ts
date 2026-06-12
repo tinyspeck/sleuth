@@ -1,5 +1,13 @@
 import { app, BrowserWindow, crashReporter } from 'electron';
 import startup from 'electron-squirrel-startup';
+import fixPath from 'fix-path';
+
+// A macOS/Linux app launched from Finder/Dock inherits a bare PATH
+// (/usr/bin:/bin:/usr/sbin:/sbin) rather than the user's login-shell PATH,
+// so binaries in /usr/local/bin or /opt/homebrew/bin — including
+// `fma-sso-assume-role`, which the AI assistant shells out to — aren't found.
+// Restore the login-shell PATH before anything execs.
+fixPath();
 
 console.log(`Welcome to Sleuth ${app.getVersion()}`);
 
