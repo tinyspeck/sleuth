@@ -1,13 +1,19 @@
 import { app, BrowserWindow, crashReporter } from 'electron';
 import startup from 'electron-squirrel-startup';
-import fixPath from 'fix-path';
 
-// A macOS/Linux app launched from Finder/Dock inherits a bare PATH
+// A macOS app launched from Finder/Dock inherits a bare PATH
 // (/usr/bin:/bin:/usr/sbin:/sbin) rather than the user's login-shell PATH,
-// so binaries in /usr/local/bin or /opt/homebrew/bin — including
-// `fma-sso-assume-role`, which the AI assistant shells out to — aren't found.
-// Restore the login-shell PATH before anything execs.
-fixPath();
+// so the common Homebrew/manual install dirs aren't searched — and the AI
+// assistant's `fma-sso-assume-role` binary, which lives there, isn't found.
+// Prepend those dirs before anything execs.
+if (process.platform === 'darwin') {
+  const extraPaths = ['/opt/homebrew/bin', '/usr/local/bin'];
+  const current = process.env.PATH ?? '';
+  const missing = extraPaths.filter((p) => !current.split(':').includes(p));
+  if (missing.length > 0) {
+    process.env.PATH = [...missing, current].filter(Boolean).join(':');
+  }
+}
 
 console.log(`Welcome to Sleuth ${app.getVersion()}`);
 
