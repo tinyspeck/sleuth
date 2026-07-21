@@ -80,6 +80,30 @@ function formatMemory(
   return NA;
 }
 
+/**
+ * Extracts the webapp version from persisted root-state. Returns the raw
+ * `sha@timestamp` string plus the short SHA (the part before `@`) for display.
+ */
+export function getWebappVersionInfo(rootState: any): {
+  raw: string;
+  sha: string;
+} | null {
+  const teams = rootState?.webapp?.teams;
+  if (!teams || typeof teams !== 'object') {
+    return null;
+  }
+
+  for (const team of Object.values(teams)) {
+    const version = (team as { version?: unknown })?.version;
+    if (typeof version === 'string' && version.length > 0) {
+      const sha = version.split('@', 1)[0];
+      return { raw: version, sha };
+    }
+  }
+
+  return null;
+}
+
 export interface ConfigDiffEntry {
   section: 'defaults' | 'policies';
   key: string;
@@ -207,6 +231,14 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
   const gpuAvailable = env?.isGpuCompositionAvailable;
   const channel = rootState?.settings?.releaseChannelOverride;
 
+  // The webapp (JS client) version is distinct from the desktop app version.
+  // It's persisted per-team in root-state.json as `webapp.teams[id].version`,
+  // in the format `sha@timestamp`. The value is the same across teams, so we
+  // take the first team that has it set. This reflects the webapp version at
+  // the time the bundle was created; version changes *within* the log window
+  // (up to 2 weeks) show up as gantry cache-bucket markers in the console logs.
+  const webapp = getWebappVersionInfo(rootState);
+
   const crashDumpCount = Array.isArray(manifest?.files)
     ? manifest.files.filter(
         (f: any) =>
@@ -318,6 +350,19 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
         children: env?.distribution ?? NA,
       },
       { key: 'version', label: 'App Version', children: env?.appVersion ?? NA },
+      {
+        key: 'webapp',
+        label: 'Webapp Version',
+        children: webapp ? (
+          <Tooltip title={webapp.raw}>
+            <Typography.Text copyable={{ text: webapp.raw }}>
+              {webapp.sha}
+            </Typography.Text>
+          </Tooltip>
+        ) : (
+          NA
+        ),
+      },
       { key: 'electron', label: 'Electron', children: electronDisplay },
       {
         key: 'chrome',
