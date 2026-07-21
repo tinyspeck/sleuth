@@ -12,6 +12,11 @@ import {
 } from '../../interfaces';
 import { getTypeForFile } from '../../utils/get-file-types';
 import { matchTag } from '../../utils/match-tag';
+import {
+  accumulateWebappBuild,
+  extractWebappBuildMarker,
+  WebappBuild,
+} from '../../utils/webapp-build';
 import debug from 'debug';
 import { StateTableState } from '../../renderer/components/state-table';
 import { TZDate } from '@date-fns/tz';
@@ -301,6 +306,11 @@ export function readLogFile(
     };
     const repeatedCounts: Record<string, number> = {};
 
+    // Webapp build SHAs seen in this file (only meaningful for webapp/console
+    // logs; other log types never contain gantry markers so the map stays
+    // empty). Keyed by build identity, bracketed by first/last-seen time.
+    const webappBuilds: Record<string, WebappBuild> = {};
+
     function pushEntry(entry: LogEntry | null) {
       if (entry) {
         // If this a repeated line, save as repeated
@@ -364,6 +374,19 @@ export function readLogFile(
         return;
       }
 
+      // Gantry build markers can appear on a matched line or on a trailing
+      // continuation line (URLs in a stack/meta block), so scan the raw line
+      // regardless of whether it parses as a new entry. Attribute it to the
+      // current entry's timestamp; 0 when we haven't dated an entry yet.
+      const buildMarker = extractWebappBuildMarker(line);
+      if (buildMarker) {
+        accumulateWebappBuild(
+          webappBuilds,
+          buildMarker,
+          current?.momentValue ?? 0,
+        );
+      }
+
       const matched = matchFn(line, options.userTZ);
 
       if (matched) {
@@ -422,7 +445,7 @@ export function readLogFile(
     readInterface.on('close', () => {
       pushEntry(current);
 
-      resolve({ entries, lines, levelCounts, repeatedCounts });
+      resolve({ entries, lines, levelCounts, repeatedCounts, webappBuilds });
     });
   });
 }
@@ -1058,4 +1081,5 @@ export interface ReadFileResult {
   lines: number;
   levelCounts: Record<string, number>;
   repeatedCounts: Record<string, number>;
+  webappBuilds: Record<string, WebappBuild>;
 }

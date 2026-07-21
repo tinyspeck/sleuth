@@ -96,6 +96,7 @@ describe.skipIf(skip)(
         logType: LogType.BROWSER,
         type: 'ProcessedLogFile' as const,
         levelCounts: r.levelCounts,
+        webappBuilds: r.webappBuilds,
       }));
     })();
 

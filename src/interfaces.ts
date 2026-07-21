@@ -1,5 +1,7 @@
 import fs from 'fs-extra';
 
+import { WebappBuild } from './utils/webapp-build';
+
 // Anything that's valid as a "selected" log file.
 export type SelectableLogFile = LogFile | UnzippedFile;
 
@@ -135,6 +137,11 @@ export interface ProcessedLogFile extends BaseFile {
   logFile: UnzippedFile;
   logType: KnownLogType;
   type: 'ProcessedLogFile';
+  /**
+   * Distinct webapp (gantry) builds seen in this file, keyed by build
+   * identity. Empty for non-webapp logs. See `utils/webapp-build.ts`.
+   */
+  webappBuilds: Record<string, WebappBuild>;
 }
 
 export interface MergedLogFile extends BaseFile {

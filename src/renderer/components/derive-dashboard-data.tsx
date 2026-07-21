@@ -1,5 +1,5 @@
 import React from 'react';
-import { Space, Tag, Tooltip, Typography } from 'antd';
+import { Popover, Space, Tag, Timeline, Tooltip, Typography } from 'antd';
 import {
   AppleFilled,
   ExportOutlined,
@@ -18,6 +18,7 @@ import {
   getOSInfo,
 } from '../../utils/settings-data-helper';
 import { getSentryHref } from '../sentry';
+import { mergeWebappBuilds, WebappBuild } from '../../utils/webapp-build';
 
 const NA = <Typography.Text type="secondary">N/A</Typography.Text>;
 
@@ -102,6 +103,97 @@ export function getWebappVersionInfo(rootState: any): {
   }
 
   return null;
+}
+
+/** Short human label for a build: its SHA, or the gantry bucket if SHA-less. */
+function webappBuildLabel(build: WebappBuild): string {
+  return build.sha ?? `gantry-${build.cacheKey}`;
+}
+
+/** Compact local date-time for a momentValue, or `?` for undated (0). */
+function formatBuildTime(momentValue: number): string {
+  if (!momentValue) {
+    return '?';
+  }
+  const d = new Date(momentValue);
+  return d.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/**
+ * Renders the "Webapp Version" dashboard cell. Shows the current version from
+ * root-state as the headline; when more than one build was seen in the log
+ * window, adds a "N builds" badge whose popover lists the full timeline.
+ */
+function renderWebappVersionCell(
+  current: { raw: string; sha: string } | null,
+  builds: Array<WebappBuild>,
+): React.ReactNode {
+  const naText = <Typography.Text type="secondary">N/A</Typography.Text>;
+
+  // Headline: prefer the authoritative root-state version; fall back to the
+  // most-recent build seen in the logs if root-state had none.
+  const headlineSha =
+    current?.sha ?? (builds[0] ? webappBuildLabel(builds[0]) : null);
+  if (!headlineSha) {
+    return naText;
+  }
+
+  const headline = (
+    <Tooltip title={current?.raw ?? undefined}>
+      <Typography.Text copyable={current ? { text: current.raw } : undefined}>
+        {headlineSha}
+      </Typography.Text>
+    </Tooltip>
+  );
+
+  if (builds.length <= 1) {
+    return headline;
+  }
+
+  const timeline = (
+    <Timeline
+      style={{ marginTop: 4, marginBottom: 0, maxWidth: 320 }}
+      items={builds.map((build, i) => ({
+        color: i === 0 ? 'green' : 'gray',
+        children: (
+          <span>
+            <Typography.Text
+              copyable={{ text: webappBuildLabel(build) }}
+              strong
+            >
+              {webappBuildLabel(build)}
+            </Typography.Text>
+            {i === 0 ? <Tag style={{ marginLeft: 6 }}>current</Tag> : null}
+            <br />
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {formatBuildTime(build.firstSeen)} →{' '}
+              {formatBuildTime(build.lastSeen)}
+            </Typography.Text>
+          </span>
+        ),
+      }))}
+    />
+  );
+
+  return (
+    <Space size={6}>
+      {headline}
+      <Popover
+        title="Webapp builds seen in this log window"
+        content={timeline}
+        trigger="click"
+      >
+        <Tag color="orange" style={{ cursor: 'pointer', margin: 0 }}>
+          ⚠ {builds.length} builds
+        </Tag>
+      </Popover>
+    </Space>
+  );
 }
 
 export interface ConfigDiffEntry {
@@ -235,9 +327,17 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
   // It's persisted per-team in root-state.json as `webapp.teams[id].version`,
   // in the format `sha@timestamp`. The value is the same across teams, so we
   // take the first team that has it set. This reflects the webapp version at
-  // the time the bundle was created; version changes *within* the log window
-  // (up to 2 weeks) show up as gantry cache-bucket markers in the console logs.
+  // the time the bundle was created.
   const webapp = getWebappVersionInfo(rootState);
+
+  // A log bundle spans up to two weeks, during which the webapp can reload
+  // onto newer builds. Each build leaves gantry markers in the console logs,
+  // which we accumulate per-file during parsing; merge them here to detect
+  // drift within the window (newest last-seen first).
+  const webappBuilds = mergeWebappBuilds([
+    ...(state.processedLogFiles?.webapp ?? []).map((f) => f.webappBuilds),
+    ...(state.processedLogFiles?.webapp_sw ?? []).map((f) => f.webappBuilds),
+  ]);
 
   const crashDumpCount = Array.isArray(manifest?.files)
     ? manifest.files.filter(
@@ -353,15 +453,7 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
       {
         key: 'webapp',
         label: 'Webapp Version',
-        children: webapp ? (
-          <Tooltip title={webapp.raw}>
-            <Typography.Text copyable={{ text: webapp.raw }}>
-              {webapp.sha}
-            </Typography.Text>
-          </Tooltip>
-        ) : (
-          NA
-        ),
+        children: renderWebappVersionCell(webapp, webappBuilds),
       },
       { key: 'electron', label: 'Electron', children: electronDisplay },
       {

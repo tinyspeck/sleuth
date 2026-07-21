@@ -53,6 +53,7 @@ function makeFile(id: string, entries: LogEntry[]): ProcessedLogFile {
     logType: LogType.BROWSER,
     type: 'ProcessedLogFile',
     levelCounts: {},
+    webappBuilds: {},
   };
 }
 

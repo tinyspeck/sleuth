@@ -49,6 +49,7 @@ const fakeFile1: ProcessedLogFile = {
   logType: LogType.BROWSER,
   type: 'ProcessedLogFile',
   levelCounts: {},
+  webappBuilds: {},
 };
 
 const fakeFile2: ProcessedLogFile = {
@@ -59,6 +60,7 @@ const fakeFile2: ProcessedLogFile = {
   logType: LogType.CHROMIUM,
   type: 'ProcessedLogFile',
   levelCounts: {},
+  webappBuilds: {},
 };
 
 const fakeFile3: ProcessedLogFile = {
@@ -69,6 +71,7 @@ const fakeFile3: ProcessedLogFile = {
   logType: LogType.WEBAPP,
   type: 'ProcessedLogFile',
   levelCounts: {},
+  webappBuilds: {},
 };
 
 describe('Sidebar', () => {
@@ -170,6 +173,7 @@ describe('Sidebar', () => {
         logType: LogType.INSTALLER,
         type: 'ProcessedLogFile',
         levelCounts: {},
+        webappBuilds: {},
       };
 
       const state: Partial<SleuthState> = {

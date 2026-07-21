@@ -73,7 +73,7 @@ export async function processLogFile(
   if (progressCb) progressCb(`Processing file ${logFile.fileName}...`);
 
   const timeStart = performance.now();
-  const { entries, lines, levelCounts, repeatedCounts } =
+  const { entries, lines, levelCounts, repeatedCounts, webappBuilds } =
     await window.Sleuth.readLogFile(logFile, logType, userTZ);
   const result: ProcessedLogFile = {
     logFile,
@@ -82,6 +82,7 @@ export async function processLogFile(
     type: 'ProcessedLogFile',
     levelCounts,
     repeatedCounts,
+    webappBuilds,
     id: logFile.fileName,
   };
 

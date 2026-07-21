@@ -15,6 +15,7 @@ import {
   makeLogEntry,
   readLogFile,
 } from '../../src/main/filesystem/read-file';
+import { mergeWebappBuilds } from '../../src/utils/webapp-build';
 import dirtyJSON from 'jsonic';
 
 describe('matchLineWebApp', () => {
@@ -93,6 +94,38 @@ describe('readFile', () => {
           },
           nextTab: 'home',
         });
+      },
+    );
+  });
+
+  it('accumulates distinct webapp builds from gantry markers', () => {
+    const file: UnzippedFile = {
+      type: 'UnzippedFile',
+      id: '123',
+      fullPath: path.join(__dirname, '../static/console-export-gantry.log'),
+      fileName: 'console-export-gantry.log',
+      size: 500,
+    };
+
+    return readLogFile(file, { logType: LogType.WEBAPP }).then(
+      ({ webappBuilds }) => {
+        // The raw per-file map keeps the bucket-only service-worker marker
+        // separate from its SHA build (a bucket line can precede its SHA in a
+        // streaming pass); the dashboard coalesces them via mergeWebappBuilds.
+        const builds = mergeWebappBuilds([webappBuilds]);
+        expect(builds).toHaveLength(2);
+
+        const byKey = Object.fromEntries(builds.map((b) => [b.sha, b]));
+        expect(byKey['75d2ab5']).toMatchObject({ cacheKey: '1600974368' });
+        // The service-worker cache-bucket line (gantry-1611070538) folds into
+        // the f1348ec build rather than counting as a third build.
+        expect(byKey['f1348ec']).toMatchObject({ cacheKey: '1611070538' });
+
+        // Each build is attributed to the timestamp of the entry it followed.
+        expect(byKey['75d2ab5'].firstSeen).toBeGreaterThan(0);
+        expect(byKey['f1348ec'].firstSeen).toBeGreaterThanOrEqual(
+          byKey['75d2ab5'].firstSeen,
+        );
       },
     );
   });
