@@ -306,9 +306,8 @@ export function readLogFile(
     };
     const repeatedCounts: Record<string, number> = {};
 
-    // Webapp build SHAs seen in this file (only meaningful for webapp/console
-    // logs; other log types never contain gantry markers so the map stays
-    // empty). Keyed by build identity, bracketed by first/last-seen time.
+    // Webapp build SHAs seen in this file; stays empty for non-webapp logs,
+    // which never contain gantry markers.
     const webappBuilds: Record<string, WebappBuild> = {};
 
     function pushEntry(entry: LogEntry | null) {

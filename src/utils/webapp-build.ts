@@ -1,35 +1,20 @@
-/**
- * Webapp (JS client) build detection from console log lines.
- *
- * The webapp is served as gantry bundles whose filenames embed a content-hash
- * build SHA, e.g. `.../gantry-v2-shared.4d21793112932f67.min.js?cacheKey=...`
- * (older builds used `gantry-shared.<sha>`). A log bundle can span up to two
- * weeks, during which the webapp may reload onto newer builds, so a single
- * bundle can name more than one SHA.
- *
- * We match ONLY the primary shared bundle (`gantry-shared` / `gantry-v2-shared`)
- * — its content hash is the build identity, and it's what root-state records as
- * the webapp version. Async route chunks (`gantry-v2-async-...`) each carry
- * their own hash; matching those would report hundreds of "builds" per bundle,
- * so the leading boundary here deliberately excludes them.
- */
+// Match ONLY the primary shared bundle. Its content hash is the build
+// identity (what root-state records as the webapp version); async route
+// chunks (`gantry-v2-async-...`) each carry their own hash, so matching them
+// would report hundreds of "builds" per bundle. The leading boundary excludes
+// those. Older builds used `gantry-shared`, newer ones `gantry-v2-shared`.
 const GANTRY_SHA_RGX =
   /(?:^|[\s/])gantry(?:-v\d+)?-shared\.([0-9a-f]{6,40})\.min\.js/;
 
-/** A distinct webapp build, bracketed by the first/last time it was seen. */
 export interface WebappBuild {
   sha: string;
-  /** momentValue (epoch ms) of the earliest line naming this build; 0 if undated. */
+  /** momentValue (epoch ms); 0 if only seen on undated lines. */
   firstSeen: number;
-  /** momentValue (epoch ms) of the latest line naming this build; 0 if undated. */
   lastSeen: number;
 }
 
-/**
- * Extracts the gantry build SHA from a log line, or `null` if it names none.
- * Guards on the `gantry-` substring so it is cheap on every line.
- */
 export function extractWebappBuildSha(line: string): string | null {
+  // Cheap guard so we skip the regex on the vast majority of lines.
   if (!line.includes('gantry-')) {
     return null;
   }
@@ -38,10 +23,8 @@ export function extractWebappBuildSha(line: string): string | null {
 }
 
 /**
- * Records a build SHA seen at `momentValue` in `acc`, widening its
- * first/last-seen window. A `momentValue` of 0 (undated line) records the
- * build without pulling a real window bound down to 0. Mutates and returns
- * `acc`.
+ * A `momentValue` of 0 (undated line) records the build without pulling a real
+ * window bound down to 0. Mutates and returns `acc`.
  */
 export function accumulateWebappBuild(
   acc: Record<string, WebappBuild>,
@@ -64,10 +47,6 @@ export function accumulateWebappBuild(
   return acc;
 }
 
-/**
- * Merges per-file build maps into one deduped list sorted newest-last-seen
- * first, unioning the first/last-seen window of builds sharing a SHA.
- */
 export function mergeWebappBuilds(
   maps: Array<Record<string, WebappBuild> | undefined>,
 ): Array<WebappBuild> {

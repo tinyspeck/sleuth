@@ -137,10 +137,7 @@ export interface ProcessedLogFile extends BaseFile {
   logFile: UnzippedFile;
   logType: KnownLogType;
   type: 'ProcessedLogFile';
-  /**
-   * Distinct webapp (gantry) builds seen in this file, keyed by build
-   * identity. Empty for non-webapp logs. See `utils/webapp-build.ts`.
-   */
+  /** Webapp (gantry) builds seen in this file, keyed by SHA; empty otherwise. */
   webappBuilds: Record<string, WebappBuild>;
 }
 

@@ -82,10 +82,7 @@ function formatMemory(
   return NA;
 }
 
-/**
- * Extracts the webapp version from persisted root-state. Returns the raw
- * `sha@timestamp` string plus the short SHA (the part before `@`) for display.
- */
+/** Returns the raw `sha@timestamp` version string plus the SHA (before `@`). */
 export function getWebappVersionInfo(rootState: any): {
   raw: string;
   sha: string;
@@ -106,16 +103,12 @@ export function getWebappVersionInfo(rootState: any): {
   return null;
 }
 
-/** Abbreviate a build hash to a git-style 7-char short SHA for display. */
 function shortSha(sha: string): string {
   return sha.slice(0, 7);
 }
 
-/**
- * Compact local date-time a build was last seen, or `?` for undated (0).
- * We show only the last-seen time — each build was in use up to that point,
- * so a first→last range is redundant.
- */
+// Only the last-seen time is shown: each build was in use up to that point, so
+// a first→last range would be redundant.
 function formatBuildTime(momentValue: number): string {
   if (!momentValue) {
     return '?';
@@ -140,14 +133,13 @@ function showBuildInLogs(
   i: number,
 ): void {
   const build = builds[i];
-  // builds are sorted newest-first, so the previous entry is the next-newer
-  // build — the point at which this one stopped being in use.
+  // builds are newest-first, so the previous entry is the next-newer build —
+  // the point at which this one stopped being in use.
   const upper = i > 0 ? builds[i - 1].firstSeen : 0;
   state.dateRange = {
     from: build.firstSeen ? new Date(build.firstSeen) : null,
     to: upper ? new Date(upper) : null,
   };
-  // Show the filtered slice across all logs, then leave the dashboard.
   state.selectAllLogs();
   state.showStateSummary = false;
 }
@@ -157,11 +149,9 @@ function showBuildInLogs(
 const MAX_BUILDS_SHOWN = 25;
 
 /**
- * The "Webapp Version" dashboard cell: the current version from root-state as
- * the headline, plus a "N builds" badge with a timeline popover when the log
- * window contains more than one build. Each timeline entry links back to the
- * logs filtered to that build's time window; long lists collapse to the most
- * recent {@link MAX_BUILDS_SHOWN} with a "Show all" toggle.
+ * The "Webapp Version" dashboard cell: the current version as the headline,
+ * plus a "N builds" badge whose popover timelines every build seen. Each entry
+ * links back to the logs filtered to that build's window.
  */
 function WebappVersionCell({
   state,
@@ -382,12 +372,10 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
   const gpuAvailable = env?.isGpuCompositionAvailable;
   const channel = rootState?.settings?.releaseChannelOverride;
 
-  // Current webapp version at bundle-creation time (distinct from the desktop
-  // app version); see getWebappVersionInfo.
+  // Webapp (JS client) version — distinct from the desktop app version above.
   const webapp = getWebappVersionInfo(rootState);
 
-  // Distinct webapp builds seen across the log window (accumulated per-file
-  // during parsing), newest last-seen first — used to flag version drift.
+  // Every webapp build seen across the log window, to flag version drift.
   const webappBuilds = mergeWebappBuilds([
     ...(state.processedLogFiles?.webapp ?? []).map((f) => f.webappBuilds),
     ...(state.processedLogFiles?.webapp_sw ?? []).map((f) => f.webappBuilds),
