@@ -106,6 +106,11 @@ export function getWebappVersionInfo(rootState: any): {
   return null;
 }
 
+/** Abbreviate a build hash to a git-style 7-char short SHA for display. */
+function shortSha(sha: string): string {
+  return sha.slice(0, 7);
+}
+
 /**
  * Compact local date-time a build was last seen, or `?` for undated (0).
  * We show only the last-seen time — each build was in use up to that point,
@@ -177,9 +182,9 @@ function WebappVersionCell({
   }
 
   const headline = (
-    <Tooltip title={current?.raw ?? undefined}>
-      <Typography.Text copyable={current ? { text: current.raw } : undefined}>
-        {headlineSha}
+    <Tooltip title={current?.raw ?? headlineSha}>
+      <Typography.Text copyable={{ text: current?.raw ?? headlineSha }}>
+        {shortSha(headlineSha)}
       </Typography.Text>
     </Tooltip>
   );
@@ -199,13 +204,13 @@ function WebappVersionCell({
           color: i === 0 ? 'green' : 'gray',
           children: (
             <span>
-              <Tooltip title="Show these logs">
+              <Tooltip title={`${build.sha} — show these logs`}>
                 <Typography.Link
                   strong
                   onClick={() => showBuildInLogs(state, builds, i)}
                 >
                   <ProfileOutlined style={{ marginRight: 4 }} />
-                  {build.sha}
+                  {shortSha(build.sha)}
                 </Typography.Link>
               </Tooltip>
               {i === 0 ? <Tag style={{ marginLeft: 6 }}>current</Tag> : null}
@@ -242,8 +247,8 @@ function WebappVersionCell({
           if (!open) setShowAll(false);
         }}
       >
-        <Tag color="orange" style={{ cursor: 'pointer', margin: 0 }}>
-          ⚠ {builds.length} builds
+        <Tag color="blue" style={{ cursor: 'pointer', margin: 0 }}>
+          {builds.length} builds
         </Tag>
       </Popover>
     </Space>
