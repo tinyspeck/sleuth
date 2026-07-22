@@ -14,7 +14,7 @@ import { getTypeForFile } from '../../utils/get-file-types';
 import { matchTag } from '../../utils/match-tag';
 import {
   accumulateWebappBuild,
-  extractWebappBuildMarker,
+  extractWebappBuildSha,
   WebappBuild,
 } from '../../utils/webapp-build';
 import debug from 'debug';
@@ -374,15 +374,14 @@ export function readLogFile(
         return;
       }
 
-      // Gantry build markers can appear on a matched line or on a trailing
-      // continuation line (URLs in a stack/meta block), so scan the raw line
-      // regardless of whether it parses as a new entry. Attribute it to the
-      // current entry's timestamp; 0 when we haven't dated an entry yet.
-      const buildMarker = extractWebappBuildMarker(line);
-      if (buildMarker) {
+      // Gantry SHAs can appear on a matched line or a trailing continuation
+      // line (URLs in a stack/meta block), so scan the raw line regardless of
+      // whether it parses. Attribute it to the current entry's timestamp.
+      const buildSha = extractWebappBuildSha(line);
+      if (buildSha) {
         accumulateWebappBuild(
           webappBuilds,
-          buildMarker,
+          buildSha,
           current?.momentValue ?? 0,
         );
       }

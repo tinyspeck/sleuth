@@ -109,21 +109,19 @@ describe('readFile', () => {
 
     return readLogFile(file, { logType: LogType.WEBAPP }).then(
       ({ webappBuilds }) => {
-        // The raw per-file map keeps the bucket-only service-worker marker
-        // separate from its SHA build (a bucket line can precede its SHA in a
-        // streaming pass); the dashboard coalesces them via mergeWebappBuilds.
         const builds = mergeWebappBuilds([webappBuilds]);
-        expect(builds).toHaveLength(2);
-
-        const byKey = Object.fromEntries(builds.map((b) => [b.sha, b]));
-        expect(byKey['75d2ab5']).toMatchObject({ cacheKey: '1600974368' });
-        // The service-worker cache-bucket line (gantry-1611070538) folds into
-        // the f1348ec build rather than counting as a third build.
-        expect(byKey['f1348ec']).toMatchObject({ cacheKey: '1611070538' });
+        // A legacy `gantry-shared` and a modern `gantry-v2-shared` build; the
+        // service-worker cache-bucket line (which names no SHA) is ignored,
+        // not counted as a third build.
+        expect(builds.map((b) => b.sha).sort()).toEqual([
+          '4d21793112932f67',
+          '75d2ab5',
+        ]);
 
         // Each build is attributed to the timestamp of the entry it followed.
+        const byKey = Object.fromEntries(builds.map((b) => [b.sha, b]));
         expect(byKey['75d2ab5'].firstSeen).toBeGreaterThan(0);
-        expect(byKey['f1348ec'].firstSeen).toBeGreaterThanOrEqual(
+        expect(byKey['4d21793112932f67'].firstSeen).toBeGreaterThanOrEqual(
           byKey['75d2ab5'].firstSeen,
         );
       },

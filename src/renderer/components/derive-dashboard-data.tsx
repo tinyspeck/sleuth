@@ -105,18 +105,12 @@ export function getWebappVersionInfo(rootState: any): {
   return null;
 }
 
-/** Short human label for a build: its SHA, or the gantry bucket if SHA-less. */
-function webappBuildLabel(build: WebappBuild): string {
-  return build.sha ?? `gantry-${build.cacheKey}`;
-}
-
 /** Compact local date-time for a momentValue, or `?` for undated (0). */
 function formatBuildTime(momentValue: number): string {
   if (!momentValue) {
     return '?';
   }
-  const d = new Date(momentValue);
-  return d.toLocaleString(undefined, {
+  return new Date(momentValue).toLocaleString(undefined, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -125,22 +119,19 @@ function formatBuildTime(momentValue: number): string {
 }
 
 /**
- * Renders the "Webapp Version" dashboard cell. Shows the current version from
- * root-state as the headline; when more than one build was seen in the log
- * window, adds a "N builds" badge whose popover lists the full timeline.
+ * Renders the "Webapp Version" dashboard cell: the current version from
+ * root-state as the headline, plus a "N builds" badge with a timeline popover
+ * when the log window contains more than one build.
  */
 function renderWebappVersionCell(
   current: { raw: string; sha: string } | null,
   builds: Array<WebappBuild>,
 ): React.ReactNode {
-  const naText = <Typography.Text type="secondary">N/A</Typography.Text>;
-
-  // Headline: prefer the authoritative root-state version; fall back to the
-  // most-recent build seen in the logs if root-state had none.
-  const headlineSha =
-    current?.sha ?? (builds[0] ? webappBuildLabel(builds[0]) : null);
+  // Prefer the authoritative root-state version; fall back to the most-recent
+  // build seen in the logs if root-state had none.
+  const headlineSha = current?.sha ?? builds[0]?.sha ?? null;
   if (!headlineSha) {
-    return naText;
+    return <Typography.Text type="secondary">N/A</Typography.Text>;
   }
 
   const headline = (
@@ -162,11 +153,8 @@ function renderWebappVersionCell(
         color: i === 0 ? 'green' : 'gray',
         children: (
           <span>
-            <Typography.Text
-              copyable={{ text: webappBuildLabel(build) }}
-              strong
-            >
-              {webappBuildLabel(build)}
+            <Typography.Text copyable={{ text: build.sha }} strong>
+              {build.sha}
             </Typography.Text>
             {i === 0 ? <Tag style={{ marginLeft: 6 }}>current</Tag> : null}
             <br />
@@ -323,17 +311,12 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
   const gpuAvailable = env?.isGpuCompositionAvailable;
   const channel = rootState?.settings?.releaseChannelOverride;
 
-  // The webapp (JS client) version is distinct from the desktop app version.
-  // It's persisted per-team in root-state.json as `webapp.teams[id].version`,
-  // in the format `sha@timestamp`. The value is the same across teams, so we
-  // take the first team that has it set. This reflects the webapp version at
-  // the time the bundle was created.
+  // Current webapp version at bundle-creation time (distinct from the desktop
+  // app version); see getWebappVersionInfo.
   const webapp = getWebappVersionInfo(rootState);
 
-  // A log bundle spans up to two weeks, during which the webapp can reload
-  // onto newer builds. Each build leaves gantry markers in the console logs,
-  // which we accumulate per-file during parsing; merge them here to detect
-  // drift within the window (newest last-seen first).
+  // Distinct webapp builds seen across the log window (accumulated per-file
+  // during parsing), newest last-seen first — used to flag version drift.
   const webappBuilds = mergeWebappBuilds([
     ...(state.processedLogFiles?.webapp ?? []).map((f) => f.webappBuilds),
     ...(state.processedLogFiles?.webapp_sw ?? []).map((f) => f.webappBuilds),

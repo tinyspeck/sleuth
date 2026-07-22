@@ -21,6 +21,12 @@ yarn
 yarn start
 ```
 
+## Testing
+
+See [docs/testing-and-validating-changes.md](docs/testing-and-validating-changes.md)
+for automated checks (`yarn run typecheck`, `yarn run lint`, `yarn test`) and how
+to capture a GUI screenshot to validate user-visible changes.
+
 ## Releases
 
 Releases are now fully automated and happen entirely within CircleCI.
