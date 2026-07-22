@@ -149,6 +149,14 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
     });
   }, [props.state.processedLogFiles]);
 
+  // When the dashboard is dismissed programmatically (e.g. a "show these logs"
+  // link), clear any manual State-tab pin so the tab follows the actual view.
+  useEffect(() => {
+    if (!props.state.showStateSummary && manualTab === 'state') {
+      setManualTab(null);
+    }
+  }, [props.state.showStateSummary, manualTab]);
+
   const onStateSelect = useCallback(
     (selectedKeys: Key[]) => {
       const selected = String(selectedKeys[0]);

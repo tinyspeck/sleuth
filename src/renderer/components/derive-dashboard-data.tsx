@@ -5,6 +5,7 @@ import {
   ExportOutlined,
   HourglassOutlined,
   LinuxOutlined,
+  ProfileOutlined,
   ThunderboltOutlined,
   WindowsFilled,
 } from '@ant-design/icons';
@@ -105,12 +106,17 @@ export function getWebappVersionInfo(rootState: any): {
   return null;
 }
 
-/** Compact local date-time for a momentValue, or `?` for undated (0). */
+/**
+ * Compact local date-time a build was last seen, or `?` for undated (0).
+ * We show only the last-seen time — each build was in use up to that point,
+ * so a first→last range is redundant.
+ */
 function formatBuildTime(momentValue: number): string {
   if (!momentValue) {
     return '?';
   }
   return new Date(momentValue).toLocaleString(undefined, {
+    year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -119,14 +125,50 @@ function formatBuildTime(momentValue: number): string {
 }
 
 /**
- * Renders the "Webapp Version" dashboard cell: the current version from
- * root-state as the headline, plus a "N builds" badge with a timeline popover
- * when the log window contains more than one build.
+ * Jumps back to the logs view filtered to the window a build was in use:
+ * from when it was first seen until the next (newer) build appeared. The
+ * current build (newest) has no upper bound.
  */
-function renderWebappVersionCell(
-  current: { raw: string; sha: string } | null,
+function showBuildInLogs(
+  state: SleuthState,
   builds: Array<WebappBuild>,
-): React.ReactNode {
+  i: number,
+): void {
+  const build = builds[i];
+  // builds are sorted newest-first, so the previous entry is the next-newer
+  // build — the point at which this one stopped being in use.
+  const upper = i > 0 ? builds[i - 1].firstSeen : 0;
+  state.dateRange = {
+    from: build.firstSeen ? new Date(build.firstSeen) : null,
+    to: upper ? new Date(upper) : null,
+  };
+  // Show the filtered slice across all logs, then leave the dashboard.
+  state.selectAllLogs();
+  state.showStateSummary = false;
+}
+
+// Long-lived bundles can legitimately span many builds; the timeline shows the
+// most recent this many by default, with a "Show all" toggle for the rest.
+const MAX_BUILDS_SHOWN = 25;
+
+/**
+ * The "Webapp Version" dashboard cell: the current version from root-state as
+ * the headline, plus a "N builds" badge with a timeline popover when the log
+ * window contains more than one build. Each timeline entry links back to the
+ * logs filtered to that build's time window; long lists collapse to the most
+ * recent {@link MAX_BUILDS_SHOWN} with a "Show all" toggle.
+ */
+function WebappVersionCell({
+  state,
+  current,
+  builds,
+}: {
+  state: SleuthState;
+  current: { raw: string; sha: string } | null;
+  builds: Array<WebappBuild>;
+}): React.ReactNode {
+  const [showAll, setShowAll] = React.useState(false);
+
   // Prefer the authoritative root-state version; fall back to the most-recent
   // build seen in the logs if root-state had none.
   const headlineSha = current?.sha ?? builds[0]?.sha ?? null;
@@ -146,35 +188,59 @@ function renderWebappVersionCell(
     return headline;
   }
 
+  const shown = showAll ? builds : builds.slice(0, MAX_BUILDS_SHOWN);
+  const hidden = builds.length - shown.length;
+
   const timeline = (
-    <Timeline
-      style={{ marginTop: 4, marginBottom: 0, maxWidth: 320 }}
-      items={builds.map((build, i) => ({
-        color: i === 0 ? 'green' : 'gray',
-        children: (
-          <span>
-            <Typography.Text copyable={{ text: build.sha }} strong>
-              {build.sha}
-            </Typography.Text>
-            {i === 0 ? <Tag style={{ marginLeft: 6 }}>current</Tag> : null}
-            <br />
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              {formatBuildTime(build.firstSeen)} →{' '}
-              {formatBuildTime(build.lastSeen)}
-            </Typography.Text>
-          </span>
-        ),
-      }))}
-    />
+    <div style={{ maxHeight: 320, overflowY: 'auto', paddingRight: 4 }}>
+      <Timeline
+        style={{ marginTop: 4, marginBottom: 0, maxWidth: 320 }}
+        items={shown.map((build, i) => ({
+          color: i === 0 ? 'green' : 'gray',
+          children: (
+            <span>
+              <Tooltip title="Show these logs">
+                <Typography.Link
+                  strong
+                  onClick={() => showBuildInLogs(state, builds, i)}
+                >
+                  <ProfileOutlined style={{ marginRight: 4 }} />
+                  {build.sha}
+                </Typography.Link>
+              </Tooltip>
+              {i === 0 ? <Tag style={{ marginLeft: 6 }}>current</Tag> : null}
+              <br />
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                {formatBuildTime(build.lastSeen)}
+              </Typography.Text>
+            </span>
+          ),
+        }))}
+      />
+      {hidden > 0 ? (
+        <Typography.Link onClick={() => setShowAll(true)}>
+          Show all {builds.length}
+        </Typography.Link>
+      ) : null}
+    </div>
   );
+
+  // State the truncation in the always-visible title, not below a scrolled list.
+  const title =
+    hidden > 0
+      ? `Webapp builds — showing ${shown.length} most recent of ${builds.length}`
+      : 'Webapp builds seen in this log window';
 
   return (
     <Space size={6}>
       {headline}
       <Popover
-        title="Webapp builds seen in this log window"
+        title={title}
         content={timeline}
         trigger="click"
+        onOpenChange={(open) => {
+          if (!open) setShowAll(false);
+        }}
       >
         <Tag color="orange" style={{ cursor: 'pointer', margin: 0 }}>
           ⚠ {builds.length} builds
@@ -436,7 +502,13 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
       {
         key: 'webapp',
         label: 'Webapp Version',
-        children: renderWebappVersionCell(webapp, webappBuilds),
+        children: (
+          <WebappVersionCell
+            state={state}
+            current={webapp}
+            builds={webappBuilds}
+          />
+        ),
       },
       { key: 'electron', label: 'Electron', children: electronDisplay },
       {

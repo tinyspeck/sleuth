@@ -6,11 +6,15 @@
  * (older builds used `gantry-shared.<sha>`). A log bundle can span up to two
  * weeks, during which the webapp may reload onto newer builds, so a single
  * bundle can name more than one SHA.
+ *
+ * We match ONLY the primary shared bundle (`gantry-shared` / `gantry-v2-shared`)
+ * — its content hash is the build identity, and it's what root-state records as
+ * the webapp version. Async route chunks (`gantry-v2-async-...`) each carry
+ * their own hash; matching those would report hundreds of "builds" per bundle,
+ * so the leading boundary here deliberately excludes them.
  */
-
-// Matches the SHA in any gantry shared-chunk filename: `gantry-shared.<sha>`,
-// `gantry-v2-shared.<sha>`, `gantry-v2-...-shared-....<sha>`, etc.
-const GANTRY_SHA_RGX = /gantry-[a-z0-9-]*\.([0-9a-f]{6,40})\.min\.js/;
+const GANTRY_SHA_RGX =
+  /(?:^|[\s/])gantry(?:-v\d+)?-shared\.([0-9a-f]{6,40})\.min\.js/;
 
 /** A distinct webapp build, bracketed by the first/last time it was seen. */
 export interface WebappBuild {

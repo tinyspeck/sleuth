@@ -25,6 +25,21 @@ describe('extractWebappBuildSha', () => {
     ).toBe('f1348ec');
   });
 
+  it('ignores async route chunks so one build is not counted many times', () => {
+    // Each deploy ships dozens of these, each with its own content hash; only
+    // the primary shared bundle identifies the build.
+    expect(
+      extractWebappBuildSha(
+        'a.slack-edge.com/bv1-13-br/gantry-v2-async-gantry-v2-shared-boot-async.f95a718635c38636.min.js?x',
+      ),
+    ).toBeNull();
+    expect(
+      extractWebappBuildSha(
+        'a.slack-edge.com/bv1-13-br/gantry-v2-async-client-v2-Foo.9a1c393c32246aa4e878.min.js',
+      ),
+    ).toBeNull();
+  });
+
   it('returns null for lines that name no gantry bundle', () => {
     expect(extractWebappBuildSha('just a normal log line')).toBeNull();
     expect(extractWebappBuildSha('cache bucket: gantry-1611070538')).toBeNull();
