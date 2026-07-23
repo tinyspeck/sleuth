@@ -103,6 +103,15 @@ export class IpcManager {
       }
 
       window.webContents.on('will-navigate', (e, url) => {
+        // Don't open `http://localhost:5173` in the browser
+        // when running in dev mode
+        if (
+          MAIN_WINDOW_VITE_DEV_SERVER_URL &&
+          url.startsWith(MAIN_WINDOW_VITE_DEV_SERVER_URL)
+        ) {
+          return;
+        }
+
         e.preventDefault();
 
         if (!url.startsWith('file:///')) {
