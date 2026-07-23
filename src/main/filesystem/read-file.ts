@@ -14,7 +14,7 @@ import { getTypeForFile } from '../../utils/get-file-types';
 import { matchTag } from '../../utils/match-tag';
 import {
   accumulateWebappBuild,
-  extractWebappBuildSha,
+  extractVersionField,
   WebappBuild,
 } from '../../utils/webapp-build';
 import debug from 'debug';
@@ -306,9 +306,11 @@ export function readLogFile(
     };
     const repeatedCounts: Record<string, number> = {};
 
-    // Webapp build SHAs seen in this file; stays empty for non-webapp logs,
-    // which never contain gantry markers.
+    // Webapp builds seen in this file, from `[VERSION]` blocks; stays empty for
+    // non-webapp logs. version_hash and version_ts are on adjacent lines, so we
+    // hold the most recent hash to pair with the timestamp that follows it.
     const webappBuilds: Record<string, WebappBuild> = {};
+    let pendingVersionHash: string | null = null;
 
     function pushEntry(entry: LogEntry | null) {
       if (entry) {
@@ -373,16 +375,27 @@ export function readLogFile(
         return;
       }
 
-      // Gantry SHAs can appear on a matched line or a trailing continuation
-      // line (URLs in a stack/meta block), so scan the raw line regardless of
-      // whether it parses. Attribute it to the current entry's timestamp.
-      const buildSha = extractWebappBuildSha(line);
-      if (buildSha) {
-        accumulateWebappBuild(
-          webappBuilds,
-          buildSha,
-          current?.momentValue ?? 0,
-        );
+      // `[VERSION]` blocks log version_hash then version_ts on adjacent lines.
+      // Hold the hash, then pair it with the timestamp that follows. Scanned on
+      // the raw line since these may be meta/continuation lines.
+      const versionField = extractVersionField(line);
+      if (versionField) {
+        if ('hash' in versionField) {
+          pendingVersionHash = versionField.hash;
+          accumulateWebappBuild(
+            webappBuilds,
+            versionField.hash,
+            0,
+            current?.momentValue ?? 0,
+          );
+        } else if (pendingVersionHash) {
+          accumulateWebappBuild(
+            webappBuilds,
+            pendingVersionHash,
+            versionField.ts,
+            current?.momentValue ?? 0,
+          );
+        }
       }
 
       const matched = matchFn(line, options.userTZ);

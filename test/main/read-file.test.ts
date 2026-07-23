@@ -98,32 +98,26 @@ describe('readFile', () => {
     );
   });
 
-  it('accumulates distinct webapp builds from gantry markers', () => {
+  it('accumulates webapp builds from [VERSION] blocks with their build ts', () => {
     const file: UnzippedFile = {
       type: 'UnzippedFile',
       id: '123',
-      fullPath: path.join(__dirname, '../static/console-export-gantry.log'),
-      fileName: 'console-export-gantry.log',
+      fullPath: path.join(__dirname, '../static/webapp-version-blocks.log'),
+      fileName: 'webapp-version-blocks.log',
       size: 500,
     };
 
     return readLogFile(file, { logType: LogType.WEBAPP }).then(
       ({ webappBuilds }) => {
         const builds = mergeWebappBuilds([webappBuilds]);
-        // A legacy `gantry-shared` and a modern `gantry-v2-shared` build; the
-        // service-worker cache-bucket line (which names no SHA) is ignored,
-        // not counted as a third build.
-        expect(builds.map((b) => b.sha).sort()).toEqual([
-          '4d21793112932f67',
-          '75d2ab5',
+        // Two [VERSION] boots; each version_ts is paired with the version_hash
+        // logged on the line above it, newest build first.
+        expect(builds.map((b) => b.sha)).toEqual([
+          '1ae9268c6546cd002c66bea39720f4cebfbfd1d9',
+          '7af21b97aa1490392bed32a57f74dc1d3aa65efe',
         ]);
-
-        // Each build is attributed to the timestamp of the entry it followed.
-        const byKey = Object.fromEntries(builds.map((b) => [b.sha, b]));
-        expect(byKey['75d2ab5'].firstSeen).toBeGreaterThan(0);
-        expect(byKey['4d21793112932f67'].firstSeen).toBeGreaterThanOrEqual(
-          byKey['75d2ab5'].firstSeen,
-        );
+        expect(builds[0].buildTs).toBe(1781553767);
+        expect(builds[1].buildTs).toBe(1781523158);
       },
     );
   });

@@ -107,13 +107,12 @@ function shortSha(sha: string): string {
   return sha.slice(0, 7);
 }
 
-// Only the last-seen time is shown: each build was in use up to that point, so
-// a first→last range would be redundant.
-function formatBuildTime(momentValue: number): string {
-  if (!momentValue) {
-    return '?';
+// Format an epoch-seconds build timestamp (version_ts) as a local date-time.
+function formatBuildTs(buildTs: number): string {
+  if (!buildTs) {
+    return 'unknown';
   }
-  return new Date(momentValue).toLocaleString(undefined, {
+  return new Date(buildTs * 1000).toLocaleString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -171,11 +170,21 @@ function WebappVersionCell({
     return <Typography.Text type="secondary">N/A</Typography.Text>;
   }
 
+  // Build timestamp of the current version — from root-state's `sha@ts`, or the
+  // matching build's version_ts.
+  const headlineBuildTs =
+    Number(current?.raw?.split('@')[1]) || builds[0]?.buildTs || 0;
+
   const headline = (
     <Tooltip title={current?.raw ?? headlineSha}>
       <Typography.Text copyable={{ text: current?.raw ?? headlineSha }}>
         {shortSha(headlineSha)}
       </Typography.Text>
+      {headlineBuildTs ? (
+        <Typography.Text type="secondary" style={{ marginLeft: 8 }}>
+          built {formatBuildTs(headlineBuildTs)}
+        </Typography.Text>
+      ) : null}
     </Tooltip>
   );
 
@@ -205,8 +214,14 @@ function WebappVersionCell({
               </Tooltip>
               {i === 0 ? <Tag style={{ marginLeft: 6 }}>current</Tag> : null}
               <br />
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                {formatBuildTime(build.lastSeen)}
+              <Typography.Text
+                type="secondary"
+                style={{ fontSize: 12 }}
+                copyable={
+                  build.buildTs ? { text: String(build.buildTs) } : undefined
+                }
+              >
+                built {formatBuildTs(build.buildTs)}
               </Typography.Text>
             </span>
           ),

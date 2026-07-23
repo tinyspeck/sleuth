@@ -1,95 +1,93 @@
 import { describe, it, expect } from 'vitest';
 import {
   accumulateWebappBuild,
-  extractWebappBuildSha,
+  extractVersionField,
   mergeWebappBuilds,
   WebappBuild,
 } from '../../src/utils/webapp-build';
 
-describe('extractWebappBuildSha', () => {
-  it('extracts the SHA from a legacy gantry-shared bundle URL', () => {
+describe('extractVersionField', () => {
+  it('extracts the version_hash from a [VERSION] line', () => {
     const line =
-      'a.slack-edge.com/bv1-8/gantry-shared.75d2ab5.min.js?cacheKey=gantry-1600974368:1';
-    expect(extractWebappBuildSha(line)).toBe('75d2ab5');
+      '[06/16/26, 09:52:12:312] info: [VERSION] version_hash: 1ae9268c6546cd002c66bea39720f4cebfbfd1d9';
+    expect(extractVersionField(line)).toEqual({
+      hash: '1ae9268c6546cd002c66bea39720f4cebfbfd1d9',
+    });
   });
 
-  it('extracts the SHA from a modern gantry-v2-shared bundle URL', () => {
+  it('extracts the version_ts from a [VERSION] line', () => {
     const line =
-      'a.slack-edge.com/bv1-13-br/gantry-v2-shared.4d21793112932f67.min.js?cacheKey=gantry-1783629160:14';
-    expect(extractWebappBuildSha(line)).toBe('4d21793112932f67');
+      '[06/16/26, 09:52:12:312] info: [VERSION] version_ts: 1781553767';
+    expect(extractVersionField(line)).toEqual({ ts: 1781553767 });
   });
 
-  it('extracts the SHA when the bundle appears with no cacheKey', () => {
+  it('also accepts the build_version_ts field name', () => {
     expect(
-      extractWebappBuildSha('11:50:18.322 gantry-shared.f1348ec.min.js:1 msg'),
-    ).toBe('f1348ec');
+      extractVersionField('[VERSION] build_version_ts: 1784575952'),
+    ).toEqual({ ts: 1784575952 });
   });
 
-  it('ignores async route chunks so one build is not counted many times', () => {
-    // Each deploy ships dozens of these, each with its own content hash; only
-    // the primary shared bundle identifies the build.
+  it('returns null for lines without a [VERSION] block', () => {
+    expect(extractVersionField('just a normal log line')).toBeNull();
     expect(
-      extractWebappBuildSha(
-        'a.slack-edge.com/bv1-13-br/gantry-v2-async-gantry-v2-shared-boot-async.f95a718635c38636.min.js?x',
-      ),
+      extractVersionField('[VERSION] min_version_data_ts: 1722374725'),
     ).toBeNull();
-    expect(
-      extractWebappBuildSha(
-        'a.slack-edge.com/bv1-13-br/gantry-v2-async-client-v2-Foo.9a1c393c32246aa4e878.min.js',
-      ),
-    ).toBeNull();
-  });
-
-  it('returns null for lines that name no gantry bundle', () => {
-    expect(extractWebappBuildSha('just a normal log line')).toBeNull();
-    expect(extractWebappBuildSha('cache bucket: gantry-1611070538')).toBeNull();
-    expect(extractWebappBuildSha('')).toBeNull();
+    expect(extractVersionField('')).toBeNull();
   });
 });
 
 describe('accumulateWebappBuild', () => {
-  it('records a new build with matching first/last-seen', () => {
-    const acc = accumulateWebappBuild({}, 'aaa', 100);
-    expect(acc.aaa).toEqual({ sha: 'aaa', firstSeen: 100, lastSeen: 100 });
+  it('records a new build with SHA, build ts, and observed time', () => {
+    const acc = accumulateWebappBuild({}, 'aaa', 1781553767, 100);
+    expect(acc.aaa).toEqual({
+      sha: 'aaa',
+      buildTs: 1781553767,
+      firstSeen: 100,
+      lastSeen: 100,
+    });
   });
 
-  it('widens the window across repeated sightings', () => {
+  it('backfills the build ts when first seen without one', () => {
     let acc: Record<string, WebappBuild> = {};
-    acc = accumulateWebappBuild(acc, 'aaa', 200);
-    acc = accumulateWebappBuild(acc, 'aaa', 100);
-    acc = accumulateWebappBuild(acc, 'aaa', 300);
-    expect(acc.aaa).toMatchObject({ firstSeen: 100, lastSeen: 300 });
+    acc = accumulateWebappBuild(acc, 'aaa', 0, 100); // version_hash line
+    acc = accumulateWebappBuild(acc, 'aaa', 1781553767, 100); // version_ts line
+    expect(acc.aaa.buildTs).toBe(1781553767);
   });
 
-  it('does not let an undated (0) sighting pull firstSeen down to 0', () => {
+  it('widens the observed window; an undated (0) sighting never lowers it', () => {
     let acc: Record<string, WebappBuild> = {};
-    acc = accumulateWebappBuild(acc, 'aaa', 500);
-    acc = accumulateWebappBuild(acc, 'aaa', 0);
-    expect(acc.aaa).toMatchObject({ firstSeen: 500, lastSeen: 500 });
+    acc = accumulateWebappBuild(acc, 'aaa', 1, 500);
+    acc = accumulateWebappBuild(acc, 'aaa', 1, 0);
+    acc = accumulateWebappBuild(acc, 'aaa', 1, 800);
+    expect(acc.aaa).toMatchObject({ firstSeen: 500, lastSeen: 800 });
   });
 });
 
 describe('mergeWebappBuilds', () => {
-  it('merges per-file maps, dedupes by SHA, and sorts newest-lastSeen first', () => {
+  it('dedupes by SHA and sorts newest build ts first', () => {
     const fileA: Record<string, WebappBuild> = {
-      old: { sha: 'old', firstSeen: 100, lastSeen: 200 },
-      new: { sha: 'new', firstSeen: 300, lastSeen: 400 },
+      old: { sha: 'old', buildTs: 100, firstSeen: 10, lastSeen: 20 },
+      new: { sha: 'new', buildTs: 300, firstSeen: 30, lastSeen: 40 },
     };
     const fileB: Record<string, WebappBuild> = {
-      old: { sha: 'old', firstSeen: 50, lastSeen: 250 },
+      old: { sha: 'old', buildTs: 100, firstSeen: 5, lastSeen: 25 },
     };
 
     const merged = mergeWebappBuilds([fileA, fileB]);
     expect(merged.map((b) => b.sha)).toEqual(['new', 'old']);
-    expect(merged[1]).toMatchObject({ firstSeen: 50, lastSeen: 250 });
+    expect(merged[1]).toMatchObject({ firstSeen: 5, lastSeen: 25 });
+  });
+
+  it('backfills a missing build ts from another file', () => {
+    const merged = mergeWebappBuilds([
+      { x: { sha: 'x', buildTs: 0, firstSeen: 1, lastSeen: 2 } },
+      { x: { sha: 'x', buildTs: 999, firstSeen: 3, lastSeen: 4 } },
+    ]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0].buildTs).toBe(999);
   });
 
   it('skips undefined maps and returns empty for no builds', () => {
     expect(mergeWebappBuilds([undefined, {}])).toEqual([]);
-    const merged = mergeWebappBuilds([
-      undefined,
-      { x: { sha: 'x', firstSeen: 1, lastSeen: 2 } },
-    ]);
-    expect(merged.map((b) => b.sha)).toEqual(['x']);
   });
 });
