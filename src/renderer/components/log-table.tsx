@@ -523,7 +523,7 @@ export const LogTable = observer((props: LogTableProps) => {
    * Renders the "message" cell
    */
   const renderMessageCell = useCallback(
-    ({ rowData: entry }: TableCellProps): JSX.Element | string => {
+    ({ rowData: entry }: TableCellProps): React.JSX.Element | string => {
       // Pre-parsed tag from parsing layer, with runtime fallback
       const tag =
         entry.tag ??
@@ -546,7 +546,7 @@ export const LogTable = observer((props: LogTableProps) => {
       ) : null;
 
       // Determine icon: repeated-entry emoji or meta attachment icon
-      let icon: JSX.Element | null = null;
+      let icon: React.JSX.Element | null = null;
       let iconTitle: string | undefined;
       if (entry?.repeated) {
         const count = entry.repeated.length;
@@ -595,7 +595,7 @@ export const LogTable = observer((props: LogTableProps) => {
    * Renders a cell, prefixing the log entries type.
    */
   const renderTimestampCell = useCallback(
-    ({ rowData: entry }: TableCellProps): JSX.Element | string => {
+    ({ rowData: entry }: TableCellProps): React.JSX.Element | string => {
       const { dateTimeFormat } = props;
       const timestamp = entry.momentValue
         ? format(
@@ -733,7 +733,7 @@ export const LogTable = observer((props: LogTableProps) => {
     [state, sortDirection],
   );
 
-  function renderTable(options: Size): JSX.Element {
+  function renderTable(options: Size): React.JSX.Element {
     const tableOptions: TableProps = {
       ...options,
       rowHeight: 30,

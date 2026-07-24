@@ -176,7 +176,7 @@ export const Welcome = observer((props: WelcomeProps) => {
     return `Unknown logs, ${item.age} old`;
   }
 
-  const renderSuggestions = (): JSX.Element | null => {
+  const renderSuggestions = (): React.JSX.Element | null => {
     const today: Suggestion[] = [];
     const thisWeek: Suggestion[] = [];
     const stale: Suggestion[] = [];

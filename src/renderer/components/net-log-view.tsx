@@ -14,7 +14,7 @@ export interface NetLogViewProps {
 const d = debug('sleuth:netlogview');
 
 export const NetLogView = observer(({ file, state }: NetLogViewProps) => {
-  const disposerRef = useRef<(() => void) | undefined>();
+  const disposerRef = useRef<(() => void) | undefined>(undefined);
 
   const setDarkMode = useCallback((enabled: boolean) => {
     try {
