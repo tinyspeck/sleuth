@@ -16,4 +16,5 @@ coverage
 !.yarn/versions
 
 .claude/*local*
+.claude/worktrees/
 test-results
