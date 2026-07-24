@@ -382,6 +382,9 @@ export const LogTable = observer((props: LogTableProps) => {
     [state.processedLogFiles],
   );
 
+  // Only show the Build ts column when enabled AND this bundle has builds.
+  const buildColumnVisible = state.showBuildColumn && mergedBuilds.length > 0;
+
   // Sync searchList to MobX state as a side effect (not inside useMemo)
   useEffect(() => {
     runInAction(() => {
@@ -830,7 +833,7 @@ export const LogTable = observer((props: LogTableProps) => {
             </Tag>
           )}
         />
-        {state.showBuildColumn && (
+        {buildColumnVisible && (
           <Column
             label="Build ts"
             dataKey="momentValue"
@@ -843,7 +846,7 @@ export const LogTable = observer((props: LogTableProps) => {
           label="Message"
           dataKey="message"
           cellRenderer={renderMessageCell}
-          width={options.width - 300 - (state.showBuildColumn ? 110 : 0)}
+          width={options.width - 300 - (buildColumnVisible ? 110 : 0)}
           flexGrow={2}
         />
       </Table>
@@ -953,9 +956,9 @@ export const LogTable = observer((props: LogTableProps) => {
 
   return (
     <div className={className}>
-      {/* Key on showBuildColumn so AutoSizer re-runs its render prop (and the
-          Table rebuilds its column set) when the Build ts column is toggled. */}
-      <div className="Sizer" key={`build-${state.showBuildColumn}`}>
+      {/* Key on the column's visibility so AutoSizer re-runs its render prop
+          (and the Table rebuilds its column set) when it's toggled. */}
+      <div className="Sizer" key={`build-${buildColumnVisible}`}>
         <AutoSizer>{(options) => renderTable(options)}</AutoSizer>
       </div>
     </div>

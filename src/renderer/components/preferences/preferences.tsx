@@ -64,6 +64,7 @@ export const Preferences = observer((props: PreferencesProps) => {
     isMarkIcon,
     isOpenMostRecent,
     isSmartCopy,
+    showBuildColumn,
   } = props.state;
   return (
     <Modal
@@ -193,6 +194,19 @@ export const Preferences = observer((props: PreferencesProps) => {
           </Typography.Text>
         </Space>
       </Form.Item>
+      <Space orientation="vertical">
+        <Checkbox
+          checked={showBuildColumn}
+          onChange={(e) => (props.state.showBuildColumn = e.target.checked)}
+        >
+          Show build timestamp column
+        </Checkbox>
+        <Typography.Text type="secondary">
+          Add a column to the log table showing the webapp build timestamp
+          (version_ts) active at each line. Only appears for logs with webapp
+          builds.
+        </Typography.Text>
+      </Space>
       <Divider />
       <Typography.Title level={5}>Runtime settings</Typography.Title>
       <Space orientation="vertical">

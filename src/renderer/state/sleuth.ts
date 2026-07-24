@@ -102,7 +102,10 @@ export class SleuthState {
   @observable public hasCheckedAiAvailability = false;
   @observable public isPreferencesOpen = false;
   @observable public isUserTZ = false;
-  @observable public showBuildColumn = false;
+  @observable public showBuildColumn = !!this.retrieve<boolean>(
+    'showBuildColumn',
+    { parse: true, fallback: true },
+  );
   @observable.shallow public bookmarks: Array<Bookmark> = [];
   @observable public serializedBookmarks: Record<
     string,
@@ -192,6 +195,7 @@ export class SleuthState {
     autorun(() => this.save('isSmartCopy', this.isSmartCopy));
     autorun(() => this.save('defaultEditor', this.defaultEditor));
     autorun(() => this.save('defaultSort', this.defaultSort));
+    autorun(() => this.save('showBuildColumn', this.showBuildColumn));
     autorun(() => this.save('serializedBookmarks', this.serializedBookmarks));
     autorun(async () => {
       this.save('colorTheme', this.colorTheme);
@@ -332,11 +336,6 @@ export class SleuthState {
     this.isUserTZ = !this.isUserTZ;
   }
 
-  @action
-  public toggleShowBuildColumn() {
-    this.showBuildColumn = !this.showBuildColumn;
-  }
-
   public async getSuggestions(suggestions?: Suggestion[]) {
     const resolved = suggestions || (await window.Sleuth.getSuggestions());
     runInAction(() => {
@@ -388,7 +387,6 @@ export class SleuthState {
     this.searchIndex = 0;
     this.showOnlySearchResults = undefined;
     this.showStateSummary = false;
-    this.showBuildColumn = false;
     this.isDetailsVisible = false;
     this.dateRange = { from: null, to: null };
     this.traceThreads = undefined;
