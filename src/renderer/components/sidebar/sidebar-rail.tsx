@@ -21,7 +21,20 @@ const SidebarRail = observer((props: SidebarRailProps) => {
       <SidebarBookmarks state={props.state} />
       <Divider size="small" />
       <div style={{ flex: 1 }} />
-      <Tooltip title="Preferences (⌘,)" placement="right">
+      <Tooltip
+        title={
+          <span className="SidebarRailShortcut">
+            Preferences
+            <span className="SidebarRailKeys">
+              <kbd className="SidebarRailKbd">
+                {window.Sleuth.platform === 'win32' ? 'Ctrl' : '⌘'}
+              </kbd>
+              <kbd className="SidebarRailKbd">,</kbd>
+            </span>
+          </span>
+        }
+        placement="right"
+      >
         <Button
           style={{ marginBottom: 4 }}
           icon={<SettingOutlined />}

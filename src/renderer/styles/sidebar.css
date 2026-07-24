@@ -18,6 +18,32 @@
   z-index: 1;
 }
 
+.SidebarRailShortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ant-margin-xs);
+}
+
+.SidebarRailKeys {
+  display: inline-flex;
+  gap: var(--ant-margin-xxs);
+}
+
+.SidebarRailKbd {
+  display: inline-block;
+  min-width: 1em;
+  padding: 1px var(--ant-padding-xxs);
+  font-family: var(--ant-font-family-code);
+  font-size: var(--ant-font-size-sm);
+  line-height: 1.3;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.12);
+  border: var(--ant-line-width) solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--ant-border-radius-sm);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.4);
+}
+
 .SidebarTreeToggle {
   --overlap-height: 4px;
   width: 100%;
