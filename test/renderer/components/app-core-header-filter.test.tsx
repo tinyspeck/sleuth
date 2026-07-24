@@ -512,4 +512,49 @@ describe('Filter', () => {
       });
     });
   });
+
+  describe('Build ts Switch', () => {
+    const baseState = (): Partial<SleuthState> => ({
+      isUserTZ: false,
+      stateFiles: { 'log-context.json': { data: {} } as any },
+      searchList: [],
+      levelFilter: { error: true, warn: true, info: true, debug: true },
+      dateRange: { from: null, to: null },
+    });
+
+    it('is not shown when the bundle has no webapp builds', () => {
+      render(<Filter state={baseState() as SleuthState} />);
+      expect(screen.queryByText('Build ts')).not.toBeInTheDocument();
+    });
+
+    it('toggles showBuildColumn when webapp builds exist', () => {
+      const toggleShowBuildColumn = vi.fn();
+      const state: Partial<SleuthState> = {
+        ...baseState(),
+        showBuildColumn: false,
+        toggleShowBuildColumn,
+        processedLogFiles: {
+          webapp: [
+            {
+              webappBuilds: {
+                abc: {
+                  sha: 'abc',
+                  buildTs: 1781553767,
+                  firstSeen: 1,
+                  lastSeen: 2,
+                },
+              },
+            },
+          ],
+        } as any,
+      };
+
+      render(<Filter state={state as SleuthState} />);
+      // The only switch here (systemTZ unset, so no TZ switch).
+      const buildSwitch = screen.getByRole('switch');
+      expect(buildSwitch).toHaveTextContent('Build ts');
+      fireEvent.click(buildSwitch);
+      expect(toggleShowBuildColumn).toHaveBeenCalled();
+    });
+  });
 });

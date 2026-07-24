@@ -42,6 +42,7 @@ import { Tag, Tooltip } from 'antd';
 import { observer } from 'mobx-react';
 import { getCopyText } from '../state/copy';
 import { PartitionOutlined } from '@ant-design/icons';
+import { buildForMoment, mergeWebappBuilds } from '../../utils/webapp-build';
 
 const d = debug('sleuth:logtable');
 
@@ -368,6 +369,19 @@ export const LogTable = observer((props: LogTableProps) => {
     return { sortedList: list, newSearchList };
   }, [sortAndFilterList]);
 
+  // Webapp builds (from [VERSION] blocks) across all webapp logs, newest-first;
+  // used by the optional "Build ts" column to map each row to its active build.
+  const mergedBuilds = useMemo(
+    () =>
+      mergeWebappBuilds([
+        ...(state.processedLogFiles?.webapp ?? []).map((f) => f.webappBuilds),
+        ...(state.processedLogFiles?.webapp_sw ?? []).map(
+          (f) => f.webappBuilds,
+        ),
+      ]),
+    [state.processedLogFiles],
+  );
+
   // Sync searchList to MobX state as a side effect (not inside useMemo)
   useEffect(() => {
     runInAction(() => {
@@ -647,6 +661,26 @@ export const LogTable = observer((props: LogTableProps) => {
   );
 
   /**
+   * Renders the build timestamp (version_ts) of the webapp build that was live
+   * at this row's time. Shows the raw version_ts (matches /slackversion), with
+   * the human build date on hover. Blank for rows before the first build.
+   */
+  const renderBuildCell = useCallback(
+    ({ rowData: entry }: TableCellProps): JSX.Element | string => {
+      const build = buildForMoment(mergedBuilds, entry.momentValue ?? 0);
+      if (!build?.buildTs) {
+        return <span className="Meta">—</span>;
+      }
+      return (
+        <span title={new Date(build.buildTs * 1000).toLocaleString()}>
+          {build.buildTs}
+        </span>
+      );
+    },
+    [mergedBuilds],
+  );
+
+  /**
    * Get the row data for the table
    */
   const rowGetter = useCallback(
@@ -796,11 +830,20 @@ export const LogTable = observer((props: LogTableProps) => {
             </Tag>
           )}
         />
+        {state.showBuildColumn && (
+          <Column
+            label="Build ts"
+            dataKey="momentValue"
+            cellRenderer={renderBuildCell}
+            width={110}
+            flexGrow={0}
+          />
+        )}
         <Column
           label="Message"
           dataKey="message"
           cellRenderer={renderMessageCell}
-          width={options.width - 300}
+          width={options.width - 300 - (state.showBuildColumn ? 110 : 0)}
           flexGrow={2}
         />
       </Table>
@@ -910,7 +953,9 @@ export const LogTable = observer((props: LogTableProps) => {
 
   return (
     <div className={className}>
-      <div className="Sizer">
+      {/* Key on showBuildColumn so AutoSizer re-runs its render prop (and the
+          Table rebuilds its column set) when the Build ts column is toggled. */}
+      <div className="Sizer" key={`build-${state.showBuildColumn}`}>
         <AutoSizer>{(options) => renderTable(options)}</AutoSizer>
       </div>
     </div>

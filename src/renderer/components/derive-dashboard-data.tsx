@@ -390,7 +390,8 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
   // Webapp (JS client) version — distinct from the desktop app version above.
   const webapp = getWebappVersionInfo(rootState);
 
-  // Every webapp build seen across the log window, to flag version drift.
+  // Every webapp build seen across the log window (a bundle can span ~2 weeks,
+  // so the running version may change more than once).
   const webappBuilds = mergeWebappBuilds([
     ...(state.processedLogFiles?.webapp ?? []).map((f) => f.webappBuilds),
     ...(state.processedLogFiles?.webapp_sw ?? []).map((f) => f.webappBuilds),

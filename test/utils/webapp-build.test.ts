@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   accumulateWebappBuild,
+  buildForMoment,
   extractVersionField,
   mergeWebappBuilds,
   WebappBuild,
@@ -89,5 +90,29 @@ describe('mergeWebappBuilds', () => {
 
   it('skips undefined maps and returns empty for no builds', () => {
     expect(mergeWebappBuilds([undefined, {}])).toEqual([]);
+  });
+});
+
+describe('buildForMoment', () => {
+  // newest-first, as mergeWebappBuilds returns
+  const builds: WebappBuild[] = [
+    { sha: 'new', buildTs: 300, firstSeen: 3000, lastSeen: 3500 },
+    { sha: 'old', buildTs: 100, firstSeen: 1000, lastSeen: 1500 },
+  ];
+
+  it('returns the most recent build already observed at the given time', () => {
+    expect(buildForMoment(builds, 3200)?.sha).toBe('new');
+    expect(buildForMoment(builds, 1200)?.sha).toBe('old');
+    // between old.firstSeen and new.firstSeen -> still on old
+    expect(buildForMoment(builds, 2000)?.sha).toBe('old');
+  });
+
+  it('returns null before the first observed build', () => {
+    expect(buildForMoment(builds, 500)).toBeNull();
+  });
+
+  it('returns null for undated rows and empty build lists', () => {
+    expect(buildForMoment(builds, 0)).toBeNull();
+    expect(buildForMoment([], 3200)).toBeNull();
   });
 });

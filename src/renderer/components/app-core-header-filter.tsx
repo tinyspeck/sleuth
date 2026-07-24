@@ -25,6 +25,7 @@ import { TZDate, tzOffset } from '@date-fns/tz';
 import dateFnsGenerateConfig from '@rc-component/picker/lib/generate/dateFns';
 
 import { getTZDateFromString } from '../../utils/get-tz-date-from-string';
+import { mergeWebappBuilds } from '../../utils/webapp-build';
 
 export interface FilterProps {
   state: SleuthState;
@@ -110,6 +111,17 @@ export const Filter = observer((props: FilterProps) => {
   const tz = props.state.isUserTZ ? userTZ : systemTZ;
   const isTZSwitchable = userTZ && userTZ !== systemTZ;
 
+  // Only offer the "Build ts" toggle when the bundle actually has webapp builds.
+  const hasWebappBuilds =
+    mergeWebappBuilds([
+      ...(props.state.processedLogFiles?.webapp ?? []).map(
+        (f) => f.webappBuilds,
+      ),
+      ...(props.state.processedLogFiles?.webapp_sw ?? []).map(
+        (f) => f.webappBuilds,
+      ),
+    ]).length > 0;
+
   let offset = '';
 
   // We do our best to represent the UTC offset based on the latest log entry's date.
@@ -177,6 +189,25 @@ export const Filter = observer((props: FilterProps) => {
                 checked={!props.state.isUserTZ}
                 onChange={() => {
                   props.state.toggleTZ();
+                }}
+              />
+            </Tooltip>
+          </Space>
+        </div>
+      )}
+      {hasWebappBuilds && (
+        <div>
+          <Space>
+            <Tooltip
+              placement="right"
+              title="Show the webapp build timestamp (version_ts) active at each log line"
+            >
+              <Switch
+                checkedChildren="Build ts"
+                unCheckedChildren="Build ts"
+                checked={props.state.showBuildColumn}
+                onChange={() => {
+                  props.state.toggleShowBuildColumn();
                 }}
               />
             </Tooltip>

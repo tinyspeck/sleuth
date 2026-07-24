@@ -103,3 +103,24 @@ export function mergeWebappBuilds(
     (a, b) => b.buildTs - a.buildTs || b.lastSeen - a.lastSeen,
   );
 }
+
+/**
+ * The build that was live at `momentValue` (epoch ms): the most recent build
+ * that had already been observed by then. `builds` must be newest-first (as
+ * returned by mergeWebappBuilds). Returns null for undated rows (momentValue 0)
+ * or rows before the first observed build.
+ */
+export function buildForMoment(
+  builds: Array<WebappBuild>,
+  momentValue: number,
+): WebappBuild | null {
+  if (!momentValue) {
+    return null;
+  }
+  for (const build of builds) {
+    if (build.firstSeen > 0 && build.firstSeen <= momentValue) {
+      return build;
+    }
+  }
+  return null;
+}
