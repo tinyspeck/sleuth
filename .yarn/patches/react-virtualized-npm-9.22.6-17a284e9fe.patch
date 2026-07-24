@@ -1,0 +1,72 @@
+diff --git a/dist/commonjs/Table/Table.js b/dist/commonjs/Table/Table.js
+index 4e9ee07dd45af541360b319e470fc77fac63c541..6dca0e1ccadb060095dd9e783c3b8b7a1d46d5dc 100644
+--- a/dist/commonjs/Table/Table.js
++++ b/dist/commonjs/Table/Table.js
+@@ -262,8 +262,8 @@ var Table = exports["default"] = /*#__PURE__*/function (_React$PureComponent) {
+         rowIndex = _ref4.rowIndex;
+       var onColumnClick = this.props.onColumnClick;
+       var _column$props = column.props,
+-        cellDataGetter = _column$props.cellDataGetter,
+-        cellRenderer = _column$props.cellRenderer,
++        cellDataGetter = _column$props.cellDataGetter || _Column["default"].defaultProps.cellDataGetter,
++        cellRenderer = _column$props.cellRenderer || _Column["default"].defaultProps.cellRenderer,
+         className = _column$props.className,
+         columnData = _column$props.columnData,
+         dataKey = _column$props.dataKey,
+@@ -322,9 +322,9 @@ var Table = exports["default"] = /*#__PURE__*/function (_React$PureComponent) {
+       var _column$props2 = column.props,
+         columnData = _column$props2.columnData,
+         dataKey = _column$props2.dataKey,
+-        defaultSortDirection = _column$props2.defaultSortDirection,
++        defaultSortDirection = _column$props2.defaultSortDirection || _Column["default"].defaultProps.defaultSortDirection,
+         disableSort = _column$props2.disableSort,
+-        headerRenderer = _column$props2.headerRenderer,
++        headerRenderer = _column$props2.headerRenderer || _Column["default"].defaultProps.headerRenderer,
+         id = _column$props2.id,
+         label = _column$props2.label;
+       var sortEnabled = !disableSort && sort;
+@@ -462,7 +462,7 @@ var Table = exports["default"] = /*#__PURE__*/function (_React$PureComponent) {
+     key: "_getFlexStyleForColumn",
+     value: function _getFlexStyleForColumn(column) {
+       var customStyle = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+-      var flexValue = "".concat(column.props.flexGrow, " ").concat(column.props.flexShrink, " ").concat(column.props.width, "px");
++      var flexValue = "".concat(column.props.flexGrow || _Column["default"].defaultProps.flexGrow, " ").concat(column.props.flexShrink || _Column["default"].defaultProps.flexShrink, " ").concat(column.props.width, "px");
+       var style = _objectSpread(_objectSpread({}, customStyle), {}, {
+         flex: flexValue,
+         msFlex: flexValue,
+diff --git a/dist/es/Table/Table.js b/dist/es/Table/Table.js
+index c741f0ed4b0930193c9c114a02364b1b0e6c625c..7ad1e2c62501bd8dae523901175c6085dec2f0e8 100644
+--- a/dist/es/Table/Table.js
++++ b/dist/es/Table/Table.js
+@@ -254,8 +254,8 @@ var Table = /*#__PURE__*/function (_React$PureComponent) {
+         rowIndex = _ref4.rowIndex;
+       var onColumnClick = this.props.onColumnClick;
+       var _column$props = column.props,
+-        cellDataGetter = _column$props.cellDataGetter,
+-        cellRenderer = _column$props.cellRenderer,
++        cellDataGetter = _column$props.cellDataGetter || Column.defaultProps.cellDataGetter,
++        cellRenderer = _column$props.cellRenderer || Column.defaultProps.cellRenderer,
+         className = _column$props.className,
+         columnData = _column$props.columnData,
+         dataKey = _column$props.dataKey,
+@@ -314,9 +314,9 @@ var Table = /*#__PURE__*/function (_React$PureComponent) {
+       var _column$props2 = column.props,
+         columnData = _column$props2.columnData,
+         dataKey = _column$props2.dataKey,
+-        defaultSortDirection = _column$props2.defaultSortDirection,
++        defaultSortDirection = _column$props2.defaultSortDirection || Column.defaultProps.defaultSortDirection,
+         disableSort = _column$props2.disableSort,
+-        headerRenderer = _column$props2.headerRenderer,
++        headerRenderer = _column$props2.headerRenderer || Column.defaultProps.headerRenderer,
+         id = _column$props2.id,
+         label = _column$props2.label;
+       var sortEnabled = !disableSort && sort;
+@@ -454,7 +454,7 @@ var Table = /*#__PURE__*/function (_React$PureComponent) {
+     key: "_getFlexStyleForColumn",
+     value: function _getFlexStyleForColumn(column) {
+       var customStyle = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+-      var flexValue = "".concat(column.props.flexGrow, " ").concat(column.props.flexShrink, " ").concat(column.props.width, "px");
++      var flexValue = "".concat(column.props.flexGrow || Column.defaultProps.flexGrow, " ").concat(column.props.flexShrink || Column.defaultProps.flexShrink, " ").concat(column.props.width, "px");
+       var style = _objectSpread(_objectSpread({}, customStyle), {}, {
+         flex: flexValue,
+         msFlex: flexValue,

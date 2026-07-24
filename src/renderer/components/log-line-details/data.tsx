@@ -12,7 +12,7 @@ export interface LogLineDataProps {
   state: SleuthState;
 }
 
-function renderJSON(raw: string, state: SleuthState): JSX.Element {
+function renderJSON(raw: string, state: SleuthState): React.JSX.Element {
   return (
     <div className="LogLineData">
       <JSONView raw={raw} state={state} />
@@ -20,7 +20,7 @@ function renderJSON(raw: string, state: SleuthState): JSX.Element {
   );
 }
 
-function renderTable(raw: string): JSX.Element {
+function renderTable(raw: string): React.JSX.Element {
   const headerRgx = /^(\+|\|)-[+-]*-\+\s*$/;
   const contentRgx = /^\|.*\|$/;
   let data: ReactElement;
@@ -61,7 +61,9 @@ function renderTable(raw: string): JSX.Element {
   return <div className="LogLineData">{data}</div>;
 }
 
-function renderChromiumFile(selectedEntry: LogEntry): JSX.Element | undefined {
+function renderChromiumFile(
+  selectedEntry: LogEntry,
+): React.JSX.Element | undefined {
   if (!selectedEntry?.meta || typeof selectedEntry.meta === 'string') return;
   const str = `https://source.chromium.org/search?q=LOG%20filepath:${selectedEntry.meta.sourceFile}&ss=chromium`;
 
