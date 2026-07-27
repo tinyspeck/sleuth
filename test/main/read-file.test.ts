@@ -15,6 +15,7 @@ import {
   makeLogEntry,
   readLogFile,
 } from '../../src/main/filesystem/read-file';
+import { mergeWebappBuilds } from '../../src/utils/webapp-build';
 import dirtyJSON from 'jsonic';
 
 describe('matchLineWebApp', () => {
@@ -93,6 +94,30 @@ describe('readFile', () => {
           },
           nextTab: 'home',
         });
+      },
+    );
+  });
+
+  it('accumulates webapp builds from [VERSION] blocks with their build ts', () => {
+    const file: UnzippedFile = {
+      type: 'UnzippedFile',
+      id: '123',
+      fullPath: path.join(__dirname, '../static/webapp-version-blocks.log'),
+      fileName: 'webapp-version-blocks.log',
+      size: 500,
+    };
+
+    return readLogFile(file, { logType: LogType.WEBAPP }).then(
+      ({ webappBuilds }) => {
+        const builds = mergeWebappBuilds([webappBuilds]);
+        // Two [VERSION] boots; each version_ts is paired with the version_hash
+        // logged on the line above it, newest build first.
+        expect(builds.map((b) => b.sha)).toEqual([
+          '1ae9268c6546cd002c66bea39720f4cebfbfd1d9',
+          '7af21b97aa1490392bed32a57f74dc1d3aa65efe',
+        ]);
+        expect(builds[0].buildTs).toBe(1781553767);
+        expect(builds[1].buildTs).toBe(1781523158);
       },
     );
   });

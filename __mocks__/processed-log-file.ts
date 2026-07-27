@@ -45,6 +45,7 @@ export const mockBrowserFile1: ProcessedLogFile = {
   logType: LogType.BROWSER,
   type: 'ProcessedLogFile',
   levelCounts: {},
+  webappBuilds: {},
 };
 
 // Slightly different timestamps
@@ -93,4 +94,5 @@ export const mockBrowserFile2: ProcessedLogFile = {
   logType: LogType.BROWSER,
   type: 'ProcessedLogFile',
   levelCounts: {},
+  webappBuilds: {},
 };

@@ -12,6 +12,11 @@ import {
 } from '../../interfaces';
 import { getTypeForFile } from '../../utils/get-file-types';
 import { matchTag } from '../../utils/match-tag';
+import {
+  accumulateWebappBuild,
+  extractVersionField,
+  WebappBuild,
+} from '../../utils/webapp-build';
 import debug from 'debug';
 import { StateTableState } from '../../renderer/components/state-table';
 import { TZDate } from '@date-fns/tz';
@@ -301,6 +306,12 @@ export function readLogFile(
     };
     const repeatedCounts: Record<string, number> = {};
 
+    // Webapp builds seen in this file, from `[VERSION]` blocks; stays empty for
+    // non-webapp logs. version_hash and version_ts are on adjacent lines, so we
+    // hold the most recent hash to pair with the timestamp that follows it.
+    const webappBuilds: Record<string, WebappBuild> = {};
+    let pendingVersionHash: string | null = null;
+
     function pushEntry(entry: LogEntry | null) {
       if (entry) {
         // If this a repeated line, save as repeated
@@ -364,6 +375,29 @@ export function readLogFile(
         return;
       }
 
+      // `[VERSION]` blocks log version_hash then version_ts on adjacent lines.
+      // Hold the hash, then pair it with the timestamp that follows. Scanned on
+      // the raw line since these may be meta/continuation lines.
+      const versionField = extractVersionField(line);
+      if (versionField) {
+        if ('hash' in versionField) {
+          pendingVersionHash = versionField.hash;
+          accumulateWebappBuild(
+            webappBuilds,
+            versionField.hash,
+            0,
+            current?.momentValue ?? 0,
+          );
+        } else if (pendingVersionHash) {
+          accumulateWebappBuild(
+            webappBuilds,
+            pendingVersionHash,
+            versionField.ts,
+            current?.momentValue ?? 0,
+          );
+        }
+      }
+
       const matched = matchFn(line, options.userTZ);
 
       if (matched) {
@@ -422,7 +456,7 @@ export function readLogFile(
     readInterface.on('close', () => {
       pushEntry(current);
 
-      resolve({ entries, lines, levelCounts, repeatedCounts });
+      resolve({ entries, lines, levelCounts, repeatedCounts, webappBuilds });
     });
   });
 }
@@ -1058,4 +1092,5 @@ export interface ReadFileResult {
   lines: number;
   levelCounts: Record<string, number>;
   repeatedCounts: Record<string, number>;
+  webappBuilds: Record<string, WebappBuild>;
 }

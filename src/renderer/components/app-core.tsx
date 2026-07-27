@@ -108,6 +108,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
           logEntries: [],
           logFile: file,
           logType: getTypeForFile(file) as ProcessedLogFile['logType'],
+          webappBuilds: {},
         }));
         addFiles({ [key]: shells });
       }

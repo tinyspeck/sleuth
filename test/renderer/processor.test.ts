@@ -65,6 +65,7 @@ describe('mergeLogFiles', () => {
       logType: LogType.BROWSER,
       type: 'ProcessedLogFile',
       levelCounts: {},
+      webappBuilds: {},
     };
 
     return mergeLogFiles(

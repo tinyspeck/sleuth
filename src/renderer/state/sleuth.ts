@@ -102,6 +102,10 @@ export class SleuthState {
   @observable public hasCheckedAiAvailability = false;
   @observable public isPreferencesOpen = false;
   @observable public isUserTZ = false;
+  @observable public showBuildColumn = !!this.retrieve<boolean>(
+    'showBuildColumn',
+    { parse: true, fallback: true },
+  );
   @observable.shallow public bookmarks: Array<Bookmark> = [];
   @observable public serializedBookmarks: Record<
     string,
@@ -191,6 +195,7 @@ export class SleuthState {
     autorun(() => this.save('isSmartCopy', this.isSmartCopy));
     autorun(() => this.save('defaultEditor', this.defaultEditor));
     autorun(() => this.save('defaultSort', this.defaultSort));
+    autorun(() => this.save('showBuildColumn', this.showBuildColumn));
     autorun(() => this.save('serializedBookmarks', this.serializedBookmarks));
     autorun(async () => {
       this.save('colorTheme', this.colorTheme);

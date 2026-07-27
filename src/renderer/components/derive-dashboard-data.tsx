@@ -1,10 +1,11 @@
 import React from 'react';
-import { Space, Tag, Tooltip, Typography } from 'antd';
+import { Popover, Space, Tag, Timeline, Tooltip, Typography } from 'antd';
 import {
   AppleFilled,
   ExportOutlined,
   HourglassOutlined,
   LinuxOutlined,
+  ProfileOutlined,
   ThunderboltOutlined,
   WindowsFilled,
 } from '@ant-design/icons';
@@ -18,6 +19,7 @@ import {
   getOSInfo,
 } from '../../utils/settings-data-helper';
 import { getSentryHref } from '../sentry';
+import { mergeWebappBuilds, WebappBuild } from '../../utils/webapp-build';
 
 const NA = <Typography.Text type="secondary">N/A</Typography.Text>;
 
@@ -78,6 +80,184 @@ function formatMemory(
     return `${total} GB`;
   }
   return NA;
+}
+
+/** Returns the raw `sha@timestamp` version string plus the SHA (before `@`). */
+export function getWebappVersionInfo(rootState: any): {
+  raw: string;
+  sha: string;
+} | null {
+  const teams = rootState?.webapp?.teams;
+  if (!teams || typeof teams !== 'object') {
+    return null;
+  }
+
+  for (const team of Object.values(teams)) {
+    const version = (team as { version?: unknown })?.version;
+    if (typeof version === 'string' && version.length > 0) {
+      const sha = version.split('@', 1)[0];
+      return { raw: version, sha };
+    }
+  }
+
+  return null;
+}
+
+function shortSha(sha: string): string {
+  return sha.slice(0, 7);
+}
+
+// Format an epoch-seconds build timestamp (version_ts) as a local date-time.
+function formatBuildTs(buildTs: number): string {
+  if (!buildTs) {
+    return 'unknown';
+  }
+  return new Date(buildTs * 1000).toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/**
+ * Jumps back to the logs view filtered to the window a build was in use:
+ * from when it was first seen until the next (newer) build appeared. The
+ * current build (newest) has no upper bound.
+ */
+function showBuildInLogs(
+  state: SleuthState,
+  builds: Array<WebappBuild>,
+  i: number,
+): void {
+  const build = builds[i];
+  // builds are newest-first, so the previous entry is the next-newer build —
+  // the point at which this one stopped being in use.
+  const upper = i > 0 ? builds[i - 1].firstSeen : 0;
+  state.dateRange = {
+    from: build.firstSeen ? new Date(build.firstSeen) : null,
+    to: upper ? new Date(upper) : null,
+  };
+  state.selectAllLogs();
+  state.showStateSummary = false;
+}
+
+// Long-lived bundles can legitimately span many builds; the timeline shows the
+// most recent this many by default, with a "Show all" toggle for the rest.
+const MAX_BUILDS_SHOWN = 25;
+
+/**
+ * The "Webapp Version" dashboard cell: the current version as the headline,
+ * plus a "N builds" badge whose popover timelines every build seen. Each entry
+ * links back to the logs filtered to that build's window.
+ */
+function WebappVersionCell({
+  state,
+  current,
+  builds,
+}: {
+  state: SleuthState;
+  current: { raw: string; sha: string } | null;
+  builds: Array<WebappBuild>;
+}): React.ReactNode {
+  const [showAll, setShowAll] = React.useState(false);
+
+  // Prefer the authoritative root-state version; fall back to the most-recent
+  // build seen in the logs if root-state had none.
+  const headlineSha = current?.sha ?? builds[0]?.sha ?? null;
+  if (!headlineSha) {
+    return <Typography.Text type="secondary">N/A</Typography.Text>;
+  }
+
+  // Build timestamp of the current version — from root-state's `sha@ts`, or the
+  // matching build's version_ts.
+  const headlineBuildTs =
+    Number(current?.raw?.split('@')[1]) || builds[0]?.buildTs || 0;
+
+  const headline = (
+    <Tooltip title={current?.raw ?? headlineSha}>
+      <Typography.Text copyable={{ text: current?.raw ?? headlineSha }}>
+        {shortSha(headlineSha)}
+      </Typography.Text>
+      {headlineBuildTs ? (
+        <Typography.Text type="secondary" style={{ marginLeft: 8 }}>
+          built {formatBuildTs(headlineBuildTs)}
+        </Typography.Text>
+      ) : null}
+    </Tooltip>
+  );
+
+  if (builds.length <= 1) {
+    return headline;
+  }
+
+  const shown = showAll ? builds : builds.slice(0, MAX_BUILDS_SHOWN);
+  const hidden = builds.length - shown.length;
+
+  const timeline = (
+    <div style={{ maxHeight: 320, overflowY: 'auto', paddingRight: 4 }}>
+      <Timeline
+        style={{ marginTop: 4, marginBottom: 0, maxWidth: 320 }}
+        items={shown.map((build, i) => ({
+          color: i === 0 ? 'green' : 'gray',
+          children: (
+            <span>
+              <Tooltip title={`${build.sha} — show these logs`}>
+                <Typography.Link
+                  strong
+                  onClick={() => showBuildInLogs(state, builds, i)}
+                >
+                  <ProfileOutlined style={{ marginRight: 4 }} />
+                  {shortSha(build.sha)}
+                </Typography.Link>
+              </Tooltip>
+              {i === 0 ? <Tag style={{ marginLeft: 6 }}>current</Tag> : null}
+              <br />
+              <Typography.Text
+                type="secondary"
+                style={{ fontSize: 12 }}
+                copyable={
+                  build.buildTs ? { text: String(build.buildTs) } : undefined
+                }
+              >
+                built {formatBuildTs(build.buildTs)}
+              </Typography.Text>
+            </span>
+          ),
+        }))}
+      />
+      {hidden > 0 ? (
+        <Typography.Link onClick={() => setShowAll(true)}>
+          Show all {builds.length}
+        </Typography.Link>
+      ) : null}
+    </div>
+  );
+
+  // State the truncation in the always-visible title, not below a scrolled list.
+  const title =
+    hidden > 0
+      ? `Webapp builds — showing ${shown.length} most recent of ${builds.length}`
+      : 'Webapp builds seen in this log window';
+
+  return (
+    <Space size={6}>
+      {headline}
+      <Popover
+        title={title}
+        content={timeline}
+        trigger="click"
+        onOpenChange={(open) => {
+          if (!open) setShowAll(false);
+        }}
+      >
+        <Tag color="blue" style={{ cursor: 'pointer', margin: 0 }}>
+          {builds.length} builds
+        </Tag>
+      </Popover>
+    </Space>
+  );
 }
 
 export interface ConfigDiffEntry {
@@ -207,6 +387,16 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
   const gpuAvailable = env?.isGpuCompositionAvailable;
   const channel = rootState?.settings?.releaseChannelOverride;
 
+  // Webapp (JS client) version — distinct from the desktop app version above.
+  const webapp = getWebappVersionInfo(rootState);
+
+  // Every webapp build seen across the log window (a bundle can span ~2 weeks,
+  // so the running version may change more than once).
+  const webappBuilds = mergeWebappBuilds([
+    ...(state.processedLogFiles?.webapp ?? []).map((f) => f.webappBuilds),
+    ...(state.processedLogFiles?.webapp_sw ?? []).map((f) => f.webappBuilds),
+  ]);
+
   const crashDumpCount = Array.isArray(manifest?.files)
     ? manifest.files.filter(
         (f: any) =>
@@ -318,6 +508,17 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
         children: env?.distribution ?? NA,
       },
       { key: 'version', label: 'App Version', children: env?.appVersion ?? NA },
+      {
+        key: 'webapp',
+        label: 'Webapp Version',
+        children: (
+          <WebappVersionCell
+            state={state}
+            current={webapp}
+            builds={webappBuilds}
+          />
+        ),
+      },
       { key: 'electron', label: 'Electron', children: electronDisplay },
       {
         key: 'chrome',
