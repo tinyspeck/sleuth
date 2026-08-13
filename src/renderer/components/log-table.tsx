@@ -669,7 +669,7 @@ export const LogTable = observer((props: LogTableProps) => {
    * the human build date on hover. Blank for rows before the first build.
    */
   const renderBuildCell = useCallback(
-    ({ rowData: entry }: TableCellProps): JSX.Element | string => {
+    ({ rowData: entry }: TableCellProps): React.JSX.Element | string => {
       const build = buildForMoment(mergedBuilds, entry.momentValue ?? 0);
       if (!build?.buildTs) {
         return <span className="Meta">—</span>;
