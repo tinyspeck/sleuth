@@ -9,6 +9,13 @@ describe('matchTag', () => {
     expect(result![0]).toBe('[HUDDLES]');
   });
 
+  it('matches webapp-style [TAG] prefixes containing colons', () => {
+    const result = matchTag('[SLACKBOTMINI:VISIBILITY] hidden');
+    expect(result).not.toBeNull();
+    expect(result![1]).toBe('SLACKBOTMINI:VISIBILITY');
+    expect(result![0]).toBe('[SLACKBOTMINI:VISIBILITY]');
+  });
+
   it('matches browser-style Tag: prefixes', () => {
     const result = matchTag('Store: UPDATE_SETTINGS');
     expect(result).not.toBeNull();

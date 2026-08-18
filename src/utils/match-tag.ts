@@ -1,7 +1,7 @@
 /**
- * Something like `[HUDDLES]` in webapp logs
+ * Something like `[HUDDLES]` or `[SLACKBOTMINI:VISIBILITY]` in webapp logs
  */
-const WEBAPP_TAG_RGX = /^\s*\[([A-Za-z][A-Za-z0-9_ -]+)\]/;
+const WEBAPP_TAG_RGX = /^\s*\[([A-Za-z][A-Za-z0-9_ :-]+)\]/;
 /**
  * Something like `Store:` in desktop logs
  */
