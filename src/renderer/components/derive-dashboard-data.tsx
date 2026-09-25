@@ -50,9 +50,21 @@ const WARNING_DESCRIPTIONS = {
     AC_DISABLED_BY_GROUP_POLICY: '',
     AC_DISABLED_FOR_USER: '',
     AC_DISABLED_FOR_APPLICATION: '',
+    AC_NOTIFICATION_PLATFORM_UNAVAILABLE:
+      'The Windows notification platform is not running.',
+    AC_STATE_UNKNOWN: 'The Action Center API threw; state unknown.',
+  },
+  macOS: {
+    MACOS_NOT_DETERMINED:
+      'macOS has never asked the user to allow Slack notifications, so nothing renders. Electron only asks on the first notification it sends, and the webapp withholds sends while any warning is present.',
+    MACOS_DENIED:
+      "The user clicked Don't Allow, or notifications are off for Slack in System Settings.",
+    MACOS_NOTIFICATIONS_DISABLED:
+      'Companion to MACOS_DENIED; the only code the webapp prefs warning renders.',
+    DO_NOT_DISTURB: 'Is macOS Do Not Disturb / Focus active?',
   },
   'Slack Preferences': {
-    ZERO_MAX: 'Do we have only zero notifications allowed?',
+    ZERO_MAX_NOTIFICATIONS: 'Do we have only zero notifications allowed?',
     ZERO_TIMEOUT: 'Is the notifications timeout very short?',
     UNKNOWN_METHOD: 'Is an unknown notification method set?',
     UNKNOWN_HTML_STYLE: 'Is an unknown html notification style set?',
@@ -322,8 +334,57 @@ function diffKeys(
 }
 
 export interface NotifCategory {
-  category: keyof typeof WARNING_DESCRIPTIONS;
+  category: keyof typeof WARNING_DESCRIPTIONS | 'Other';
   warnings: Array<{ code: string; description: string }>;
+}
+
+// Shape of notification-warnings.json from slack-desktop#16024 on; older
+// bundles hold the bare warnings array.
+interface NotificationDiagnostics {
+  exportedAt?: string;
+  warnings: string[];
+  cache?: {
+    cached: string[] | null;
+    ageSeconds: number | null;
+    lastClearedAt: string | null;
+  };
+  macPermission?: { state: string; utilsHasReauthorization: boolean };
+  settings?: Record<string, unknown>;
+  session?: {
+    startedAt: string;
+    nativeCreated: number;
+    nativeSucceeded: number;
+    nativeFailed: number;
+    lastNativeAt: string | null;
+    lastNativeError: string | null;
+    dropped: Array<{ at: string; state: string; notificationId?: string }>;
+    reauthorizationRequests: Array<{
+      at: string;
+      granted?: boolean;
+      error?: string;
+    }>;
+  };
+}
+
+function parseNotificationWarnings(data: unknown): {
+  warnings: string[];
+  diagnostics: NotificationDiagnostics | null;
+} {
+  if (Array.isArray(data)) {
+    return {
+      warnings: data.filter((w) => typeof w === 'string'),
+      diagnostics: null,
+    };
+  }
+  if (
+    data &&
+    typeof data === 'object' &&
+    Array.isArray((data as any).warnings)
+  ) {
+    const diagnostics = data as NotificationDiagnostics;
+    return { warnings: diagnostics.warnings, diagnostics };
+  }
+  return { warnings: [], diagnostics: null };
 }
 
 export interface ExperimentOverride {
@@ -351,6 +412,7 @@ export interface DashboardData {
   envWarnings: React.ReactNode[];
   itPolicy: ITPolicyData;
   notifCategories: NotifCategory[];
+  notifDiagnosticItems: DescriptionsItemType[];
   experiments: ExperimentOverride[];
   hardwareItems: DescriptionsItemType[];
   networkItems: DescriptionsItemType[];
@@ -373,7 +435,8 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
   const localSettings = stateFiles['local-settings.json']?.data;
   const rootState = stateFiles['root-state.json']?.data;
   const logContext = stateFiles['log-context.json']?.data;
-  const notifWarnings = stateFiles['notification-warnings.json']?.data;
+  const { warnings: notifWarnings, diagnostics: notifDiagnostics } =
+    parseNotificationWarnings(stateFiles['notification-warnings.json']?.data);
   const installationState = stateFiles['installation'];
   const externalConfig = stateFiles['external-config.json']?.data;
   const diagnostic = stateFiles['diagnostic.json']?.data;
@@ -466,27 +529,149 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
   const notifCategories: NotifCategory[] = safeDerive(
     () => {
       const result: NotifCategory[] = [];
-      if (Array.isArray(notifWarnings) && notifWarnings.length > 0) {
-        for (const category of WARNING_CATEGORIES) {
-          const dict = WARNING_DESCRIPTIONS[category];
-          const matched = Object.keys(dict).filter((code) =>
-            notifWarnings.includes(code),
-          );
-          if (matched.length > 0) {
-            result.push({
-              category,
-              warnings: matched.map((code) => ({
-                code,
-                description: dict[code as keyof typeof dict],
-              })),
-            });
-          }
+      const unmatched = new Set(notifWarnings);
+      for (const category of WARNING_CATEGORIES) {
+        const dict = WARNING_DESCRIPTIONS[category];
+        const matched = Object.keys(dict).filter((code) =>
+          notifWarnings.includes(code),
+        );
+        if (matched.length > 0) {
+          matched.forEach((code) => unmatched.delete(code));
+          result.push({
+            category,
+            warnings: matched.map((code) => ({
+              code,
+              description: dict[code as keyof typeof dict],
+            })),
+          });
         }
+      }
+      if (unmatched.size > 0) {
+        result.push({
+          category: 'Other',
+          warnings: [...unmatched].map((code) => ({ code, description: '' })),
+        });
       }
       return result;
     },
     [],
     'Notification Warnings',
+  );
+
+  const notifDiagnosticItems: DescriptionsItemType[] = safeDerive(
+    () => {
+      if (!notifDiagnostics) return [];
+      const items: DescriptionsItemType[] = [];
+      const { macPermission, cache, session, settings } = notifDiagnostics;
+
+      if (macPermission && macPermission.state !== 'not-mac') {
+        const bad =
+          macPermission.state === 'MACOS_DENIED' ||
+          macPermission.state === 'MACOS_NOT_DETERMINED' ||
+          macPermission.state === 'unavailable';
+        items.push({
+          key: 'macPermission',
+          label: 'macOS permission',
+          children: (
+            <Space>
+              <Tag color={bad ? 'red' : 'green'}>{macPermission.state}</Tag>
+              <Typography.Text type="secondary">
+                {macPermission.utilsHasReauthorization
+                  ? 'can re-request in-process'
+                  : 'utils cannot re-request (pre-1.27.0)'}
+              </Typography.Text>
+            </Space>
+          ),
+        });
+      }
+
+      if (cache) {
+        items.push({
+          key: 'cache',
+          label: 'Warnings cache',
+          children:
+            cache.cached === null
+              ? 'empty'
+              : `${cache.cached.length === 0 ? 'clean' : cache.cached.join(', ')} · ${cache.ageSeconds}s old` +
+                (cache.lastClearedAt
+                  ? ` · last cleared ${cache.lastClearedAt}`
+                  : ''),
+        });
+      }
+
+      if (session) {
+        items.push({
+          key: 'session',
+          label: 'This session',
+          children: (
+            <Space orientation="vertical" size={0}>
+              <span>
+                {session.nativeCreated} native created ·{' '}
+                {session.nativeSucceeded} succeeded · {session.nativeFailed}{' '}
+                failed (since {session.startedAt})
+              </span>
+              {session.lastNativeError && (
+                <Typography.Text type="danger">
+                  last error: {session.lastNativeError}
+                </Typography.Text>
+              )}
+            </Space>
+          ),
+        });
+        items.push({
+          key: 'dropped',
+          label: 'Dropped',
+          children:
+            session.dropped.length === 0 ? (
+              'none'
+            ) : (
+              <ul className="StateDashboard-list">
+                {session.dropped.map((d, i) => (
+                  <li key={i}>
+                    {d.at} · <Typography.Text code>{d.state}</Typography.Text>
+                    {d.notificationId ? ` · ${d.notificationId}` : ''}
+                  </li>
+                ))}
+              </ul>
+            ),
+        });
+        items.push({
+          key: 'reauth',
+          label: 'Re-auth requests',
+          children:
+            session.reauthorizationRequests.length === 0 ? (
+              'none'
+            ) : (
+              <ul className="StateDashboard-list">
+                {session.reauthorizationRequests.map((r, i) => (
+                  <li key={i}>
+                    {r.at} ·{' '}
+                    {r.error ? (
+                      <Typography.Text type="danger">{r.error}</Typography.Text>
+                    ) : (
+                      `granted: ${String(r.granted)}`
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ),
+        });
+      }
+
+      if (settings) {
+        items.push({
+          key: 'settings',
+          label: 'Settings',
+          children: Object.entries(settings)
+            .map(([k, v]) => `${k}=${String(v)}`)
+            .join(' · '),
+        });
+      }
+
+      return items;
+    },
+    [],
+    'Notification Diagnostics',
   );
 
   // ========== ITEMS ==========
@@ -790,6 +975,7 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
     envWarnings,
     itPolicy,
     notifCategories,
+    notifDiagnosticItems,
     experiments,
     hardwareItems,
     networkItems,
