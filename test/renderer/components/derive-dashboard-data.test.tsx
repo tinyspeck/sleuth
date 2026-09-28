@@ -58,7 +58,7 @@ describe('deriveDashboardData notification warnings', () => {
         utilsHasReauthorization: false,
       },
       settings: { notificationMethod: null, runFromTray: true },
-      session: {
+      sinceLaunch: {
         startedAt: '2026-09-25T20:00:00.000Z',
         nativeCreated: 0,
         nativeSucceeded: 0,
@@ -85,7 +85,7 @@ describe('deriveDashboardData notification warnings', () => {
     expect(notifDiagnosticItems.map((i) => i.key)).toEqual([
       'macPermission',
       'cache',
-      'session',
+      'sinceLaunch',
       'dropped',
       'reauth',
       'settings',

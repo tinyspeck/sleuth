@@ -350,7 +350,7 @@ interface NotificationDiagnostics {
   };
   macPermission?: { state: string; utilsHasReauthorization: boolean };
   settings?: Record<string, unknown>;
-  session?: {
+  sinceLaunch?: {
     startedAt: string;
     nativeCreated: number;
     nativeSucceeded: number;
@@ -562,7 +562,7 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
     () => {
       if (!notifDiagnostics) return [];
       const items: DescriptionsItemType[] = [];
-      const { macPermission, cache, session, settings } = notifDiagnostics;
+      const { macPermission, cache, sinceLaunch, settings } = notifDiagnostics;
 
       if (macPermission && macPermission.state !== 'not-mac') {
         const bad =
@@ -599,20 +599,21 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
         });
       }
 
-      if (session) {
+      if (sinceLaunch) {
         items.push({
-          key: 'session',
-          label: 'This session',
+          key: 'sinceLaunch',
+          label: 'Since launch',
           children: (
             <Space orientation="vertical" size={0}>
               <span>
-                {session.nativeCreated} native created ·{' '}
-                {session.nativeSucceeded} succeeded · {session.nativeFailed}{' '}
-                failed (since {session.startedAt})
+                {sinceLaunch.nativeCreated} native created ·{' '}
+                {sinceLaunch.nativeSucceeded} succeeded ·{' '}
+                {sinceLaunch.nativeFailed} failed (since {sinceLaunch.startedAt}
+                )
               </span>
-              {session.lastNativeError && (
+              {sinceLaunch.lastNativeError && (
                 <Typography.Text type="danger">
-                  last error: {session.lastNativeError}
+                  last error: {sinceLaunch.lastNativeError}
                 </Typography.Text>
               )}
             </Space>
@@ -622,11 +623,11 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
           key: 'dropped',
           label: 'Dropped',
           children:
-            session.dropped.length === 0 ? (
+            sinceLaunch.dropped.length === 0 ? (
               'none'
             ) : (
               <ul className="StateDashboard-list">
-                {session.dropped.map((d, i) => (
+                {sinceLaunch.dropped.map((d, i) => (
                   <li key={i}>
                     {d.at} · <Typography.Text code>{d.state}</Typography.Text>
                     {d.notificationId ? ` · ${d.notificationId}` : ''}
@@ -639,11 +640,11 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
           key: 'reauth',
           label: 'Re-auth requests',
           children:
-            session.reauthorizationRequests.length === 0 ? (
+            sinceLaunch.reauthorizationRequests.length === 0 ? (
               'none'
             ) : (
               <ul className="StateDashboard-list">
-                {session.reauthorizationRequests.map((r, i) => (
+                {sinceLaunch.reauthorizationRequests.map((r, i) => (
                   <li key={i}>
                     {r.at} ·{' '}
                     {r.error ? (
