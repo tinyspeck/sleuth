@@ -83,7 +83,7 @@ export async function createWindow(): Promise<BrowserWindow> {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: false,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
     },
   };
   console.log(`Windows: Creating window with options`, options);
