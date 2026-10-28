@@ -75,7 +75,7 @@ commands:
       - run:
           name: Build Packages with flags; << parameters.make_flags >>
           command: |
-            yarn run publish --dry-run << parameters.make_flags >>
+            yarn run make << parameters.make_flags >>
           no_output_timeout: 30m
       - store_artifacts:
           path: out/make
@@ -84,7 +84,7 @@ commands:
           root: out
           paths:
             - make
-            - publish-dry-run
+            - make-results
 
   build_sleuth_windows:
     parameters:
@@ -99,7 +99,7 @@ commands:
           shell: powershell.exe -ExecutionPolicy Bypass
           command: |
             & "C:\temp\.circleci-path.ps1"
-            yarn run publish --dry-run << parameters.make_flags >>
+            yarn run make << parameters.make_flags >>
           no_output_timeout: 30m
       - store_artifacts:
           path: out/make
@@ -108,7 +108,7 @@ commands:
           root: out
           paths:
             - make
-            - publish-dry-run
+            - make-results
 
 jobs:
   lint-and-test:
@@ -224,8 +224,7 @@ jobs:
       - run:
           name: Publish
           command: |
-            node tools/fix-publish-paths.cjs
-            yarn run publish --from-dry-run
+            yarn run publish --from-make
 
 workflows:
   ci:

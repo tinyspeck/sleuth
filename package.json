@@ -3,7 +3,7 @@
   "productName": "Sleuth",
   "version": "4.1.1",
   "description": "Slack Log Viewer",
-  "main": ".vite/build/index.js",
+  "main": ".vite/build/index.cjs",
   "type": "commonjs",
   "engines": {
     "node": ">=22"
@@ -13,7 +13,7 @@
     "lint": "oxlint && oxfmt --check",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "publish": "electron-forge publish",
+    "publish": "electron-forge release",
     "start": "electron-forge start",
     "test": "vitest",
     "catapult:update": "git submodule foreach git pull origin master",
