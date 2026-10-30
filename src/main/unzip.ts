@@ -1,9 +1,10 @@
 import debug from 'debug';
 import fs from 'fs-extra';
 import tmp from 'tmp';
-import yauzl, { Entry, ZipFile } from 'yauzl';
+import yauzl, { Entry, ZipFile, ZipFileOptions } from 'yauzl';
 
 import path from 'node:path';
+import { Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { promisify } from 'node:util';
 
@@ -11,6 +12,18 @@ import { shouldIgnoreFile } from '../utils/should-ignore-file';
 import { UnzippedFile } from '../interfaces';
 
 const d = debug('sleuth:unzip');
+
+export interface UnzipLimits {
+  // Maximum number of bytes extracted for a single entry
+  maxEntryBytes: number;
+  // Maximum number of bytes extracted for the whole archive
+  maxTotalBytes: number;
+}
+
+const DEFAULT_LIMITS: UnzipLimits = {
+  maxEntryBytes: 2 * 1024 ** 3,
+  maxTotalBytes: 10 * 1024 ** 3,
+};
 
 /**
  * Handles unzipping a log archive.
@@ -25,14 +38,24 @@ export class Unzipper {
 
   public uniqueFileNameCount: Map<string, number> = new Map();
 
-  constructor(url: string) {
+  private readonly limits: UnzipLimits;
+  private totalBytes = 0;
+
+  constructor(url: string, limits: Partial<UnzipLimits> = {}) {
     this.url = url;
+    this.limits = { ...DEFAULT_LIMITS, ...limits };
     d(`Created new Unzipper with url ${url}`);
   }
 
   public open() {
     return new Promise<void>((resolve, reject) => {
-      yauzl.open(this.url, { lazyEntries: true }, (error, zip) => {
+      // Some log bundles contain empty files marked as STORED but with a few
+      // bytes of payload (an empty deflate block). We handle those in
+      // handleFile() rather than letting yauzl reject the whole archive.
+      // Since this also disables yauzl's check that deflated entries match
+      // their declared size, handleFile() enforces sizes itself.
+      const options = { lazyEntries: true, validateEntrySizes: false };
+      yauzl.open(this.url, options, (error, zip) => {
         if (error) {
           return reject(error);
         }
@@ -53,6 +76,7 @@ export class Unzipper {
         dir({ unsafeCleanup: true }).then((res) => {
           this.output = res;
           this.zipfile.on('end', () => resolve(this.files));
+          this.zipfile.on('error', reject);
           this.zipfile.readEntry();
         });
       } else {
@@ -86,14 +110,42 @@ export class Unzipper {
 
     if (shouldIgnoreFile(entry.fileName)) return;
 
+    if (entry.uncompressedSize > this.limits.maxEntryBytes) {
+      throw new Error(
+        `${entry.fileName} is too large to extract (${entry.uncompressedSize} bytes)`,
+      );
+    }
+
     // Ensure the parent directory is created
     const dir = path.dirname(targetPath);
     await fs.mkdirp(dir);
 
     const readStream = await new Promise<NodeJS.ReadableStream>(
       (resolve, reject) => {
+        // For STORED entries the sizes must match. If they don't, trust
+        // uncompressedSize and only read that many bytes.
+        const isStoredSizeMismatch =
+          entry.compressionMethod === 0 &&
+          !entry.isEncrypted() &&
+          entry.compressedSize !== entry.uncompressedSize;
+        const options: ZipFileOptions = {
+          decompress: null,
+          decrypt: null,
+          start: isStoredSizeMismatch ? 0 : null,
+          end: isStoredSizeMismatch
+            ? Math.min(entry.compressedSize, entry.uncompressedSize)
+            : null,
+        };
+
+        if (isStoredSizeMismatch) {
+          d(
+            `Size mismatch for stored file ${entry.fileName}: ${entry.compressedSize} != ${entry.uncompressedSize}`,
+          );
+        }
+
         this.zipfile.openReadStream(
           entry,
+          options,
           async (error: Error | null, zipStream: NodeJS.ReadableStream) => {
             if (error) {
               d(
@@ -108,7 +160,11 @@ export class Unzipper {
       },
     );
 
-    await pipeline(readStream, fs.createWriteStream(targetPath));
+    await pipeline(
+      readStream,
+      this.createSizeLimiter(entry),
+      fs.createWriteStream(targetPath),
+    );
 
     this.files.push({
       fileName: outputFileName,
@@ -121,11 +177,55 @@ export class Unzipper {
     d(`Successfully unzipped ${entry.fileName} to ${targetPath}`);
   }
 
+  /**
+   * Errors if an entry inflates past its declared size, or if the archive
+   * exceeds the configured extraction limits (e.g. a zip bomb).
+   */
+  private createSizeLimiter(entry: Entry): Transform {
+    const maxEntryBytes = Math.min(
+      entry.uncompressedSize,
+      this.limits.maxEntryBytes,
+    );
+    let entryBytes = 0;
+
+    return new Transform({
+      transform: (chunk: Buffer, _encoding, callback) => {
+        entryBytes += chunk.length;
+        this.totalBytes += chunk.length;
+
+        if (entryBytes > maxEntryBytes) {
+          return callback(
+            new Error(
+              `${entry.fileName} is larger than its declared size of ${entry.uncompressedSize} bytes`,
+            ),
+          );
+        }
+
+        if (this.totalBytes > this.limits.maxTotalBytes) {
+          return callback(
+            new Error(
+              `Archive exceeds the maximum extracted size of ${this.limits.maxTotalBytes} bytes`,
+            ),
+          );
+        }
+
+        callback(null, chunk);
+      },
+    });
+  }
+
   public async handleEntry(entry: Entry) {
-    if (/\/$/.test(entry.fileName)) {
-      await this.handleDirectory(entry);
-    } else {
-      await this.handleFile(entry);
+    try {
+      if (/\/$/.test(entry.fileName)) {
+        await this.handleDirectory(entry);
+      } else {
+        await this.handleFile(entry);
+      }
+    } catch (error) {
+      d(`Failed to extract ${entry.fileName}`, error);
+      this.zipfile.close();
+      this.zipfile.emit('error', error);
+      return;
     }
 
     this.zipfile.readEntry();

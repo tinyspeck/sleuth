@@ -82,13 +82,25 @@ export async function deleteSuggestions(filePaths: Array<string>) {
   return !!response;
 }
 
+// Metadata files are tiny. Since entry sizes aren't validated (see
+// getSuggestionInfo), cap how much we buffer in case an entry lies.
+const MAX_METADATA_BYTES = 1024 * 1024;
+
 function streamToString(zip: ZipFile, entry: Entry): Promise<string> {
   const chunks: Buffer[] = [];
+  let size = 0;
   return new Promise((resolve, reject) => {
     zip.openReadStream(entry, (err, stream) => {
       if (err) return reject(err);
 
-      stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+      stream.on('data', (chunk) => {
+        size += chunk.length;
+        if (size > MAX_METADATA_BYTES) {
+          stream.destroy();
+          return reject(new Error(`${entry.fileName} is too large`));
+        }
+        chunks.push(Buffer.from(chunk));
+      });
       stream.on('error', (err) => reject(err));
       stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     });
@@ -133,7 +145,10 @@ async function getSuggestionInfo(path: string) {
   let hasNetLog = false;
 
   await new Promise<void>((resolve, reject) => {
-    yauzl.open(path, { lazyEntries: true }, (err, zipfile) => {
+    // Some log bundles contain empty files marked as STORED but with a few
+    // bytes of payload, which yauzl rejects when validating entry sizes.
+    const options = { lazyEntries: true, validateEntrySizes: false };
+    yauzl.open(path, options, (err, zipfile) => {
       if (err) return reject(err);
 
       zipfile.readEntry();
@@ -143,7 +158,13 @@ async function getSuggestionInfo(path: string) {
           entry.fileName === 'environment.json'
         ) {
           files[entry.fileName] = streamToString(zipfile, entry);
-          files[entry.fileName].then(() => zipfile.readEntry());
+          files[entry.fileName].then(
+            () => zipfile.readEntry(),
+            (error) => {
+              zipfile.close();
+              reject(error);
+            },
+          );
         } else {
           if (entry.fileName.endsWith('.trace')) {
             hasTrace = true;
