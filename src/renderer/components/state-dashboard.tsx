@@ -228,6 +228,7 @@ export const StateDashboard = observer(({ state }: { state: SleuthState }) => {
     envWarnings,
     itPolicy,
     notifCategories,
+    notifDiagnosticItems,
     experiments,
     hardwareItems,
     networkItems,
@@ -367,25 +368,28 @@ export const StateDashboard = observer(({ state }: { state: SleuthState }) => {
       title: 'Notification Warnings',
       icon: <BellOutlined />,
       emptyDescription: 'No notification warnings',
-      items: notifCategories.map(({ category, warnings }) => ({
-        key: category,
-        label: category,
-        children: (
-          <ul className="StateDashboard-list">
-            {warnings.map(({ code, description }) => (
-              <li key={code}>
-                <Typography.Text code>{code}</Typography.Text>
-                {description && (
-                  <Typography.Text type="secondary">
-                    {' '}
-                    — {description}
-                  </Typography.Text>
-                )}
-              </li>
-            ))}
-          </ul>
-        ),
-      })),
+      items: [
+        ...notifCategories.map(({ category, warnings }) => ({
+          key: category,
+          label: category,
+          children: (
+            <ul className="StateDashboard-list">
+              {warnings.map(({ code, description }) => (
+                <li key={code}>
+                  <Typography.Text code>{code}</Typography.Text>
+                  {description && (
+                    <Typography.Text type="secondary">
+                      {' '}
+                      — {description}
+                    </Typography.Text>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ),
+        })),
+        ...notifDiagnosticItems,
+      ],
     },
     {
       title: 'Virtualization',
