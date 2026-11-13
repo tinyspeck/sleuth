@@ -2,10 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
 import { SleuthState } from '../state/sleuth';
 import { UnzippedFile } from '../../interfaces';
+import { createLogger } from '../log';
 
-import debug from 'debug';
-
-const d = debug('sleuth:perfetto-view');
+const log = createLogger('PerfettoView');
+const d = log.debug;
 
 export interface PerfettoViewProps {
   state: SleuthState;

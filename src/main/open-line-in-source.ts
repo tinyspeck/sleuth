@@ -1,9 +1,9 @@
 import { shell } from 'electron';
 import { spawn } from 'child_process';
-import debug from 'debug';
 import { Editor } from '../renderer/components/preferences/preferences-utils';
+import { createLogger } from './log';
 
-const d = debug('sleuth:open-line-in-source');
+const d = createLogger('OpenLineInSource').debug;
 
 interface OpenSourceOptions {
   defaultEditor: Editor;

@@ -16,6 +16,9 @@ import { DevtoolsView } from './devtools-view';
 import { PerfettoView } from './perfetto-view';
 import { StateDashboard } from './state-dashboard';
 import { Filter } from './app-core-header-filter';
+import { createLogger } from '../log';
+
+const log = createLogger('LogContent');
 
 class DashboardErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -28,11 +31,7 @@ class DashboardErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error(
-      'StateDashboard render error:',
-      error,
-      errorInfo.componentStack,
-    );
+    log.error('StateDashboard render error:', error, errorInfo.componentStack);
   }
 
   render() {

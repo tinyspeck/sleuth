@@ -1,10 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
-import debug from 'debug';
 
 import { ConfigProvider, theme } from 'antd';
-
-const d = debug('sleuth:app');
 
 import { Welcome } from './welcome';
 import { CoreApplication } from './app-core';
@@ -16,6 +13,10 @@ import { autorun } from 'mobx';
 import { getWindowTitle } from '../../utils/get-window-title';
 import { IpcEvents } from '../../ipc-events';
 import { observer } from 'mobx-react';
+import { createLogger } from '../log';
+
+const log = createLogger('App');
+const d = log.debug;
 
 export const App = observer(() => {
   const [unzippedFiles, setUnzippedFiles] = useState<UnzippedFiles>([]);
@@ -89,6 +90,7 @@ export const App = observer(() => {
   const sleuthState = sleuthStateRef.current;
 
   useEffect(() => {
+    log.info(`Renderer ready (Sleuth ${window.Sleuth.sleuthVersion})`);
     window.Sleuth.sendWindowReady();
 
     // Setup file drop

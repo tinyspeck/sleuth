@@ -38,6 +38,10 @@ import {
   checkAiInstalled,
 } from './ai/aws-credentials';
 import type { AiMessage, SerializedLogContext } from '../ai-interfaces';
+import { createLogger, getSleuthLogsPath, writeLogLine } from './log';
+import { LogLevel } from '../interfaces';
+
+const log = createLogger('Ipc');
 
 fs.watch(app.getPath('downloads'), async () => {
   const suggestions = await getItemsInSuggestionFolders();
@@ -88,6 +92,7 @@ export class IpcManager {
     this.setupLogFileContextMenu();
     this.setupLiveTail();
     this.setupAi();
+    this.setupLog();
   }
 
   public openFile(pathName: string) {
@@ -132,7 +137,7 @@ export class IpcManager {
           browserWindow.show();
         }
       } catch (error) {
-        console.warn(`Could not show window`, error);
+        log.warn(`Could not show window`, error);
       }
     });
   }
@@ -162,7 +167,7 @@ export class IpcManager {
           }
         }
       } catch (error) {
-        console.error('Couldnt minimize or maximize', error);
+        log.error('Couldnt minimize or maximize', error);
       }
     });
   }
@@ -363,7 +368,7 @@ export class IpcManager {
     ipcMain.handle(
       IpcEvents.READ_ANY_FILE,
       async (_event, file: UnzippedFile) => {
-        console.log('Reading file', file.fullPath);
+        log.info('Reading file', file.fullPath);
         return fs.promises.readFile(file.fullPath, 'utf8');
       },
     );
@@ -471,8 +476,23 @@ export class IpcManager {
   }
   private getAllowedLogsPaths(): string[] {
     const appData = app.getPath('appData');
-    return ['Slack', 'SlackDevEnv', 'SlackDevMode'].map((dir) =>
-      path.join(appData, dir, 'logs'),
+    return [
+      ...['Slack', 'SlackDevEnv', 'SlackDevMode'].map((dir) =>
+        path.join(appData, dir, 'logs'),
+      ),
+      getSleuthLogsPath(),
+    ];
+  }
+
+  /** Renderer log lines land in Sleuth's own `browser.log` next to main process output. */
+  private setupLog() {
+    const levels = new Set<string>(Object.values(LogLevel));
+    ipcMain.on(
+      IpcEvents.LOG,
+      (_event, level: LogLevel, tag: string, message: string) => {
+        if (!levels.has(level)) return;
+        writeLogLine(level, String(tag), String(message));
+      },
     );
   }
 

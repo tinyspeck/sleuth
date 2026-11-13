@@ -2,10 +2,13 @@ import { app } from 'electron';
 import { URL } from 'url';
 import { getCurrentWindow } from './windows';
 import { IpcEvents } from '../ipc-events';
+import { createLogger } from './log';
+
+const log = createLogger('Protocol');
 
 export function installProtocol() {
   if (!app.setAsDefaultProtocolClient('sleuth')) {
-    console.log(`Failed to install sleuth:// protocol handler`);
+    log.error(`Failed to install sleuth:// protocol handler`);
   }
 
   app.on('open-url', async (_event, url) => {

@@ -8,6 +8,9 @@ import { settingsFileManager } from './settings';
 import { getIconPath } from './app-icon';
 import { ICON_NAMES } from '../shared-constants';
 import path from 'node:path';
+import { createLogger } from './log';
+
+const log = createLogger('Windows');
 
 export let windows: Array<Electron.BrowserWindow> = [];
 
@@ -55,7 +58,7 @@ function getWindowState() {
  * @returns {Promise<BrowserWindow>}
  */
 export async function createWindow(): Promise<BrowserWindow> {
-  console.log(`Creating window. Current number of windows: ${windows.length}`);
+  log.info(`Creating window. Current number of windows: ${windows.length}`);
 
   // Let's keep the window position in mind
   const { mainWindowState, x, y } = getWindowState();
@@ -86,7 +89,7 @@ export async function createWindow(): Promise<BrowserWindow> {
       preload: path.join(__dirname, 'preload.cjs'),
     },
   };
-  console.log(`Windows: Creating window with options`, options);
+  log.info(`Creating window with options`, options);
 
   const mainWindow = new BrowserWindow(options);
 
@@ -121,7 +124,7 @@ export async function createWindow(): Promise<BrowserWindow> {
     windows = windows.filter((w) => w !== mainWindow);
   });
 
-  console.log(`Created window. Current window size: ${windows.length}`);
+  log.info(`Created window. Current window size: ${windows.length}`);
 
   return mainWindow;
 }
