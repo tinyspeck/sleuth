@@ -10,13 +10,13 @@ import path from 'path';
 import tmp from 'tmp';
 import { promisify } from 'util';
 import { format } from 'date-fns';
-import debug from 'debug';
 
 import { getCurrentWindow } from './windows';
 import { getMenuTemplate } from './menu-template';
 import { IpcEvents } from '../ipc-events';
+import { createLogger, getSleuthLogsPath } from './log';
 
-const d = debug('sleuth:menu');
+const d = createLogger('Menu').debug;
 
 export class AppMenu {
   private productionLogs: string;
@@ -59,11 +59,43 @@ export class AppMenu {
     type: '' | 'DevEnv' | 'DevMode' = '',
   ): MenuItemConstructorOptions {
     const appData = app.getPath('appData');
-    const logsPath = path.join(appData, `Slack${type}`, 'logs');
-    const storagePath = path.join(appData, `Slack${type}`, 'storage');
-
-    return {
+    return this.getOpenItemForPath({
       label: `Open local Slack${type} logs...`,
+      name: `Local Slack${type} Logs`,
+      logsPath: path.join(appData, `Slack${type}`, 'logs'),
+      storagePath: path.join(appData, `Slack${type}`, 'storage'),
+    });
+  }
+
+  /**
+   * Sleuth writes its own logs in Desktop's `browser.log` format, so it can
+   * read them like any other bundle. Dogfooding!
+   */
+  public getSleuthItems(): Array<MenuItemConstructorOptions> {
+    const logsPath = getSleuthLogsPath();
+    return [
+      this.getOpenItemForPath({
+        label: 'Open Sleuth logs...',
+        name: 'Sleuth Logs',
+        logsPath,
+      }),
+      this.getWatchItemForPath({ label: 'Watch Sleuth logs...', logsPath }),
+    ];
+  }
+
+  private getOpenItemForPath({
+    label,
+    name: baseName,
+    logsPath,
+    storagePath,
+  }: {
+    label: string;
+    name: string;
+    logsPath: string;
+    storagePath?: string;
+  }): MenuItemConstructorOptions {
+    return {
+      label,
       click: async () => {
         let files: Array<string> = [];
 
@@ -75,7 +107,7 @@ export class AppMenu {
 
         if (files && files.length > 0) {
           const { webContents } = await getCurrentWindow();
-          const name = `Local Slack${type} Logs - ${format(
+          const name = `${baseName} - ${format(
             Date.now(),
             `MMM d, y HH.mm.SSSS`,
           )}`;
@@ -84,14 +116,16 @@ export class AppMenu {
           const tmpdir = await promisify(tmp.dir)(tmpOptions);
 
           await fs.copy(logsPath, tmpdir);
-          await fs.copy(storagePath, tmpdir);
+          if (storagePath && fs.existsSync(storagePath)) {
+            await fs.copy(storagePath, tmpdir);
+          }
 
           webContents.send(IpcEvents.FILE_DROPPED, tmpdir);
         } else {
           dialog.showMessageBox({
             type: 'error',
-            title: 'Could not find local Slack logs',
-            message: `We attempted to find your local Slack's logs, but we couldn't find them. We checked for them in ${logsPath}.`,
+            title: 'Could not find logs',
+            message: `We attempted to find logs, but we couldn't find them. We checked for them in ${logsPath}.`,
           });
         }
       },
@@ -103,10 +137,21 @@ export class AppMenu {
     type: '' | 'DevEnv' | 'DevMode' = '',
   ): MenuItemConstructorOptions {
     const appData = app.getPath('appData');
-    const logsPath = path.join(appData, `Slack${type}`, 'logs');
-
-    return {
+    return this.getWatchItemForPath({
       label: `Watch local Slack${type} logs...`,
+      logsPath: path.join(appData, `Slack${type}`, 'logs'),
+    });
+  }
+
+  private getWatchItemForPath({
+    label,
+    logsPath,
+  }: {
+    label: string;
+    logsPath: string;
+  }): MenuItemConstructorOptions {
+    return {
+      label,
       click: async () => {
         let files: Array<string> = [];
 
@@ -122,8 +167,8 @@ export class AppMenu {
         } else {
           dialog.showMessageBox({
             type: 'error',
-            title: 'Could not find local Slack logs',
-            message: `We attempted to find your local Slack's logs, but we couldn't find them. We checked for them in ${logsPath}.`,
+            title: 'Could not find logs',
+            message: `We attempted to find logs, but we couldn't find them. We checked for them in ${logsPath}.`,
           });
         }
       },
@@ -256,6 +301,7 @@ export class AppMenu {
     this.menu = getMenuTemplate({
       openItems: this.getOpenItems(),
       pruneItems: this.getPruneItems(),
+      sleuthItems: this.getSleuthItems(),
     });
 
     Menu.setApplicationMenu(Menu.buildFromTemplate(this.menu));

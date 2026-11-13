@@ -30,6 +30,9 @@ import { isToday, isThisWeek } from 'date-fns';
 import { Suggestion, ValidSuggestion } from '../../interfaces';
 
 import classNames from 'classnames';
+import { createLogger } from '../log';
+
+const log = createLogger('Welcome');
 
 export interface WelcomeProps {
   sleuth?: string;
@@ -83,9 +86,7 @@ export const Welcome = observer((props: WelcomeProps) => {
   >([]);
 
   useEffect(() => {
-    window.Sleuth.getPath('downloads')
-      .then(setDownloadsDir)
-      .catch(console.error);
+    window.Sleuth.getPath('downloads').then(setDownloadsDir).catch(log.error);
 
     if (window.Sleuth.platform === 'darwin') {
       window.Sleuth.getPath('appData')
@@ -98,7 +99,7 @@ export const Welcome = observer((props: WelcomeProps) => {
             })),
           );
         })
-        .catch(console.error);
+        .catch(log.error);
     }
 
     const unmountListener = window.Sleuth.setupSuggestionsUpdated(
@@ -118,7 +119,7 @@ export const Welcome = observer((props: WelcomeProps) => {
         await window.Sleuth.deleteSuggestion(filePath);
         await props.state.getSuggestions();
       } catch (error) {
-        console.error('Failed to delete suggestion:', error);
+        log.error('Failed to delete suggestion:', error);
       }
     },
     [props.state],
@@ -130,7 +131,7 @@ export const Welcome = observer((props: WelcomeProps) => {
         await window.Sleuth.deleteSuggestions(filePaths);
         await props.state.getSuggestions();
       } catch (error) {
-        console.error('Failed to delete suggestions:', error);
+        log.error('Failed to delete suggestions:', error);
       }
     },
     [props.state],

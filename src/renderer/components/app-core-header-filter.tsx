@@ -114,9 +114,10 @@ export const Filter = observer((props: FilterProps) => {
 
   // We do our best to represent the UTC offset based on the latest log entry's date.
   // This could be wrong if daylight savings time changed in the middle of the log bundle.
-  if (userTZ && props.state.processedLogFiles?.browser[0]) {
+  // Entries can be missing: live tail starts every file as an empty shell.
+  if (userTZ) {
     const latestDate =
-      props.state.processedLogFiles.browser[0].logEntries[0].momentValue;
+      props.state.processedLogFiles?.browser[0]?.logEntries[0]?.momentValue;
     if (latestDate) {
       const offsetInMinutes = tzOffset(tz, new TZDate(latestDate, tz));
       const offsetTime = Math.abs(offsetInMinutes) / 60;

@@ -1,11 +1,12 @@
 import React, { ReactElement } from 'react';
 import { JSONView } from '../json-view';
-import debug from 'debug';
 import { SleuthState } from '../../state/sleuth';
 import { LogEntry } from '../../../interfaces';
 import { Button } from 'antd';
+import { createLogger } from '../../log';
 
-const d = debug('sleuth:data');
+const log = createLogger('Data');
+const d = log.debug;
 
 export interface LogLineDataProps {
   meta: string | LogEntry;

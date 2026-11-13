@@ -3,6 +3,9 @@ import { app } from 'electron';
 import * as path from 'path';
 import fs from 'fs-extra';
 import { throttle } from 'lodash';
+import { createLogger } from './log';
+
+const log = createLogger('Settings');
 
 export class SettingsFileManager {
   // Assigned in getSettings(), called by _settings initializer
@@ -29,7 +32,7 @@ export class SettingsFileManager {
    * to an IPC event. Only the renderer should change settings.
    */
   public async setItem(key: string, value: unknown) {
-    console.log(`Settings: Setting preference`, { key, value });
+    log.info(`Setting preference`, { key, value });
 
     this._settings[key] = value;
     this.saveSettings();
@@ -50,7 +53,7 @@ export class SettingsFileManager {
       settings = {};
     }
 
-    console.log(`Settings: Loaded`, {
+    log.info(`Loaded`, {
       filePath: this.settingsFilePath,
       settings,
     });
@@ -66,11 +69,11 @@ export class SettingsFileManager {
     const before = JSON.stringify(this._lastSaveSettings);
     const after = JSON.stringify(settings);
     if (this._lastSaveSettings && before === after) {
-      console.log(`Settings: Not writing, no changes`, { before, after });
+      log.debug(`Not writing, no changes`, { before, after });
       return;
     }
 
-    console.log(`Settings: Saving`, {
+    log.info(`Saving`, {
       filePath: this.settingsFilePath,
       settings,
     });

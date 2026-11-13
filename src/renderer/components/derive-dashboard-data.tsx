@@ -20,6 +20,9 @@ import {
 } from '../../utils/settings-data-helper';
 import { getSentryHref } from '../sentry';
 import { mergeWebappBuilds, WebappBuild } from '../../utils/webapp-build';
+import { createLogger } from '../log';
+
+const log = createLogger('StateDashboard');
 
 const NA = <Typography.Text type="secondary">N/A</Typography.Text>;
 
@@ -423,7 +426,7 @@ function safeDerive<T>(fn: () => T, fallback: T, section: string): T {
   try {
     return fn();
   } catch (error) {
-    console.warn(`StateDashboard: failed to derive "${section}":`, error);
+    log.warn(`failed to derive "${section}":`, error);
     return fallback;
   }
 }
@@ -472,7 +475,7 @@ export function deriveDashboardData(state: SleuthState): DashboardData {
     try {
       sentryId = atob(installationState.data[0]);
     } catch (error) {
-      console.warn('Failed to decode installation ID as base64:', error);
+      log.warn('Failed to decode installation ID as base64:', error);
     }
   }
 

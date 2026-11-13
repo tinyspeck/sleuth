@@ -58,6 +58,9 @@ import { isMergedLogFile } from '../../../utils/is-logfile';
 import { hashTagColor } from '../../../utils/match-tag';
 import { logColorMap } from '../log-table';
 import { TraceProcessor } from '../../processor/trace';
+import { createLogger } from '../../log';
+
+const log = createLogger('SidebarFileTree');
 
 interface SidebarFileTreeProps {
   state: SleuthState;
@@ -145,7 +148,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
       setStateNodes(stateFileNodes);
     }
     fetchTree().catch((error) => {
-      console.error('Failed to build sidebar file tree:', error);
+      log.error('Failed to build sidebar file tree:', error);
     });
   }, [props.state.processedLogFiles]);
 
@@ -181,7 +184,7 @@ const SidebarFileTree = observer((props: SidebarFileTreeProps) => {
         props.state.setTraceThreads(threads);
       })
       .catch((error) => {
-        console.error('Failed to load trace threads:', error);
+        log.error('Failed to load trace threads:', error);
         props.state.setTraceThreads([]);
       });
   }, [props.state.processedLogFiles?.trace, props.state.traceThreads]);

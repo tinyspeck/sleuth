@@ -1,9 +1,8 @@
-import debug from 'debug';
-
 import { LogEntry, LogLevel, LogType, MatchResult } from '../../interfaces';
 import { makeLogEntry } from './read-file';
+import { createLogger } from '../log';
 
-const d = debug('sleuth:line-parser');
+const d = createLogger('LineParser').debug;
 
 const MAX_TO_PARSE = 100_000;
 

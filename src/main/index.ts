@@ -15,8 +15,7 @@ if (process.platform === 'darwin') {
   }
 }
 
-console.log(`Welcome to Sleuth ${app.getVersion()}`);
-
+import { createLogger } from './log';
 import { ipcManager } from './ipc';
 import { secureApp } from './security';
 import { createWindow, windows } from './windows';
@@ -24,6 +23,10 @@ import { createMenu } from './menu';
 import { setupUpdates } from './update';
 import { installProtocol } from './protocol';
 import { registerScheme } from './scheme';
+
+const log = createLogger('App');
+
+log.info(`Welcome to Sleuth ${app.getVersion()}`);
 
 if (app.isPackaged) {
   process.env.NODE_ENV = 'production';
@@ -42,7 +45,7 @@ if (startup) {
     uploadToServer: false,
   });
 
-  console.log(`Booting application (ready status: ${app.isReady()})`);
+  log.info(`Booting application (ready status: ${app.isReady()})`);
 
   // Whenever the app has finished launching
   app.on('will-finish-launching', () => {
@@ -65,7 +68,7 @@ if (startup) {
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
   app.on('ready', () => {
-    console.log(`App is ready, creating components`);
+    log.info(`App is ready, creating components`);
 
     secureApp();
     createWindow();
@@ -99,5 +102,5 @@ if (startup) {
 
   installProtocol();
 
-  console.log(`Setup all listeners, now waiting for ready event`);
+  log.info(`Setup all listeners, now waiting for ready event`);
 }

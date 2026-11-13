@@ -1,17 +1,18 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
-import debug from 'debug';
 
 import { SleuthState } from '../state/sleuth';
 import { autorun } from 'mobx';
 import { UnzippedFile } from '../../interfaces';
+import { createLogger } from '../log';
+
+const log = createLogger('NetLogView');
+const d = log.debug;
 
 export interface NetLogViewProps {
   state: SleuthState;
   file: UnzippedFile;
 }
-
-const d = debug('sleuth:netlogview');
 
 export const NetLogView = observer(({ file, state }: NetLogViewProps) => {
   const disposerRef = useRef<(() => void) | undefined>(undefined);

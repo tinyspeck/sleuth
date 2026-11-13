@@ -10,6 +10,9 @@ import type {
 import type { SleuthState } from './sleuth';
 import type { ProcessedLogFile } from '../../interfaces';
 import { setSetting } from '../settings';
+import { createLogger } from '../log';
+
+const log = createLogger('AiStore');
 
 interface BaseAiMessage {
   id: string;
@@ -264,14 +267,12 @@ export class AiStore {
         ) {
           this.codebasePaths = parsed;
         } else {
-          console.warn('Invalid aiCodebasePaths in localStorage, clearing');
+          log.warn('Invalid aiCodebasePaths in localStorage, clearing');
           localStorage.removeItem('aiCodebasePaths');
         }
       }
     } catch {
-      console.warn(
-        'Failed to parse aiCodebasePaths from localStorage, clearing',
-      );
+      log.warn('Failed to parse aiCodebasePaths from localStorage, clearing');
       localStorage.removeItem('aiCodebasePaths');
     }
   }
