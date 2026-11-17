@@ -8,6 +8,9 @@ import {
   SelectableLogType,
 } from '../interfaces';
 import { SleuthState } from './state/sleuth';
+import { createLogger } from './log';
+
+const log = createLogger('LiveTail');
 
 /**
  * Apply a live tail update payload to the MobX state. Prepends new entries
@@ -60,7 +63,7 @@ export function applyLiveTailUpdate(
 
       const existingMerged = state.mergedLogFiles![logType];
       if (!existingMerged) {
-        console.warn(`live-tail: no merged file for type ${logType}`);
+        log.warn(`no merged file for type ${logType}`);
         continue;
       }
 
@@ -73,7 +76,7 @@ export function applyLiveTailUpdate(
 
     const allMerged = state.mergedLogFiles![LogType.ALL];
     if (!allMerged) {
-      console.warn('live-tail: no merged file for ALL type');
+      log.warn('no merged file for ALL type');
       return;
     }
 

@@ -5,14 +5,15 @@ import { Empty } from 'antd';
 import { SleuthState } from '../state/sleuth';
 import { UnzippedFile } from '../../interfaces';
 import { TraceProcessor } from '../processor/trace';
-import debug from 'debug';
+import { createLogger } from '../log';
+
+const log = createLogger('DevToolsView');
+const d = log.debug;
 
 export interface DevtoolsViewProps {
   state: SleuthState;
   file: UnzippedFile;
 }
-
-const d = debug('sleuth:devtoolsview');
 
 /**
  * Loads performance traces into an embedded DevTools iframe.
@@ -54,7 +55,7 @@ export const DevtoolsView = observer((props: DevtoolsViewProps) => {
           );
         }
       } catch (error) {
-        console.error(
+        log.error(
           `Failed to load renderer profile for PID ${selectedTracePid}:`,
           error,
         );

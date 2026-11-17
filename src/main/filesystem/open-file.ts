@@ -1,12 +1,12 @@
-import debug from 'debug';
 import { app } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import { UnzippedFile, UnzippedFiles } from '../../interfaces';
 import { Unzipper } from '../unzip';
 import { shouldIgnoreFile } from '../../utils/should-ignore-file';
+import { createLogger } from '../log';
 
-const d = debug('sleuth:filesystem');
+const d = createLogger('Filesystem').debug;
 
 export const logFileList: UnzippedFiles = [];
 
@@ -54,8 +54,6 @@ async function openDirectory(url: string): Promise<UnzippedFiles> {
   const dir = await fs.promises.readdir(url);
   const unzippedFiles: UnzippedFiles = [];
 
-  console.groupCollapsed(`Open directory`);
-
   for (const fileName of dir) {
     if (!shouldIgnoreFile(fileName)) {
       const fullPath = path.join(url, fileName);
@@ -73,7 +71,6 @@ async function openDirectory(url: string): Promise<UnzippedFiles> {
     }
   }
 
-  console.groupEnd();
   return unzippedFiles;
 }
 
@@ -83,7 +80,6 @@ async function openDirectory(url: string): Promise<UnzippedFiles> {
  */
 async function openSingleFile(url: string): Promise<UnzippedFiles> {
   d(`Now opening single file ${url}`);
-  console.groupCollapsed(`Open single file`);
 
   const stats = fs.statSync(url);
   const file: UnzippedFile = {
@@ -94,6 +90,5 @@ async function openSingleFile(url: string): Promise<UnzippedFiles> {
     type: 'UnzippedFile',
   };
 
-  console.groupEnd();
   return [file];
 }

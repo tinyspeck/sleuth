@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import { UnzippedFile } from '../../interfaces';
-import debug from 'debug';
+import { createLogger } from '../log';
 
-const d = debug('sleuth:filesystem:is-trace-sourcemapped');
+const d = createLogger('TraceSourcemap').debug;
 
 /**
  * Checks if the trace is sourcemapped by checking for the presence of `sourcemapped: true` in

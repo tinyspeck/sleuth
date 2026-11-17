@@ -1,7 +1,6 @@
 import { observer } from 'mobx-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
-import debug from 'debug';
 
 import { SleuthState } from '../state/sleuth';
 import {
@@ -23,8 +22,10 @@ import { flushLogPerformance } from '../processor/performance';
 import { rehydrateBookmarks } from '../state/bookmarks';
 import { getTypeForFile, getTypesForFiles } from '../../utils/get-file-types';
 import { mergeLogFiles, processLogFiles } from '../processor';
+import { createLogger } from '../log';
 
-const d = debug('sleuth:app-core');
+const log = createLogger('AppCore');
+const d = log.debug;
 
 const MERGE_CANDIDATES = [
   { key: 'browser', type: LogType.BROWSER },
@@ -202,7 +203,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
         } else {
           const type = LOG_TYPES_TO_PROCESS[i];
           const reason = r.reason;
-          console.error(`Failed to process ${type} log files:`, reason);
+          log.error(`Failed to process ${type} log files:`, reason);
           d(`Failed to process ${type} log files:`, reason);
           failedTypes.push(type);
         }
@@ -242,7 +243,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
             setMergedFile(result.value);
           } else {
             const type = toProcess[i].key;
-            console.error(`Failed to merge ${type} log files:`, result.reason);
+            log.error(`Failed to merge ${type} log files:`, result.reason);
             failedMergeTypes.push(type);
           }
         }
@@ -345,7 +346,7 @@ export const CoreApplication = observer((props: CoreAppProps) => {
         rehydrateBookmarks(props.state);
         flushLogPerformance();
       } catch (error) {
-        console.error('Failed to process log files:', error);
+        log.error('Failed to process log files:', error);
         window.Sleuth.showMessageBox({
           title: 'Error Processing Logs',
           message: `Failed to process log files: ${

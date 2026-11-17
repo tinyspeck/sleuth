@@ -2,12 +2,12 @@ import { app, dialog, shell } from 'electron';
 import fs from 'fs-extra';
 import path from 'path';
 import { formatDistanceToNow } from 'date-fns';
-import debug from 'debug';
 import yauzl, { Entry, ZipFile } from 'yauzl';
 
 import { Suggestion } from '../../interfaces';
+import { createLogger } from '../log';
 
-const d = debug('sleuth:suggestions');
+const d = createLogger('Suggestions').debug;
 
 export async function getItemsInSuggestionFolders(): Promise<Suggestion[]> {
   const suggestionsArr: Suggestion[] = [];
@@ -204,9 +204,9 @@ async function getSuggestions(
   input: Array<string>,
 ): Promise<Array<Suggestion>> {
   const suggestions: Array<Suggestion> = [];
+  d(`Checking ${input.length} files for suggestions`);
 
   for (const file of input) {
-    d(`Checking ${file}`);
     // If the file is from #alerts-desktop-logs, the server will
     // have named it, not the desktop app itself.
     // It'll look like T8KJ1FXTL_U8KCVGGLR_1580765146766674.zip

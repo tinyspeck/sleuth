@@ -7,7 +7,6 @@ import {
   makeObservable,
   runInAction,
 } from 'mobx';
-import debug from 'debug';
 
 import { testDateTimeFormat } from '../../utils/test-date-time';
 import { SortDirection, SortDirectionType } from 'react-virtualized';
@@ -44,8 +43,10 @@ import { ColorTheme } from '../components/preferences/preferences';
 import { StateTableState } from '../components/state-table';
 import { Editor, EDITORS } from '../components/preferences/preferences-utils';
 import { AiStore } from './ai-store';
+import { createLogger } from '../log';
 
-const d = debug('sleuth:state');
+const log = createLogger('State');
+const d = log.debug;
 
 const DEFAULT_LOG_TYPE_FILTER: LogTypeFilter = Object.fromEntries(
   LOG_TYPES_TO_PROCESS.map((t) => [t, true]),
@@ -252,7 +253,7 @@ export class SleuthState {
         this.isAiInstalled = installed;
       }),
       (err) => {
-        console.warn('AI installation check failed:', err);
+        log.warn('AI installation check failed:', err);
       },
     );
   }
@@ -314,7 +315,7 @@ export class SleuthState {
           this.hasCheckedAiAvailability = true;
         }),
         action((err) => {
-          console.warn('AI availability check failed:', err);
+          log.warn('AI availability check failed:', err);
           this.hasCheckedAiAvailability = true;
         }),
       );

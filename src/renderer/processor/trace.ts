@@ -1,5 +1,3 @@
-import debug from 'debug';
-
 import type { UnzippedFile } from '../../interfaces';
 import type {
   ChromiumTrace,
@@ -10,8 +8,11 @@ import type {
   RendererThread,
   TraceThread,
 } from './interfaces';
+import { createLogger } from '../log';
 
-const d = debug('sleuth:trace-processor');
+const log = createLogger('TraceProcessor');
+const d = log.debug;
+
 export interface TraceThreadDescription extends TraceThread {
   type: 'browser' | 'renderer';
   processId: number;

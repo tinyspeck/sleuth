@@ -3,6 +3,9 @@ import * as path from 'path';
 import fs from 'fs-extra';
 
 import { ICON_NAMES } from '../shared-constants';
+import { createLogger } from './log';
+
+const log = createLogger('AppIcon');
 
 export function getIconPath(iconName: ICON_NAMES): string | undefined {
   const icon = `${iconName}.${getExtension()}`;
@@ -10,7 +13,7 @@ export function getIconPath(iconName: ICON_NAMES): string | undefined {
 
   // Protect against missing icon
   if (!fs.existsSync(iconPath)) {
-    console.error(`Could not find icon in path ${iconPath}`);
+    log.error(`Could not find icon in path ${iconPath}`);
     return undefined;
   }
 
@@ -32,7 +35,7 @@ function changeIconDarwin(iconName: ICON_NAMES) {
   const iconPath = getIconPath(iconName);
 
   if (iconPath) {
-    console.log(`Setting icon to ${iconPath}`);
+    log.info(`Setting icon to ${iconPath}`);
     app.dock?.setIcon(iconPath);
   }
 

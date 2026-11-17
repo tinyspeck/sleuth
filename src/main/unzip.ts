@@ -1,4 +1,3 @@
-import debug from 'debug';
 import fs from 'fs-extra';
 import tmp from 'tmp';
 import yauzl, { Entry, ZipFile, ZipFileOptions } from 'yauzl';
@@ -10,8 +9,9 @@ import { promisify } from 'node:util';
 
 import { shouldIgnoreFile } from '../utils/should-ignore-file';
 import { UnzippedFile } from '../interfaces';
+import { createLogger } from './log';
 
-const d = debug('sleuth:unzip');
+const d = createLogger('Unzip').debug;
 
 export interface UnzipLimits {
   // Maximum number of bytes extracted for a single entry

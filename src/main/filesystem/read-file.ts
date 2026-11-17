@@ -17,11 +17,11 @@ import {
   extractVersionField,
   WebappBuild,
 } from '../../utils/webapp-build';
-import debug from 'debug';
 import { StateTableState } from '../../renderer/components/state-table';
 import { TZDate } from '@date-fns/tz';
+import { createLogger } from '../log';
 
-const d = debug('sleuth:read-file');
+const d = createLogger('ReadFile').debug;
 
 const MAX_TO_PARSE = 100_000; // 100 KB cap on multi-line meta accumulation
 

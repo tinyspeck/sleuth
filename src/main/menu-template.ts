@@ -9,6 +9,7 @@ function asBrowserWindow(win: BaseWindow | undefined): BrowserWindow | null {
 export interface MenuTemplateOptions {
   pruneItems: Array<Electron.MenuItemConstructorOptions>;
   openItems: Array<Electron.MenuItemConstructorOptions>;
+  sleuthItems: Array<Electron.MenuItemConstructorOptions>;
 }
 
 export function getMenuTemplate(options: MenuTemplateOptions) {
@@ -141,6 +142,8 @@ export function getMenuTemplate(options: MenuTemplateOptions) {
             win?.webContents.send(IpcEvents.OPEN_SENTRY);
           },
         },
+        { type: 'separator' },
+        ...options.sleuthItems,
         { type: 'separator' },
         ...options.pruneItems,
       ],

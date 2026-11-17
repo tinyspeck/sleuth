@@ -1,5 +1,8 @@
 import { app } from 'electron';
 import { URL } from 'url';
+import { createLogger } from './log';
+
+const log = createLogger('Security');
 
 /**
  * Attempts to secure the app by disallowing things we do
@@ -18,8 +21,8 @@ export function secureApp() {
       const isFile = parsedUrl.protocol === 'file:';
 
       if (!isSlack && !isOkta && !isFile) {
-        console.warn(`Prevented navigation to ${url}`);
-        console.log(`Hostname: ${parsedUrl.hostname}`);
+        log.warn(`Prevented navigation to ${url}`);
+        log.info(`Hostname: ${parsedUrl.hostname}`);
         event.preventDefault();
       }
     });

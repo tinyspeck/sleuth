@@ -19,7 +19,6 @@ import {
   SortDirection,
   SortDirectionType,
 } from 'react-virtualized';
-import debug from 'debug';
 
 import {
   LevelFilter,
@@ -43,8 +42,10 @@ import { observer } from 'mobx-react';
 import { getCopyText } from '../state/copy';
 import { PartitionOutlined } from '@ant-design/icons';
 import { buildForMoment, mergeWebappBuilds } from '../../utils/webapp-build';
+import { createLogger } from '../log';
 
-const d = debug('sleuth:logtable');
+const log = createLogger('LogTable');
+const d = log.debug;
 
 const MSG_ICON_STYLE = {
   flexShrink: 0,

@@ -12,10 +12,11 @@ import { isProcessedLogFile } from '../../utils/is-logfile';
 import { plural } from '../../utils/pluralize';
 import { SleuthState } from './sleuth';
 
-import debug from 'debug';
 import lzString from 'lz-string';
+import { createLogger } from '../log';
 
-const d = debug('sleuth:bookmarks');
+const log = createLogger('Bookmarks');
+const d = log.debug;
 
 /**
  * Go to the given bookmark
@@ -167,7 +168,7 @@ export function saveBookmarks(state: SleuthState) {
   const { source } = state;
 
   if (!source) {
-    console.warn(`Tried to save bookmarks, but no "source" available`);
+    log.warn(`Tried to save bookmarks, but no "source" available`);
     return;
   }
 
@@ -186,19 +187,19 @@ export function rehydrateBookmarks(state: SleuthState) {
   const { source, serializedBookmarks } = state;
 
   if (!source) {
-    console.warn(`Tried to rehydrate bookmarks, but no "source" available`);
+    log.warn(`Tried to rehydrate bookmarks, but no "source" available`);
     return;
   }
 
   if (!serializedBookmarks) {
-    console.warn(
+    log.warn(
       `Tried to rehydrate bookmarks, but no "serializedBookmarks" available`,
     );
     return;
   }
 
   if (Object.keys(serializedBookmarks).length === 0) {
-    console.log(
+    log.info(
       `Tried to rehydrate bookmarks, but "serializedBookmarks" is empty`,
     );
     return;
@@ -354,11 +355,7 @@ export function exportBookmarks(state: SleuthState) {
   const compressed = lzString.compressToEncodedURIComponent(data);
   const link = `sleuth://bookmarks?data=${compressed}`;
 
-  console.group(`Exporting bookmarks`);
-  console.log(`Serialized`, serialized);
-  console.log(`Data`, data);
-  console.log(`Link`, link);
-  console.groupEnd();
+  log.info(`Exporting bookmarks`, { serialized, data, link });
 
   window.Sleuth.clipboard.writeText(link);
   alert(`A link containing the bookmarks has been written to your clipboard.`);

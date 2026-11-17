@@ -6,6 +6,7 @@ import { ICON_NAMES } from '../shared-constants';
 import {
   LiveTailUpdatePayload,
   LogLineContextMenuActions,
+  LogLevel,
   LogType,
   Suggestion,
   UnzippedFile,
@@ -50,6 +51,8 @@ export const SleuthAPI = {
     ipcRenderer.invoke(IpcEvents.GET_PATH, path),
   getUserAgent: (): Promise<string> =>
     ipcRenderer.invoke(IpcEvents.GET_USER_AGENT),
+  log: (level: LogLevel, tag: string, message: string) =>
+    ipcRenderer.send(IpcEvents.LOG, level, tag, message),
   readLogFile: (
     logFile: UnzippedFile,
     logType: LogType,

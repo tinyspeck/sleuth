@@ -1,3 +1,7 @@
+import { createLogger } from './log';
+
+const log = createLogger('Settings');
+
 // List of settings we don't want in main
 const SETTING_DENY_LIST = ['serializedBookmarks'];
 
@@ -8,7 +12,7 @@ export async function setSetting(key: string, value: unknown) {
   try {
     await window.Sleuth.setSetting(key, value);
   } catch (error) {
-    console.error(`Failed to set key ${key} in main`, {
+    log.error(`Failed to set key ${key} in main`, {
       error,
       value,
     });

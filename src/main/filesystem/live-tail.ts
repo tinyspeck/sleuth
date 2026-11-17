@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'readline';
-import debug from 'debug';
 
 import {
   KnownLogType,
@@ -17,8 +16,9 @@ import { shouldIgnoreFile } from '../../utils/should-ignore-file';
 import { getTypeForFile } from '../../utils/get-file-types';
 import { getMatchFunction, readLogFile } from './read-file';
 import { LineParser } from './line-parser';
+import { createLogger } from '../log';
 
-const d = debug('sleuth:live-tail');
+const d = createLogger('LiveTail').debug;
 
 const FLUSH_DEBOUNCE_MS = 200;
 
